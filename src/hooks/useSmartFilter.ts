@@ -1,20 +1,9 @@
 "use client";
 
-import { useNextFilter } from "./useNextFilter";
+import { useNextFilter, type NextFilterConfig } from "./useNextFilter";
 
-interface SmartFilterOptions {
-  defaultDebounce?: number;
-  defaultMethod?: "push" | "replace";
-  paginationKey?: string;
-}
-
-export function useSmartFilter<TValue extends string | number | boolean = string>(
-  options: SmartFilterOptions = {},
+export function useSmartFilter<T extends string = string>(
+  config: NextFilterConfig = {},
 ) {
-  const filter = useNextFilter(options);
-
-  return {
-    ...filter,
-    getFilter: (key: string) => filter.getFilter(key) as TValue,
-  };
+  return useNextFilter<T>(config);
 }
