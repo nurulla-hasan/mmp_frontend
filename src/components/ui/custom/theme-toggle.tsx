@@ -20,7 +20,7 @@ interface ThemeToggleProps {
 
 export function ThemeToggle({ 
   variant = "ghost", 
-  size = "icon-sm",
+  size = "icon",
   className 
 }: ThemeToggleProps) {
   const { setTheme } = useTheme()

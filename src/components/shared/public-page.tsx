@@ -25,7 +25,7 @@ export function PublicPage({ title, description, eyebrow, cards = [], primaryAct
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
         <p className="mt-4 text-base leading-7 text-muted-foreground">{description}</p>
         {primaryAction && (
-          <Button className="mt-6" render={<Link href={primaryAction.href} />}>
+          <Button className="mt-6" nativeButton={false} render={<Link href={primaryAction.href} />}>
             {primaryAction.title}
           </Button>
         )}
@@ -33,7 +33,7 @@ export function PublicPage({ title, description, eyebrow, cards = [], primaryAct
       {children}
       {cards.length > 0 && (
         <section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map((card) => <RouteCard key={card.href} {...card} />)}
+          {cards.map((card, index) => <RouteCard key={`${card.href}-${card.title}-${index}`} {...card} />)}
         </section>
       )}
     </main>

@@ -19,8 +19,8 @@ export default function HomePage() {
             <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">Tools and trusted surveyor connections for Bangladesh.</h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">Mouza Map Pro brings land calculations, service guidance, surveyor discovery, quotations, and job tracking into one focused platform.</p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Button size="lg" render={<Link href="/surveyors" />}>Find a Surveyor</Button>
-              <Button size="lg" variant="outline" render={<Link href="/tools" />}>Explore Land Tools</Button>
+              <Button size="lg" nativeButton={false} render={<Link href="/surveyors" />}>Find a Surveyor</Button>
+              <Button size="lg" variant="outline" nativeButton={false} render={<Link href="/tools" />}>Explore Land Tools</Button>
             </div>
           </div>
           <div className="grid gap-3 rounded-2xl border bg-card p-5 sm:grid-cols-2 lg:grid-cols-1">

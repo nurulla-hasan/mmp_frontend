@@ -27,8 +27,8 @@ export function PublicHeader() {
         </nav>
         <div className="ml-auto flex items-center gap-2 lg:ml-4">
           <ThemeToggle />
-          <Button variant="ghost" render={<Link href="/login" />}>Login</Button>
-          <Button className="hidden sm:inline-flex" render={<Link href="/surveyors" />}>Find a Surveyor</Button>
+          <Button variant="ghost" nativeButton={false} render={<Link href="/login" />}>Login</Button>
+          <Button className="hidden sm:inline-flex" nativeButton={false} render={<Link href="/surveyors" />}>Find a Surveyor</Button>
           <details className="relative lg:hidden">
             <summary className="cursor-pointer list-none rounded-md border px-3 py-1.5 text-sm">Menu</summary>
             <nav className="absolute right-0 mt-2 grid w-56 gap-1 rounded-xl border bg-popover p-2 shadow-md" aria-label="Mobile navigation">
