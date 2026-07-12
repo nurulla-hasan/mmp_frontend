@@ -1,2 +1,0 @@
-import { DashboardPage } from "@/components/shared/dashboard-page";
-export default function Page() { return <DashboardPage title="Create Service Guide" description="Prepare educational content without presenting legal advice." cards={[{ label: "Guide editor", description: "Title, summary, steps, and official links will be added later." },{ label: "All guides", href: "/admin/guides", description: "Return to guide management." }]} />; }

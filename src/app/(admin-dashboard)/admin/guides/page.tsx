@@ -1,2 +1,0 @@
-import { DashboardPage } from "@/components/shared/dashboard-page";
-export default function Page() { return <DashboardPage title="Service Guides" description="Manage educational land-service guidance." cards={[{ label: "Published guides", value: "0", description: "Guide records will appear here." },{ label: "Create guide", href: "/admin/guides/create", description: "Prepare a new guide placeholder." }]} />; }

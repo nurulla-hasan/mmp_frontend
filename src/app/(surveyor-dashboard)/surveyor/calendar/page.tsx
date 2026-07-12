@@ -1,2 +1,0 @@
-import { DashboardPage } from "@/components/shared/dashboard-page";
-export default function Page() { return <DashboardPage title="Availability Calendar" description="Manage availability and upcoming client visits." cards={[{ label: "Upcoming visits", value: "0", description: "Scheduled appointments will appear here." },{ label: "Availability", description: "Weekly availability controls will be added later." }]} />; }

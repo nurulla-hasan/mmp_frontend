@@ -1,2 +1,0 @@
-import { DashboardPage } from "@/components/shared/dashboard-page";
-export default function Page() { return <DashboardPage title="Community Questions" description="Review and moderate community discussions." cards={[{ label: "Open questions", value: "0", description: "Question records will appear here." },{ label: "Public community", href: "/community", description: "Preview the public Q&A area." }]} />; }
