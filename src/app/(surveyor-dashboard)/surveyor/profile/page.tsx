@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Public Profile" description="Manage how clients discover your professional surveyor profile." cards={[{ label: "Profile status", value: "Draft", description: "Services, experience, and equipment will appear here." },{ label: "Public listing", href: "/surveyors/sample-surveyor", description: "Preview a public surveyor profile." }]} />; }

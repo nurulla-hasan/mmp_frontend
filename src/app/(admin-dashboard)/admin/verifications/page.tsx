@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Verification Requests" description="Review identity and professional document submissions." cards={[{ label: "Pending requests", value: "0", description: "Verification submissions will appear here." },{ label: "Review policy", description: "Approval levels and audit details will be connected later." }]} />; }

@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Users" description="Review general user accounts and platform activity." cards={[{ label: "Registered users", value: "0", description: "User records will appear here." },{ label: "Account status", description: "Block and status controls will be connected later." }]} />; }

@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Service Areas" description="Define districts, upazilas, unions, and mouzas where you work." cards={[{ label: "Coverage areas", value: "0", description: "Configured working areas will appear here." },{ label: "Public profile", href: "/surveyor/profile", description: "Coverage will support profile discovery." }]} />; }

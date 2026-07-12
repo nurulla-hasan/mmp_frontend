@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Survey Reports" description="Create and manage structured digital survey reports." cards={[{ label: "Draft reports", value: "0", description: "Reports in progress will appear here." },{ label: "Create report", href: "/surveyor/reports/create", description: "Start a structured report placeholder." }]} />; }

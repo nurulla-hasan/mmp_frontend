@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Available Requests" description="Review land-service requirements matching your service area." cards={[{ label: "Matching requests", value: "0", description: "Location-based opportunities will appear here." },{ label: "Sent quotations", href: "/surveyor/quotations", description: "Track responses to client requirements." }]} />; }

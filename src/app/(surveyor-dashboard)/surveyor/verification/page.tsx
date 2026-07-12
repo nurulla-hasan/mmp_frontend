@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Verification" description="Submit identity and professional documents for platform review." cards={[{ label: "Identity review", value: "Not submitted", description: "NID and phone verification status will appear here." },{ label: "Professional review", value: "Not submitted", description: "Training and experience evidence will appear here." }]} />; }

@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Settings" description="Manage platform configuration placeholders." cards={[{ label: "General settings", description: "Brand and contact settings will appear here." },{ label: "Trust and safety", description: "Verification and moderation settings will appear here." }]} />; }

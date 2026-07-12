@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Community" description="Oversee questions, answers, experts, and moderation." cards={[{ label: "Questions", value: "0", href: "/admin/community/questions", description: "Review community questions." },{ label: "Reported content", value: "0", description: "Moderation reports will appear here." }]} />; }

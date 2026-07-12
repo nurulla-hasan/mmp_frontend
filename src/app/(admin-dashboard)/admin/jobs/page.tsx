@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Jobs" description="Monitor booking and job workflow across the platform." cards={[{ label: "Active jobs", value: "0", description: "In-progress jobs will appear here." },{ label: "Completed jobs", value: "0", description: "Completed workflow history will appear here." }]} />; }

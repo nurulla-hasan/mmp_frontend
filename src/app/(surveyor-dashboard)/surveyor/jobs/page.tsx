@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Active Jobs" description="Track visits, measurements, reports, and completion status." cards={[{ label: "In progress", value: "0", description: "Selected service jobs will appear here." },{ label: "Create report", href: "/surveyor/reports/create", description: "Prepare a structured survey report." }]} />; }

@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Surveyors" description="Review professional profiles, verification, and service activity." cards={[{ label: "Registered surveyors", value: "0", description: "Surveyor accounts will appear here." },{ label: "Pending verification", href: "/admin/verifications", description: "Review submitted professional evidence." }]} />; }

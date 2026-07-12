@@ -1,0 +1,51 @@
+import Link from "next/link";
+
+import DashboardPageHeader from "@/components/ui/custom/dashboard-page-header";
+import { ArrowRight } from "lucide-react";
+
+interface DashboardCard {
+  label: string;
+  value?: string;
+  href?: string;
+  description?: string;
+}
+
+interface DashboardPageProps {
+  title: string;
+  description: string;
+  cards?: DashboardCard[];
+  showBack?: boolean;
+}
+
+export function DashboardPage({ title, description, cards = [], showBack }: DashboardPageProps) {
+  return (
+    <div className="space-y-6">
+      <DashboardPageHeader title={title} description={description} showBack={showBack} />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map((card) => {
+          const content = (
+            <>
+              <p className="text-sm text-muted-foreground">{card.label}</p>
+              {card.value && <p className="mt-2 text-2xl font-semibold">{card.value}</p>}
+              {card.description && <p className="mt-2 text-sm leading-6 text-muted-foreground">{card.description}</p>}
+              {card.href && <ArrowRight className="mt-4 size-4 text-muted-foreground" aria-hidden="true" />}
+            </>
+          );
+          return card.href ? (
+            <Link key={card.label} href={card.href} className="rounded-xl border bg-card p-5 transition-colors hover:bg-accent/50">
+              {content}
+            </Link>
+          ) : (
+            <div key={card.label} className="rounded-xl border bg-card p-5">{content}</div>
+          );
+        })}
+      </div>
+      {cards.length === 0 && (
+        <div className="rounded-xl border border-dashed bg-card p-8 text-center">
+          <p className="font-medium">Workspace ready</p>
+          <p className="mt-2 text-sm text-muted-foreground">Feature content and backend data will be connected in a later phase.</p>
+        </div>
+      )}
+    </div>
+  );
+}

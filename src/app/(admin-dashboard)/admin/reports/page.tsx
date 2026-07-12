@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Survey Reports" description="Review report records and moderation status." cards={[{ label: "Submitted reports", value: "0", description: "Surveyor report records will appear here." },{ label: "Flagged reports", value: "0", description: "Items requiring review will appear here." }]} />; }

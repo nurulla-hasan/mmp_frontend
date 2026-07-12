@@ -1,0 +1,3 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Service Requests" description="Track requirements, quotations, and service progress." cards={[{ label: "Open requests", value: "0", description: "Active service requests will appear here." },
+        { label: "Post request", href: "/dashboard/service-requests/new", description: "Prepare a new land-service requirement." }]} />; }

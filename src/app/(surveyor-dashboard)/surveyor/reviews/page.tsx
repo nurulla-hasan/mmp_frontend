@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Reviews" description="Review verified feedback from completed client jobs." cards={[{ label: "Average rating", value: "", description: "Verified-job ratings will appear here." },{ label: "Completed jobs", href: "/surveyor/jobs", description: "Review jobs eligible for feedback." }]} />; }

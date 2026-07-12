@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Create Survey Report" description="Prepare measurement, boundary, map, and client report details." cards={[{ label: "Report form", description: "Structured fields and PDF generation will be implemented later." },{ label: "All reports", href: "/surveyor/reports", description: "Return to report records." }]} />; }

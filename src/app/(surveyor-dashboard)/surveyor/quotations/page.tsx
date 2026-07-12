@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Quotations" description="Prepare and track transparent client quotations." cards={[{ label: "Draft quotations", value: "0", description: "Unsent quotations will appear here." },{ label: "Awaiting response", value: "0", description: "Submitted quotations will appear here." }]} />; }

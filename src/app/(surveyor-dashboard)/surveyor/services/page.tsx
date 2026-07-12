@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Services" description="Manage the land-surveying services offered to clients." cards={[{ label: "Active services", value: "0", description: "Published service offerings will appear here." },{ label: "Service catalogue", href: "/services", description: "Review public service categories." }]} />; }

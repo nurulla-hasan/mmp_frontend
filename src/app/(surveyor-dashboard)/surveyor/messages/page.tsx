@@ -1,0 +1,2 @@
+import { DashboardPage } from "@/components/shared/dashboard-page";
+export default function Page() { return <DashboardPage title="Messages" description="Keep client conversations connected to requests and jobs." cards={[{ label: "Unread messages", value: "0", description: "New client messages will appear here." },{ label: "Active jobs", href: "/surveyor/jobs", description: "Open related job workspaces." }]} />; }
