@@ -1,2 +1,0 @@
-import { DashboardPage } from "@/components/shared/dashboard-page";
-export default function Page() { return <DashboardPage title="Earnings" description="Review service earnings and payout placeholders." cards={[{ label: "Current period", value: "", description: "Earnings summaries will appear here." },{ label: "Completed jobs", value: "0", description: "Completed paid work will appear here." }]} />; }

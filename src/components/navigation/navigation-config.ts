@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  BadgeCheck, Banknote, BriefcaseBusiness, CalendarDays, Calculator, CircleUserRound,
+  BadgeCheck, BriefcaseBusiness, CalendarDays, Calculator, CircleUserRound,
   ClipboardList, FileCheck2, FileText, HandCoins, House, Map, MapPin, MessageSquare,
   NotebookTabs, Settings, ShieldCheck, Star, Users, Wrench,
 } from "lucide-react";
@@ -40,7 +40,6 @@ export const surveyorNavigation: NavigationItem[] = [
   { title: "Messages", href: "/surveyor/messages", icon: MessageSquare },
   { title: "Survey Reports", href: "/surveyor/reports", icon: FileCheck2 },
   { title: "Reviews", href: "/surveyor/reviews", icon: Star },
-  { title: "Earnings", href: "/surveyor/earnings", icon: Banknote },
 ];
 
 export const adminNavigation: NavigationItem[] = [
