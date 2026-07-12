@@ -2,15 +2,19 @@
 
 import {
   BadgeCheck,
-  BriefcaseBusiness,
   Calculator,
   CircleUserRound,
   ClipboardList,
+  CreditCard,
   HandCoins,
   House,
   MapPin,
+  Megaphone,
   MessageSquare,
+  MonitorSmartphone,
   ShieldCheck,
+  Tags,
+  UserRoundCheck,
   Users,
   Wrench,
 } from "lucide-react";
@@ -29,7 +33,7 @@ export const userNavigation: NavigationItem[] = [
     icon: House,
   },
   {
-    title: "Saved Calculations",
+    title: "My Calculations",
     href: "/dashboard/calculations",
     icon: Calculator,
   },
@@ -62,6 +66,11 @@ export const surveyorNavigation: NavigationItem[] = [
     icon: House,
   },
   {
+    title: "My Calculations",
+    href: "/surveyor/calculations",
+    icon: Calculator,
+  },
+  {
     title: "Public Profile",
     href: "/surveyor/profile",
     icon: CircleUserRound,
@@ -92,11 +101,6 @@ export const surveyorNavigation: NavigationItem[] = [
     icon: HandCoins,
   },
   {
-    title: "Active Jobs",
-    href: "/surveyor/jobs",
-    icon: BriefcaseBusiness,
-  },
-  {
     title: "Messages",
     href: "/surveyor/messages",
     icon: MessageSquare,
@@ -110,14 +114,39 @@ export const adminNavigation: NavigationItem[] = [
     icon: House,
   },
   {
+    title: "Subscribers",
+    href: "/admin/subscribers",
+    icon: UserRoundCheck,
+  },
+  {
+    title: "Plans",
+    href: "/admin/plans",
+    icon: Tags,
+  },
+  {
+    title: "Device Management",
+    href: "/admin/device-locks",
+    icon: MonitorSmartphone,
+  },
+  {
+    title: "Calculations",
+    href: "/admin/calculations",
+    icon: Calculator,
+  },
+  {
+    title: "Payments",
+    href: "/admin/payments",
+    icon: CreditCard,
+  },
+  {
+    title: "Broadcast",
+    href: "/admin/broadcast",
+    icon: Megaphone,
+  },
+  {
     title: "Users",
     href: "/admin/users",
     icon: Users,
-  },
-  {
-    title: "Surveyors",
-    href: "/admin/surveyors",
-    icon: MapPin,
   },
   {
     title: "Verification Requests",
@@ -128,11 +157,6 @@ export const adminNavigation: NavigationItem[] = [
     title: "Service Categories",
     href: "/admin/service-categories",
     icon: Wrench,
-  },
-  {
-    title: "Jobs",
-    href: "/admin/jobs",
-    icon: BriefcaseBusiness,
   },
 ];
 
