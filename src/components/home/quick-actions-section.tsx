@@ -1,4 +1,4 @@
-import { Calculator, ClipboardCheck, Compass, PencilRuler, Search } from "lucide-react";
+import { ArrowRight, Calculator, ClipboardCheck, Compass, PencilRuler } from "lucide-react";
 import Link from "next/link";
 
 import { SectionWrapper } from "@/components/shared/section-wrapper";
@@ -27,7 +27,7 @@ const actions = [
     icon: Calculator,
     title: "সার্ভেয়ার হিসেবে যোগ দিন",
     description: "Professional profile তৈরি করে নতুন client-এর সঙ্গে যুক্ত হন।",
-    href: "/register/surveyor",
+    href: "/join-as-surveyor",
   },
 ];
 
@@ -59,7 +59,7 @@ export function QuickActionsSection() {
                     {card.description}
                   </p>
                   <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary">
-                    শুরু করুন <Search className="size-3" />
+                    শুরু করুন <ArrowRight className="size-3" />
                   </span>
                 </CardContent>
               </Card>

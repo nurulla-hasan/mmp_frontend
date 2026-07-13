@@ -95,7 +95,6 @@ export function HeroSection() {
                 </div>
                 <div className="flex items-end">
                   <Button
-                    size="lg"
                     className="w-full sm:w-auto"
                     nativeButton={false}
                     render={<Link href="/surveyors" />}
@@ -129,7 +128,7 @@ export function HeroSection() {
             </div>
             <div className="mt-3">
               <Link
-                href="/register/surveyor"
+                href="/join-as-surveyor"
                 className="text-sm text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
               >
                 সার্ভেয়ার হিসেবে যোগ দিন &rarr;
@@ -167,10 +166,19 @@ export function HeroSection() {
                     <span>মোট ৪২.৭৫ শতাংশ</span>
                   </div>
                   {/* Mini plot visualization */}
-                  <div className="mt-3 flex gap-1">
-                    <div className="h-8 w-full rounded border-2 border-primary/20 bg-primary/5" />
-                    <div className="h-8 w-full rounded border-2 border-primary/30 bg-primary/10" />
-                    <div className="h-8 w-full rounded border-2 border-primary/20 bg-primary/5" />
+                  <div className="mt-3 flex items-end gap-1">
+                    <div className="flex h-10 w-full flex-col items-center justify-end rounded border-2 border-primary/20 bg-primary/5 pb-1">
+                      <span className="text-[8px] font-medium text-primary/60">প্লট ১</span>
+                      <div className="mt-0.5 h-5 w-[70%] rounded border border-primary/15 bg-primary/10" />
+                    </div>
+                    <div className="flex h-12 w-full flex-col items-center justify-end rounded border-2 border-primary/30 bg-primary/10 pb-1">
+                      <span className="text-[8px] font-medium text-primary/70">প্লট ২</span>
+                      <div className="mt-0.5 h-7 w-[85%] rounded border border-primary/20 bg-primary/15" />
+                    </div>
+                    <div className="flex h-9 w-full flex-col items-center justify-end rounded border-2 border-primary/20 bg-primary/5 pb-1">
+                      <span className="text-[8px] font-medium text-primary/60">প্লট ৩</span>
+                      <div className="mt-0.5 h-4 w-[60%] rounded border border-primary/15 bg-primary/10" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -186,7 +194,7 @@ export function HeroSection() {
                       </div>
                       <div>
                         <div className="flex items-center gap-1">
-                          <p className="text-xs font-medium">মো. আব্দুল করিম</p>
+                          <p className="text-xs font-medium">মো. মোশাররফ হোসেন</p>
                           <BadgeCheck className="size-3 text-primary" />
                         </div>
                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground">

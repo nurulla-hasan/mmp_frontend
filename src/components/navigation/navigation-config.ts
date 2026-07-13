@@ -1,5 +1,4 @@
 import {
-  BadgeCheck,
   Calculator,
   CircleUserRound,
   ClipboardList,
@@ -75,11 +74,6 @@ export const surveyorNavigation: NavigationItem[] = [
     icon: CircleUserRound,
   },
 
-  {
-    title: "Verification",
-    href: "/surveyor/verification",
-    icon: BadgeCheck,
-  },
   {
     title: "Available Requests",
     href: "/surveyor/requests",

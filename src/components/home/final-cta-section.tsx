@@ -57,7 +57,7 @@ export function FinalCtaSection() {
               size="lg"
               variant="outline"
               nativeButton={false}
-              render={<Link href="/register/surveyor" />}
+              render={<Link href="/join-as-surveyor" />}
             >
               Surveyor হিসেবে যোগ দিন
               <ArrowRight className="size-4" />

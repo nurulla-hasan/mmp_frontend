@@ -85,7 +85,7 @@ export function RoleBenefitsSection() {
               className="mt-6 w-full"
               variant="outline"
               nativeButton={false}
-              render={<Link href="/register/surveyor" />}
+              render={<Link href="/join-as-surveyor" />}
             >
               সার্ভেয়ার হিসেবে যোগ দিন
             </Button>
