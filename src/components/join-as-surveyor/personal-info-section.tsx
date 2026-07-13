@@ -250,17 +250,132 @@ export function PersonalInfoSection() {
         />
 
         <Controller
-          name="nid"
+          name="nidFront"
           control={control}
-          render={({ field, fieldState }) => (
+          render={({ field: { value, onChange, ...field }, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>NID নম্বর</FieldLabel>
-              <Input
-                {...field}
-                id={field.name}
-                aria-invalid={fieldState.invalid}
-                placeholder="১০, ১৩ বা ১৭ সংখ্যার NID"
-              />
+              <FieldLabel htmlFor={field.name}>
+                NID সামনের ছবি
+              </FieldLabel>
+              <div className="relative">
+                <label
+                  htmlFor={field.name}
+                  className="flex cursor-pointer items-center gap-4 rounded-lg border border-dashed px-4 py-4 transition-colors hover:bg-muted/50"
+                >
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted">
+                    {value ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5 text-primary"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5 text-muted-foreground"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-0.5 pr-8">
+                    {value ? (
+                      <>
+                        <span className="text-sm font-medium text-foreground line-clamp-1">{value.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          (পরিবর্তন করতে ক্লিক করুন)
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-sm font-medium text-foreground">ছবি আপলোড করুন</span>
+                        <span className="text-xs text-muted-foreground">
+                          ক্লিক করে ছবি নির্বাচন করুন
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <Input
+                    id={field.name}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    aria-invalid={fieldState.invalid}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) onChange(file);
+                    }}
+                  />
+                </label>
+                {value && (
+                  <button
+                    type="button"
+                    onClick={() => onChange(undefined)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-muted p-1.5 text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
+                    title="ছবি মুছুন"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  </button>
+                )}
+              </div>
+              {fieldState.invalid && (
+                <FieldError errors={[fieldState.error]} />
+              )}
+            </Field>
+          )}
+        />
+
+        <Controller
+          name="nidBack"
+          control={control}
+          render={({ field: { value, onChange, ...field }, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>
+                NID পিছনের ছবি
+              </FieldLabel>
+              <div className="relative">
+                <label
+                  htmlFor={field.name}
+                  className="flex cursor-pointer items-center gap-4 rounded-lg border border-dashed px-4 py-4 transition-colors hover:bg-muted/50"
+                >
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted">
+                    {value ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5 text-primary"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5 text-muted-foreground"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-0.5 pr-8">
+                    {value ? (
+                      <>
+                        <span className="text-sm font-medium text-foreground line-clamp-1">{value.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          (পরিবর্তন করতে ক্লিক করুন)
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-sm font-medium text-foreground">ছবি আপলোড করুন</span>
+                        <span className="text-xs text-muted-foreground">
+                          ক্লিক করে ছবি নির্বাচন করুন
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <Input
+                    id={field.name}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    aria-invalid={fieldState.invalid}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) onChange(file);
+                    }}
+                  />
+                </label>
+                {value && (
+                  <button
+                    type="button"
+                    onClick={() => onChange(undefined)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-muted p-1.5 text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
+                    title="ছবি মুছুন"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  </button>
+                )}
+              </div>
               {fieldState.invalid && (
                 <FieldError errors={[fieldState.error]} />
               )}

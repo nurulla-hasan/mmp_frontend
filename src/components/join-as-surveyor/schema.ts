@@ -41,9 +41,8 @@ export const formSchema = z.object({
     .int("পূর্ণ সংখ্যা দিন।")
     .min(0, "০ বা তার বেশি হতে হবে।")
     .max(50, "৫০ এর বেশি হতে পারবে না।"),
-  nid: z
-    .string()
-    .regex(/^\d{10}$|^\d{13}$|^\d{17}$/, "NID নম্বর ১০, ১৩ বা ১৭ সংখ্যার হতে হবে।"),
+  nidFront: z.instanceof(File, { message: "NID এর সামনের ছবি দিন।" }).optional(),
+  nidBack: z.instanceof(File, { message: "NID এর পিছনের ছবি দিন।" }).optional(),
   profileImage: z.instanceof(File).optional(),
   certificate: z.instanceof(File).optional(),
   services: z
