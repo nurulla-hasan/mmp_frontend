@@ -1,11 +1,14 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import type { FormEvent } from "react";
+import { Controller, useForm } from "react-hook-form";
+import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
   Field,
+  FieldError,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
@@ -13,11 +16,24 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
+const formSchema = z.object({
+  email: z.string().email("Please enter a valid email address."),
+});
+
 export default function Page() {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { email: "" },
+  });
+
+  function onSubmit(data: z.infer<typeof formSchema>) {
+    console.log(data);
+  }
+
   return (
     <form
       className="w-full max-w-md rounded-xl border bg-card p-6 sm:p-8"
-      onSubmit={(event: FormEvent<HTMLFormElement>) => event.preventDefault()}
+      onSubmit={form.handleSubmit(onSubmit)}
     >
       <FieldSet>
         <div>
@@ -28,16 +44,24 @@ export default function Page() {
         </div>
 
         <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="email">Email address</FieldLabel>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-            />
-          </Field>
+          <Controller
+            name="email"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Email address</FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  type="email"
+                  aria-invalid={fieldState.invalid}
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
           <Field>
             <Button type="submit" size="lg" className="w-full">

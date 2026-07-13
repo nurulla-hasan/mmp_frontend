@@ -1,11 +1,12 @@
 import Link from "next/link";
 
 import { Logo } from "@/components/shared/logo";
+import { SectionWrapper } from "@/components/shared/section-wrapper";
 
 export function PublicFooter() {
   return (
     <footer className="border-t bg-card">
-      <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
+      <SectionWrapper padding="sm" spacing={false} className="grid gap-8 md:grid-cols-3">
         <div>
           <Logo />
           <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">Land tools, verified surveyors, and a clearer digital land-service journey for Bangladesh.</p>
@@ -26,7 +27,7 @@ export function PublicFooter() {
             <Link href="/fraud-awareness">Fraud Awareness</Link>
           </div>
         </div>
-      </div>
+      </SectionWrapper>
       <div className="border-t py-4 text-center text-xs text-muted-foreground">Mouza Map Pro is not a government land-record service.</div>
     </footer>
   );

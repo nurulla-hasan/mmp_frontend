@@ -1,12 +1,14 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import type { FormEvent } from "react";
+import { Controller, useForm } from "react-hook-form";
+import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
   Field,
-  FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
@@ -14,11 +16,30 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
+const formSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters."),
+  email: z.string().email("Please enter a valid email address."),
+  password: z.string().min(8, "Password must be at least 8 characters."),
+});
+
 export default function Page() {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  function onSubmit(data: z.infer<typeof formSchema>) {
+    console.log(data);
+  }
+
   return (
     <form
       className="w-full max-w-md rounded-xl border bg-card p-6 sm:p-8"
-      onSubmit={(event: FormEvent<HTMLFormElement>) => event.preventDefault()}
+      onSubmit={form.handleSubmit(onSubmit)}
     >
       <FieldSet>
         <div>
@@ -29,40 +50,61 @@ export default function Page() {
         </div>
 
         <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="full-name">Full name</FieldLabel>
-            <Input
-              id="full-name"
-              name="name"
-              autoComplete="name"
-              placeholder="Enter your full name"
-            />
-          </Field>
+          <Controller
+            name="name"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Full name</FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  autoComplete="name"
+                  placeholder="Enter your full name"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-          <Field>
-            <FieldLabel htmlFor="email">Email address</FieldLabel>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-            />
-          </Field>
+          <Controller
+            name="email"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Email address</FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  type="email"
+                  aria-invalid={fieldState.invalid}
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-          <Field>
-            <FieldLabel htmlFor="password">Password</FieldLabel>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              placeholder="Enter your password"
-            />
-            <FieldDescription>
-              Use at least eight characters for this visual placeholder.
-            </FieldDescription>
-          </Field>
+          <Controller
+            name="password"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  type="password"
+                  aria-invalid={fieldState.invalid}
+                  autoComplete="new-password"
+                  placeholder="Enter your password"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
           <Field>
             <Button type="submit" size="lg" className="w-full">
@@ -87,9 +129,6 @@ export default function Page() {
           <Field orientation="horizontal" className="flex-wrap justify-between">
             <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
               Already have an account?
-            </Link>
-            <Link href="/register/surveyor" className="text-sm text-muted-foreground hover:text-foreground">
-              Register as surveyor
             </Link>
           </Field>
         </FieldGroup>

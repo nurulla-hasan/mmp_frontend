@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning className={cn("h-full antialiased font-sans", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}>
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-full flex-col max-w-480 mx-auto">
         <ThemeProvider>
           {children}
           <Toaster richColors />

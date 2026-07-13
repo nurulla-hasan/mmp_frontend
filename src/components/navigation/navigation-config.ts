@@ -1,5 +1,3 @@
-
-
 import {
   BadgeCheck,
   Calculator,
@@ -8,11 +6,11 @@ import {
   CreditCard,
   HandCoins,
   House,
-  MapPin,
   Megaphone,
   MessageSquare,
   MonitorSmartphone,
   ShieldCheck,
+  ShieldUser,
   Tags,
   UserRoundCheck,
   Users,
@@ -70,25 +68,17 @@ export const surveyorNavigation: NavigationItem[] = [
     href: "/surveyor/calculations",
     icon: Calculator,
   },
+
   {
-    title: "Public Profile",
+    title: "Professional Profile",
     href: "/surveyor/profile",
     icon: CircleUserRound,
   },
+
   {
     title: "Verification",
     href: "/surveyor/verification",
     icon: BadgeCheck,
-  },
-  {
-    title: "My Services",
-    href: "/surveyor/services",
-    icon: Wrench,
-  },
-  {
-    title: "Service Areas",
-    href: "/surveyor/service-areas",
-    icon: MapPin,
   },
   {
     title: "Available Requests",
@@ -112,6 +102,11 @@ export const adminNavigation: NavigationItem[] = [
     title: "Overview",
     href: "/admin/dashboard",
     icon: House,
+  },
+  {
+    title: "Users",
+    href: "/admin/users",
+    icon: Users,
   },
   {
     title: "Subscribers",
@@ -144,9 +139,9 @@ export const adminNavigation: NavigationItem[] = [
     icon: Megaphone,
   },
   {
-    title: "Users",
-    href: "/admin/users",
-    icon: Users,
+    title: "Admin Management",
+    href: "/admin/admins",
+    icon: ShieldUser,
   },
   {
     title: "Verification Requests",
@@ -159,5 +154,3 @@ export const adminNavigation: NavigationItem[] = [
     icon: Wrench,
   },
 ];
-
-

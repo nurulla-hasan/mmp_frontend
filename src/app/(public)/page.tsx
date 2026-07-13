@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { RouteCard } from "@/components/shared/route-card";
+import { SectionWrapper } from "@/components/shared/section-wrapper";
 import { Button } from "@/components/ui/button";
 
 const highlights = [
@@ -13,7 +14,7 @@ export default function HomePage() {
   return (
     <main>
       <section className="border-b">
-        <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.2fr_0.8fr] lg:px-8">
+        <SectionWrapper padding="lg" className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
           <div>
             <p className="text-sm font-medium text-primary">Land services, made clearer</p>
             <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">Tools and trusted surveyor connections for Bangladesh.</h1>
@@ -27,12 +28,12 @@ export default function HomePage() {
             <div className="rounded-xl bg-muted p-5"><p className="text-sm text-muted-foreground">Platform status</p><p className="mt-2 font-medium">Frontend foundation ready</p></div>
             <div className="rounded-xl bg-muted p-5"><p className="text-sm text-muted-foreground">Coming later</p><p className="mt-2 font-medium">Live listings, quotations, and reports</p></div>
           </div>
-        </div>
+        </SectionWrapper>
       </section>
-      <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <SectionWrapper asSection spacing={false} padding="sm">
         <h2 className="text-2xl font-semibold">Start with what you need</h2>
         <div className="mt-6 grid gap-4 md:grid-cols-3">{highlights.map((card) => <RouteCard key={card.href} {...card} />)}</div>
-      </section>
+      </SectionWrapper>
     </main>
   );
 }
