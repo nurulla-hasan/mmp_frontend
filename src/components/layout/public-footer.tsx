@@ -19,7 +19,6 @@ export function PublicFooter() {
             <h2 className="text-base font-semibold text-foreground">অন্বেষণ (Explore)</h2>
             <Link href="/tools" className="hover:text-primary transition-colors">ভূমি পরিমাপ টুলস</Link>
             <Link href="/surveyors" className="hover:text-primary transition-colors">সার্ভেয়ার খুঁজুন</Link>
-            <Link href="/service-guides" className="hover:text-primary transition-colors">সেবা নির্দেশিকা</Link>
           </div>
           
           <div className="flex flex-col gap-3 text-sm font-medium text-muted-foreground">
