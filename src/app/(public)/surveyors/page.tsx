@@ -15,12 +15,11 @@ const surveyors: TSurveyorCard[] = [
     id: "surveyor-001",
     slug: "md-abdul-karim",
     fullName: "মো. আব্দুল করিম",
-    headline: "জমি পরিমাপ ও সীমানা নির্ধারণ বিশেষজ্ঞ",
     isVerified: true,
+    isSubscribed: true,
     experienceYears: 8,
     rating: 4.8,
     totalReviews: 42,
-    completedRequests: 128,
     primaryLocation: {
       district: "দিনাজপুর",
       upazila: "দিনাজপুর সদর",
@@ -30,19 +29,17 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-003", slug: "boundary-identification", name: "সীমানা নির্ধারণ" },
       { id: "s-006", slug: "survey-report", name: "পরিমাপ রিপোর্ট" },
     ],
-    isSubscribed: true,
     startingPrice: 3500,
   },
   {
     id: "surveyor-002",
     slug: "rahim-uddin",
     fullName: "রহিম উদ্দিন",
-    headline: "ডিজিটাল সার্ভে ও ম্যাপিং বিশেষজ্ঞ",
     isVerified: true,
+    isSubscribed: true,
     experienceYears: 12,
     rating: 4.6,
     totalReviews: 78,
-    completedRequests: 245,
     primaryLocation: {
       district: "ঠাকুরগাঁও",
       upazila: "ঠাকুরগাঁও সদর",
@@ -51,19 +48,17 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-004", slug: "digital-survey", name: "ডিজিটাল সার্ভে" },
       { id: "s-001", slug: "land-measurement", name: "জমি পরিমাপ" },
     ],
-    isSubscribed: true,
     startingPrice: 4000,
   },
   {
     id: "surveyor-003",
     slug: "nasima-akter",
     fullName: "নাসিমা আক্তার",
-    headline: "মৌজা ম্যাপ ও ভূমি রেকর্ড বিশ্লেষক",
     isVerified: true,
+    isSubscribed: false,
     experienceYears: 5,
     rating: 4.3,
     totalReviews: 19,
-    completedRequests: 56,
     primaryLocation: {
       district: "নীলফামারী",
       upazila: "সৈয়দপুর",
@@ -71,22 +66,19 @@ const surveyors: TSurveyorCard[] = [
     services: [
       { id: "s-005", slug: "mouza-map", name: "মৌজা ম্যাপ সহায়তা" },
       { id: "s-002", slug: "land-division", name: "জমি ভাগ" },
-      // { id: "s-006", slug: "survey-report", name: "পরিমাপ রিপোর্ট" },
       { id: "s-007", slug: "record-verification", name: "রেকর্ড যাচাই" },
     ],
-    isSubscribed: false,
     startingPrice: 2500,
   },
   {
     id: "surveyor-004",
     slug: "kabir-hossain",
     fullName: "কবির হোসেন",
-    headline: "সীমানা পিলার স্থাপন ও জমি জরিপ বিশেষজ্ঞ",
     isVerified: true,
+    isSubscribed: false,
     experienceYears: 15,
     rating: 4.9,
     totalReviews: 134,
-    completedRequests: 412,
     primaryLocation: {
       district: "দিনাজপুর",
       upazila: "বিরামপুর",
@@ -95,19 +87,17 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-003", slug: "boundary-identification", name: "সীমানা নির্ধারণ" },
       { id: "s-001", slug: "land-measurement", name: "জমি পরিমাপ" },
     ],
-    isSubscribed: false,
     startingPrice: 5000,
   },
   {
     id: "surveyor-005",
     slug: "fariha-yasmin",
     fullName: "ফারিহা ইয়াসমিন",
-    headline: "ভূমি রেকর্ড ও খতিয়ান বিশেষজ্ঞ",
     isVerified: true,
+    isSubscribed: true,
     experienceYears: 6,
     rating: 4.5,
     totalReviews: 31,
-    completedRequests: 89,
     primaryLocation: {
       district: "পঞ্চগড়",
       upazila: "পঞ্চগড় সদর",
@@ -117,19 +107,17 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-005", slug: "mouza-map", name: "মৌজা ম্যাপ সহায়তা" },
       { id: "s-002", slug: "land-division", name: "জমি ভাগ" },
     ],
-    isSubscribed: true,
     startingPrice: 3000,
   },
   {
     id: "surveyor-006",
     slug: "shahidul-islam",
     fullName: "শহীদুল ইসলাম",
-    headline: "জমি পরিমাপ ও রিপোর্ট প্রস্তুতকারক",
     isVerified: true,
+    isSubscribed: false,
     experienceYears: 3,
     rating: 4.1,
     totalReviews: 8,
-    completedRequests: 24,
     primaryLocation: {
       district: "দিনাজপুর",
       upazila: "ঘোড়াঘাট",
@@ -138,7 +126,6 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-001", slug: "land-measurement", name: "জমি পরিমাপ" },
       { id: "s-006", slug: "survey-report", name: "পরিমাপ রিপোর্ট" },
     ],
-    isSubscribed: false,
     startingPrice: 2000,
   },
 ];
@@ -159,9 +146,8 @@ export default function Page() {
       const serviceMatch = s.services.some((svc) =>
         svc.name.toLowerCase().includes(searchTerm),
       );
-      const headlineMatch = s.headline.toLowerCase().includes(searchTerm);
 
-      return nameMatch || locationMatch || serviceMatch || headlineMatch;
+      return nameMatch || locationMatch || serviceMatch;
     });
   }, [searchTerm]);
 

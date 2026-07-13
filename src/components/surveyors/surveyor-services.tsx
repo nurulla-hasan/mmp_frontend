@@ -1,6 +1,18 @@
-import { ChevronRight } from "lucide-react";
-
 import type { TSurveyorProfile } from "@/types/surveyor-profile.type";
+
+const SERVICE_ICONS: Record<string, string> = {
+  "land-measurement": "📏",
+  "land-division": "📐",
+  "boundary-identification": "📍",
+  "survey-report": "📋",
+  "digital-mapping": "🖥️",
+  "khatian-search": "📑",
+  "mutation": "📝",
+};
+
+function getServiceIcon(slug: string): string {
+  return SERVICE_ICONS[slug] ?? "🗺️";
+}
 
 export function SurveyorServices({
   services,
@@ -12,24 +24,24 @@ export function SurveyorServices({
       <h2 className="text-lg font-semibold font-heading md:text-xl">
         সেবাসমূহ
       </h2>
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
         {services.map((service) => (
           <div
             key={service.id}
-            className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30"
+            className="group relative overflow-hidden rounded-2xl border border-border/50 bg-linear-to-br from-card to-card/80 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
           >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="font-medium text-foreground">
+            {/* Top accent line */}
+            <div className="absolute inset-x-0 top-0 h-0.5 bg-linear-to-r from-primary/40 via-primary/60 to-primary/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-lg transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary/15">
+                {getServiceIcon(service.slug)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-medium text-foreground transition-colors group-hover:text-primary">
                   {service.name}
                 </h3>
-                {service.description && (
-                  <p className="mt-1 leading-relaxed text-muted-foreground md:text-base">
-                    {service.description}
-                  </p>
-                )}
               </div>
-              <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
             </div>
           </div>
         ))}

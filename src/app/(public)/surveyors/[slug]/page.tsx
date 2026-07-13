@@ -43,28 +43,21 @@ const mockSurveyors: Record<string, TSurveyorProfile> = {
         id: "service-001",
         slug: "land-measurement",
         name: "জমি পরিমাপ",
-        description:
-          "জমির দৈর্ঘ্য, প্রস্থ, সীমানা এবং মোট ক্ষেত্রফল নির্ণয়ে সহায়তা।",
       },
       {
         id: "service-002",
         slug: "land-division",
         name: "জমি ভাগ-বাটোয়ারা",
-        description:
-          "একাধিক অংশীদারের মধ্যে জমি পরিমাপ ও ভাগের হিসাব প্রস্তুত করা।",
       },
       {
         id: "service-003",
         slug: "boundary-identification",
         name: "সীমানা নির্ধারণ",
-        description: "মাঠ পর্যায়ে জমির সঠিক সীমানা চিহ্নিত করতে সহায়তা।",
       },
       {
         id: "service-006",
         slug: "survey-report",
         name: "পরিমাপ রিপোর্ট",
-        description:
-          "জমির পরিমাপ ও plot-এর তথ্যসহ পরিষ্কার রিপোর্ট প্রস্তুত করা।",
       },
     ],
     rating: 4.8,

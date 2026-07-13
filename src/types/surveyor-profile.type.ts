@@ -25,7 +25,6 @@ export type TSurveyorProfile = {
     id: string;
     slug: string;
     name: string;
-    description?: string;
   }[];
 
   rating: number;

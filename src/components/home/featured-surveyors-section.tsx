@@ -1,5 +1,7 @@
-import { BadgeCheck, MapPin, Star } from "lucide-react";
+import { BadgeCheck, MapPin } from "lucide-react";
 import Link from "next/link";
+
+import { StarRating } from "@/components/ui/custom/star-rating";
 
 import { SectionHeading } from "@/components/home/section-heading";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
@@ -15,6 +17,7 @@ const surveyors = [
     reviews: 42,
     services: ["জমি পরিমাপ", "সীমানা নির্ধারণ"],
     verified: true,
+    subscribed: true,
     initials: "আ",
     slug: "abdul-karim",
   },
@@ -26,6 +29,7 @@ const surveyors = [
     reviews: 31,
     services: ["জমি ভাগ", "ডিজিটাল সার্ভে"],
     verified: true,
+    subscribed: false,
     initials: "র",
     slug: "rafiqul-islam",
   },
@@ -37,6 +41,7 @@ const surveyors = [
     reviews: 56,
     services: ["মৌজা ম্যাপ", "জমি পরিমাপ"],
     verified: true,
+    subscribed: true,
     initials: "স",
     slug: "saiful-haque",
   },
@@ -56,11 +61,7 @@ export function FeaturedSurveyorsSection() {
             key={s.slug}
             className="transition-all hover:ring-primary/30 hover:shadow-sm"
           >
-            <CardContent className="p-5">
-              {/* Sample badge */}
-              <span className="mb-3 inline-block rounded-full border bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                Sample Profile
-              </span>
+            <CardContent>
               {/* Header */}
               <div className="flex items-center gap-3">
                 <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
@@ -81,9 +82,9 @@ export function FeaturedSurveyorsSection() {
               </div>
               {/* Experience & rating */}
               <div className="mt-3 flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{s.experience}</span>
+                <span className="text-muted-foreground">অভিজ্ঞতা: {s.experience}</span>
                 <div className="flex items-center gap-1">
-                  <Star className="size-3.5 fill-yellow-500 text-yellow-500" />
+                  <StarRating rating={Math.round(s.rating)} totalStars={1} size={14} />
                   <span className="font-medium">{s.rating}</span>
                   <span className="text-muted-foreground">({s.reviews})</span>
                 </div>
