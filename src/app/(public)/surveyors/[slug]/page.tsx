@@ -9,7 +9,6 @@ import { SurveyorServiceAreas } from "@/components/surveyors/surveyor-service-ar
 import { SurveyorPricing } from "@/components/surveyors/surveyor-pricing";
 import { SurveyorVerification } from "@/components/surveyors/surveyor-verification";
 import { SurveyorReviews } from "@/components/surveyors/surveyor-reviews";
-import { SurveyorBottomCTA } from "@/components/surveyors/surveyor-bottom-cta";
 import CustomBreadcrumb from "@/components/ui/custom/custom-breadcrumb";
 
 // ─── Mock data ───────────────────────────────────────────
@@ -157,8 +156,6 @@ export default async function Page({
         reviews={surveyor.reviews}
         totalReviews={surveyor.totalReviews}
       />
-
-      <SurveyorBottomCTA slug={surveyor.slug} />
     </PageWrapper>
   );
 }

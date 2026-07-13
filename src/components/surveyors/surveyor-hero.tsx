@@ -2,9 +2,10 @@ import Link from "next/link";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { BadgeCheck, CalendarDays, MapPin, Star } from "lucide-react";
+import { BadgeCheck, CalendarDays, MapPin } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import type { TSurveyorProfile } from "@/types/surveyor-profile.type";
+import { StarRating } from "../ui/custom/star-rating";
 
 function formatJoinDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("bn-BD", {
@@ -70,7 +71,7 @@ export function SurveyorHero({
           {/* Rating */}
           <div className="shrink-0 rounded-xl border border-border/70 bg-muted/40 px-4 py-2.5 text-center">
             <div className="flex items-center gap-1 text-lg font-bold">
-              <Star className="size-5 fill-amber-400 text-amber-400" />
+              <StarRating rating={surveyor.rating} totalStars={1} />
               <span>{surveyor.rating.toFixed(1)}</span>
             </div>
             <p className="whitespace-nowrap text-xs text-muted-foreground">
