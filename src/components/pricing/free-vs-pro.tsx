@@ -25,9 +25,8 @@ const PRO_FEATURES = [
 
 export function FreeVsPro() {
   return (
-    <section className="bg-muted/30 border-b">
-      <SectionWrapper id="free-vs-pro">
-        <SectionHeading
+    <SectionWrapper id="free-vs-pro" asSection bg="muted">
+      <SectionHeading
           badge="Access Levels"
           title="Free Access এবং Pro Access-এর পার্থক্য"
         />
@@ -109,6 +108,5 @@ export function FreeVsPro() {
           </Card>
         </div>
       </SectionWrapper>
-    </section>
   );
 }

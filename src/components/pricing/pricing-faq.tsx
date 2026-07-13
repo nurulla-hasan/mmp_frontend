@@ -88,13 +88,12 @@ export function PricingFaq() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="bg-muted/30">
-      <SectionWrapper id="pricing-faq">
-        <div className="mx-auto max-w-2xl">
-          <SectionHeading
-            badge="Pricing FAQ"
-            title="Plan নিয়ে সচরাচর জিজ্ঞাসা"
-          />
+    <SectionWrapper id="pricing-faq" asSection bg="muted">
+      <div className="mx-auto max-w-2xl">
+        <SectionHeading
+          badge="Pricing FAQ"
+          title="Plan নিয়ে সচরাচর জিজ্ঞাসা"
+        />
           <div className="mt-8 rounded-xl border bg-card shadow-xs">
             <div className="divide-y px-5">
               {faqs.map((faq, i) => (
@@ -112,6 +111,5 @@ export function PricingFaq() {
           </div>
         </div>
       </SectionWrapper>
-    </section>
   );
 }

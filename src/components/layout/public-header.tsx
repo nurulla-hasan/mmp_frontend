@@ -28,10 +28,15 @@ export function PublicHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-4 px-4 sm:px-6">
-        <Logo />
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center px-4 sm:px-6">
+        {/* Left: Logo */}
+        <div className="flex-1">
+          <Logo />
+        </div>
+
+        {/* Center: Nav */}
         <nav
-          className="ml-auto hidden items-center gap-5 lg:flex"
+          className="hidden items-center gap-5 lg:flex"
           aria-label="Primary navigation"
         >
           {desktopLinks.map((item) => (
@@ -49,15 +54,10 @@ export function PublicHeader() {
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-2 lg:ml-4">
+
+        {/* Right: Actions */}
+        <div className="flex flex-1 items-center justify-end gap-2">
           <ThemeToggle />
-          <Button
-            variant="ghost"
-            nativeButton={false}
-            render={<Link href="/login" />}
-          >
-            Login
-          </Button>
           <Button
             className="hidden sm:inline-flex"
             nativeButton={false}

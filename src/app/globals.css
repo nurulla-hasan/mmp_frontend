@@ -129,6 +129,12 @@
     @apply font-sans;
   }
 
+
+  /* full screen */
+  .screen-height {
+    min-height: calc(100dvh - 64px);
+  }
+
   /* Scrollbar Styles */
   *::-webkit-scrollbar {
     width: 6px;

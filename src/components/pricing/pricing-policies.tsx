@@ -104,14 +104,13 @@ const paymentItems = [
 export function PricingPolicies() {
   return (
     <>
-      <section className="bg-muted/30">
-        <SectionWrapper id="policies">
-          <SectionHeading
-            badge="Usage & Security"
-            title="ব্যবহার ও Account নিরাপত্তা"
-          />
+      <SectionWrapper id="policies" asSection bg="muted">
+        <SectionHeading
+          badge="Usage & Security"
+          title="ব্যবহার ও Account নিরাপত্তা"
+        />
 
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
             {policies.map((policy) => (
               <Card key={policy.title} className="transition-all duration-200 hover:shadow-md">
                 <CardContent>
@@ -132,7 +131,6 @@ export function PricingPolicies() {
             ))}
           </div>
         </SectionWrapper>
-      </section>
 
       <SectionWrapper>
         <SectionHeading
