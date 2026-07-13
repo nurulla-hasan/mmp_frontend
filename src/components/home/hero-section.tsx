@@ -181,7 +181,7 @@ export function HeroSection() {
           <div className="relative grid gap-3">
             {/* Saved calculation card */}
             <Card className="rounded-xl ring-1 ring-primary/10">
-              <CardContent className="p-4">
+              <CardContent>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-primary">
                     Calculation Project
@@ -224,7 +224,7 @@ export function HeroSection() {
             <div className="grid grid-cols-2 gap-3">
               {/* Verified surveyor card */}
               <Card className="rounded-xl ring-1 ring-primary/10">
-                <CardContent className="p-4">
+                <CardContent>
                   <div className="flex items-center gap-2">
                     <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                       আ
@@ -253,7 +253,7 @@ export function HeroSection() {
 
               {/* Quotation card */}
               <Card className="rounded-xl ring-1 ring-primary/10">
-                <CardContent className="p-4">
+                <CardContent>
                   <div className="flex items-center gap-1 text-xs font-medium text-primary">
                     <FileText className="size-3.5" />
                     Quotation Received

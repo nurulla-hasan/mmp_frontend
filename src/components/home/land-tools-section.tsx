@@ -77,7 +77,7 @@ export function LandToolsSection() {
           className="group sm:col-span-2 lg:col-span-1"
         >
           <Card className="h-full transition-all group-hover:ring-primary/30 group-hover:shadow-sm">
-            <CardContent className="p-5">
+            <CardContent>
               <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Ruler className="size-6" />
               </div>
@@ -107,7 +107,7 @@ export function LandToolsSection() {
               className="group transition-all hover:-translate-y-0.5"
             >
               <Card className="h-full transition-all group-hover:ring-primary/30 group-hover:shadow-sm">
-                <CardContent className="flex items-start gap-4 p-4">
+                <CardContent className="flex items-start gap-4">
                   <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <Icon className="size-5" />
                   </div>

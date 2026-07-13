@@ -39,7 +39,7 @@ export function RoleBenefitsSection() {
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         {/* Landowner card */}
         <Card className="border-primary/10 transition-all hover:ring-primary/30 hover:shadow-sm">
-          <CardContent className="p-6">
+          <CardContent>
             <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Home className="size-6" />
             </div>
@@ -66,7 +66,7 @@ export function RoleBenefitsSection() {
 
         {/* Surveyor card */}
         <Card className="border-primary/10 transition-all hover:ring-primary/30 hover:shadow-sm">
-          <CardContent className="p-6">
+          <CardContent>
             <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Briefcase className="size-6" />
             </div>

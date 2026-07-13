@@ -70,7 +70,7 @@ export function SavedCalculationsSection() {
 
         {/* Right: Dashboard mockup */}
         <Card className="rounded-xl ring-1 ring-border">
-          <CardContent className="p-4 sm:p-5">
+          <CardContent>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Save className="size-4 text-primary" />

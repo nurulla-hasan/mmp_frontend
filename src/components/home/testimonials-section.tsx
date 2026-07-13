@@ -29,7 +29,7 @@ export function TestimonialsSection() {
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         {testimonials.map((t, i) => (
           <Card key={i}>
-            <CardContent className="p-6">
+            <CardContent>
               <Quote className="mb-3 size-6 text-primary/30" />
               <p className="text-sm leading-6 text-muted-foreground">
                 &ldquo;{t.content}&rdquo;

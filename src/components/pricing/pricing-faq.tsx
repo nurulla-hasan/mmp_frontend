@@ -10,6 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 const faqs = [
@@ -51,65 +52,45 @@ const faqs = [
   },
 ];
 
-function FaqItem({
-  question,
-  answer,
-  open,
-  onToggle,
-}: {
-  question: string;
-  answer: string;
-  open: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <Collapsible
-      open={open}
-      onOpenChange={onToggle}
-      className="border-b last:border-b-0"
-    >
-      <CollapsibleTrigger className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium transition-colors hover:text-primary">
-        {question}
-        <ChevronDown
-          className={cn(
-            "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-            open && "rotate-180",
-          )}
-        />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="pb-4 text-sm leading-6 text-muted-foreground">
-        {answer}
-      </CollapsibleContent>
-    </Collapsible>
-  );
-}
-
 export function PricingFaq() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <SectionWrapper id="pricing-faq" asSection bg="muted">
-      <div className="mx-auto max-w-2xl">
-        <SectionHeading
-          badge="Pricing FAQ"
-          title="Plan নিয়ে সচরাচর জিজ্ঞাসা"
-        />
-          <div className="mt-8 rounded-xl border bg-card shadow-xs">
-            <div className="divide-y px-5">
-              {faqs.map((faq, i) => (
-                <FaqItem
-                  key={i}
-                  question={faq.q}
-                  answer={faq.a}
-                  open={openIndex === i}
-                  onToggle={() =>
-                    setOpenIndex(openIndex === i ? null : i)
-                  }
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </SectionWrapper>
+    <SectionWrapper id="pricing-faq" asSection>
+      <SectionHeading
+        badge="Pricing FAQ"
+        title="Plan নিয়ে সচরাচর জিজ্ঞাসা"
+        description="আপনার subscription ও plan সংক্রান্ত যেকোনো প্রশ্নের উত্তর।"
+      />
+      <div className="mx-auto mt-10 max-w-2xl">
+        <Card className="shadow-lg shadow-primary/5 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
+          <CardContent>
+            {faqs.map((faq, i) => (
+              <Collapsible
+                key={i}
+                open={openIndex === i}
+                onOpenChange={() =>
+                  setOpenIndex(openIndex === i ? null : i)
+                }
+                className="border-b last:border-b-0"
+              >
+                <CollapsibleTrigger className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium transition-colors hover:text-primary">
+                  {faq.q}
+                  <ChevronDown
+                    className={cn(
+                      "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                      openIndex === i && "rotate-180",
+                    )}
+                  />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pb-4 text-sm leading-6 text-muted-foreground">
+                  {faq.a}
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    </SectionWrapper>
   );
 }

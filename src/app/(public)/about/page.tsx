@@ -318,7 +318,7 @@ export default function AboutPage() {
 
           {/* Surveyor */}
           <Card className="border-primary/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 hover:ring-2 hover:ring-primary/20">
-            <CardContent className="p-6">
+            <CardContent>
               <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Briefcase className="size-6" />
               </div>
@@ -411,7 +411,7 @@ export default function AboutPage() {
         />
         <div className="mx-auto mt-10 max-w-xl">
           <Card className="text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 hover:ring-2 hover:ring-primary/20">
-            <CardContent className="p-8">
+            <CardContent>
               <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10">
                 <Users className="size-8 text-primary" />
               </div>

@@ -16,7 +16,7 @@ export function FinalCtaSection() {
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         {/* Landowner CTA */}
         <Card className="border-primary/10 bg-primary/5 transition-all hover:shadow-sm">
-          <CardContent className="p-6 sm:p-8">
+          <CardContent>
             <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <FileText className="size-6" />
             </div>
@@ -39,7 +39,7 @@ export function FinalCtaSection() {
 
         {/* Surveyor CTA */}
         <Card className="border-primary/10 bg-primary/5 transition-all hover:shadow-sm">
-          <CardContent className="p-6 sm:p-8">
+          <CardContent>
             <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Briefcase className="size-6" />
             </div>

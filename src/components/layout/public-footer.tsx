@@ -8,7 +8,7 @@ export function PublicFooter() {
     <footer className="border-t bg-card">
       <SectionWrapper padding="sm"  className="flex flex-col md:flex-row justify-between gap-12">
         <div className="max-w-sm">
-          <Logo />
+          <Logo size="lg" showText />
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
             বাংলাদেশের আমিন ও জরিপকারীদের জন্য সবচেয়ে সহজ ডিজিটাল ভূমি পরিমাপ সিস্টেম।
           </p>
@@ -19,6 +19,7 @@ export function PublicFooter() {
             <h2 className="text-base font-semibold text-foreground">অন্বেষণ (Explore)</h2>
             <Link href="/tools" className="hover:text-primary transition-colors">ভূমি পরিমাপ টুলস</Link>
             <Link href="/surveyors" className="hover:text-primary transition-colors">সার্ভেয়ার খুঁজুন</Link>
+            <Link href="/community" className="hover:text-primary transition-colors">কমিউনিটি Q&A</Link>
           </div>
           
           <div className="flex flex-col gap-3 text-sm font-medium text-muted-foreground">

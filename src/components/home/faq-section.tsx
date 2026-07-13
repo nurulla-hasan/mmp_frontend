@@ -84,7 +84,7 @@ export function FaqSection() {
           title="সচরাচর জিজ্ঞাসা"
         />
         <Card className="mt-8">
-          <CardContent className="px-5 py-1">
+          <CardContent>
             {faqs.map((faq, i) => (
               <FaqItem
                 key={i}

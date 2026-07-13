@@ -104,48 +104,55 @@ const paymentItems = [
 export function PricingPolicies() {
   return (
     <>
+      {/* ─── Usage & Security ─────────────────────────────── */}
       <SectionWrapper id="policies" asSection bg="muted">
         <SectionHeading
           badge="Usage & Security"
           title="ব্যবহার ও Account নিরাপত্তা"
+          description="Pro plan-এর নিরাপত্তা ও ব্যবহার নীতিমালা সম্পর্কে জানুন।"
         />
 
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-            {policies.map((policy) => (
-              <Card key={policy.title} className="transition-all duration-200 hover:shadow-md">
-                <CardContent>
-                  <div className="mb-4 flex size-11 items-center justify-center rounded-full bg-primary/5">
-                    {policy.icon}
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {policies.map((policy) => (
+            <Card
+              key={policy.title}
+              className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5 hover:ring-1 hover:ring-primary/20"
+            >
+              <CardContent>
+                <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
+                  {policy.icon}
+                </div>
+                <h3 className="text-base font-semibold font-heading">{policy.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  {policy.content}
+                </p>
+                {policy.note && (
+                  <div className="mt-4 rounded-lg bg-primary/5 px-3 py-2 text-xs leading-5 text-muted-foreground italic">
+                    {policy.note}
                   </div>
-                  <h3 className="text-base font-semibold font-heading">{policy.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {policy.content}
-                  </p>
-                  {policy.note && (
-                    <p className="mt-3 text-xs text-muted-foreground/70 italic">
-                      {policy.note}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </SectionWrapper>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </SectionWrapper>
 
-      <SectionWrapper>
+      {/* ─── Payment Information ──────────────────────────── */}
+      <SectionWrapper id="payment-info">
         <SectionHeading
           badge="Payment Information"
           title="Payment এবং Subscription সম্পর্কে"
+          description="আপনার subscription ও payment সংক্রান্ত যাবতীয় তথ্য।"
         />
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {paymentItems.map((item) => (
             <div
               key={item.title}
-              className="rounded-xl border bg-card p-5 shadow-xs transition-all duration-200 hover:shadow-md"
+              className="group rounded-xl border bg-card p-5 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 hover:ring-1 hover:ring-primary/20"
             >
-              <div className="mb-2 flex size-8 items-center justify-center rounded-full bg-primary/5">
-                <svg className="size-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110">
+                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
               </div>
@@ -157,7 +164,7 @@ export function PricingPolicies() {
           ))}
         </div>
 
-        <p className="mt-8 text-center text-xs text-muted-foreground">
+        <p className="mt-10 text-center text-xs text-muted-foreground">
           Plan, মূল্য ও feature launch-এর আগে পরিবর্তিত হতে পারে।
         </p>
       </SectionWrapper>

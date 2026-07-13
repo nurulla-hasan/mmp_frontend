@@ -70,7 +70,7 @@ export function PopularServicesSection() {
               className="group transition-all hover:-translate-y-0.5"
             >
               <Card className="transition-all group-hover:ring-primary/30 group-hover:shadow-sm">
-                <CardContent className="p-5">
+                <CardContent>
                   <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <Icon className="size-5" />
                   </div>
