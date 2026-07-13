@@ -3,9 +3,11 @@
 import { useMemo } from "react";
 import { PageWrapper } from "@/components/shared/page-wrapper";
 import { SectionHeading } from "@/components/home/section-heading";
-import { SectionWrapper } from "@/components/shared/section-wrapper";
 import { SearchInput } from "@/components/ui/custom/search-input";
-import { SurveyorCard, type TSurveyorCard } from "@/components/surveyors/surveyor-card";
+import {
+  SurveyorCard,
+  type TSurveyorCard,
+} from "@/components/surveyors/surveyor-card";
 import { useNextFilter } from "@/hooks/useNextFilter";
 
 const surveyors: TSurveyorCard[] = [
@@ -28,8 +30,8 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-003", slug: "boundary-identification", name: "সীমানা নির্ধারণ" },
       { id: "s-006", slug: "survey-report", name: "পরিমাপ রিপোর্ট" },
     ],
+    isSubscribed: true,
     startingPrice: 3500,
-    availabilityStatus: "AVAILABLE",
   },
   {
     id: "surveyor-002",
@@ -49,15 +51,15 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-004", slug: "digital-survey", name: "ডিজিটাল সার্ভে" },
       { id: "s-001", slug: "land-measurement", name: "জমি পরিমাপ" },
     ],
+    isSubscribed: true,
     startingPrice: 4000,
-    availabilityStatus: "BUSY",
   },
   {
     id: "surveyor-003",
     slug: "nasima-akter",
     fullName: "নাসিমা আক্তার",
     headline: "মৌজা ম্যাপ ও ভূমি রেকর্ড বিশ্লেষক",
-    isVerified: false,
+    isVerified: true,
     experienceYears: 5,
     rating: 4.3,
     totalReviews: 19,
@@ -69,11 +71,11 @@ const surveyors: TSurveyorCard[] = [
     services: [
       { id: "s-005", slug: "mouza-map", name: "মৌজা ম্যাপ সহায়তা" },
       { id: "s-002", slug: "land-division", name: "জমি ভাগ" },
-      { id: "s-006", slug: "survey-report", name: "পরিমাপ রিপোর্ট" },
+      // { id: "s-006", slug: "survey-report", name: "পরিমাপ রিপোর্ট" },
       { id: "s-007", slug: "record-verification", name: "রেকর্ড যাচাই" },
     ],
+    isSubscribed: false,
     startingPrice: 2500,
-    availabilityStatus: "AVAILABLE",
   },
   {
     id: "surveyor-004",
@@ -93,8 +95,8 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-003", slug: "boundary-identification", name: "সীমানা নির্ধারণ" },
       { id: "s-001", slug: "land-measurement", name: "জমি পরিমাপ" },
     ],
+    isSubscribed: false,
     startingPrice: 5000,
-    availabilityStatus: "AVAILABLE",
   },
   {
     id: "surveyor-005",
@@ -115,15 +117,15 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-005", slug: "mouza-map", name: "মৌজা ম্যাপ সহায়তা" },
       { id: "s-002", slug: "land-division", name: "জমি ভাগ" },
     ],
+    isSubscribed: true,
     startingPrice: 3000,
-    availabilityStatus: "UNAVAILABLE",
   },
   {
     id: "surveyor-006",
     slug: "shahidul-islam",
     fullName: "শহীদুল ইসলাম",
     headline: "জমি পরিমাপ ও রিপোর্ট প্রস্তুতকারক",
-    isVerified: false,
+    isVerified: true,
     experienceYears: 3,
     rating: 4.1,
     totalReviews: 8,
@@ -136,8 +138,8 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-001", slug: "land-measurement", name: "জমি পরিমাপ" },
       { id: "s-006", slug: "survey-report", name: "পরিমাপ রিপোর্ট" },
     ],
+    isSubscribed: false,
     startingPrice: 2000,
-    availabilityStatus: "AVAILABLE",
   },
 ];
 
@@ -150,9 +152,10 @@ export default function Page() {
 
     return surveyors.filter((s) => {
       const nameMatch = s.fullName.toLowerCase().includes(searchTerm);
-      const locationMatch = `${s.primaryLocation.district} ${s.primaryLocation.upazila}`
-        .toLowerCase()
-        .includes(searchTerm);
+      const locationMatch =
+        `${s.primaryLocation.district} ${s.primaryLocation.upazila}`
+          .toLowerCase()
+          .includes(searchTerm);
       const serviceMatch = s.services.some((svc) =>
         svc.name.toLowerCase().includes(searchTerm),
       );
@@ -163,35 +166,34 @@ export default function Page() {
   }, [searchTerm]);
 
   return (
-    <>
-      <SectionWrapper asSection bg="muted" padding="sm">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHeading
-            badge="Surveyors"
-            title="Find a Surveyor"
-            description="Explore verified land surveyor profiles by service area, experience, equipment, availability, and reviews."
-            alignment="left"
-          />
-          <SearchInput
-            placeholder="নাম, এলাকা বা সেবা অনুযায়ী খুঁজুন..."
-            className="shrink-0 sm:max-w-xs"
-          />
-        </div>
-      </SectionWrapper>
+    <PageWrapper className="space-y-6" paddingSize="small">
+        <SectionHeading
+          title="আপনার এলাকার সার্ভেয়ার খুঁজুন"
+          description="আপনার জমি জরিপ, সীমানা নির্ধারণ ও মৌজা ম্যাপের জন্য অভিজ্ঞ সার্ভেয়ার নির্বাচন করুন"
+          as="h3"
+          alignment="left"
+        >
+          <SearchInput placeholder="নাম, এলাকা বা সেবা অনুযায়ী খুঁজুন..." />
+        </SectionHeading>
 
-      <PageWrapper>
-        <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredSurveyors.length > 0 ? (
-          filteredSurveyors.map((surveyor) => (
-            <SurveyorCard key={surveyor.id} surveyor={surveyor} />
-          ))
-        ) : (
-          <div className="col-span-full py-12 text-center text-muted-foreground">
-            কোনো সার্ভেয়ার খুঁজে পাওয়া যায়নি। অনুগ্রহ করে ভিন্ন শব্দে অনুসন্ধান করুন।
-          </div>
-        )}
-      </section>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {filteredSurveyors.length} টি সার্ভেয়ার পাওয়া গেছে
+          </p>
+        </div>
+
+        <section className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 md:gap-6">
+          {filteredSurveyors.length > 0 ? (
+            filteredSurveyors.map((surveyor) => (
+              <SurveyorCard key={surveyor.id} surveyor={surveyor} />
+            ))
+          ) : (
+            <div className="col-span-full py-12 text-center text-muted-foreground">
+              কোনো সার্ভেয়ার খুঁজে পাওয়া যায়নি। অনুগ্রহ করে ভিন্ন শব্দে
+              অনুসন্ধান করুন।
+            </div>
+          )}
+        </section>
     </PageWrapper>
-    </>
   );
 }

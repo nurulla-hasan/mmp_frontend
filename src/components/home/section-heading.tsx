@@ -43,26 +43,34 @@ export function SectionHeading({
   constrain = true,
 }: SectionHeadingProps) {
   return (
-    <div className={cn(constrain && "max-w-2xl", alignment === "center" && "mx-auto", alignmentClasses[alignment], className)}>
-      {badge && (
-        <Badge className="bg-primary/10 text-primary p-3">
-          {badge}
-        </Badge>
-      )}
-      <Tag
-        className={cn(
-          "mt-3 tracking-tight text-primary font-heading",
-          titleClassName ?? headingSizes[Tag],
-        )}
-      >
-        {title}
-      </Tag>
-      {description && (
-        <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
-          {description}
-        </p>
-      )}
-      {children}
+    <div className={cn(constrain && !children && "max-w-2xl", alignment === "center" && "mx-auto", alignmentClasses[alignment], !children && className)}>
+      <div className={cn(
+        children && "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between",
+        children && className,
+      )}>
+        <div className="min-w-0">
+          {badge && (
+            <Badge className="bg-primary/10 text-primary p-3">
+              {badge}
+            </Badge>
+          )}
+          <Tag
+            className={cn(
+              "mt-3 tracking-tight text-primary font-heading",
+              titleClassName ?? headingSizes[Tag],
+            )}
+          >
+            {title}
+          </Tag>
+          {description && (
+            <p className="text-sm leading-6 text-muted-foreground sm:text-base">
+              {description}
+            </p>
+          )}
+        </div>
+
+        {children}
+      </div>
     </div>
   );
 }

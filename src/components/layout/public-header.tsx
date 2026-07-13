@@ -59,6 +59,14 @@ export function PublicHeader() {
         <div className="flex flex-1 items-center justify-end gap-2">
           <ThemeToggle />
           <Button
+            variant="ghost"
+            className="hidden sm:inline-flex"
+            nativeButton={false}
+            render={<Link href="/login" />}
+          >
+            Login
+          </Button>
+          <Button
             className="hidden sm:inline-flex"
             nativeButton={false}
             render={<Link href="/surveyors" />}
