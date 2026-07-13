@@ -4,7 +4,7 @@ import { SectionWrapper } from "@/components/shared/section-wrapper";
 
 export function PricingSection() {
   return (
-    <SectionWrapper id="pricing" padding="md">
+    <SectionWrapper id="pricing" >
       <SectionHeading
         badge="Subscription Plans"
         title="কাজের প্রয়োজন অনুযায়ী সহজ Plan"

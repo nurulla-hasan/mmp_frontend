@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/custom/theme-toggle";
+import { cn } from "@/lib/utils";
 
 import { PublicMobileDrawer } from "./public-mobile-drawer";
 
@@ -17,6 +19,13 @@ const desktopLinks = [
 ];
 
 export function PublicHeader() {
+  const pathname = usePathname();
+
+  function isActive(href: string) {
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+  }
+
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-4 px-4 sm:px-6">
@@ -29,7 +38,12 @@ export function PublicHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className={cn(
+                "text-sm transition-colors hover:text-foreground",
+                isActive(item.href)
+                  ? "font-medium text-foreground border-b-2 border-primary"
+                  : "text-muted-foreground border-b-2 border-transparent",
+              )}
             >
               {item.label}
             </Link>

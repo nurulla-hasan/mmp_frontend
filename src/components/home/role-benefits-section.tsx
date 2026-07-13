@@ -31,7 +31,7 @@ const surveyorBenefits = [
 
 export function RoleBenefitsSection() {
   return (
-    <SectionWrapper id="benefits" padding="md">
+    <SectionWrapper id="benefits" >
       <SectionHeading
         badge="সবার জন্য এক প্ল্যাটফর্ম"
         title="জমির মালিক ও সার্ভেয়ার—দুই পক্ষের কাজই সহজ"

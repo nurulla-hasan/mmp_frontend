@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SectionHeading } from "@/components/home/section-heading";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
 import { Button } from "@/components/ui/button";
 
@@ -14,13 +15,11 @@ export function PricingCta() {
         </div>
 
         <div className="relative">
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            আপনার প্রয়োজন অনুযায়ী শুরু করুন
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-            Basic Land Tools ব্যবহার করে দেখুন অথবা calculation save ও
-            professional report-এর জন্য Pro plan নির্বাচন করুন।
-          </p>
+          <SectionHeading
+            title="আপনার প্রয়োজন অনুযায়ী শুরু করুন"
+            description="Basic Land Tools ব্যবহার করে দেখুন অথবা calculation save ও professional report-এর জন্য Pro plan নির্বাচন করুন।"
+            titleClassName="text-2xl font-bold sm:text-3xl"
+          />
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button
               size="lg"

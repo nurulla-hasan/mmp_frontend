@@ -118,7 +118,7 @@ export function PricingPolicies() {
                   <div className="mb-4 flex size-11 items-center justify-center rounded-full bg-primary/5">
                     {policy.icon}
                   </div>
-                  <h3 className="text-base font-semibold">{policy.title}</h3>
+                  <h3 className="text-base font-semibold font-heading">{policy.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
                     {policy.content}
                   </p>
@@ -151,7 +151,7 @@ export function PricingPolicies() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
               </div>
-              <h3 className="text-sm font-semibold">{item.title}</h3>
+              <h3 className="text-sm font-semibold font-heading">{item.title}</h3>
               <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
                 {item.content}
               </p>

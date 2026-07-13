@@ -44,7 +44,7 @@ const surveyors = [
 
 export function FeaturedSurveyorsSection() {
   return (
-    <SectionWrapper id="surveyors" padding="md">
+    <SectionWrapper id="surveyors" bg="muted">
       <SectionHeading
         badge="পেশাজীবী খুঁজুন"
         title="আপনার এলাকার অভিজ্ঞ সার্ভেয়ারদের সঙ্গে যুক্ত হন"

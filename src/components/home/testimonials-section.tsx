@@ -21,7 +21,7 @@ const testimonials = [
 
 export function TestimonialsSection() {
   return (
-    <SectionWrapper id="testimonials" padding="md">
+    <SectionWrapper id="testimonials" bg="muted">
       <SectionHeading
         badge="ব্যবহারকারীর অভিজ্ঞতা"
         title="জমির কাজ এখন আরও সংগঠিত"

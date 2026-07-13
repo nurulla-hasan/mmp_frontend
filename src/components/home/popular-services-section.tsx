@@ -54,7 +54,7 @@ const services = [
 
 export function PopularServicesSection() {
   return (
-    <SectionWrapper id="services" padding="md">
+    <SectionWrapper id="services" bg="muted">
       <SectionHeading
         badge="জনপ্রিয় সেবা"
         title="জমির কাজে যে সেবাগুলো সবচেয়ে বেশি প্রয়োজন"

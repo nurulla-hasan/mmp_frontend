@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 type HeadingAlignment = "left" | "center";
@@ -10,11 +11,24 @@ interface SectionHeadingProps {
   alignment?: HeadingAlignment;
   className?: string;
   children?: ReactNode;
+  /** Heading HTML tag: h1-h4 (default: h2) */
+  as?: "h1" | "h2" | "h3" | "h4";
+  /** Override default title size classes */
+  titleClassName?: string;
+  /** Whether to constrain width to max-w-2xl (default: true). Set false inside grid/flex layouts */
+  constrain?: boolean;
 }
 
 const alignmentClasses: Record<HeadingAlignment, string> = {
   left: "text-left",
   center: "text-center",
+};
+
+const headingSizes: Record<string, string> = {
+  h1: "text-3xl font-bold sm:text-4xl",
+  h2: "text-2xl font-semibold sm:text-3xl",
+  h3: "text-xl font-semibold sm:text-2xl",
+  h4: "text-lg font-semibold",
 };
 
 export function SectionHeading({
@@ -24,17 +38,25 @@ export function SectionHeading({
   alignment = "center",
   className,
   children,
+  as: Tag = "h2",
+  titleClassName,
+  constrain = true,
 }: SectionHeadingProps) {
   return (
-    <div className={cn("max-w-2xl", alignment === "center" && "mx-auto", alignmentClasses[alignment], className)}>
+    <div className={cn(constrain && "max-w-2xl", alignment === "center" && "mx-auto", alignmentClasses[alignment], className)}>
       {badge && (
-        <span className="inline-block rounded-full border bg-muted px-3 py-0.5 text-xs font-medium text-muted-foreground">
+        <Badge className="bg-primary/10 text-primary p-3">
           {badge}
-        </span>
+        </Badge>
       )}
-      <h2 className="mt-3 text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
+      <Tag
+        className={cn(
+          "mt-3 tracking-tight text-primary font-heading",
+          titleClassName ?? headingSizes[Tag],
+        )}
+      >
         {title}
-      </h2>
+      </Tag>
       {description && (
         <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
           {description}

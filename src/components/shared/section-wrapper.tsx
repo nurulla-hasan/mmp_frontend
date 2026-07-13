@@ -8,12 +8,18 @@ type SectionWrapperProps = {
   id?: string;
   /** Constrain content width (default: true) */
   container?: boolean;
-  /** Add bottom padding for spacing between sections (default: true) */
-  spacing?: boolean;
   /** Use as a semantic <section> element (default: true) */
   asSection?: boolean;
   /** Vertical padding preset: "none" | "sm" | "md" | "lg" | "xl" (default: "md") */
   padding?: "none" | "sm" | "md" | "lg" | "xl";
+  /** Full-width background variant for alternating section colors */
+  bg?: "white" | "muted" | "primary";
+};
+
+const bgMap: Record<string, string> = {
+  white: "bg-background",
+  muted: "bg-muted/50",
+  primary: "bg-primary/5",
 };
 
 const paddingMap: Record<string, string> = {
@@ -29,18 +35,17 @@ function SectionWrapper({
   className,
   id,
   container = true,
-  spacing = true,
   asSection = true,
   padding = "md",
+  bg,
 }: SectionWrapperProps) {
   const Tag = asSection ? "section" : "div";
 
-  return (
+  const inner = (
     <Tag
       id={id}
       className={cn(
         container && "mx-auto w-full max-w-7xl px-4 md:px-6",
-        spacing && "mb-8 md:mb-12 last:mb-0",
         paddingMap[padding],
         className,
       )}
@@ -48,6 +53,12 @@ function SectionWrapper({
       {children}
     </Tag>
   );
+
+  if (bg) {
+    return <div className={cn(bgMap[bg], "w-full")}>{inner}</div>;
+  }
+
+  return inner;
 }
 
 export { SectionWrapper };

@@ -1,6 +1,7 @@
 import { ArrowRight, Calculator, ClipboardCheck, Compass, PencilRuler } from "lucide-react";
 import Link from "next/link";
 
+import { SectionHeading } from "@/components/home/section-heading";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -33,13 +34,11 @@ const actions = [
 
 export function QuickActionsSection() {
   return (
-    <SectionWrapper id="quick-actions" asSection padding="sm">
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold">আপনি আজ কী করতে চান?</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          জমির হিসাব থেকে পেশাদার সেবা—আপনার প্রয়োজন অনুযায়ী সরাসরি শুরু করুন।
-        </p>
-      </div>
+    <SectionWrapper id="quick-actions" asSection bg="muted">
+      <SectionHeading
+        title="আপনি আজ কী করতে চান?"
+        description="জমির হিসাব থেকে পেশাদার সেবা—আপনার প্রয়োজন অনুযায়ী সরাসরি শুরু করুন।"
+      />
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {actions.map((card) => {
           const Icon = card.icon;

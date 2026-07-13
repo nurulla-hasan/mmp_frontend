@@ -64,7 +64,7 @@ const benefits = [
 
 export function LandToolsSection() {
   return (
-    <SectionWrapper id="tools" padding="md">
+    <SectionWrapper id="tools" >
       <SectionHeading
         badge="Land Tools"
         title="জমির প্রয়োজনীয় হিসাব করুন সহজে"

@@ -1,6 +1,7 @@
 import { ArrowRight, Save, Table2 } from "lucide-react";
 import Link from "next/link";
 
+import { SectionHeading } from "@/components/home/section-heading";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,20 +30,17 @@ const sampleRecords = [
 
 export function SavedCalculationsSection() {
   return (
-    <SectionWrapper id="calculations" padding="md">
+    <SectionWrapper id="calculations" bg="muted">
       <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
         {/* Left: Content */}
         <div>
-          <span className="inline-block rounded-full border bg-muted px-3 py-0.5 text-xs font-medium text-muted-foreground">
-            Calculation Workspace
-          </span>
-          <h2 className="mt-3 text-2xl font-semibold sm:text-3xl">
-            হিসাব শুধু করবেন না—সংরক্ষণ করে পরে আবার শুরু করুন
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            একটি calculation project-এর মধ্যে একাধিক plot যোগ করুন, scale ও মোট
-            ক্ষেত্রফল সংরক্ষণ করুন এবং পরে যেকোনো সময় কাজ চালিয়ে যান।
-          </p>
+          <SectionHeading
+            badge="Calculation Workspace"
+            title="হিসাব শুধু করবেন না—সংরক্ষণ করে পরে আবার শুরু করুন"
+            description="একটি calculation project-এর মধ্যে একাধিক plot যোগ করুন, scale ও মোট ক্ষেত্রফল সংরক্ষণ করুন এবং পরে যেকোনো সময় কাজ চালিয়ে যান।"
+            alignment="left"
+            constrain={false}
+          />
           <ul className="mt-6 space-y-3">
             {[
               "একটি project-এ একাধিক plot",

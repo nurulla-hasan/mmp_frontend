@@ -1,22 +1,18 @@
 import { ArrowRight, Briefcase, FileText } from "lucide-react";
 import Link from "next/link";
 
+import { SectionHeading } from "@/components/home/section-heading";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export function FinalCtaSection() {
   return (
-    <SectionWrapper id="get-started" padding="lg">
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold sm:text-3xl">
-          জমির কাজ শুরু করতে প্রস্তুত?
-        </h2>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          হিসাব করুন, প্রয়োজন পোস্ট করুন অথবা professional surveyor হিসেবে আপনার
-          profile তৈরি করুন।
-        </p>
-      </div>
+    <SectionWrapper id="get-started" bg="primary">
+      <SectionHeading
+        title="জমির কাজ শুরু করতে প্রস্তুত?"
+        description="হিসাব করুন, প্রয়োজন পোস্ট করুন অথবা professional surveyor হিসেবে আপনার profile তৈরি করুন।"
+      />
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         {/* Landowner CTA */}
         <Card className="border-primary/10 bg-primary/5 transition-all hover:shadow-sm">

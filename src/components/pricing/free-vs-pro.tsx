@@ -50,7 +50,7 @@ export function FreeVsPro() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold">Free Access</h3>
+              <h3 className="text-lg font-semibold font-heading">Free Access</h3>
               <p className="mt-1.5 text-sm text-muted-foreground">
                 Platform ও basic land-service workflow পরিচিত হওয়ার জন্য।
               </p>
@@ -88,7 +88,7 @@ export function FreeVsPro() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold">Pro Access</h3>
+              <h3 className="text-lg font-semibold font-heading">Pro Access</h3>
               <p className="mt-1.5 text-sm text-muted-foreground">
                 Calculation workspace ও professional report-এর advanced সুবিধার জন্য।
               </p>

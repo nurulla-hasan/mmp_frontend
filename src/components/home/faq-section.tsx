@@ -77,7 +77,7 @@ export function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <SectionWrapper id="faq" padding="md">
+    <SectionWrapper id="faq" >
       <div className="mx-auto max-w-2xl">
         <SectionHeading
           badge="FAQ"

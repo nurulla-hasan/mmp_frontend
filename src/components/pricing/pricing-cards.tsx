@@ -16,7 +16,7 @@ export function PricingCards({ compact }: PricingCardsProps) {
     : PRICING_FEATURES;
 
   return (
-    <section className="bg-muted/30">
+    <section>
       <SectionWrapper>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {PRICING_PLANS.map((plan) => (
@@ -34,7 +34,7 @@ export function PricingCards({ compact }: PricingCardsProps) {
                 </span>
               )}
               <CardContent className="flex flex-col p-6">
-                <h3 className="text-lg font-semibold">{plan.name}</h3>
+                <h3 className="text-lg font-semibold font-heading">{plan.name}</h3>
                 {!compact && (
                   <p className="mt-1 text-sm text-muted-foreground">
                     {plan.description}

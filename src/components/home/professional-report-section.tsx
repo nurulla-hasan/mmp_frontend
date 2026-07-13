@@ -1,6 +1,7 @@
 import { Check, Download, Printer } from "lucide-react";
 import Link from "next/link";
 
+import { SectionHeading } from "@/components/home/section-heading";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -17,20 +18,17 @@ const checklist = [
 
 export function ProfessionalReportSection() {
   return (
-    <SectionWrapper id="reports" padding="md">
+    <SectionWrapper id="reports" bg="muted">
       <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
         {/* Left: Content */}
         <div>
-          <span className="inline-block rounded-full border bg-muted px-3 py-0.5 text-xs font-medium text-muted-foreground">
-            PDF & Print Report
-          </span>
-          <h2 className="mt-3 text-2xl font-semibold sm:text-3xl">
-            হিসাব থেকে তৈরি করুন পরিষ্কার Professional Report
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            জমির plot, মোট পরিমাণ ও প্রয়োজনীয় তথ্যসহ client-ready report তৈরি ও
-            print করুন।
-          </p>
+          <SectionHeading
+            badge="PDF & Print Report"
+            title="হিসাব থেকে তৈরি করুন পরিষ্কার Professional Report"
+            description="জমির plot, মোট পরিমাণ ও প্রয়োজনীয় তথ্যসহ client-ready report তৈরি ও print করুন।"
+            alignment="left"
+            constrain={false}
+          />
           <ul className="mt-6 space-y-3">
             {checklist.map((item) => (
               <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
