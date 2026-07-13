@@ -1,0 +1,83 @@
+import { ClipboardCheck, FileEdit, MessageCircle, UserCheck } from "lucide-react";
+import Link from "next/link";
+
+import { SectionHeading } from "@/components/home/section-heading";
+import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { Button } from "@/components/ui/button";
+
+const steps = [
+  {
+    icon: FileEdit,
+    step: "১",
+    title: "প্রয়োজন জানান",
+    description: "সেবা, জমির অবস্থান ও প্রয়োজনীয় তথ্য দিয়ে request তৈরি করুন।",
+  },
+  {
+    icon: ClipboardCheck,
+    step: "২",
+    title: "Quotation গ্রহণ করুন",
+    description: "আপনার এলাকার সার্ভেয়ারদের প্রস্তাব ও আনুমানিক খরচ দেখুন।",
+  },
+  {
+    icon: UserCheck,
+    step: "৩",
+    title: "সার্ভেয়ার নির্বাচন করুন",
+    description: "অভিজ্ঞতা, verification এবং quotation তুলনা করুন।",
+  },
+  {
+    icon: MessageCircle,
+    step: "৪",
+    title: "কাজ Track করুন",
+    description: "Message ও request status ব্যবহার করে কাজের অগ্রগতি দেখুন।",
+  },
+];
+
+export function HowItWorksSection() {
+  return (
+    <SectionWrapper id="how-it-works" padding="md">
+      <SectionHeading
+        badge="কীভাবে কাজ করে"
+        title="চার ধাপে জমির কাজ এগিয়ে নিন"
+        description="Request পোস্ট করা থেকে কাজ শেষ হওয়া পর্যন্ত পুরো workflow এক জায়গায় পরিচালনা করুন।"
+      />
+      <div className="mt-10 grid gap-8 md:grid-cols-4">
+        {steps.map((item, i) => {
+          const Icon = item.icon;
+          return (
+            <div key={item.step} className="relative flex md:flex-col">
+              {/* Connector line - desktop */}
+              {i < steps.length - 1 && (
+                <div className="absolute left-6 top-8 hidden h-0.5 w-[calc(100%-48px)] bg-border md:block" />
+              )}
+              {/* Mobile: vertical timeline */}
+              {i < steps.length - 1 && (
+                <div className="absolute left-6 top-10 bottom-0 w-0.5 bg-border md:hidden" />
+              )}
+              <div className="flex items-start gap-4 md:flex-col md:items-center md:text-center">
+                <div className="relative shrink-0">
+                  <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 md:size-16">
+                    <Icon className="size-6 text-primary md:size-7" />
+                  </div>
+                  <span className="absolute -right-1 -top-1 flex size-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                    {item.step}
+                  </span>
+                </div>
+                <div className="md:mt-5">
+                  <h3 className="text-lg font-semibold">{item.title}</h3>
+                  <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-10 text-center">
+        <Button size="lg" className="h-10 md:h-11 px-6" nativeButton={false} render={<Link href="/post-request" />}>
+          কাজ পোস্ট করুন
+        </Button>
+      </div>
+    </SectionWrapper>
+  );
+}

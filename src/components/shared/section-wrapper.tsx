@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 type SectionWrapperProps = {
   children: ReactNode;
   className?: string;
+  /** HTML id attribute for anchor linking / scroll-to */
+  id?: string;
   /** Constrain content width (default: true) */
   container?: boolean;
   /** Add bottom padding for spacing between sections (default: true) */
@@ -16,15 +18,16 @@ type SectionWrapperProps = {
 
 const paddingMap: Record<string, string> = {
   none: "",
-  sm: "py-8 md:py-10",
-  md: "py-12 md:py-16",
-  lg: "py-16 sm:py-24",
-  xl: "py-20 sm:py-32",
+  sm: "py-10 md:py-12",
+  md: "py-14 md:py-16 lg:py-20",
+  lg: "py-16 md:py-20",
+  xl: "py-20 sm:py-28",
 };
 
 function SectionWrapper({
   children,
   className,
+  id,
   container = true,
   spacing = true,
   asSection = true,
@@ -34,9 +37,10 @@ function SectionWrapper({
 
   return (
     <Tag
+      id={id}
       className={cn(
-        container && "mx-auto w-full max-w-7xl px-4 md:px-6",
-        spacing && "mb-8 md:mb-12 last:mb-0",
+        container && "mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8",
+        spacing && "mb-6 md:mb-8 last:mb-0",
         paddingMap[padding],
         className,
       )}
