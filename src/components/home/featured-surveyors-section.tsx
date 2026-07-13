@@ -54,65 +54,65 @@ export function FeaturedSurveyorsSection() {
         {surveyors.map((s) => (
           <Card
             key={s.slug}
-            className="flex flex-col transition-all hover:border-primary/30 hover:shadow-md"
+            className="transition-all hover:ring-primary/30 hover:shadow-sm"
           >
-            <CardContent className="flex flex-1 flex-col p-5 md:p-6">
+            <CardContent className="p-5">
               {/* Sample badge */}
-              <span className="mb-4 inline-block self-start rounded-full border bg-muted px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+              <span className="mb-3 inline-block rounded-full border bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                 Sample Profile
               </span>
               {/* Header */}
               <div className="flex items-center gap-3">
-                <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-base font-semibold text-primary">
+                <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                   {s.initials}
                 </div>
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="text-base font-semibold">{s.name}</h3>
+                  <div className="flex items-center gap-1">
+                    <h3 className="font-medium">{s.name}</h3>
                     {s.verified && (
                       <BadgeCheck className="size-4 text-primary" />
                     )}
                   </div>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <MapPin className="size-3.5" />
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="size-3" />
                     {s.location}
                   </div>
                 </div>
               </div>
               {/* Experience & rating */}
-              <div className="mt-4 flex items-center justify-between text-sm">
+              <div className="mt-3 flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{s.experience}</span>
                 <div className="flex items-center gap-1">
-                  <Star className="size-4 fill-yellow-500 text-yellow-500" />
-                  <span className="font-semibold">{s.rating}</span>
+                  <Star className="size-3.5 fill-yellow-500 text-yellow-500" />
+                  <span className="font-medium">{s.rating}</span>
                   <span className="text-muted-foreground">({s.reviews})</span>
                 </div>
               </div>
               {/* Service badges */}
-              <div className="mt-3 flex flex-wrap gap-1.5">
+              <div className="mt-3 flex flex-wrap gap-1">
                 {s.services.map((svc) => (
                   <span
                     key={svc}
-                    className="rounded-md bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary"
+                    className="rounded-md bg-primary/5 px-2 py-0.5 text-xs text-primary"
                   >
                     {svc}
                   </span>
                 ))}
               </div>
-              {/* Spacer to push actions to bottom */}
-              <div className="mt-auto" />
               {/* Actions */}
-              <div className="mt-5 flex gap-3">
+              <div className="mt-4 flex gap-2">
                 <Button
+                  size="sm"
                   variant="outline"
-                  className="flex-1 h-9 md:h-10"
+                  className="flex-1"
                   nativeButton={false}
                   render={<Link href={`/surveyors/${s.slug}`} />}
                 >
                   প্রোফাইল দেখুন
                 </Button>
                 <Button
-                  className="flex-1 h-9 md:h-10"
+                  size="sm"
+                  className="flex-1"
                   nativeButton={false}
                   render={<Link href={`/post-request?surveyor=${s.slug}`} />}
                 >
@@ -123,8 +123,8 @@ export function FeaturedSurveyorsSection() {
           </Card>
         ))}
       </div>
-      <div className="mt-10 text-center">
-        <Button variant="outline" className="h-10 md:h-11 px-6" nativeButton={false} render={<Link href="/surveyors" />}>
+      <div className="mt-8 text-center">
+        <Button variant="outline" nativeButton={false} render={<Link href="/surveyors" />}>
           সব সার্ভেয়ার দেখুন &rarr;
         </Button>
       </div>

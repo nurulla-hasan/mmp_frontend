@@ -40,31 +40,27 @@ export function HowItWorksSection() {
         title="চার ধাপে জমির কাজ এগিয়ে নিন"
         description="Request পোস্ট করা থেকে কাজ শেষ হওয়া পর্যন্ত পুরো workflow এক জায়গায় পরিচালনা করুন।"
       />
-      <div className="mt-10 grid gap-8 md:grid-cols-4">
+      <div className="mt-12 grid gap-8 md:grid-cols-4">
         {steps.map((item, i) => {
           const Icon = item.icon;
           return (
-            <div key={item.step} className="relative flex md:flex-col">
+            <div key={item.step} className="relative">
               {/* Connector line - desktop */}
               {i < steps.length - 1 && (
-                <div className="absolute left-6 top-8 hidden h-0.5 w-[calc(100%-48px)] bg-border md:block" />
-              )}
-              {/* Mobile: vertical timeline */}
-              {i < steps.length - 1 && (
-                <div className="absolute left-6 top-10 bottom-0 w-0.5 bg-border md:hidden" />
+                <div className="absolute left-14 top-6 hidden h-0.5 w-[calc(100%-60px)] bg-border md:block" />
               )}
               <div className="flex items-start gap-4 md:flex-col md:items-center md:text-center">
                 <div className="relative shrink-0">
-                  <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 md:size-16">
-                    <Icon className="size-6 text-primary md:size-7" />
+                  <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+                    <Icon className="size-5 text-primary" />
                   </div>
-                  <span className="absolute -right-1 -top-1 flex size-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                  <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                     {item.step}
                   </span>
                 </div>
-                <div className="md:mt-5">
-                  <h3 className="text-lg font-semibold">{item.title}</h3>
-                  <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                <div className="md:mt-4">
+                  <h3 className="font-medium">{item.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     {item.description}
                   </p>
                 </div>
@@ -74,7 +70,7 @@ export function HowItWorksSection() {
         })}
       </div>
       <div className="mt-10 text-center">
-        <Button size="lg" className="h-10 md:h-11 px-6" nativeButton={false} render={<Link href="/post-request" />}>
+        <Button size="lg" nativeButton={false} render={<Link href="/post-request" />}>
           কাজ পোস্ট করুন
         </Button>
       </div>

@@ -1,4 +1,4 @@
-import { Check, Sparkles } from "lucide-react";
+import { Check } from "lucide-react";
 import Link from "next/link";
 
 import { SectionHeading } from "@/components/home/section-heading";
@@ -49,27 +49,25 @@ export function PricingSection() {
           <Card
             key={plan.name}
             className={
-              "flex flex-col " +
-              (plan.recommended
-                ? "relative border-primary/30 bg-primary/2 ring-2 ring-primary shadow-md"
-                : "")
+              plan.recommended
+                ? "relative ring-2 ring-primary shadow-sm"
+                : ""
             }
           >
             {plan.recommended && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground z-10 shadow-sm flex items-center gap-1">
-                <Sparkles className="size-3" />
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-xs font-medium text-primary-foreground z-10">
                 Recommended
               </span>
             )}
-            <CardContent className="flex flex-1 flex-col p-6 md:p-7">
+            <CardContent className="p-6">
               <h3 className="text-lg font-semibold">{plan.name}</h3>
               <div className="mt-4">
-                <span className="text-3xl font-bold md:text-4xl">{plan.price}</span>
-                <span className="ml-1 text-sm text-muted-foreground">
+                <span className="text-3xl font-bold">{plan.price}</span>
+                <span className="text-sm text-muted-foreground">
                   {plan.period}
                 </span>
               </div>
-              <ul className="mt-6 space-y-2.5">
+              <ul className="mt-6 space-y-2">
                 {features.map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm">
                     <Check className="mt-0.5 size-4 shrink-0 text-primary" />
@@ -77,23 +75,20 @@ export function PricingSection() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-auto pt-6">
-                <Button
-                  className="w-full h-10 md:h-11"
-                  variant={plan.recommended ? "default" : "outline"}
-                  nativeButton={false}
-                  render={<Link href="/login" />}
-                >
-                  {plan.recommended ? "শুরু করুন" : "Plan নির্বাচন করুন"}
-                </Button>
-              </div>
+              <Button
+                className="mt-6 w-full"
+                variant={plan.recommended ? "default" : "outline"}
+                nativeButton={false}
+                render={<Link href="/login" />}
+              >
+                Plan নির্বাচন করুন
+              </Button>
             </CardContent>
           </Card>
         ))}
       </div>
-      <p className="mt-8 text-center text-xs text-muted-foreground max-w-lg mx-auto leading-5">
-        ⚡ Plan, মূল্য ও feature launch-এর আগে পরিবর্তিত হতে পারে। Pro সুবিধাগুলো
-        শুধুমাত্র সাবস্ক্রাইবড user-দের জন্য উপলব্ধ।
+      <p className="mt-6 text-center text-xs text-muted-foreground">
+        Plan, মূল্য ও feature launch-এর আগে পরিবর্তিত হতে পারে।
       </p>
     </SectionWrapper>
   );

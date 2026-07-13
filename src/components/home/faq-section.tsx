@@ -56,15 +56,8 @@ function FaqItem({
   onToggle: () => void;
 }) {
   return (
-    <Collapsible
-      open={open}
-      onOpenChange={onToggle}
-      className={cn(
-        "border-b last:border-b-0 transition-colors",
-        open && "bg-primary/2",
-      )}
-    >
-      <CollapsibleTrigger className="flex w-full items-center justify-between gap-4 px-1 py-5 text-left text-sm font-semibold transition-colors hover:text-primary">
+    <Collapsible open={open} onOpenChange={onToggle} className="border-b last:border-b-0">
+      <CollapsibleTrigger className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium transition-colors hover:text-primary">
         {question}
         <ChevronDown
           className={cn(
@@ -73,7 +66,7 @@ function FaqItem({
           )}
         />
       </CollapsibleTrigger>
-      <CollapsibleContent className="px-1 pb-5 text-sm leading-7 text-muted-foreground">
+      <CollapsibleContent className="pb-4 text-sm leading-6 text-muted-foreground">
         {answer}
       </CollapsibleContent>
     </Collapsible>
@@ -85,13 +78,13 @@ export function FaqSection() {
 
   return (
     <SectionWrapper id="faq" padding="md">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-2xl">
         <SectionHeading
           badge="FAQ"
           title="সচরাচর জিজ্ঞাসা"
         />
-        <Card className="mt-8 overflow-hidden">
-          <CardContent className="px-5 md:px-7 py-1">
+        <Card className="mt-8">
+          <CardContent className="px-5 py-1">
             {faqs.map((faq, i) => (
               <FaqItem
                 key={i}

@@ -1,5 +1,4 @@
 import {
-  ArrowRight,
   Compass,
   FileText,
   LandPlot,
@@ -61,26 +60,26 @@ export function PopularServicesSection() {
         title="জমির কাজে যে সেবাগুলো সবচেয়ে বেশি প্রয়োজন"
         description="আপনার প্রয়োজনীয় সেবা নির্বাচন করে সংশ্লিষ্ট সার্ভেয়ার খুঁজুন অথবা সরাসরি request পোস্ট করুন।"
       />
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service) => {
           const Icon = service.icon;
           return (
             <Link
               key={service.slug}
               href={`/surveyors?service=${service.slug}`}
-              className="group transition-all hover:-translate-y-1"
+              className="group transition-all hover:-translate-y-0.5"
             >
-              <Card className="h-full transition-all group-hover:border-primary/30 group-hover:shadow-md">
-                <CardContent className="p-5 md:p-6">
-                  <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="size-6" />
+              <Card className="transition-all group-hover:ring-primary/30 group-hover:shadow-sm">
+                <CardContent className="p-5">
+                  <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Icon className="size-5" />
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold">{service.title}</h3>
-                  <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                  <h3 className="mt-3 font-medium">{service.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     {service.description}
                   </p>
-                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary group-hover:gap-2 transition-all">
-                    সার্ভেয়ার খুঁজুন <ArrowRight className="size-4" />
+                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                    সার্ভেয়ার খুঁজুন &rarr;
                   </span>
                 </CardContent>
               </Card>
@@ -88,8 +87,8 @@ export function PopularServicesSection() {
           );
         })}
       </div>
-      <div className="mt-10 text-center">
-        <Button variant="outline" className="h-10 md:h-11 px-6" nativeButton={false} render={<Link href="/surveyors" />}>
+      <div className="mt-8 text-center">
+        <Button variant="outline" nativeButton={false} render={<Link href="/surveyors" />}>
           সব সেবা দেখুন &rarr;
         </Button>
       </div>

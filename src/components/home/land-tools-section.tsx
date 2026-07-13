@@ -3,7 +3,6 @@ import {
   Calculator,
   Grid3X3,
   Map,
-  Monitor,
   MoveDiagonal,
   Ruler,
   Scale,
@@ -56,11 +55,11 @@ const tools = [
 ];
 
 const benefits = [
-  "একাধিক প্লট সমর্থন",
-  "স্কেল সাপোর্ট",
-  "হিসাব সংরক্ষণ",
-  "পিডিএফ/প্রিন্ট রিপোর্ট",
-  "অনলাইন ও অফলাইন-বান্ধব",
+  "Multiple plots",
+  "Scale support",
+  "Calculation save",
+  "PDF/Print report",
+  "Online & offline-friendly",
 ];
 
 export function LandToolsSection() {
@@ -68,34 +67,33 @@ export function LandToolsSection() {
     <SectionWrapper id="tools" padding="md">
       <SectionHeading
         badge="Land Tools"
-        title="প্লট মাপ ও জমির হিসাব করুন ডিজিটালি"
-        description="বাংলাদেশী এককে জমির ক্ষেত্রফল, ভাগ, রূপান্তর ও উত্তরাধিকার ক্যালকুলেশন — সব এক জায়গায়।"
+        title="জমির প্রয়োজনীয় হিসাব করুন সহজে"
+        description="বাংলাদেশে ব্যবহৃত জমির একক ও পরিমাপ অনুযায়ী তৈরি দরকারি tools ব্যবহার করুন।"
       />
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Featured tool card - prominent */}
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Featured tool card - larger */}
         <Link
           href="/tools/land-measurement"
           className="group sm:col-span-2 lg:col-span-1"
         >
-          <Card className="h-full border-primary/20 transition-all group-hover:border-primary/40 group-hover:shadow-md">
-            <CardContent className="flex flex-col p-6">
-              <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <Ruler className="size-7" />
+          <Card className="h-full transition-all group-hover:ring-primary/30 group-hover:shadow-sm">
+            <CardContent className="p-5">
+              <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Ruler className="size-6" />
               </div>
-              <h3 className="mt-5 text-xl font-semibold">জমির ক্ষেত্রফল</h3>
-              <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
-                যেকোনো আকারের প্লটের সঠিক ক্ষেত্রফল শতাংশ, বিঘা, বর্গফুট ও
-                হেক্টরে নির্ধারণ করুন।
+              <h3 className="mt-4 text-lg font-medium">জমির ক্ষেত্রফল</h3>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                যেকোনো আকারের প্লটের সঠিক ক্ষেত্রফল শতাংশ, বিঘা ও বর্গফুটে
+                নির্ধারণ করুন।
               </p>
-              <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
-                <Monitor className="size-4" />
-                Tool ব্যবহার করুন <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+              <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                Tool ব্যবহার করুন <ArrowRight className="size-4" />
               </span>
-              {/* Mini plot visual */}
-              <div className="mt-6 grid grid-cols-3 gap-1.5">
-                <div className="h-7 rounded-md border-2 border-primary/20 bg-primary/5" />
-                <div className="h-7 rounded-md border-2 border-primary/30 bg-primary/10" />
-                <div className="h-7 rounded-md border-2 border-primary/20 bg-primary/5" />
+              {/* Mini visual */}
+              <div className="mt-4 grid grid-cols-3 gap-1">
+                <div className="h-6 rounded border-2 border-primary/20 bg-primary/5" />
+                <div className="h-6 rounded border-2 border-primary/30 bg-primary/10" />
+                <div className="h-6 rounded border-2 border-primary/20 bg-primary/5" />
               </div>
             </CardContent>
           </Card>
@@ -108,14 +106,14 @@ export function LandToolsSection() {
               href={tool.href}
               className="group transition-all hover:-translate-y-0.5"
             >
-              <Card className="h-full transition-all group-hover:border-primary/30 group-hover:shadow-sm">
-                <CardContent className="flex items-start gap-4 p-4 md:p-5">
-                  <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Card className="h-full transition-all group-hover:ring-primary/30 group-hover:shadow-sm">
+                <CardContent className="flex items-start gap-4 p-4">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <Icon className="size-5" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">{tool.title}</h3>
-                    <p className="mt-0.5 text-sm leading-6 text-muted-foreground">
+                    <h3 className="font-medium">{tool.title}</h3>
+                    <p className="mt-0.5 text-sm text-muted-foreground">
                       {tool.description}
                     </p>
                   </div>
@@ -126,8 +124,8 @@ export function LandToolsSection() {
         })}
       </div>
       {/* Benefits + CTA */}
-      <div className="mt-10 flex flex-wrap items-center justify-between gap-6 rounded-xl border bg-card p-5 md:p-6">
-        <div className="flex flex-wrap gap-x-6 gap-y-2.5">
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-6 rounded-xl border bg-card p-5">
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
           {benefits.map((b) => (
             <div key={b} className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <Map className="size-3.5 text-primary" />
@@ -135,7 +133,7 @@ export function LandToolsSection() {
             </div>
           ))}
         </div>
-        <Button variant="outline" className="h-10 md:h-11 px-6" nativeButton={false} render={<Link href="/tools" />}>
+        <Button variant="outline" nativeButton={false} render={<Link href="/tools" />}>
           সব Land Tools দেখুন &rarr;
         </Button>
       </div>
