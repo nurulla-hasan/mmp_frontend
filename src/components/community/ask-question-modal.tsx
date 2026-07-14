@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-import { categories } from "@/app/(public)/community/_data";
+import { categories } from "@/app/(private)/community/_data";
 
 export function AskQuestionModal() {
   return (

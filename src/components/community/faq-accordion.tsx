@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 
-import { communityFaqs } from "@/app/(public)/community/_data";
+import { communityFaqs } from "@/app/(private)/community/_data";
 
 export function FaqAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
