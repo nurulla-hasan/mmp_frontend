@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 
 import nextDynamic from 'next/dynamic';
 import { DistanceModal } from '@/features/map-tool/components/DistanceModal';
@@ -10,6 +11,7 @@ import { SidebarControls } from '@/features/map-tool/components/sidebar/SidebarC
 import { FloatingToolbar } from '@/features/map-tool/components/toolbar/FloatingToolbar';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { TutorialGuide } from '@/features/map-tool/components/tutorial-guide';
+import { Upload } from 'lucide-react';
 
 const KonvaStage = nextDynamic(
   () => import('@/features/map-tool/components/stage/KonvaStage').then((m) => ({ default: m.KonvaStage })),
@@ -30,6 +32,7 @@ export default function MapCalculator() {
     setReportImage,
     mode,
     plotPoints,
+    image,
   } = useMapStore();
 
   useEffect(() => {
@@ -97,6 +100,29 @@ export default function MapCalculator() {
             containerRef={containerRef}
             stageRef={stageRef}
           />
+
+          {!image && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/60">
+              <div className="flex flex-col items-center p-6 text-center animate-in fade-in zoom-in duration-500">
+                <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+                  <Upload className="h-10 w-10 text-primary opacity-80" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">কোনো ম্যাপ আপলোড করা নেই</h2>
+                <p className="text-muted-foreground mb-8 max-w-[320px] text-sm">
+                  কাজ শুরু করতে আপনার জমির নকশা বা ম্যাপ (JPG, PNG) আপলোড করুন।
+                </p>
+                <Button 
+                  onClick={() => document.getElementById('step-image-upload')?.click()}
+                  size="lg" 
+                  className="gap-2 shadow-lg rounded-full"
+                >
+                  <Upload className="h-4 w-4" />
+                  ম্যাপ আপলোড করুন
+                </Button>
+              </div>
+            </div>
+          )}
+
           <FloatingToolbar />
           {/* ── Mode-aware floating bottom bars (undo/redo/cancel) ── */}
           <SidebarControls />

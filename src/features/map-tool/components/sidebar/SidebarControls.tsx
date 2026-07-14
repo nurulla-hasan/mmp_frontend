@@ -1,5 +1,6 @@
 import { memo, useMemo, useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { X, Trash2, Undo2, Redo2 } from 'lucide-react';
 import { splitPolygonByPolyline } from '@/features/map-tool/utils/polygonDivision';
 import {
@@ -41,6 +42,11 @@ export const SidebarControls = memo(function SidebarControls() {
     setManualCutLine,
     executeManualDivide,
     cancelManualDivide,
+    showManualScale,
+    setShowManualScale,
+    manualScale,
+    setManualScale,
+    handleManualScaleSubmit,
   } = useMapStore();
 
   const [calibrationUndoStack, setCalibrationUndoStack] = useState<number[][]>([]);
@@ -73,8 +79,9 @@ export const SidebarControls = memo(function SidebarControls() {
   return (
     <>
       {mode === 'calibrating' && (
-        <div className="absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 w-[93%] md:w-auto p-3 rounded-lg bg-background border border-border shadow-xl z-50 flex justify-evenly items-center gap-2">
-          <div className='flex gap-2'>
+        <div className="absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 w-[93%] md:w-auto p-3 rounded-lg bg-background border border-border shadow-xl z-50 flex flex-col gap-2">
+          <div className="flex justify-evenly items-center gap-2 w-full">
+            <div className='flex gap-2'>
             <Button size="sm" onClick={() => { setCalibrationLine([]); setIsDrawing(false); setMode('none'); }} variant="destructive" title="বাতিল করুন">
               <X />
             </Button>
@@ -121,19 +128,45 @@ export const SidebarControls = memo(function SidebarControls() {
             </Button>
           </div>
 
-          <Button
-            size="sm"
-            onClick={() => {
-              if (calibrationLine.length >= 4) {
-                setIsDrawing(false);
-                setMode('none');
-                setIsModalOpen(true);
-              }
-            }}
-            disabled={calibrationLine.length < 4}
-          >
-            স্কেল নিশ্চিত করুন
-          </Button>
+            <div className='flex gap-2'>
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (calibrationLine.length >= 4) {
+                    setIsDrawing(false);
+                    setMode('none');
+                    setIsModalOpen(true);
+                  }
+                }}
+                disabled={calibrationLine.length < 4}
+              >
+                স্কেল নিশ্চিত করুন
+              </Button>
+              <Button
+                size="sm"
+                variant={showManualScale ? 'default' : 'outline'}
+                onClick={() => setShowManualScale(!showManualScale)}
+              >
+                ম্যানুয়াল স্কেল
+              </Button>
+            </div>
+          </div>
+          
+          {showManualScale && (
+            <form onSubmit={handleManualScaleSubmit} className="flex gap-2 w-full mt-1">
+              <Input
+                type="number"
+                value={manualScale}
+                onChange={(e) => setManualScale(e.target.value)}
+                placeholder="পিক্সেল প্রতি ফুট (যেমন: 2.30)"
+                className="flex-1 h-8 text-xs"
+                step="any"
+                min="0.000001"
+                required
+              />
+              <Button size="sm" type="submit" variant="default" className="h-8">সেট করুন</Button>
+            </form>
+          )}
         </div>
       )}
 

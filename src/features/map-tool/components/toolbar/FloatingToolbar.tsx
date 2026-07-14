@@ -9,16 +9,19 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { SaveProjectDialog } from '@/features/map-tool/components/SaveProjectDialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 // ─── Tooltip wrapper ─────────────────────────────────────────────────────────
-function ToolTip({ label, children }: { label: string; children: React.ReactNode }) {
+function ToolTip({ label, children, side = "left" }: { label: React.ReactNode; children: React.ReactNode; side?: "left" | "top" | "right" | "bottom" }) {
   return (
-    <div className="group relative flex items-center">
-      {children}
-      <span className="pointer-events-none absolute right-full mr-2 hidden whitespace-nowrap rounded-md bg-popover px-2 py-1 text-xs text-popover-foreground shadow-md ring-1 ring-border group-hover:block">
+    <Tooltip>
+      <TooltipTrigger render={<div className="inline-flex" />} className="focus-visible:outline-none focus:outline-none">
+        {children}
+      </TooltipTrigger>
+      <TooltipContent side={side} sideOffset={8}>
         {label}
-      </span>
-    </div>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -46,25 +49,26 @@ function ToolBtn({
   const iconSize = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
   return (
     <ToolTip label={label}>
-      <button
-        id={id}
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        title={label}
-        className={[
-          `flex ${dim} items-center justify-center rounded-xl transition-all`,
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-          active
-            ? 'bg-primary text-primary-foreground shadow-md'
-            : variant === 'danger'
-              ? 'text-destructive hover:bg-destructive/10'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-          disabled ? 'pointer-events-none opacity-40' : '',
-        ].join(' ')}
-      >
-        <Icon className={iconSize} />
-      </button>
+      <span className={disabled ? "cursor-not-allowed inline-flex" : "inline-flex"}>
+        <button
+          id={id}
+          type="button"
+          onClick={onClick}
+          disabled={disabled}
+          className={[
+            `flex ${dim} items-center justify-center rounded-xl transition-all`,
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+            active
+              ? 'bg-primary text-primary-foreground shadow-md'
+              : variant === 'danger'
+                ? 'text-destructive hover:bg-destructive/10'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+            disabled ? 'pointer-events-none opacity-40' : '',
+          ].join(' ')}
+        >
+          <Icon className={iconSize} />
+        </button>
+      </span>
     </ToolTip>
   );
 }
