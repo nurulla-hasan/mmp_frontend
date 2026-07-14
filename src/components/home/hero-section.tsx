@@ -37,14 +37,20 @@ export function HeroSection() {
   const [district, setDistrict] = useState("");
 
   return (
-    <SectionWrapper
-      id="hero"
-      asSection
-      bg="white"
-      padding="xl"
-    >
-      <div className="grid gap-10 lg:grid-cols-[1.2fr_0.9fr] lg:items-center">
-        {/* Left: Text and CTA */}
+    <div className="relative overflow-hidden bg-background">
+      {/* Ambient Glows */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute top-0 right-1/4 h-[600px] w-[600px] -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" />
+        <div className="absolute bottom-0 left-0 h-[500px] w-[500px] translate-y-1/3 -translate-x-1/3 rounded-full bg-blue-500/10 blur-[100px]" />
+      </div>
+
+      <SectionWrapper
+        id="hero"
+        asSection
+        padding="xl"
+      >
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_0.9fr] lg:items-center">
+          {/* Left: Text and CTA */}
         <div>
           <Badge className="bg-primary/10 text-primary p-3">
             জমির হিসাব, সার্ভেয়ার ও সেবা—এক প্ল্যাটফর্মে
@@ -178,9 +184,9 @@ export function HeroSection() {
             </svg>
           </div>
 
-          <div className="relative grid gap-3">
+          <div className="relative grid gap-4">
             {/* Saved calculation card */}
-            <Card className="rounded-xl ring-1 ring-primary/10">
+            <Card className="rounded-xl ring-1 ring-primary/10 bg-card/60 backdrop-blur-xl shadow-2xl transition-transform hover:-translate-y-1 duration-500">
               <CardContent>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-primary">
@@ -221,9 +227,9 @@ export function HeroSection() {
             </Card>
 
             {/* Two cards side by side */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {/* Verified surveyor card */}
-              <Card className="rounded-xl ring-1 ring-primary/10">
+              <Card className="rounded-xl ring-1 ring-primary/10 bg-card/60 backdrop-blur-xl shadow-2xl transition-transform hover:-translate-y-1 duration-500 delay-100">
                 <CardContent>
                   <div className="flex items-center gap-2">
                     <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
@@ -252,7 +258,7 @@ export function HeroSection() {
               </Card>
 
               {/* Quotation card */}
-              <Card className="rounded-xl ring-1 ring-primary/10">
+              <Card className="rounded-xl ring-1 ring-primary/10 bg-card/60 backdrop-blur-xl shadow-2xl transition-transform hover:-translate-y-1 duration-500 delay-200">
                 <CardContent>
                   <div className="flex items-center gap-1 text-xs font-medium text-primary">
                     <FileText className="size-3.5" />
@@ -267,7 +273,7 @@ export function HeroSection() {
             </div>
 
             {/* Status badge */}
-            <div className="flex items-center gap-3 rounded-xl border bg-card px-4 py-3">
+            <div className="flex items-center gap-3 rounded-xl border bg-card/60 backdrop-blur-xl shadow-2xl px-4 py-3 transition-transform hover:-translate-y-1 duration-500 delay-300">
               <div className="flex size-8 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
                 <svg
                   className="size-4"
@@ -300,5 +306,6 @@ export function HeroSection() {
         </div>
       </div>
     </SectionWrapper>
+  </div>
   );
 }

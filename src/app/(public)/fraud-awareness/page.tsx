@@ -232,7 +232,7 @@ export default function FraudAwarenessPage() {
  {/* ─── Hero ──────────────────────────────────────────── */}
  <SectionWrapper padding="lg">
  <div className="relative mx-auto max-w-3xl text-center">
- <div className="pointer-events-none absolute inset-0 -top-20 mx-auto size-96 rounded-full bg-destructive/5 " />
+  <div className="pointer-events-none absolute top-0 left-1/2 -z-10 h-96 w-96 -translate-x-1/2 -translate-y-20 rounded-full bg-destructive/10 blur-[100px]" />
  <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-destructive/10 shadow-lg shadow-destructive/10">
  <ShieldAlert className="size-8 text-destructive" />
  </div>
@@ -398,7 +398,7 @@ export default function FraudAwarenessPage() {
  {/* ─── Final CTA ─────────────────────────────────────── */}
  <SectionWrapper padding="lg" bg="primary">
  <div className="relative">
- <div className="pointer-events-none absolute inset-0 mx-auto size-80 rounded-full bg-primary/10 " />
+ <div className="pointer-events-none absolute top-0 left-1/2 -z-10 h-80 w-80 -translate-x-1/2 -translate-y-10 rounded-full bg-primary/20 blur-[80px]" />
  <SectionHeading
  as="h2"
  title="নিরাপদে জমির কাজ শুরু করুন"
