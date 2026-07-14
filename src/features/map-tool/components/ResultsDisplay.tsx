@@ -86,20 +86,9 @@ export const ResultsDisplay = memo(function ResultsDisplay({ onPrint }: { onPrin
   const { results, plots, reportInfo, setReportInfo } = useMapStore();
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
-  if (!results) {
-    return (
-      <div id="step-results" className="mt-6 bg-muted/50 p-4 rounded-lg border border-dashed border-border">
-        <div className="flex flex-col items-center justify-center py-8 gap-3 text-center text-muted-foreground">
-          <svg className="w-12 h-12 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <p className="text-sm font-medium">এখনও কোনো হিসাব নেই</p>
-          <p className="text-xs">ম্যাপে প্লট আঁকলে এখানে ফলাফল দেখাবে</p>
-        </div>
-      </div>
-    );
+  if (!results || plots.length === 0) {
+    return null;
   }
-
   return (
     <div id="step-results" className="mt-6 bg-muted/50 p-4 rounded-lg border border-border">
       <div className="flex flex-row justify-between items-center mb-4 gap-2">

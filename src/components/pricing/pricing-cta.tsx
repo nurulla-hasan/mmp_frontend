@@ -5,45 +5,45 @@ import { SectionWrapper } from "@/components/shared/section-wrapper";
 import { Button } from "@/components/ui/button";
 
 export function PricingCta() {
-  return (
-    <SectionWrapper padding="lg" bg="primary">
-      <div className="relative">
-        {/* Background glow */}
-        <div className="pointer-events-none absolute inset-0 mx-auto size-80 rounded-full bg-primary/10 blur-3xl" />
+ return (
+ <SectionWrapper padding="lg" bg="primary">
+ <div className="relative">
+ {/* Background glow */}
+ <div className="pointer-events-none absolute inset-0 mx-auto size-80 rounded-full bg-primary/10 " />
 
-        <SectionHeading
-          as="h2"
-          title="আপনার প্রয়োজন অনুযায়ী শুরু করুন"
-          description="Basic Land Tools ব্যবহার করে দেখুন অথবা calculation save ও professional report-এর জন্য Pro plan নির্বাচন করুন।"
-        />
+ <SectionHeading
+ as="h2"
+ title="আপনার প্রয়োজন অনুযায়ী শুরু করুন"
+ description="Basic Land Tools ব্যবহার করে দেখুন অথবা calculation save ও professional report-এর জন্য Pro plan নির্বাচন করুন।"
+ />
 
-        <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button
-            size="lg"
-            nativeButton={false}
-            render={<Link href="/register" />}
-          >
-            Free Account খুলুন
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            nativeButton={false}
-            render={<Link href="/tools" />}
-          >
-            Land Tools দেখুন
-          </Button>
-        </div>
+ <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+ <Button
+ size="lg"
+ nativeButton={false}
+ render={<Link href="/register" />}
+ >
+ Free Account খুলুন
+ </Button>
+ <Button
+ size="lg"
+ variant="outline"
+ nativeButton={false}
+ render={<Link href="/tools" />}
+ >
+ Land Tools দেখুন
+ </Button>
+ </div>
 
-        <p className="mt-6 text-center">
-          <Link
-            href="/surveyors"
-            className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            সার্ভেয়ার খুঁজুন &rarr;
-          </Link>
-        </p>
-      </div>
-    </SectionWrapper>
-  );
+ <p className="mt-6 text-center">
+ <Link
+ href="/surveyors"
+ className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+ >
+ সার্ভেয়ার খুঁজুন &rarr;
+ </Link>
+ </p>
+ </div>
+ </SectionWrapper>
+ );
 }
