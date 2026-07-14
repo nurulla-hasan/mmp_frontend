@@ -171,7 +171,7 @@ export const SidebarControls = memo(function SidebarControls() {
       )}
 
       {(mode === 'drawing_plot' || plotsHistory.length > 0 || plotsFuture.length > 0 || plots.length > 0) && (
-        <div className={`absolute top-4 md:top-auto md:bottom-4 left-1/2 -translate-x-1/2 w-max p-2 md:p-3 rounded-2xl bg-card/95 border border-border shadow-xl z-50 flex items-center gap-4 ${mode !== 'drawing_plot' ? 'md:hidden' : ''}`}>
+        <div className="absolute top-4 md:top-auto md:bottom-4 left-1/2 -translate-x-1/2 w-max p-2 md:p-3 rounded-2xl bg-card/95 border border-border shadow-xl z-50 flex items-center gap-4">
           <div className='flex gap-1.5'>
             {mode === 'drawing_plot' && (
               <Button size="sm" onClick={() => { setMode('none'); setIsDrawing(false); setSnapHint(false); }} variant="destructive" title="আঁকা বন্ধ করুন">
