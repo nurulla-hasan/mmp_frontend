@@ -22,7 +22,7 @@ import { clamp } from "@/lib/utils";
 export const KonvaStage = memo((props: KonvaStageProps) => {
     const { containerRef, stageRef } = props;
 
-    const { stageSize, mode, isPlotFinished, stageScale, stagePos, isPinching, plotPoints, isProcessingFile, addCenterPoint, finishPlot } =
+    const { stageSize, mode, isPlotFinished, stageScale, stagePos, isPinching, plotPoints, isProcessingFile, isGeneratingTiles, tileProgress, image, addCenterPoint, finishPlot } =
         useMapStore(
             useShallow(s => ({
                 stageSize: s.stageSize,
@@ -33,6 +33,9 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                 isPinching: s.isPinching,
                 plotPoints: s.plotPoints,
                 isProcessingFile: s.isProcessingFile,
+                isGeneratingTiles: s.isGeneratingTiles,
+                tileProgress: s.tileProgress,
+                image: s.image,
                 addCenterPoint: s.addCenterPoint,
                 finishPlot: s.finishPlot,
             }))
@@ -136,6 +139,32 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                         <div>
                             <p className="text-sm font-semibold text-foreground">ম্যাপ লোড হচ্ছে</p>
                             <p className="mt-1 text-xs text-muted-foreground">বড় ফাইল হলে একটু সময় লাগতে পারে</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Tile generation loading — large images that must wait for tiles */}
+            {!isProcessingFile && isGeneratingTiles && image && (image.naturalWidth * image.naturalHeight > 2_000_000) && (
+                <div className="absolute inset-0 z-60 flex items-center justify-center bg-background/75">
+                    <div className="flex min-w-60 flex-col items-center gap-4 rounded-lg border border-border bg-card px-6 py-5 text-center shadow-lg">
+                        <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                        <div>
+                            <p className="text-sm font-semibold text-foreground">ম্যাপ প্রস্তুত হচ্ছে</p>
+                            <p className="mt-1 text-xs text-muted-foreground">টাইল জেনারেট হচ্ছে — একটু অপেক্ষা করুন</p>
+                        </div>
+                        {/* Progress bar */}
+                        <div className="w-full space-y-1">
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>অগ্রগতি</span>
+                                <span>{tileProgress}%</span>
+                            </div>
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                                <div
+                                    className="h-full rounded-full bg-primary transition-all duration-300 ease-out"
+                                    style={{ width: `${tileProgress}%` }}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>

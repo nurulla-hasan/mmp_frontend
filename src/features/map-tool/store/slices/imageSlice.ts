@@ -8,8 +8,63 @@ import type { TilePyramidInfo } from '../../utils/tiling';
 const MAX_UPLOAD_SIZE_BYTES = 25 * 1024 * 1024;
 const ALLOWED_MAP_TYPES = new Set(['application/pdf', 'image/png', 'image/jpeg']);
 
+/**
+ * Detect the maximum safe canvas/texture size for the current device.
+ * Falls back to 4096 if WebGL is unavailable.
+ */
+function detectMaxTextureSize(): number {
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null;
+    if (gl) {
+      const size = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+      return size as number;
+    }
+  } catch { /* WebGL unavailable */ }
+  return 4096;
+}
+
+/**
+ * Returns a safe max dimension for GPU upload.
+ * For low-end phones this is often 2048 or 4096.
+ * We use 4096 as safe default — Konva will crash above this on many devices.
+ */
+function getSafeMaxDimension(): number {
+  const detected = detectMaxTextureSize();
+  // Use 80% of detected to leave headroom
+  return Math.min(detected, 4096);
+}
+
+/**
+ * Downscale an image so its longest side fits within `maxPx`.
+ * Uses canvas for downscaling — much more GPU-memory-friendly.
+ */
+function downscaleImage(img: HTMLImageElement, maxPx: number): Promise<HTMLImageElement> {
+  return new Promise((resolve) => {
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    const scale = Math.min(maxPx / w, maxPx / h, 1);
+    if (scale >= 1) { resolve(img); return; }
+
+    const cvs = document.createElement('canvas');
+    cvs.width = Math.round(w * scale);
+    cvs.height = Math.round(h * scale);
+    const ctx = cvs.getContext('2d')!;
+    // Use high-quality downscaling
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
+
+    const result = new window.Image();
+    result.onload = () => resolve(result);
+    result.src = cvs.toDataURL('image/png');
+  });
+}
+
 export interface ImageState {
   image: HTMLImageElement | null;
+  /** Full-resolution original image (kept for accurate tile generation). */
+  _originalImage: HTMLImageElement | null;
   selectedFile: File | null;
   imageName: string;
   isProcessingFile: boolean;
@@ -36,9 +91,11 @@ export interface ImageActions {
 
 export type ImageSlice = ImageState & ImageActions;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (set, get, _store) => ({
   // State
   image: null,
+  _originalImage: null,
   selectedFile: null,
   imageName: 'map.jpg',
   isProcessingFile: false,
@@ -83,7 +140,14 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
           extractImageFromPDF(file),
           detectPdfDpi(file),
         ]);
-        set({ selectedFile: file, image: img, pdfDpiInfo: dpiInfo, isProcessingFile: false });
+        // ── Downscale for GPU safety on low-end devices ──
+        const safeMax = getSafeMaxDimension();
+        let displayImg = img;
+        if (img.naturalWidth > safeMax || img.naturalHeight > safeMax) {
+          displayImg = await downscaleImage(img, safeMax);
+          console.info(`📐 PDF image downscaled for GPU safety: ${img.naturalWidth}×${img.naturalHeight} → ${displayImg.naturalWidth}×${displayImg.naturalHeight} (max: ${safeMax})`);
+        }
+        set({ selectedFile: file, image: displayImg, _originalImage: img, pdfDpiInfo: dpiInfo, isProcessingFile: false });
         if (dpiInfo) {
           console.info(`📐 PDF DPI detected: ${dpiInfo.dpi} DPI (page: ${dpiInfo.pageWidthInches.toFixed(1)}"×${dpiInfo.pageHeightInches.toFixed(1)}", image: ${dpiInfo.imageWidthPx}×${dpiInfo.imageHeightPx}px)`);
         }
@@ -107,9 +171,16 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
             return;
           }
           img.src = event.target.result;
-          img.onload = () => {
-            set({ selectedFile: file, imageName: file.name || 'image', image: img, isProcessingFile: false });
-            // Start tile building in the background
+          img.onload = async () => {
+            // ── Downscale for GPU safety on low-end devices ──
+            const safeMax = getSafeMaxDimension();
+            let displayImg: HTMLImageElement = img;
+            if (img.naturalWidth > safeMax || img.naturalHeight > safeMax) {
+              displayImg = await downscaleImage(img, safeMax);
+              console.info(`📐 Image downscaled for GPU safety: ${img.naturalWidth}×${img.naturalHeight} → ${displayImg.naturalWidth}×${displayImg.naturalHeight} (max: ${safeMax})`);
+            }
+            set({ selectedFile: file, imageName: file.name || 'image', image: displayImg, _originalImage: img, isProcessingFile: false });
+            // Start tile building in the background (uses original image for accuracy)
             get().buildTilePyramid();
             resolve(true);
           };
@@ -143,14 +214,15 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
         console.error('Failed to clear tiles from IndexedDB:', err);
       }
     }
-    set({ image: null, selectedFile: null, imageName: '', pdfDpiInfo: null, isProcessingFile: false, tilePyramidInfo: null, isGeneratingTiles: false, tileProgress: 0 });
+    set({ image: null, _originalImage: null, selectedFile: null, imageName: '', pdfDpiInfo: null, isProcessingFile: false, tilePyramidInfo: null, isGeneratingTiles: false, tileProgress: 0 });
     const fileInput = document.getElementById('map-upload') as HTMLInputElement | null;
     if (fileInput) fileInput.value = '';
   },
 
   buildTilePyramid: async () => {
     const state = get();
-    const img = state.image;
+    // Use original full-res image for tile generation accuracy
+    const img = state._originalImage || state.image;
     if (!img) return;
 
     // Only tile for images above the pixel threshold
@@ -172,7 +244,7 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
             set({ tileProgress: percent });
           }
         },
-        12,
+        8, // Smaller chunk size = less main-thread blocking
       );
       // Only commit result if still the active generation
       if (get()._generationId === generationId) {

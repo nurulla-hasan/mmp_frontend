@@ -30,8 +30,9 @@ export const TILE_SIZE = 256;
 /**
  * Threshold for skipping tiling entirely.
  * Images with total pixels below this use the original single <KonvaImage>.
+ * Lowered for low-end device safety — tiling is GPU-friendly.
  */
-export const TILING_MIN_PIXEL_COUNT = 1_000_000; // 1 MP
+export const TILING_MIN_PIXEL_COUNT = 500_000; // 0.5 MP
 
 /** IndexedDB constants. */
 export const TILE_DB_NAME = 'mouzaMapTiles';

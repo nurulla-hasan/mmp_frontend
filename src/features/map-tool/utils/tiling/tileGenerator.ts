@@ -211,16 +211,16 @@ function createTileCanvas(): OffscreenCanvas | HTMLCanvasElement {
   return canvas;
 }
 
-/** Convert a canvas to a Blob (WebP, quality 0.85). Works with OffscreenCanvas and regular canvas. */
+/** Convert a canvas to a Blob (WebP, quality 0.7). Works with OffscreenCanvas and regular canvas. */
 async function canvasToBlob(canvas: OffscreenCanvas | HTMLCanvasElement): Promise<Blob | null> {
   if (typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas) {
-    return canvas.convertToBlob({ type: 'image/webp', quality: 0.85 });
+    return canvas.convertToBlob({ type: 'image/webp', quality: 0.7 });
   }
   return new Promise((resolve) => {
     (canvas as HTMLCanvasElement).toBlob(
       (blob) => resolve(blob),
       'image/webp',
-      0.85,
+      0.7,
     );
   });
 }
