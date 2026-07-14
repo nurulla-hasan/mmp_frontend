@@ -8,35 +8,35 @@ import { ThemeToggle } from "@/components/ui/custom/theme-toggle";
 import { MobileDrawer } from "./mobile-drawer";
 
 interface DashboardHeaderProps {
-  title: string;
-  label: string;
-  navigation: NavigationItem[];
-  mobileOpen: boolean;
-  onMobileOpenChange: (open: boolean) => void;
+ title: string;
+ label: string;
+ navigation: NavigationItem[];
+ mobileOpen: boolean;
+ onMobileOpenChange: (open: boolean) => void;
 }
 
 export function DashboardHeader({ title, label, navigation, mobileOpen, onMobileOpenChange }: DashboardHeaderProps) {
-  return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-sidebar px-4 backdrop-blur sm:px-6">
-      <MobileDrawer
-        open={mobileOpen}
-        onOpenChange={onMobileOpenChange}
-        label={label}
-        navigation={navigation}
-      />
-      <div>
-        <p className="text-sm font-medium">{title}</p>
-        <p className="text-xs text-muted-foreground">Mouza Map Pro</p>
-      </div>
-      <div className="ml-auto flex items-center gap-1">
-        <Button variant="ghost" size="icon" aria-label="Notifications">
-          <Bell />
-        </Button>
-        <ThemeToggle />
-        <Button variant="ghost" size="icon" aria-label="Profile menu">
-          <UserRound />
-        </Button>
-      </div>
-    </header>
-  );
+ return (
+ <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-sidebar px-4 sm:px-6">
+ <MobileDrawer
+ open={mobileOpen}
+ onOpenChange={onMobileOpenChange}
+ label={label}
+ navigation={navigation}
+ />
+ <div>
+ <p className="text-sm font-medium">{title}</p>
+ <p className="text-xs text-muted-foreground">Mouza Map Pro</p>
+ </div>
+ <div className="ml-auto flex items-center gap-1">
+ <Button variant="ghost" size="icon" aria-label="Notifications">
+ <Bell />
+ </Button>
+ <ThemeToggle />
+ <Button variant="ghost" size="icon" aria-label="Profile menu">
+ <UserRound />
+ </Button>
+ </div>
+ </header>
+ );
 }

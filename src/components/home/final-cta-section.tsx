@@ -8,14 +8,21 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export function FinalCtaSection() {
   return (
-    <SectionWrapper id="get-started" bg="primary">
+    <div className="relative overflow-hidden bg-primary/5">
+      {/* Ambient Glows */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute top-0 right-1/4 h-[500px] w-[500px] -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" />
+        <div className="absolute bottom-0 left-1/4 h-[400px] w-[400px] translate-y-1/2 -translate-x-1/2 rounded-full bg-blue-500/15 blur-[100px]" />
+      </div>
+
+      <SectionWrapper id="get-started">
       <SectionHeading
         title="জমির কাজ শুরু করতে প্রস্তুত?"
         description="হিসাব করুন, প্রয়োজন পোস্ট করুন অথবা professional surveyor হিসেবে আপনার profile তৈরি করুন।"
       />
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         {/* Landowner CTA */}
-        <Card className="border-primary/10 bg-primary/5 transition-all hover:shadow-sm">
+        <Card className="border-primary/10 bg-card/60 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl">
           <CardContent>
             <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <FileText className="size-6" />
@@ -38,7 +45,7 @@ export function FinalCtaSection() {
         </Card>
 
         {/* Surveyor CTA */}
-        <Card className="border-primary/10 bg-primary/5 transition-all hover:shadow-sm">
+        <Card className="border-primary/10 bg-card/60 backdrop-blur-xl transition-all duration-500 delay-100 hover:-translate-y-1 hover:shadow-2xl">
           <CardContent>
             <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Briefcase className="size-6" />
@@ -69,6 +76,7 @@ export function FinalCtaSection() {
           আগে Land Tools ব্যবহার করে দেখুন &rarr;
         </Link>
       </div>
-    </SectionWrapper>
+      </SectionWrapper>
+    </div>
   );
 }

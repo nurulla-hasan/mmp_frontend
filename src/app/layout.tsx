@@ -32,12 +32,16 @@ export const metadata: Metadata = {
   description: "Land tools, verified surveyor marketplace and digital land service platform.",
 };
 
+import { TooltipProvider } from "@/components/ui/tooltip";
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning className={cn("h-full antialiased font-sans", notoSansBengali.variable, hindSiliguri.variable, spaceGrotesk.variable, geistMono.variable)}>
       <body className="flex min-h-full flex-col max-w-480 mx-auto">
         <ThemeProvider>
-          {children}
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
           <Toaster richColors />
         </ThemeProvider>
       </body>

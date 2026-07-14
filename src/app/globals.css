@@ -152,3 +152,90 @@
   }
 
 }
+
+/* ========== Print Styles ========== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  /* Hide modals/overlays during print */
+  [data-slot="dialog-portal"],
+  [data-slot="dialog-overlay"],
+  [data-slot="dialog-content"],
+  div[data-radix-portal],
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  /* Scratch sheet print support */
+  .scratch-sheet-shell {
+    display: none !important;
+  }
+
+  body.printing-scratch .scratch-sheet-shell {
+    display: block !important;
+  }
+
+  body.printing-scratch .print-layout {
+    display: none !important;
+  }
+
+  body.printing-scratch .scratch-sheet-shell,
+  body.printing-scratch .scratch-sheet-shell * {
+    visibility: visible !important;
+  }
+
+  body.printing-scratch .scratch-sheet-shell {
+    position: fixed !important;
+    inset: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  body.printing-scratch .scratch-sheet-shell > div {
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  body.printing-scratch .scratch-sheet-root,
+  body.printing-scratch .scratch-sheet-panel {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+
+  body.printing-scratch .scratch-sheet-controls,
+  body.printing-scratch .scratch-sheet-sidebar,
+  body.printing-scratch .scratch-sheet-crosshair {
+    display: none !important;
+  }
+
+  body.printing-scratch .scratch-sheet-grid {
+    display: block !important;
+  }
+
+  body.printing-scratch .scratch-sheet-preview-frame {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  body.printing-scratch .scratch-sheet-page {
+    display: none !important;
+  }
+
+  body.printing-scratch .scratch-sheet-print-image {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    object-fit: contain !important;
+  }
+}

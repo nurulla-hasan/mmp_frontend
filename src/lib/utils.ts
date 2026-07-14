@@ -64,3 +64,7 @@ export const generateSlug = (title: string) => {
     .replace(/[\s_-]+/g, "-") // Replace spaces/underscores with -
     .replace(/^-+|-+$/g, ""); // Always remove leading and trailing hyphens
 };
+
+export const clamp = (value: number, min: number, max: number): number => {
+  return Math.min(Math.max(value, min), max);
+};

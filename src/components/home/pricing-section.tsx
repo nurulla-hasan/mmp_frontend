@@ -4,13 +4,21 @@ import { SectionWrapper } from "@/components/shared/section-wrapper";
 
 export function PricingSection() {
   return (
-    <SectionWrapper id="pricing" >
-      <SectionHeading
-        badge="Subscription Plans"
-        title="কাজের প্রয়োজন অনুযায়ী সহজ Plan"
-        description="Calculation save, professional report এবং Pro সুবিধার জন্য আপনার উপযুক্ত plan নির্বাচন করুন।"
-      />
-      <PricingCards compact />
-    </SectionWrapper>
+    <div className="relative overflow-hidden bg-background">
+      {/* Ambient Glows */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute top-1/2 left-0 h-[500px] w-[500px] -translate-y-1/2 -translate-x-1/4 rounded-full bg-primary/15 blur-[120px]" />
+        <div className="absolute top-1/2 right-0 h-[400px] w-[400px] -translate-y-1/2 translate-x-1/4 rounded-full bg-blue-500/10 blur-[100px]" />
+      </div>
+
+      <SectionWrapper id="pricing">
+        <SectionHeading
+          badge="Subscription Plans"
+          title="কাজের প্রয়োজন অনুযায়ী সহজ Plan"
+          description="Calculation save, professional report এবং Pro সুবিধার জন্য আপনার উপযুক্ত plan নির্বাচন করুন।"
+        />
+        <PricingCards compact />
+      </SectionWrapper>
+    </div>
   );
 }

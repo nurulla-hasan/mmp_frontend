@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,8 +14,8 @@ import { Button } from "@/components/ui/button";
 import { isValidElement, type ReactNode } from "react";
 
 interface ModalWrapperProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   title?: string;
   description?: string;
   children: ReactNode;
@@ -23,14 +24,17 @@ interface ModalWrapperProps {
 }
 
 export function ModalWrapper({
-  open,
-  onOpenChange,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
   title,
   description,
   children,
   actionTrigger,
   showClose = false,
 }: ModalWrapperProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const onOpenChange = controlledOnOpenChange ?? setInternalOpen;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {isValidElement(actionTrigger) && (
@@ -38,19 +42,20 @@ export function ModalWrapper({
       )}
 
       <DialogContent className="p-0 gap-0 shadow-md shadow-primary overflow-hidden">
-        
         {/* Header Section */}
-        {title && (
-          <DialogHeader className="px-6 py-4 border-b shrink-0 text-left gap-0">
-            <DialogTitle className="text-xl font-medium">
-              {title}
-            </DialogTitle>
-            {description && <DialogDescription>{description}</DialogDescription>}
+        {(title || description) && (
+          <DialogHeader className="p-4 border-b shrink-0 text-left gap-0">
+            {title && (
+              <DialogTitle className="text-xl font-medium">{title}</DialogTitle>
+            )}
+            {description && (
+              <DialogDescription>{description}</DialogDescription>
+            )}
           </DialogHeader>
         )}
 
         {/* Content Body */}
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div className="p-6 flex-1 max-h-[70vh] md:max-h-[80vh] overflow-auto">
           {children}
         </div>
 
@@ -61,7 +66,6 @@ export function ModalWrapper({
             </DialogClose>
           </div>
         )}
-        
       </DialogContent>
     </Dialog>
   );
