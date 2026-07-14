@@ -63,9 +63,10 @@ These decisions are the baseline for implementation. Change them here first if p
 
 ### 2.4 Route model
 
-- Primary workspace URL: `/tools/land-measurement`.
-- Land division uses the same map engine and can open the workspace in division context, for example `/tools/land-measurement?mode=divide`.
-- `/tools/land-division` remains a discoverable landing/guide route and launches the shared workspace.
+- The single workspace URL is `/tools/land-measurement`.
+- Measurement, plot drawing, manual land division, scratch sheet, results, and reports all live in this one workspace.
+- Land division is an in-workspace mode/action, not a separate route or landing page.
+- Do not create or maintain a `/tools/land-division` route for this map tool.
 - Implement an immersive tool-specific route layout while keeping the public URL stable.
 
 ## 3. Preserve vs Rebuild

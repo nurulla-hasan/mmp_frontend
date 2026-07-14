@@ -1,16 +1,9 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import {
-  ArrowLeftRight,
-  Calculator,
-  Ruler,
-  Square,
-} from "lucide-react";
+import { ArrowLeftRight, Calculator, Ruler, Square } from "lucide-react";
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageWrapper } from "@/components/shared/page-wrapper";
 import {
@@ -91,7 +84,6 @@ export default function UnitConverterPage() {
     [category],
   );
 
-  // Reset from/to when category changes
   const handleCategoryChange = useCallback((cat: UnitCategory) => {
     setCategory(cat);
     const units = categories.find((c) => c.key === cat)!.units;
@@ -133,28 +125,29 @@ export default function UnitConverterPage() {
 
   return (
     <PageWrapper>
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-xl">
+        {/* ─── Breadcrumb ──────────────────────────────────── */}
+        <Link
+          href="/tools"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeftRight className="size-3" />
+          টুলস
+        </Link>
+
         {/* ─── Header ──────────────────────────────────────── */}
-        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <Link
-              href="/tools"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              ← টুলস
-            </Link>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl font-heading">
-              জমির একক রূপান্তর
-            </h1>
-            <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
-              শতক, কাঠা, বিঘা, একর, বর্গফুট, বর্গমিটার ও হেক্টরে জমির পরিমাণ
-              রূপান্তর করুন।
-            </p>
-          </div>
+        <div className="mt-2">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl font-heading">
+            জমির একক রূপান্তর
+          </h1>
+          <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+            শতক, কাঠা, বিঘা, একর, বর্গফুট, বর্গমিটার ও হেক্টরে জমির
+            পরিমাণ রূপান্তর করুন।
+          </p>
         </div>
 
         {/* ─── Category Toggle ──────────────────────────────── */}
-        <div className="mt-8 flex gap-2 rounded-xl border bg-card p-1.5 shadow-sm">
+        <div className="mt-8 flex rounded-xl border bg-card p-1 shadow-sm">
           {categories.map((cat) => {
             const Icon = cat.icon;
             const isActive = category === cat.key;
@@ -162,10 +155,10 @@ export default function UnitConverterPage() {
               <button
                 key={cat.key}
                 onClick={() => handleCategoryChange(cat.key)}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Icon className="size-4" />
@@ -176,95 +169,100 @@ export default function UnitConverterPage() {
         </div>
 
         {/* ─── Converter Card ──────────────────────────────── */}
-        <Card className="mt-6">
-          <CardContent className="p-6 sm:p-8">
-            <div className="space-y-5">
-              {/* From */}
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">
-                  যে মান রূপান্তর করবেন
-                </label>
-                <div className="flex gap-3">
-                  <div className="min-w-0 flex-1">
-                    <Input
-                      type="number"
-                      value={value}
-                      onChange={(e) => setValue(e.target.value)}
-                      placeholder="মান লিখুন"
-                      className="h-10 text-base"
-                    />
-                  </div>
-                  <div className="w-36 shrink-0">
-                    <Select value={fromLabel} onValueChange={setFromLabel}>
-                      <SelectTrigger className="h-10 w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {currentUnits.map((u) => (
-                          <SelectItem key={u.label} value={u.label}>
-                            {u.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+        <div className="mt-6 rounded-2xl border bg-card shadow-sm">
+          <div className="p-5 sm:p-6">
+            {/* Input row */}
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                যে মান রূপান্তর করবেন
+              </label>
+              <div className="flex gap-2">
+                <div className="min-w-0 flex-1">
+                  <Input
+                    type="number"
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    placeholder="মান লিখুন"
+                    className="h-10 text-base"
+                  />
                 </div>
-              </div>
-
-              {/* Swap button */}
-              <div className="flex justify-center">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleSwap}
-                  className="size-10 rounded-full"
-                  aria-label="একক অদলবদল"
-                >
-                  <ArrowLeftRight className="size-5" />
-                </Button>
-              </div>
-
-              {/* To */}
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">
-                  যে এককে রূপান্তর করবেন
-                </label>
-                <div className="flex gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex h-10 items-center rounded-lg border border-input bg-muted/50 px-3 text-base">
-                      {result !== null ? (
-                        <span className="font-semibold tracking-tight">
-                          {formatResult(result)} {toLabel}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">
-                          ফলাফল এখানে দেখাবে
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="w-36 shrink-0">
-                    <Select value={toLabel} onValueChange={setToLabel}>
-                      <SelectTrigger className="h-10 w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {currentUnits.map((u) => (
-                          <SelectItem key={u.label} value={u.label}>
-                            {u.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="w-32 shrink-0">
+                  <Select value={fromLabel} onValueChange={(v) => v && setFromLabel(v)}>
+                    <SelectTrigger size="lg" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currentUnits.map((u) => (
+                        <SelectItem key={u.label} value={u.label}>
+                          {u.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
 
-            {/* ─── Quick Reference Table ──────────────────── */}
+            {/* Swap */}
+            <div className="flex justify-center py-1">
+              <button
+                type="button"
+                onClick={handleSwap}
+                className="flex size-8 items-center justify-center rounded-full border border-input text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                aria-label="একক অদলবদল"
+              >
+                <ArrowLeftRight className="size-4" />
+              </button>
+            </div>
+
+            {/* Result row */}
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                রূপান্তরিত মান
+              </label>
+              <div className="flex gap-2">
+                <div className="min-w-0 flex-1">
+                  <div
+                    className={`flex h-10 items-center rounded-lg border px-3 text-base ${
+                      result !== null
+                        ? "border-primary/30 bg-primary/3"
+                        : "border-input bg-muted/30"
+                    }`}
+                  >
+                    {result !== null ? (
+                      <span className="font-semibold tracking-tight text-foreground">
+                        {formatResult(result)}{" "}
+                        <span className="text-muted-foreground font-normal">
+                          {toLabel}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">
+                        ফলাফল দেখাবে
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="w-32 shrink-0">
+                  <Select value={toLabel} onValueChange={(v) => v && setToLabel(v)}>
+                    <SelectTrigger size="lg" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currentUnits.map((u) => (
+                        <SelectItem key={u.label} value={u.label}>
+                          {u.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* ─── Quick Reference ──────────────────────────── */}
             {result !== null && (
-              <div className="mt-8">
+              <div className="mt-6 pt-6 border-t">
                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                   <Calculator className="size-4" />
                   দ্রুত রূপান্তর
@@ -273,45 +271,45 @@ export default function UnitConverterPage() {
                   {commonConversions.map((c) => (
                     <div
                       key={c.input}
-                      className="rounded-lg border bg-card/50 px-3 py-2.5 text-center text-sm"
+                      className="rounded-xl border bg-card/50 px-3 py-2.5 text-center text-sm transition-colors hover:border-primary/20 hover:bg-primary/2"
                     >
                       <span className="text-muted-foreground">{c.input}</span>{" "}
-                      {fromLabel}{" "}
-                      <span className="block text-xs text-muted-foreground">
+                      {fromLabel}
+                      <span className="block text-xs text-muted-foreground/60">
                         =
                       </span>
                       <span className="font-semibold">
                         {formatResult(c.output)}
                       </span>{" "}
-                      {toLabel}
+                      <span className="text-muted-foreground">{toLabel}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* ─── Info Card ───────────────────────────────────── */}
-        <Card className="mt-6">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-3">
-              <CategoryIcon className="mt-0.5 size-5 shrink-0 text-primary" />
-              <div>
-                <h3 className="text-sm font-medium">
-                  {category === "area"
-                    ? "বাংলাদেশী জমির একক সম্পর্কে"
-                    : "দৈর্ঘ্য পরিমাপ সম্পর্কে"}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  {category === "area"
-                    ? "বাংলাদেশে জমি পরিমাপের জন্য শতক, কাঠা, বিঘা ও একর সবচেয়ে বেশি ব্যবহৃত হয়। ১ শতক = ৪৩৫.৬ বর্গফুট, ১ কাঠা = ৭২০ বর্গফুট, ১ বিঘা = ২০ কাঠা = ১৪,৪০০ বর্গফুট এবং ১ একর = ১০০ শতক = ৪৩,৫৬০ বর্গফুট। আন্তর্জাতিক ক্ষেত্রে বর্গমিটার ও হেক্টর ব্যবহার করা হয়।"
-                    : "বাংলাদেশে জমির দৈর্ঘ্য পরিমাপে ফুট ও গজ বেশি ব্যবহৃত হয়। ১ গজ = ৩ ফুট, ১ মিটার = ৩.২৮ ফুট। বড় দূরত্বের জন্য কিলোমিটার ও মাইল ব্যবহার করা হয়।"}
-                </p>
-              </div>
+        {/* ─── Info Section ──────────────────────────────────────── */}
+        <div className="mt-6 rounded-2xl border bg-card/50 px-5 py-4 sm:px-6">
+          <div className="flex items-start gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <CategoryIcon className="size-5 text-primary" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <h3 className="text-sm font-medium">
+                {category === "area"
+                  ? "বাংলাদেশী জমির একক সম্পর্কে"
+                  : "দৈর্ঘ্য পরিমাপ সম্পর্কে"}
+              </h3>
+              <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                {category === "area"
+                  ? "বাংলাদেশে জমি পরিমাপের জন্য শতক, কাঠা, বিঘা ও একর সবচেয়ে বেশি ব্যবহৃত হয়। ১ শতক = ৪৩৫.৬ বর্গফুট, ১ কাঠা = ৭২০ বর্গফুট, ১ বিঘা = ২০ কাঠা = ১৪,৪০০ বর্গফুট এবং ১ একর = ১০০ শতক = ৪৩,৫৬০ বর্গফুট। আন্তর্জাতিক ক্ষেত্রে বর্গমিটার ও হেক্টর ব্যবহার করা হয়।"
+                  : "বাংলাদেশে জমির দৈর্ঘ্য পরিমাপে ফুট ও গজ বেশি ব্যবহৃত হয়। ১ গজ = ৩ ফুট, ১ মিটার = ৩.২৮ ফুট। বড় দূরত্বের জন্য কিলোমিটার ও মাইল ব্যবহার করা হয়।"}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </PageWrapper>
   );
