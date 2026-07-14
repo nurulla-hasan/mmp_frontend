@@ -22,7 +22,8 @@ type SideLengthsListProps = {
 
 // Removed ResultsDisplayProps
 
-export const ReportTable = memo(({ results }: ReportTableProps) => {
+
+export const ReportTable = memo(function ReportTable({ results }: ReportTableProps) {
   return (
     <Table>
       <TableHeader>
@@ -49,7 +50,7 @@ export const ReportTable = memo(({ results }: ReportTableProps) => {
   );
 });
 
-export const SideLengthsList = memo(({ lengths, perimeter, showPerimeter = true, diagonals }: SideLengthsListProps) => {
+export const SideLengthsList = memo(function SideLengthsList({ lengths, perimeter, showPerimeter = true, diagonals }: SideLengthsListProps) {
   return (
     <>
       <ul className="list-disc list-inside print:hidden text-sm">
@@ -79,9 +80,9 @@ export const SideLengthsList = memo(({ lengths, perimeter, showPerimeter = true,
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 
-export const ResultsDisplay = memo(({ onPrint }: { onPrint: () => void }) => {
+export const ResultsDisplay = memo(function ResultsDisplay({ onPrint }: { onPrint: () => void }) {
   const { results, plots, reportInfo, setReportInfo } = useMapStore();
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
@@ -194,8 +195,8 @@ export const ResultsDisplay = memo(({ onPrint }: { onPrint: () => void }) => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPrintModalOpen(false)}>বাতিল</Button>
-            <Button onClick={() => { setIsPrintModalOpen(false); onPrint(); }}>প্রিন্ট করুন</Button>
+            <DialogClose render={<Button variant="outline" />}>বাতিল</DialogClose>
+            <Button onClick={() => { setIsPrintModalOpen(false); setTimeout(onPrint, 500); }}>প্রিন্ট করুন</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
