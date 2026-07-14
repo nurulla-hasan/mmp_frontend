@@ -1,0 +1,231 @@
+import { create } from 'zustand';
+import {
+  clipLineToPolygon,
+  getSnappedPoint,
+  isPointInPolygon,
+} from '../utils/geometry';
+import type { PlotRecord } from '../types/map';
+
+// Import all slices
+import { createImageSlice, type ImageSlice } from './slices/imageSlice';
+import { createCalibrationSlice, type CalibrationSlice } from './slices/calibrationSlice';
+import { createUISlice, type UISlice } from './slices/uiSlice';
+import { createPlotSlice, type PlotSlice } from './slices/plotSlice';
+import { createDivideSlice, type DivideSlice } from './slices/divideSlice';
+import { createMeasurementSlice, type MeasurementSlice } from './slices/measurementSlice';
+import { createSavedPlotsSlice, type SavedPlotsSlice } from './slices/savedPlotsSlice';
+
+// Re-export for convenience
+export type { PlotRecord } from '../types/map';
+
+// Combined store type
+export type MapStore = ImageSlice &
+  Omit<CalibrationSlice, 'handleManualScaleSubmit' | '_handleModalSubmit'> &
+  UISlice &
+  Omit<PlotSlice, 'finishPlot' | 'startPlotDrawing'> &
+  Omit<DivideSlice, 'executeManualDivide' | 'startManualDivide' | 'cancelManualDivide'> &
+  MeasurementSlice &
+  SavedPlotsSlice & {
+    // High-level orchestration actions
+    resetState: (fullReset?: boolean) => void;
+    confirmClearMap: () => void;
+    confirmClearPlot: (callback?: () => void) => void;
+    executePendingAction: () => void;
+    addCenterPoint: () => void;
+
+    // Wrapper methods for component compatibility (overriding slice methods)
+    handleManualScaleSubmit: (e: React.FormEvent) => void;
+    _handleModalSubmit: (realDistance: number) => void;
+    startPlotDrawing: () => void;
+    finishPlot: () => void;
+    startManualDivide: () => void;
+    cancelManualDivide: () => void;
+    executeManualDivide: () => void;
+  };
+
+export const useMapStore = create<MapStore>((set, get, store) => {
+  // Type casting is necessary here because Zustand slices have different signatures
+  // than the combined store. This is a known pattern in Zustand slice composition.
+  // Each slice expects its own state type, but we're combining them into MapStore.
+  const divideSlice = createDivideSlice(
+    set as never,
+    get as never,
+    store as never
+  );
+  const plotSlice = createPlotSlice(
+    set as never,
+    get as never,
+    store as never
+  );
+  const calibrationSlice = createCalibrationSlice(
+    set as never,
+    get as never,
+    store as never
+  );
+
+  return {
+    // Combine all slices
+    ...createImageSlice(set as never, get as never, store as never),
+    ...calibrationSlice,
+    ...createUISlice(set as never, get as never, store as never),
+    ...plotSlice,
+    ...divideSlice,
+    ...createMeasurementSlice(set as never, get as never, store as never),
+    ...createSavedPlotsSlice(set as never, get as never, store as never),
+
+    // High-level orchestration actions that coordinate multiple slices
+    resetState: (fullReset = true) => {
+      const state = get();
+
+      if (fullReset) {
+        // Full reset - clear everything
+        state.handleClearFile();
+        set({ currentProjectId: null });
+      }
+
+      // Reset plot and UI state (keep image and scale)
+      state.clearPlot();
+      state.setCalibrationLine([]);
+      state.setIsDrawing(false);
+      state.clearMeasurementLines();
+      state.cancelManualDivide();
+      state.setMode('none');
+      state.setReportImage(null);
+      state.setSnapHint(false);
+    },
+
+    confirmClearMap: () => {
+      const state = get();
+      if (state.plots.length > 0 || state.scale !== null) {
+        set({ pendingAction: { type: 'clearMap' } });
+      } else {
+        get().handleClearFile();
+      }
+    },
+
+    confirmClearPlot: (callback) => {
+      const state = get();
+      if (state.plots.length > 0 || state.plotPoints.length > 0) {
+        set({ pendingAction: { type: 'clearPlot', callback } });
+      } else {
+        get().clearPlot();
+        if (callback) callback();
+      }
+    },
+
+    executePendingAction: () => {
+      const state = get();
+      if (!state.pendingAction) return;
+
+      if (state.pendingAction.type === 'clearMap') {
+        get().handleClearFile();
+        get().resetState(true);
+      } else if (state.pendingAction.type === 'clearPlot') {
+        get().clearPlot();
+        get().setReportImage(null);
+        set({ currentProjectId: null });
+        if (state.pendingAction.callback) state.pendingAction.callback();
+      }
+      set({ pendingAction: null });
+    },
+
+    addCenterPoint: () => {
+      const state = get();
+      const rawPt = state.getStageCenterPoint();
+      const snapThreshold = 10 / state.stageScale;
+      let pt = getSnappedPoint(rawPt, state.plots.map((p) => p.points), snapThreshold);
+
+      if (state.mode === 'calibrating') {
+        if (state.calibrationLine.length === 0) {
+          set({ calibrationLine: [pt.x, pt.y], isDrawing: true });
+        } else {
+          const len = state.calibrationLine.length;
+          const xLast = state.calibrationLine[len - 2];
+          const yLast = state.calibrationLine[len - 1];
+          const dist = Math.hypot(pt.x - xLast, pt.y - yLast);
+          if (dist < 1e-3) return; // Prevent duplicate points
+          
+          set({ calibrationLine: [...state.calibrationLine, pt.x, pt.y], isDrawing: true });
+        }
+      } else if (state.mode === 'drawing_plot' && !state.isPlotFinished) {
+        const SNAP_THRESHOLD = 20 / state.stageScale;
+
+        let containingPlot: PlotRecord | null = null;
+
+        if (state.plotPoints.length > 0) {
+          const firstPoint = state.plotPoints[0];
+          const lastPoint = state.plotPoints[state.plotPoints.length - 1];
+          containingPlot = state.plots.find((plot) => isPointInPolygon(firstPoint, plot.points)) ?? null;
+
+          if (containingPlot) {
+            pt = clipLineToPolygon(lastPoint, pt, containingPlot.points);
+          }
+        }
+
+        if (state.plotPoints.length >= 3) {
+          const first = state.plotPoints[0];
+          if (Math.hypot(pt.x - first.x, pt.y - first.y) <= SNAP_THRESHOLD) {
+            // Call finishPlot wrapper which will handle the parameters
+            plotSlice.finishPlot(state.scale, state.plots);
+            set({ snapHint: false, mode: 'none' });
+            return;
+          }
+        }
+
+        set({ plotPoints: [...state.plotPoints, pt], plotPointsFuture: [], snapHint: false });
+      } else if (state.mode === 'measuring') {
+        get().addMeasurementPoint(pt, state.scale, state.plots);
+      }
+    },
+
+    // Wrapper methods for backward compatibility
+    handleManualScaleSubmit: (e) => {
+      calibrationSlice.handleManualScaleSubmit(e);
+      set({ mode: 'none' });
+    },
+
+    _handleModalSubmit: (realDistance) => {
+      calibrationSlice._handleModalSubmit(realDistance);
+      set({ mode: 'none', isModalOpen: false });
+    },
+
+    startPlotDrawing: () => {
+      set({ plotPoints: [], plotPointsFuture: [], mode: 'drawing_plot', isDrawing: true, isPlotFinished: false });
+    },
+
+    finishPlot: () => {
+      const state = get();
+      plotSlice.finishPlot(state.scale, state.plots);
+      set({ mode: 'none' });
+    },
+
+
+    startManualDivide: () => {
+      set({ mode: 'manual_divide_plot', manualDividePlotId: null, manualCutLine: null });
+    },
+
+    cancelManualDivide: () => {
+      set({ mode: 'none', manualDividePlotId: null, manualCutLine: null });
+    },
+
+    executeManualDivide: () => {
+      const state = get();
+      const result = divideSlice.executeManualDivide(state.plots, state.scale);
+      if (result) {
+        const previousIds = new Set(state.plots.map((plot) => plot.id));
+        result
+          .filter((plot) => !previousIds.has(plot.id));
+
+        set({
+          plots: result,
+          plotsHistory: [...state.plotsHistory, state.plots],
+          plotsFuture: [],
+          results: result.length > 0 ? result[result.length - 1].results : null,
+          mode: 'none',
+        });
+      }
+    },
+  };
+});
+
+
