@@ -48,7 +48,7 @@ export const SidebarImagePanel = () => {
               </div>
               <button
                 type="button"
-                onClick={confirmClearMap}
+                onClick={() => confirmClearMap()}
                 className="p-1 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors shrink-0"
                 title="ফাইলটি সরান"
               >
@@ -83,7 +83,7 @@ export const SidebarImagePanel = () => {
                   <span className="text-muted-foreground/50">|</span>
                   <span>{pdfDpiInfo.imageWidthPx}×{pdfDpiInfo.imageHeightPx}px</span>
                   <span className="text-muted-foreground/50">|</span>
-                  <span>{pdfDpiInfo.pageWidthInches.toFixed(1)}"×{pdfDpiInfo.pageHeightInches.toFixed(1)}"</span>
+                  <span>{pdfDpiInfo.pageWidthInches.toFixed(1)}&quot;×{pdfDpiInfo.pageHeightInches.toFixed(1)}&quot;</span>
                 </>
               ) : isProcessingFile ? (
                 <span className="italic">DPI detecting...</span>
