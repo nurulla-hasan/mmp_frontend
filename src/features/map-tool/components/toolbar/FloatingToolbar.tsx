@@ -154,6 +154,7 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
                 label="ড্রাইভ থেকে আনুন"
                 onClick={handleDriveClick}
                 size={size}
+                id="step-drive"
             />
         ),
         calibrate: (size: 'md' | 'sm' = 'md') => (
@@ -186,6 +187,7 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
                 onClick={startManualDivide}
                 disabled={plots.length === 0 || isDrawing}
                 size={size}
+                id="step-divide"
             />
         ),
         diagonals: (size: 'md' | 'sm' = 'md') => (
@@ -195,6 +197,7 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
                 active={isShowDiagonals}
                 onClick={() => setIsShowDiagonals(!isShowDiagonals)}
                 size={size}
+                id="step-diagonals"
             />
         ),
         magnifier: (size: 'md' | 'sm' = 'md') => (
@@ -204,6 +207,7 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
                 active={isMagnifierEnabled}
                 onClick={() => setIsMagnifierEnabled(!isMagnifierEnabled)}
                 size={size}
+                id="step-magnifier"
             />
         ),
         home: (size: 'md' | 'sm' = 'md') => (
@@ -212,7 +216,7 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
                 label="হোম পেজ"
                 onClick={() => router.push('/tools')}
                 size={size}
-                id="step-top-controls"
+                id="step-home"
             />
         ),
         themeToggle: (size: 'md' | 'sm' = 'md') => {
@@ -223,6 +227,7 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
                     label={isDark ? 'লাইট থিম' : 'ডার্ক থিম'}
                     onClick={() => setTheme(isDark ? 'light' : 'dark')}
                     size={size}
+                    id="step-theme"
                 />
             );
         },
@@ -233,6 +238,7 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
                 label="সাহায্য / টিউটোরিয়াল"
                 onClick={() => window.dispatchEvent(new Event('start-tutorial'))}
                 size={size}
+                id="step-help"
             />
         ),
     };
@@ -265,7 +271,7 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
                 {commonTools.magnifier()}
 
                 <VDivider />
-                <SaveProjectDialog iconOnly />
+                <span id="step-save"><SaveProjectDialog iconOnly /></span>
                 {commonTools.home()}
                 {commonTools.themeToggle()}
                 {commonTools.help()}
@@ -285,7 +291,7 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
                 {commonTools.calibrate('sm')}
                 {commonTools.draw('sm')}
                 {commonTools.divide('sm')}
-                <SaveProjectDialog iconOnly size="sm" />
+                <span id="step-save"><SaveProjectDialog iconOnly size="sm" /></span>
                 {commonTools.home('sm')}
                 <DropdownMenu>
                     <DropdownMenuTrigger nativeButton={false} render={<div className="inline-flex" />} className="focus-visible:outline-none focus:outline-none">
@@ -301,7 +307,7 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
                         alignOffset={-10}
                         sideOffset={12}
                         className="w-fit"
-                        >
+                    >
                         <div>
                             {commonTools.magnifier('sm')}
                             {commonTools.diagonals('sm')}
