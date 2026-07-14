@@ -64,6 +64,9 @@ export const TiledBackground = memo(() => {
     const ticket = ++pendingRef.current;
     const newKeys = new Set<string>();
 
+    // Clean up stale tile URLs immediately — free GPU memory before loading new tiles
+    cleanupTileUrls(hash, newKeys);
+
     (async () => {
       try {
         const results = await Promise.all(
@@ -79,7 +82,6 @@ export const TiledBackground = memo(() => {
 
         if (ticket === pendingRef.current && mountedRef.current) {
           setTileImages(results);
-          cleanupTileUrls(hash, newKeys);
         }
       } catch {
         // Tile not yet cached (generation still in progress) — keep previous set

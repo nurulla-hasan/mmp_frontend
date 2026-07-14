@@ -6,16 +6,21 @@ import { Button } from '@/components/ui/button';
 import nextDynamic from 'next/dynamic';
 import { DistanceModal } from '@/features/map-tool/components/DistanceModal';
 import { ResultsDisplay } from '@/features/map-tool/components/ResultsDisplay';
-import { PrintLayout } from '@/features/map-tool/components/PrintLayout';
 import { SidebarControls } from '@/features/map-tool/components/sidebar/SidebarControls';
 import { FloatingToolbar } from '@/features/map-tool/components/toolbar/FloatingToolbar';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
+import { useShallow } from 'zustand/shallow';
 import { TutorialGuide } from '@/features/map-tool/components/tutorial-guide';
 import { Upload, HardDrive } from 'lucide-react';
 import { DriveMapBrowser } from '@/features/map-tool/components/DriveMapBrowser';
 
 const KonvaStage = nextDynamic(
   () => import('@/features/map-tool/components/stage/KonvaStage').then((m) => ({ default: m.KonvaStage })),
+  { ssr: false }
+);
+
+const PrintLayout = nextDynamic(
+  () => import('@/features/map-tool/components/PrintLayout').then((m) => ({ default: m.PrintLayout })),
   { ssr: false }
 );
 
@@ -35,7 +40,15 @@ export default function MapCalculator() {
     mode,
     plotPoints,
     image,
-  } = useMapStore();
+  } = useMapStore(useShallow((s) => ({
+    savedPlots: s.savedPlots,
+    deleteSavedPlot: s.deleteSavedPlot,
+    setStageSize: s.setStageSize,
+    setReportImage: s.setReportImage,
+    mode: s.mode,
+    plotPoints: s.plotPoints,
+    image: s.image,
+  })));
 
   useEffect(() => {
     const updateSize = () => {
@@ -49,6 +62,7 @@ export default function MapCalculator() {
 
     let lastWidth = window.innerWidth;
     let lastHeight = window.innerHeight;
+    let rafId = 0;
 
     const handleResize = () => {
       const currentWidth = window.innerWidth;
@@ -57,11 +71,15 @@ export default function MapCalculator() {
       if (isMobile && currentWidth === lastWidth && Math.abs(currentHeight - lastHeight) < 150) return;
       lastWidth = currentWidth;
       lastHeight = currentHeight;
-      updateSize();
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(updateSize);
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(rafId);
+    };
   }, [setStageSize]);
 
   const handlePrint = () => {

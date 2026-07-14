@@ -1,19 +1,20 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useMemo, useCallback, memo } from 'react';
 import {
     Upload, Ruler, PenTool, Scissors, Eye, EyeOff, Search, HelpCircle,
     Home, Moon, Sun, MoreHorizontal, HardDrive
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
+import { useShallow } from 'zustand/shallow';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { SaveProjectDialog } from '@/features/map-tool/components/SaveProjectDialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 
 // ─── Tooltip wrapper ─────────────────────────────────────────────────────────
-function ToolTip({ label, children, side = "left" }: { label: React.ReactNode; children: React.ReactNode; side?: "left" | "top" | "right" | "bottom" }) {
+const ToolTip = memo(function ToolTip({ label, children, side = "left" }: { label: React.ReactNode; children: React.ReactNode; side?: "left" | "top" | "right" | "bottom" }) {
     return (
         <Tooltip>
             <TooltipTrigger render={<div className="inline-flex" />} className="focus-visible:outline-none focus:outline-none">
@@ -24,10 +25,10 @@ function ToolTip({ label, children, side = "left" }: { label: React.ReactNode; c
             </TooltipContent>
         </Tooltip>
     );
-}
+});
 
 // ─── Icon button ─────────────────────────────────────────────────────────────
-function ToolBtn({
+const ToolBtn = memo(function ToolBtn({
     icon: Icon,
     label,
     onClick,
@@ -72,7 +73,7 @@ function ToolBtn({
             </span>
         </ToolTip>
     );
-}
+});
 
 // ─── Divider ─────────────────────────────────────────────────────────────────
 function VDivider() {
@@ -103,11 +104,30 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
         setIsShowDiagonals,
         isMagnifierEnabled,
         setIsMagnifierEnabled,
-    } = useMapStore();
+    } = useMapStore(useShallow((s) => ({
+        selectedFile: s.selectedFile,
+        handleImageUpload: s.handleImageUpload,
+        confirmClearMap: s.confirmClearMap,
+        isProcessingFile: s.isProcessingFile,
+        mode: s.mode,
+        image: s.image,
+        scale: s.scale,
+        plots: s.plots,
+        setMode: s.setMode,
+        setIsDrawing: s.setIsDrawing,
+        setCalibrationLine: s.setCalibrationLine,
+        confirmClearPlot: s.confirmClearPlot,
+        startPlotDrawing: s.startPlotDrawing,
+        startManualDivide: s.startManualDivide,
+        isShowDiagonals: s.isShowDiagonals,
+        setIsShowDiagonals: s.setIsShowDiagonals,
+        isMagnifierEnabled: s.isMagnifierEnabled,
+        setIsMagnifierEnabled: s.setIsMagnifierEnabled,
+    })));
 
     const isDrawing = mode === 'drawing_plot' || mode === 'calibrating' || mode === 'manual_divide_plot';
 
-    const handleUploadClick = () => {
+    const handleUploadClick = useCallback(() => {
         if (selectedFile || image) {
             confirmClearMap(() => {
                 fileInputRef.current?.click();
@@ -115,9 +135,9 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
         } else {
             fileInputRef.current?.click();
         }
-    };
+    }, [selectedFile, image, confirmClearMap]);
 
-    const handleDriveClick = () => {
+    const handleDriveClick = useCallback(() => {
         if (selectedFile || image) {
             confirmClearMap(() => {
                 if (onOpenDrive) onOpenDrive();
@@ -125,18 +145,18 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
         } else {
             if (onOpenDrive) onOpenDrive();
         }
-    };
+    }, [selectedFile, image, confirmClearMap, onOpenDrive]);
 
-    const handleCalibrateClick = () => {
+    const handleCalibrateClick = useCallback(() => {
         if (!image) return;
         confirmClearPlot(() => {
             setMode('calibrating');
             setIsDrawing(false);
             setCalibrationLine([]);
         });
-    };
+    }, [image, confirmClearPlot, setMode, setIsDrawing, setCalibrationLine]);
 
-    const commonTools = {
+    const commonTools = useMemo(() => ({
         upload: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={Upload}
@@ -241,7 +261,12 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
                 id="step-help"
             />
         ),
-    };
+    }), [
+        selectedFile, isProcessingFile, handleUploadClick, handleDriveClick,
+        scale, mode, image, plots.length, isDrawing, handleCalibrateClick, startPlotDrawing,
+        startManualDivide, isShowDiagonals, setIsShowDiagonals,
+        isMagnifierEnabled, setIsMagnifierEnabled, router, theme, setTheme,
+    ]);
 
     return (
         <>

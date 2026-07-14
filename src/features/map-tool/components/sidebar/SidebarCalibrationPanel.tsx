@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DECIMALS } from '@/features/map-tool/utils/calculations';
+import { useShallow } from 'zustand/shallow';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 
 export const SidebarCalibrationPanel = () => {
@@ -19,13 +20,20 @@ export const SidebarCalibrationPanel = () => {
     setCalibrationLine,
     handleManualScaleSubmit,
     confirmClearPlot,
-  } = useMapStore();
-  useEffect(() => {
-    if (scale) {
-      setIsChangingScale(false);
-    }
-  }, [scale]);
-
+  } = useMapStore(useShallow((s) => ({
+    mode: s.mode,
+    setMode: s.setMode,
+    image: s.image,
+    scale: s.scale,
+    manualScale: s.manualScale,
+    setManualScale: s.setManualScale,
+    showManualScale: s.showManualScale,
+    setShowManualScale: s.setShowManualScale,
+    setIsDrawing: s.setIsDrawing,
+    setCalibrationLine: s.setCalibrationLine,
+    handleManualScaleSubmit: s.handleManualScaleSubmit,
+    confirmClearPlot: s.confirmClearPlot,
+  })));
   const isScaleConfigured = scale !== null && !isChangingScale && mode !== 'calibrating' && mode !== 'manual_scale';
 
   return (
@@ -56,6 +64,7 @@ export const SidebarCalibrationPanel = () => {
             variant={mode === 'calibrating' ? 'default' : 'outline'}
             onClick={() => { 
               confirmClearPlot(() => {
+                setIsChangingScale(false);
                 setMode('calibrating'); 
                 setShowManualScale(false);
                 setIsDrawing(false); 
@@ -71,12 +80,13 @@ export const SidebarCalibrationPanel = () => {
             size="sm"
             variant={showManualScale ? 'default' : 'outline'}
             onClick={() => {
-              setShowManualScale(!showManualScale);
               if (showManualScale) {
                 setMode('none');
               } else {
+                setIsChangingScale(false);
                 setMode('manual_scale');
               }
+              setShowManualScale(!showManualScale);
             }} 
             disabled={!image}
             className="flex-1"

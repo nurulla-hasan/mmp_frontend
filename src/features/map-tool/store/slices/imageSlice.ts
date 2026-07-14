@@ -37,7 +37,8 @@ function getSafeMaxDimension(): number {
 
 /**
  * Downscale an image so its longest side fits within `maxPx`.
- * Uses canvas for downscaling — much more GPU-memory-friendly.
+ * Uses canvas + toBlob(webp) for GPU-memory-friendly downscaling.
+ * WebP at quality 0.8 is ~5-10× smaller than PNG.
  */
 function downscaleImage(img: HTMLImageElement, maxPx: number): Promise<HTMLImageElement> {
   return new Promise((resolve) => {
@@ -57,7 +58,10 @@ function downscaleImage(img: HTMLImageElement, maxPx: number): Promise<HTMLImage
 
     const result = new window.Image();
     result.onload = () => resolve(result);
-    result.src = cvs.toDataURL('image/png');
+    // WebP at 0.8 is much smaller than PNG — great for memory-constrained devices
+    cvs.toBlob((blob) => {
+      result.src = blob ? URL.createObjectURL(blob) : cvs.toDataURL('image/png');
+    }, 'image/webp', 0.8);
   });
 }
 
@@ -160,42 +164,31 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
         return false;
       }
     } else {
+      // ── Use URL.createObjectURL instead of FileReader (base64 = 33%+ memory overhead) ──
+      const img = new window.Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.src = objectUrl;
       return new Promise<boolean>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const img = new window.Image();
-          if (typeof event.target?.result !== 'string') {
-            set({ isProcessingFile: false });
-            toast.error('ম্যাপের ছবি লোড করা যায়নি');
-            resolve(false);
-            return;
+        img.onload = async () => {
+          URL.revokeObjectURL(objectUrl);
+          // ── Downscale for GPU safety on low-end devices ──
+          const safeMax = getSafeMaxDimension();
+          let displayImg: HTMLImageElement = img;
+          if (img.naturalWidth > safeMax || img.naturalHeight > safeMax) {
+            displayImg = await downscaleImage(img, safeMax);
+            console.info(`📐 Image downscaled for GPU safety: ${img.naturalWidth}×${img.naturalHeight} → ${displayImg.naturalWidth}×${displayImg.naturalHeight} (max: ${safeMax})`);
           }
-          img.src = event.target.result;
-          img.onload = async () => {
-            // ── Downscale for GPU safety on low-end devices ──
-            const safeMax = getSafeMaxDimension();
-            let displayImg: HTMLImageElement = img;
-            if (img.naturalWidth > safeMax || img.naturalHeight > safeMax) {
-              displayImg = await downscaleImage(img, safeMax);
-              console.info(`📐 Image downscaled for GPU safety: ${img.naturalWidth}×${img.naturalHeight} → ${displayImg.naturalWidth}×${displayImg.naturalHeight} (max: ${safeMax})`);
-            }
-            set({ selectedFile: file, imageName: file.name || 'image', image: displayImg, _originalImage: img, isProcessingFile: false });
-            // Start tile building in the background (uses original image for accuracy)
-            get().buildTilePyramid();
-            resolve(true);
-          };
-          img.onerror = () => {
-            set({ selectedFile: null, imageName: '', isProcessingFile: false });
-            toast.error('ম্যাপের ছবি ডিকোড করা যায়নি');
-            resolve(false);
-          };
+          set({ selectedFile: file, imageName: file.name || 'image', image: displayImg, _originalImage: img, isProcessingFile: false });
+          // Start tile building in the background (uses original image for accuracy)
+          get().buildTilePyramid();
+          resolve(true);
         };
-        reader.onerror = () => {
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
           set({ selectedFile: null, imageName: '', isProcessingFile: false });
-          toast.error('ম্যাপের ছবি পড়া যায়নি');
+          toast.error('ম্যাপের ছবি ডিকোড করা যায়নি');
           resolve(false);
         };
-        reader.readAsDataURL(file);
       });
     }
   },
@@ -248,7 +241,7 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
       );
       // Only commit result if still the active generation
       if (get()._generationId === generationId) {
-        set({ tilePyramidInfo: info, isGeneratingTiles: false, tileProgress: 100 });
+        set({ tilePyramidInfo: info, isGeneratingTiles: false, tileProgress: 100, _originalImage: null });
       }
     } catch (err) {
       console.error('Tile pyramid generation failed:', err);

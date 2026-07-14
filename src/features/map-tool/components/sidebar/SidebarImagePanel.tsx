@@ -1,8 +1,17 @@
 
+import { useShallow } from 'zustand/shallow';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 
 export const SidebarImagePanel = () => {
-  const { selectedFile, handleImageUpload, confirmClearMap, isProcessingFile, isGeneratingTiles, tileProgress, pdfDpiInfo } = useMapStore();
+  const { selectedFile, handleImageUpload, confirmClearMap, isProcessingFile, isGeneratingTiles, tileProgress, pdfDpiInfo } = useMapStore(useShallow((s) => ({
+    selectedFile: s.selectedFile,
+    handleImageUpload: s.handleImageUpload,
+    confirmClearMap: s.confirmClearMap,
+    isProcessingFile: s.isProcessingFile,
+    isGeneratingTiles: s.isGeneratingTiles,
+    tileProgress: s.tileProgress,
+    pdfDpiInfo: s.pdfDpiInfo,
+  })));
   
   return (
     <div id="step-image-upload">

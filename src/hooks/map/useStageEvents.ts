@@ -3,6 +3,7 @@ import { useRef, useCallback, useLayoutEffect } from "react";
 import type { Point, PinchStart } from "@/features/map-tool/types/map";
 import type Konva from "konva";
 
+import { useShallow } from 'zustand/shallow';
 import { useMapStore } from "@/features/map-tool/store/useMapStore";
 import { STAGE_MIN_ZOOM, STAGE_MAX_ZOOM } from "@/features/map-tool/utils/canvas";
 
@@ -64,7 +65,19 @@ export const useStageEvents = () => {
     setStagePos,
     getStageCenterPoint,
     setStageScale,
-  } = useMapStore();
+  } = useMapStore(useShallow((s) => ({
+    mode: s.mode,
+    isPlotFinished: s.isPlotFinished,
+    plotPoints: s.plotPoints,
+    snapHint: s.snapHint,
+    setSnapHint: s.setSnapHint,
+    setIsPinching: s.setIsPinching,
+    stageScale: s.stageScale,
+    stagePos: s.stagePos,
+    setStagePos: s.setStagePos,
+    getStageCenterPoint: s.getStageCenterPoint,
+    setStageScale: s.setStageScale,
+  })));
 
   // Keep latest values in refs so callbacks don't go stale and don't need to be recreated.
   // useLayoutEffect runs synchronously after every render, before the browser paints,

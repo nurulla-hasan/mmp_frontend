@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { useShallow } from 'zustand/shallow';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 
 export const SidebarPlottingPanel = () => {
@@ -13,7 +14,18 @@ export const SidebarPlottingPanel = () => {
     undoPlotAction,
     redoPlotAction,
     confirmClearPlot,
-  } = useMapStore();
+  } = useMapStore(useShallow((s) => ({
+    mode: s.mode,
+    image: s.image,
+    scale: s.scale,
+    plots: s.plots,
+    plotsHistory: s.plotsHistory,
+    plotsFuture: s.plotsFuture,
+    startPlotDrawing: s.startPlotDrawing,
+    undoPlotAction: s.undoPlotAction,
+    redoPlotAction: s.redoPlotAction,
+    confirmClearPlot: s.confirmClearPlot,
+  })));
 
   return (
     <div id="step-drawing">
