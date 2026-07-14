@@ -36,6 +36,7 @@ export interface UIActions {
 
 export type UISlice = UIState & UIActions;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set, get, _store) => ({
   // State
   mode: 'none',

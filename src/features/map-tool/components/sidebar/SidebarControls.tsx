@@ -171,8 +171,8 @@ export const SidebarControls = memo(function SidebarControls() {
       )}
 
       {mode === 'drawing_plot' && (
-        <div className="absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 w-[93%] md:w-auto p-3 rounded-lg bg-background border border-border shadow-xl z-50 flex justify-evenly items-center gap-2">
-          <div className='flex gap-2'>
+        <div className="absolute top-4 md:top-auto md:bottom-4 left-1/2 -translate-x-1/2 w-max p-2 md:p-3 rounded-2xl bg-card/95 border border-border shadow-xl z-50 flex items-center gap-4">
+          <div className='flex gap-1.5'>
             <Button size="sm" onClick={() => { setMode('none'); setIsDrawing(false); setSnapHint(false); }} variant="destructive" title="আঁকা বন্ধ করুন">
               <X />
             </Button>
@@ -181,13 +181,12 @@ export const SidebarControls = memo(function SidebarControls() {
             </Button>
           </div>
 
-          <div className='flex gap-2'>
+          <div className='flex gap-1.5'>
             <Button size="sm" onClick={undoPlotAction} disabled={plotPoints.length === 0 && plotsHistory.length === 0} variant="secondary" title="পূর্বাবস্থায় ফেরান">
               <Undo2 className="h-4 w-4" />
             </Button>
             <Button
               size="sm"
-
               onClick={redoPlotAction}
               disabled={plotPointsFuture.length === 0 && (plotPoints.length > 0 || plotsFuture.length === 0)}
               variant="outline"

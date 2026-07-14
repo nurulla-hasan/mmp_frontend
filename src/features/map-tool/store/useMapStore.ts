@@ -28,7 +28,7 @@ export type MapStore = ImageSlice &
   SavedPlotsSlice & {
     // High-level orchestration actions
     resetState: (fullReset?: boolean) => void;
-    confirmClearMap: () => void;
+    confirmClearMap: (callback?: () => void) => void;
     confirmClearPlot: (callback?: () => void) => void;
     executePendingAction: () => void;
     addCenterPoint: () => void;
@@ -94,12 +94,13 @@ export const useMapStore = create<MapStore>((set, get, store) => {
       state.setSnapHint(false);
     },
 
-    confirmClearMap: () => {
+    confirmClearMap: (callback) => {
       const state = get();
       if (state.plots.length > 0 || state.scale !== null) {
-        set({ pendingAction: { type: 'clearMap' } });
+        set({ pendingAction: { type: 'clearMap', callback } });
       } else {
         get().handleClearFile();
+        if (callback) callback();
       }
     },
 
@@ -120,6 +121,7 @@ export const useMapStore = create<MapStore>((set, get, store) => {
       if (state.pendingAction.type === 'clearMap') {
         get().handleClearFile();
         get().resetState(true);
+        if (state.pendingAction.callback) state.pendingAction.callback();
       } else if (state.pendingAction.type === 'clearPlot') {
         get().clearPlot();
         get().setReportImage(null);

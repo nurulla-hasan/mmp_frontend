@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import {
     Upload, Ruler, PenTool, Scissors, Eye, EyeOff, Search, HelpCircle,
-    Home, Moon, Sun, MoreHorizontal
+    Home, Moon, Sun, MoreHorizontal, HardDrive
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
@@ -78,12 +78,8 @@ function ToolBtn({
 function VDivider() {
     return <div className="my-1 h-px w-7 self-center bg-border" />;
 }
-function HDivider() {
-    return <div className="mx-0.5 h-6 w-px bg-border" />;
-}
-
 // ─── Main Component ───────────────────────────────────────────────────────────
-export function FloatingToolbar() {
+export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
     const { theme, setTheme } = useTheme();
@@ -112,10 +108,22 @@ export function FloatingToolbar() {
     const isDrawing = mode === 'drawing_plot' || mode === 'calibrating' || mode === 'manual_divide_plot';
 
     const handleUploadClick = () => {
-        if (selectedFile) {
-            confirmClearMap();
+        if (selectedFile || image) {
+            confirmClearMap(() => {
+                fileInputRef.current?.click();
+            });
         } else {
             fileInputRef.current?.click();
+        }
+    };
+
+    const handleDriveClick = () => {
+        if (selectedFile || image) {
+            confirmClearMap(() => {
+                if (onOpenDrive) onOpenDrive();
+            });
+        } else {
+            if (onOpenDrive) onOpenDrive();
         }
     };
 
@@ -138,6 +146,14 @@ export function FloatingToolbar() {
                 disabled={isProcessingFile}
                 size={size}
                 id="step-image-upload"
+            />
+        ),
+        drive: (size: 'md' | 'sm' = 'md') => (
+            <ToolBtn
+                icon={HardDrive}
+                label="ড্রাইভ থেকে আনুন"
+                onClick={handleDriveClick}
+                size={size}
             />
         ),
         calibrate: (size: 'md' | 'sm' = 'md') => (
@@ -239,6 +255,7 @@ export function FloatingToolbar() {
                 className="absolute right-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl md:flex"
             >
                 {commonTools.upload()}
+                {commonTools.drive()}
                 <VDivider />
                 {commonTools.calibrate()}
                 {commonTools.draw()}
@@ -255,20 +272,19 @@ export function FloatingToolbar() {
             </div>
 
             {/* ── Mobile: Scale Indicator ───────────────────────────────────────── */}
-            {scale && (
+            {scale && !isDrawing && (
                 <div className="absolute bottom-18 left-1/2 z-40 -translate-x-1/2 rounded-full border border-border bg-card/95 px-3 py-1 shadow-md text-[10px] font-medium md:hidden text-primary whitespace-nowrap">
                     স্কেল: ১ px ≈ {(1 / scale).toFixed(2)} ft
                 </div>
             )}
 
             {/* ── Mobile: floating bottom bar ───────────────────────────────────── */}
-            <div id="step-toolbar" className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-0.5 rounded-2xl border border-border bg-card/95 px-2 py-1.5 shadow-xl md:hidden">
+            <div id="step-toolbar" className={`absolute bottom-4 left-1/2 z-40 w-max max-w-[95vw] flex-wrap -translate-x-1/2 items-center justify-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl ${isDrawing ? 'hidden' : 'flex md:hidden'}`}>
                 {commonTools.upload('sm')}
+                {commonTools.drive('sm')}
                 {commonTools.calibrate('sm')}
                 {commonTools.draw('sm')}
                 {commonTools.divide('sm')}
-                <HDivider />
-                {commonTools.diagonals('sm')}
                 <SaveProjectDialog iconOnly size="sm" />
                 {commonTools.home('sm')}
                 <DropdownMenu>
@@ -279,9 +295,16 @@ export function FloatingToolbar() {
                             size="sm"
                         />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent side="top" align="center" sideOffset={12} className="min-w-[120px] p-2 bg-card/95 border-border rounded-xl shadow-lg">
-                        <div className="flex justify-center gap-2">
+                    <DropdownMenuContent
+                        side="top"
+                        align="end"
+                        alignOffset={-10}
+                        sideOffset={12}
+                        className="w-fit"
+                        >
+                        <div>
                             {commonTools.magnifier('sm')}
+                            {commonTools.diagonals('sm')}
                             {commonTools.themeToggle('sm')}
                             {commonTools.help('sm')}
                         </div>
