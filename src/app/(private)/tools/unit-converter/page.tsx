@@ -124,7 +124,7 @@ export default function UnitConverterPage() {
   const CategoryIcon = categories.find((c) => c.key === category)!.icon;
 
   return (
-    <PageWrapper>
+    <PageWrapper paddingSize="small">
       <div className="mx-auto max-w-xl">
         {/* ─── Breadcrumb ──────────────────────────────────── */}
         <Link
