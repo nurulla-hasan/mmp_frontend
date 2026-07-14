@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { Logo } from "@/components/shared/logo";
 import type { NavigationItem } from "@/components/navigation/navigation-config";
 import { cn } from "@/lib/utils";
-import { ScrollArea, ScrollBar } from "../ui/scroll-area";
+import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
 
 function isRouteActive(pathname: string, href: string) {
@@ -28,7 +28,7 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({
-  label,
+  // label,
   navigation,
   onNavigate,
   showLogout = true,
@@ -57,7 +57,7 @@ export function DashboardSidebar({
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                   active
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    ? "bg-primary text-sidebar-primary-foreground"
                     : "text-sidebar-foreground hover:bg-sidebar-accent",
                 )}
               >
