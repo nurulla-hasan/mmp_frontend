@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import DashboardPageHeader from "@/components/ui/custom/dashboard-page-header";
+import { SectionHeading } from "@/components/home/section-heading";
 import { ArrowRight } from "lucide-react";
 
 interface DashboardCard {
@@ -17,10 +17,10 @@ interface DashboardPageProps {
   showBack?: boolean;
 }
 
-export function DashboardPage({ title, description, cards = [], showBack }: DashboardPageProps) {
+export function DashboardPage({ title, description, cards = [] }: DashboardPageProps) {
   return (
     <div className="space-y-6">
-      <DashboardPageHeader title={title} description={description} showBack={showBack} />
+      <SectionHeading title={title} description={description} alignment="left" />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => {
           const content = (
