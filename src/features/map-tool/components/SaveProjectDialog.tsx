@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Save, Loader2, Download } from 'lucide-react';
+import { Loader2, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { toast } from 'sonner';
 
-export const SaveProjectDialog = () => {
+export const SaveProjectDialog = ({ iconOnly = false }: { iconOnly?: boolean }) => {
   const { image, imageName, scale, plots, currentProjectId } = useMapStore();
 
   const [open, setOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving] = useState(false);
 
   const handleSaveProject = () => {
     if (!image) {
@@ -84,6 +84,32 @@ export const SaveProjectDialog = () => {
     setProjectName('');
   };
 
+  if (iconOnly) {
+    return (
+      <>
+        <div className="group relative flex items-center">
+          <button
+            type="button"
+            onClick={handleSaveProject}
+            disabled={isSaving || plots.length === 0 || !scale}
+            title={plots.length === 0 ? 'সেভ করার আগে অন্তত একটি প্লট আঁকুন' : !scale ? 'সেভ করার আগে স্কেল সেট করুন' : 'ডাউনলোড করুন'}
+            className={[
+              'flex h-10 w-10 items-center justify-center rounded-xl transition-all',
+              'text-muted-foreground hover:bg-muted hover:text-foreground',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+              isSaving || plots.length === 0 || !scale ? 'pointer-events-none opacity-40' : '',
+            ].join(' ')}
+          >
+            {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />}
+          </button>
+          <span className="pointer-events-none absolute right-full mr-2 hidden whitespace-nowrap rounded-md bg-popover px-2 py-1 text-xs text-popover-foreground shadow-md ring-1 ring-border group-hover:block">
+            ডাউনলোড করুন
+          </span>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <Button
@@ -94,7 +120,7 @@ export const SaveProjectDialog = () => {
         disabled={isSaving || plots.length === 0 || !scale}
         title={
           plots.length === 0 ? 'সেভ করার আগে অন্তত একটি প্লট আঁকুন' :
-          !scale ? 'সেভ করার আগে স্কেল সেট করুন' : 
+          !scale ? 'সেভ করার আগে স্কেল সেট করুন' :
           ''
         }
       >

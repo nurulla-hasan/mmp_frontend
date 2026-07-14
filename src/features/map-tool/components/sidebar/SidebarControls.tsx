@@ -14,11 +14,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
-import { SidebarImagePanel } from './SidebarImagePanel';
-import { SidebarCalibrationPanel } from './SidebarCalibrationPanel';
-import { SidebarPlottingPanel } from './SidebarPlottingPanel';
 
-export const SidebarControls = memo(() => {
+export const SidebarControls = memo(function SidebarControls() {
   const {
     mode,
     setMode,
@@ -74,15 +71,9 @@ export const SidebarControls = memo(() => {
   }, [manualDividePlotId, manualCutLine, plots, scale]);
 
   return (
-    <div className={`mb-4 md:bg-muted/50 md:border md:border-border md:rounded-lg md:p-4 ${(mode === 'drawing_plot' || mode === 'calibrating' || mode === 'manual_divide_plot') ? '' : 'bg-muted/50 border border-border rounded-lg p-3'}`}>
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start md:items-center ${(mode === 'drawing_plot' || mode === 'calibrating' || mode === 'manual_divide_plot') ? 'hidden md:grid' : ''}`}>
-        <SidebarImagePanel />
-        <SidebarCalibrationPanel />
-        <SidebarPlottingPanel />
-      </div>
-
+    <>
       {mode === 'calibrating' && (
-        <div className="fixed bottom-14 md:bottom-4 left-1/2 -translate-x-1/2 w-[93%] md:w-auto p-3 rounded-lg bg-background border border-border shadow-xl z-50 flex justify-evenly items-center gap-2">
+        <div className="absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 w-[93%] md:w-auto p-3 rounded-lg bg-background border border-border shadow-xl z-50 flex justify-evenly items-center gap-2">
           <div className='flex gap-2'>
             <Button size="sm" onClick={() => { setCalibrationLine([]); setIsDrawing(false); setMode('none'); }} variant="destructive" title="বাতিল করুন">
               <X />
@@ -147,7 +138,7 @@ export const SidebarControls = memo(() => {
       )}
 
       {mode === 'drawing_plot' && (
-        <div className="fixed bottom-14 md:bottom-4 left-1/2 -translate-x-1/2 w-[93%] md:w-auto p-3 rounded-lg bg-background border border-border shadow-xl z-50 flex justify-evenly items-center gap-2">
+        <div className="absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 w-[93%] md:w-auto p-3 rounded-lg bg-background border border-border shadow-xl z-50 flex justify-evenly items-center gap-2">
           <div className='flex gap-2'>
             <Button size="sm" onClick={() => { setMode('none'); setIsDrawing(false); setSnapHint(false); }} variant="destructive" title="আঁকা বন্ধ করুন">
               <X />
@@ -176,7 +167,7 @@ export const SidebarControls = memo(() => {
       )}
 
       {mode === 'manual_divide_plot' && (
-        <div className="fixed bottom-14 md:bottom-4 left-1/2 -translate-x-1/2 w-[93%] md:w-auto p-3 rounded-lg bg-background border border-border shadow-xl z-50 flex flex-wrap justify-center items-center gap-3">
+        <div className="absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 w-[93%] md:w-auto p-3 rounded-lg bg-background border border-border shadow-xl z-50 flex flex-wrap justify-center items-center gap-3">
           <div className="flex items-center gap-2 text-sm font-medium">
             {manualDividePlotId ? (
               <span className="text-primary font-semibold px-2">বিন্দুগুলো ড্র্যাগ করে লাইনটি সরান</span>
@@ -272,6 +263,6 @@ export const SidebarControls = memo(() => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 });

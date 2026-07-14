@@ -98,6 +98,8 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
         width={stageSize.width}
         height={stageSize.height}
         onWheel={handleWheel}
+        onMouseDown={events.onMouseDown}
+        onClick={events.onClick}
         onMouseMove={events.onMouseMove}
         onTouchStart={events.onTouchStart}
         onTouchMove={events.onTouchMove}

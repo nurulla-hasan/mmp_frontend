@@ -8,7 +8,7 @@ import { ResultsDisplay } from '@/features/map-tool/components/ResultsDisplay';
 import { PrintLayout } from '@/features/map-tool/components/PrintLayout';
 import { SidebarControls } from '@/features/map-tool/components/sidebar/SidebarControls';
 import { ScratchSheet } from '@/features/map-tool/components/scratch/ScratchSheet';
-import { ToolTopControls } from '@/features/map-tool/components/toolbar/ToolTopControls';
+import { FloatingToolbar } from '@/features/map-tool/components/toolbar/FloatingToolbar';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { TutorialGuide } from '@/features/map-tool/components/tutorial-guide';
 
@@ -47,38 +47,23 @@ export default function MapCalculator() {
   } = useMapStore();
 
   useEffect(() => {
-    let lastWidth = window.innerWidth;
-    let lastHeight = window.innerHeight;
-
-    const isDrawMode = mode === 'drawing_plot' || mode === 'calibrating' || mode === 'manual_divide_plot';
-    const isMobileDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-
     const updateSize = () => {
       if (containerRef.current) {
-        let finalHeight: number;
-        if (isDrawMode && isMobileDevice) {
-          finalHeight = Math.max(350, window.innerHeight - 190);
-        } else if (isDrawMode) {
-          finalHeight = Math.max(450, window.innerHeight - 180);
-        } else if (isMobileDevice) {
-          finalHeight = Math.max(320, Math.round(window.innerHeight * 0.55));
-        } else {
-          finalHeight = Math.max(450, window.innerHeight - 180);
-        }
+        // Full viewport height minus the top nav (~56px)
+        const finalHeight = Math.max(400, window.innerHeight - 64);
         setStageSize({ width: containerRef.current.offsetWidth, height: finalHeight });
       }
     };
     updateSize();
 
+    let lastWidth = window.innerWidth;
+    let lastHeight = window.innerHeight;
+
     const handleResize = () => {
       const currentWidth = window.innerWidth;
       const currentHeight = window.innerHeight;
-
       const isMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-      if (isMobile && currentWidth === lastWidth && Math.abs(currentHeight - lastHeight) < 150) {
-        return;
-      }
-
+      if (isMobile && currentWidth === lastWidth && Math.abs(currentHeight - lastHeight) < 150) return;
       lastWidth = currentWidth;
       lastHeight = currentHeight;
       updateSize();
@@ -86,7 +71,7 @@ export default function MapCalculator() {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [setStageSize, mode]);
+  }, [setStageSize]);
 
   const handlePrint = () => {
     if (stageRef.current) {
@@ -126,21 +111,22 @@ export default function MapCalculator() {
     <>
       <DistanceModal />
       <div className="print:hidden">
-        <div className="max-w-7xl mx-auto p-4 xl:px-0 w-full">
-          <SidebarControls />
-
-          <ToolTopControls
+        {/* ── Canvas + Floating toolbar ── */}
+        <div className="relative w-full" ref={containerRef}>
+          <KonvaStage
+            containerRef={containerRef}
+            stageRef={stageRef}
+          />
+          <FloatingToolbar
             showScratchSheet={showScratchSheet}
             setShowScratchSheet={setShowScratchSheet}
           />
+          {/* ── Mode-aware floating bottom bars (undo/redo/cancel) ── */}
+          <SidebarControls />
+        </div>
 
-          <div ref={containerRef}>
-            <KonvaStage
-              containerRef={containerRef}
-              stageRef={stageRef}
-            />
-          </div>
-
+        {/* ── Results below the canvas ── */}
+        <div className="max-w-7xl mx-auto px-4 xl:px-0">
           {(mode === 'none' || (mode === 'drawing_plot' && plotPoints.length === 0)) && (
             <ResultsDisplay onPrint={handlePrint} />
           )}
@@ -186,3 +172,4 @@ export default function MapCalculator() {
     </>
   );
 }
+

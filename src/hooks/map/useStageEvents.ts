@@ -1,5 +1,5 @@
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useLayoutEffect } from "react";
 import type { Point, PinchStart } from "@/features/map-tool/types/map";
 import type Konva from "konva";
 
@@ -45,6 +45,9 @@ export const useStageEvents = () => {
   const pinchRafRef = useRef<number>(0);
   // rAF ref for snapHint throttle
   const snapRafRef = useRef<number>(0);
+  // Track if mouse dragged to avoid click-after-drag
+  const mouseDownPosRef = useRef<{ x: number; y: number } | null>(null);
+  const CLICK_MOVE_THRESHOLD = 5;
 
   const TAP_GRACE_MS = 200;
   const TAP_MIN_MS = 50;
@@ -63,17 +66,22 @@ export const useStageEvents = () => {
     setStageScale,
   } = useMapStore();
 
-  // Keep latest values in refs so callbacks don't go stale and don't need to be recreated
+  // Keep latest values in refs so callbacks don't go stale and don't need to be recreated.
+  // useLayoutEffect runs synchronously after every render, before the browser paints,
+  // so refs are always fresh when event handlers fire.
   const modeRef = useRef(mode);
-  modeRef.current = mode;
   const isPlotFinishedRef = useRef(isPlotFinished);
-  isPlotFinishedRef.current = isPlotFinished;
   const plotPointsRef = useRef(plotPoints);
-  plotPointsRef.current = plotPoints;
   const snapHintRef = useRef(snapHint);
-  snapHintRef.current = snapHint;
   const stageScaleRef = useRef(stageScale);
-  stageScaleRef.current = stageScale;
+
+  useLayoutEffect(() => {
+    modeRef.current = mode;
+    isPlotFinishedRef.current = isPlotFinished;
+    plotPointsRef.current = plotPoints;
+    snapHintRef.current = snapHint;
+    stageScaleRef.current = stageScale;
+  });
 
   const zoomAtPoint = useCallback(
     (s: number, p: Point, meta: { scale: number; pos: Point }) => {
@@ -291,8 +299,57 @@ export const useStageEvents = () => {
     [setStagePos],
   );
 
+  const onMouseDown = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      // Only track left button on the stage itself (not on shapes)
+      if (e.evt.button !== 0) return;
+      if (e.target !== e.currentTarget) return;
+      mouseDownPosRef.current = { x: e.evt.clientX, y: e.evt.clientY };
+    },
+    [],
+  );
+
+  const onClick = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      // Only left click, only on stage background (not shapes)
+      if (e.evt.button !== 0) return;
+      if (e.target !== e.currentTarget) return;
+
+      // Ignore if user dragged (panned)
+      if (mouseDownPosRef.current) {
+        const dx = Math.abs(e.evt.clientX - mouseDownPosRef.current.x);
+        const dy = Math.abs(e.evt.clientY - mouseDownPosRef.current.y);
+        mouseDownPosRef.current = null;
+        if (dx > CLICK_MOVE_THRESHOLD || dy > CLICK_MOVE_THRESHOLD) return;
+      }
+
+      const curMode = modeRef.current;
+      const curFinished = isPlotFinishedRef.current;
+      const curPoints = plotPointsRef.current;
+      const store = useMapStore.getState();
+      const stage = e.target.getStage();
+      if (!stage) return;
+
+      if (curMode === 'drawing_plot' && !curFinished) {
+        const SNAP_DISTANCE = 20 / stageScaleRef.current;
+        const pos = store.getStageCenterPoint();
+        const first = curPoints[0];
+        if (first && Math.hypot(pos.x - first.x, pos.y - first.y) <= SNAP_DISTANCE && curPoints.length >= 3) {
+          store.finishPlot();
+        } else {
+          store.addCenterPoint();
+        }
+      } else if (curMode === 'calibrating') {
+        store.addCenterPoint();
+      }
+    },
+    [CLICK_MOVE_THRESHOLD],
+  );
+
   return {
     onMouseMove,
+    onMouseDown,
+    onClick,
     onTouchStart,
     onTouchMove,
     onTouchEnd,
