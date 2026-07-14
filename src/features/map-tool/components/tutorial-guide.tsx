@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft, X } from 'lucide-react';
+import Image from 'next/image';
 
 interface TutorialStep {
   targetId?: string;
@@ -43,7 +44,7 @@ const STEPS: TutorialStep[] = [
   {
     targetId: 'step-toolbar',
     title: "প্রয়োজনীয় টুলস",
-    content: "এখানে আপনি স্ক্র্যাচ শিট, কর্ণ (Diagonals) দেখা, ম্যাগনিফায়ার দিয়ে জুম করা এবং প্রজেক্ট সেভ করার অপশন পাবেন।",
+    content: "এখানে আপনি জমি ভাগ করা, কর্ণ (Diagonals) দেখা, ম্যাগনিফায়ার দিয়ে জুম করা এবং প্রজেক্ট সেভ করার অপশন পাবেন।",
     position: 'bottom',
     highlight: true,
   },
@@ -94,23 +95,35 @@ export const TutorialGuide = () => {
 
     const step = STEPS[currentStep];
     if (step.targetId && step.highlight) {
-      const element = document.getElementById(step.targetId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const elements = document.querySelectorAll(`[id="${step.targetId}"]`);
+      let visibleElement: HTMLElement | null = null;
+      elements.forEach(el => {
+        if ((el as HTMLElement).offsetWidth > 0 || (el as HTMLElement).offsetHeight > 0) {
+          visibleElement = el as HTMLElement;
+        }
+      });
+
+      if (visibleElement) {
+        const targetEl = visibleElement as HTMLElement;
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         setTimeout(() => {
-          setTargetRect(element.getBoundingClientRect());
+          setTargetRect(targetEl.getBoundingClientRect());
         }, 350);
       } else {
-        setTargetRect(null);
+        setTimeout(() => setTargetRect(null), 0);
       }
     } else {
-      setTargetRect(null);
+      setTimeout(() => setTargetRect(null), 0);
     }
 
     const handleResize = () => {
       if (step.targetId && step.highlight) {
-        const el = document.getElementById(step.targetId);
-        if (el) setTargetRect(el.getBoundingClientRect());
+        const elements = document.querySelectorAll(`[id="${step.targetId}"]`);
+        elements.forEach(el => {
+          if ((el as HTMLElement).offsetWidth > 0 || (el as HTMLElement).offsetHeight > 0) {
+            setTargetRect(el.getBoundingClientRect());
+          }
+        });
       }
     };
     window.addEventListener('resize', handleResize);
@@ -239,8 +252,14 @@ export const TutorialGuide = () => {
 
           {/* Welcome image (step 0 only) */}
           {currentStep === 0 && (
-            <div className="mb-4 rounded-lg overflow-hidden h-36 flex items-center justify-center">
-              <img src="/hero.png" alt="Welcome" className="h-full w-full object-contain opacity-80" />
+            <div className="relative mb-4 rounded-lg overflow-hidden h-36 flex items-center justify-center">
+              <Image 
+                src="/assets/hero.png" 
+                alt="Welcome" 
+                fill
+                className="object-contain opacity-80"
+                sizes="(max-width: 768px) 100vw, 360px"
+              />
             </div>
           )}
 

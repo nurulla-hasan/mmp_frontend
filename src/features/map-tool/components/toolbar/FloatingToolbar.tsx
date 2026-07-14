@@ -2,9 +2,11 @@
 
 import { useRef } from 'react';
 import {
-  Upload, Ruler, PenTool, Scissors, Eye, EyeOff, Search,
-  FileText, HelpCircle,
+  Upload, Ruler, PenTool, Scissors, Eye, EyeOff, Search, HelpCircle,
+  Home, Moon, Sun
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { SaveProjectDialog } from '@/features/map-tool/components/SaveProjectDialog';
 
@@ -29,6 +31,7 @@ function ToolBtn({
   disabled,
   variant = 'default',
   size = 'md',
+  id,
 }: {
   icon: React.ElementType;
   label: string;
@@ -37,12 +40,14 @@ function ToolBtn({
   disabled?: boolean;
   variant?: 'default' | 'danger';
   size?: 'md' | 'sm';
+  id?: string;
 }) {
   const dim = size === 'sm' ? 'h-9 w-9' : 'h-10 w-10';
   const iconSize = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
   return (
     <ToolTip label={label}>
       <button
+        id={id}
         type="button"
         onClick={onClick}
         disabled={disabled}
@@ -73,13 +78,10 @@ function HDivider() {
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-interface FloatingToolbarProps {
-  showScratchSheet: boolean;
-  setShowScratchSheet: (v: boolean) => void;
-}
-
-export function FloatingToolbar({ showScratchSheet, setShowScratchSheet }: FloatingToolbarProps) {
+export function FloatingToolbar() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const { theme, setTheme } = useTheme();
 
   const {
     selectedFile,
@@ -130,6 +132,7 @@ export function FloatingToolbar({ showScratchSheet, setShowScratchSheet }: Float
         onClick={handleUploadClick}
         disabled={isProcessingFile}
         size={size}
+        id="step-image-upload"
       />
     ),
     calibrate: (size: 'md' | 'sm' = 'md') => (
@@ -140,6 +143,7 @@ export function FloatingToolbar({ showScratchSheet, setShowScratchSheet }: Float
         onClick={handleCalibrateClick}
         disabled={!image || mode === 'calibrating'}
         size={size}
+        id="step-calibration"
       />
     ),
     draw: (size: 'md' | 'sm' = 'md') => (
@@ -150,6 +154,7 @@ export function FloatingToolbar({ showScratchSheet, setShowScratchSheet }: Float
         onClick={startPlotDrawing}
         disabled={!image || !scale || mode === 'drawing_plot' || mode === 'calibrating'}
         size={size}
+        id="step-drawing"
       />
     ),
     divide: (size: 'md' | 'sm' = 'md') => (
@@ -180,15 +185,27 @@ export function FloatingToolbar({ showScratchSheet, setShowScratchSheet }: Float
         size={size}
       />
     ),
-    scratch: (size: 'md' | 'sm' = 'md') => (
+    home: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
-        icon={FileText}
-        label="স্ক্র্যাচ শিট"
-        active={showScratchSheet}
-        onClick={() => setShowScratchSheet(!showScratchSheet)}
+        icon={Home}
+        label="হোম পেজ"
+        onClick={() => router.push('/tools')}
         size={size}
+        id="step-top-controls"
       />
     ),
+    themeToggle: (size: 'md' | 'sm' = 'md') => {
+      const isDark = theme === 'dark';
+      return (
+        <ToolBtn
+          icon={isDark ? Sun : Moon}
+          label={isDark ? 'লাইট থিম' : 'ডার্ক থিম'}
+          onClick={() => setTheme(isDark ? 'light' : 'dark')}
+          size={size}
+        />
+      );
+    },
+
     help: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={HelpCircle}
@@ -224,14 +241,16 @@ export function FloatingToolbar({ showScratchSheet, setShowScratchSheet }: Float
         <VDivider />
         {commonTools.diagonals()}
         {commonTools.magnifier()}
-        {commonTools.scratch()}
+
         <VDivider />
         <SaveProjectDialog iconOnly />
+        {commonTools.home()}
+        {commonTools.themeToggle()}
         {commonTools.help()}
       </div>
 
       {/* ── Mobile: floating bottom bar ───────────────────────────────────── */}
-      <div className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-0.5 rounded-2xl border border-border bg-card/95 px-2 py-1.5 shadow-xl backdrop-blur-sm md:hidden">
+      <div id="step-toolbar" className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-0.5 rounded-2xl border border-border bg-card/95 px-2 py-1.5 shadow-xl backdrop-blur-sm md:hidden">
         {commonTools.upload('sm')}
         {commonTools.calibrate('sm')}
         {commonTools.draw('sm')}
@@ -239,7 +258,10 @@ export function FloatingToolbar({ showScratchSheet, setShowScratchSheet }: Float
         <HDivider />
         {commonTools.diagonals('sm')}
         {commonTools.magnifier('sm')}
-        {commonTools.scratch('sm')}
+
+        <HDivider />
+        {commonTools.home('sm')}
+        {commonTools.themeToggle('sm')}
         {commonTools.help('sm')}
       </div>
     </>

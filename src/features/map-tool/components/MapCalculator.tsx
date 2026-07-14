@@ -1,13 +1,12 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+
 import nextDynamic from 'next/dynamic';
 import { DistanceModal } from '@/features/map-tool/components/DistanceModal';
 import { ResultsDisplay } from '@/features/map-tool/components/ResultsDisplay';
 import { PrintLayout } from '@/features/map-tool/components/PrintLayout';
 import { SidebarControls } from '@/features/map-tool/components/sidebar/SidebarControls';
-import { ScratchSheet } from '@/features/map-tool/components/scratch/ScratchSheet';
 import { FloatingToolbar } from '@/features/map-tool/components/toolbar/FloatingToolbar';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { TutorialGuide } from '@/features/map-tool/components/tutorial-guide';
@@ -18,23 +17,10 @@ const KonvaStage = nextDynamic(
 );
 
 export default function MapCalculator() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  const showScratchSheet = searchParams.get('scratch') === 'true';
-
-  const setShowScratchSheet = (show: boolean) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (show) params.set('scratch', 'true');
-    else params.delete('scratch');
-    router.replace(`${pathname}?${params.toString()}`);
-  };
-
   const containerRef = useRef<HTMLDivElement | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const stageRef = useRef<any>(null);
   const printRef = useRef<HTMLDivElement | null>(null);
-  const scratchSheetRef = useRef<HTMLDivElement | null>(null);
   const previousModeRef = useRef<string | null>(null);
 
   const {
@@ -80,13 +66,7 @@ export default function MapCalculator() {
     setTimeout(() => window.print(), 100);
   };
 
-  useEffect(() => {
-    if (showScratchSheet && scratchSheetRef.current) {
-      setTimeout(() => {
-        scratchSheetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
-  }, [showScratchSheet]);
+
 
   useEffect(() => {
     const previousMode = previousModeRef.current;
@@ -117,10 +97,7 @@ export default function MapCalculator() {
             containerRef={containerRef}
             stageRef={stageRef}
           />
-          <FloatingToolbar
-            showScratchSheet={showScratchSheet}
-            setShowScratchSheet={setShowScratchSheet}
-          />
+          <FloatingToolbar />
           {/* ── Mode-aware floating bottom bars (undo/redo/cancel) ── */}
           <SidebarControls />
         </div>
@@ -132,13 +109,7 @@ export default function MapCalculator() {
           )}
         </div>
 
-        {showScratchSheet && (
-          <div ref={scratchSheetRef} className="pb-8">
-            <div className="max-w-7xl mx-auto p-4 xl:px-0 w-full">
-              <ScratchSheet savedPlots={savedPlots} onDeleteSavedPlot={deleteSavedPlot} />
-            </div>
-          </div>
-        )}
+
 
         {savedPlots.length > 0 && (
           <div className="border-t py-2 print:hidden bg-gray-50">
