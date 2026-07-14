@@ -72,17 +72,23 @@ export function splitPolygonByPolyline(polygon: Point[], polyline: Point[]): { p
     let pA = { ...polyline[i] };
     let pB = { ...polyline[i + 1] };
     
-    // Extend the first segment backwards
+    // Extend the first segment backwards slightly for math precision
     if (i === 0) {
       const dx = pA.x - pB.x;
       const dy = pA.y - pB.y;
-      pA = { x: pA.x + dx * 10000, y: pA.y + dy * 10000 };
+      const mag = Math.hypot(dx, dy);
+      if (mag > 0) {
+        pA = { x: pA.x + (dx / mag) * 1e-5, y: pA.y + (dy / mag) * 1e-5 };
+      }
     }
-    // Extend the last segment forwards
+    // Extend the last segment forwards slightly for math precision
     if (i === polyline.length - 2) {
       const dx = pB.x - pA.x;
       const dy = pB.y - pA.y;
-      pB = { x: pB.x + dx * 10000, y: pB.y + dy * 10000 };
+      const mag = Math.hypot(dx, dy);
+      if (mag > 0) {
+        pB = { x: pB.x + (dx / mag) * 1e-5, y: pB.y + (dy / mag) * 1e-5 };
+      }
     }
     
     const len = Math.hypot(pB.x - pA.x, pB.y - pA.y);
