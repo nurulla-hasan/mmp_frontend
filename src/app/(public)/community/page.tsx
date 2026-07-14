@@ -1,75 +1,27 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import {
-  ChevronDown,
   MessageSquare,
   Users,
 } from "lucide-react";
 
+import { AskQuestionModal } from "@/components/community/ask-question-modal";
+import { FaqAccordion } from "@/components/community/faq-accordion";
 import { SectionHeading } from "@/components/home/section-heading";
 import { SectionWrapper } from "@/components/shared/section-wrapper";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
 
 import {
   categories,
-  communityFaqs,
   recentQuestions,
   stats,
   topContributors,
 } from "./_data";
 
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
-
-function FaqAccordion() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  return (
-    <div className="mx-auto max-w-2xl">
-      <Card>
-        <CardContent>
-          {communityFaqs.map((faq, i) => (
-            <Collapsible
-              key={i}
-              open={openIndex === i}
-              onOpenChange={() => setOpenIndex(openIndex === i ? null : i)}
-              className="border-b last:border-b-0"
-            >
-              <CollapsibleTrigger className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium transition-colors hover:text-primary">
-                {faq.q}
-                <ChevronDown
-                  className={cn(
-                    "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                    openIndex === i && "rotate-180",
-                  )}
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pb-4 text-sm leading-6 text-muted-foreground">
-                {faq.a}
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 export default function CommunityPage() {
   return (
@@ -89,13 +41,7 @@ export default function CommunityPage() {
             কমিউনিটির কাছ থেকে উত্তর পান।
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button
-              size="lg"
-              nativeButton={false}
-              render={<Link href="/community/ask" />}
-            >
-              প্রশ্ন জিজ্ঞাসা করুন
-            </Button>
+            <AskQuestionModal />
             <Button
               size="lg"
               variant="outline"
@@ -327,13 +273,7 @@ export default function CommunityPage() {
             alignment="center"
           />
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button
-              size="lg"
-              nativeButton={false}
-              render={<Link href="/community/ask" />}
-            >
-              প্রশ্ন জিজ্ঞাসা করুন
-            </Button>
+            <AskQuestionModal />
             <Button
               size="lg"
               variant="outline"
