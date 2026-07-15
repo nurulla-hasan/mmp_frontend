@@ -3,8 +3,6 @@
 import { memo, useCallback } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { usePantagraphStore } from '../store/usePantagraphStore';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import {
   Lock,
   LockOpen,
@@ -14,14 +12,73 @@ import {
   Maximize,
   Crosshair,
   ArrowLeft,
-  Menu,
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Settings2, FileDown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+// ─── Tooltip wrapper ─────────────────────────────────────────────────────────
+const ToolTip = memo(function ToolTip({ label, children, side = "left" }: { label: React.ReactNode; children: React.ReactNode; side?: "left" | "top" | "right" | "bottom" }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger render={<div className="inline-flex" />} className="focus-visible:outline-none focus:outline-none">
+        {children}
+      </TooltipTrigger>
+      <TooltipContent side={side} sideOffset={8}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+});
+
+// ─── Floating Tool Button ────────────────────────────────────────────────────
+const ToolBtn = memo(function ToolBtn({
+  icon: Icon,
+  label,
+  onClick,
+  active,
+  disabled,
+  size = 'md',
+  id
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: any;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  disabled?: boolean;
+  size?: 'md' | 'sm';
+  id?: string;
+}) {
+  const iconSize = size === 'md' ? 'w-4 h-4' : 'w-3.5 h-3.5';
+  const btnSize = size === 'md' ? 'w-10 h-10 rounded-2xl' : 'w-8 h-8 rounded-xl';
+  return (
+    <ToolTip label={label} side={size === 'md' ? 'left' : 'top'}>
+      <button
+        id={id}
+        onClick={onClick}
+        disabled={disabled}
+        className={`flex shrink-0 items-center justify-center transition-all duration-200 ease-out active:scale-95 ${btnSize} ${active
+          ? 'bg-primary text-primary-foreground shadow-sm'
+          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      >
+        <Icon className={iconSize} />
+      </button>
+    </ToolTip>
+  );
+});
+
+// ─── Divider ─────────────────────────────────────────────────────────────────
+const VDivider = () => <div className="h-px w-6 bg-border/60 my-0.5" />;
+const HDivider = () => <div className="w-px h-6 bg-border/60 mx-0.5" />;
 
 interface PantagraphToolbarProps {
-  onOpenSidebar?: () => void;
+  onToggleSidebar?: () => void;
 }
 
-export const PantagraphToolbar = memo(function PantagraphToolbar({ onOpenSidebar }: PantagraphToolbarProps) {
+export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSidebar }: PantagraphToolbarProps) {
+  const router = useRouter();
   const {
     isLocked,
     isAligning,
@@ -43,21 +100,16 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onOpenSidebar
   );
 
   const hasAnyMap = !!formerMap || !!currentMap;
-
-  // Count fully paired points (both former and current placed)
   const pairedCount = matchPoints.filter((p) => p.current !== null).length;
   const canSimilarity = pairedCount >= 2;
   const canAffine = pairedCount >= 3;
 
   const handleSimilarity = useCallback(async () => {
     if (!canSimilarity) return;
-
     const pairedPoints = matchPoints.filter((p) => p.current !== null);
     const { computeSimilarity } = await import('../utils/similarity');
-
     const former = pairedPoints.map((p) => p.former);
     const current = pairedPoints.map((p) => p.current!);
-
     try {
       const result = computeSimilarity(former, current);
       applyAlignment({ ...result, type: 'similarity' });
@@ -68,13 +120,10 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onOpenSidebar
 
   const handleAffine = useCallback(async () => {
     if (!canAffine) return;
-
     const pairedPoints = matchPoints.filter((p) => p.current !== null);
     const { computeAffine } = await import('../utils/affine');
-
     const former = pairedPoints.map((p) => p.former);
     const current = pairedPoints.map((p) => p.current!);
-
     try {
       const result = computeAffine(former, current);
       applyAlignment({ ...result, type: 'affine' });
@@ -87,129 +136,74 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onOpenSidebar
     usePantagraphStore.getState().setIsAligning(!isAligning);
   }, [isAligning]);
 
+  const tools = {
+    back: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={ArrowLeft} label="টুলস" onClick={() => router.push('/tools')} size={size} />
+    ),
+    settings: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={Settings2} label="ম্যাপ ও সেটিংস" onClick={() => onToggleSidebar?.()} size={size} />
+    ),
+    align: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={Crosshair} label={isAligning ? 'পয়েন্ট মোড বন্ধ' : 'পয়েন্ট মেলাও'} active={isAligning} onClick={handleToggleAligning} size={size} />
+    ),
+    similarity: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={AlignStartVertical} label={`সিমিলারিটি (${pairedCount}/২)`} disabled={!canSimilarity} onClick={handleSimilarity} size={size} />
+    ),
+    affine: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={AlignStartVertical} label={`আফাইন (${pairedCount}/৩)`} disabled={!canAffine} onClick={handleAffine} size={size} />
+    ),
+    lock: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={isLocked ? Lock : LockOpen} label={isLocked ? 'আনলক' : 'লক'} onClick={() => setIsLocked(!isLocked)} size={size} />
+    ),
+    pdf: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={FileDown} label="PDF সেভ করুন" disabled={!hasAnyMap} onClick={() => usePantagraphStore.getState().saveAsPDF()} size={size} />
+    ),
+    zoomIn: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={ZoomIn} label="জুম ইন" onClick={() => usePantagraphStore.getState().setStageScale(s => Math.min(10, s * 1.25))} size={size} />
+    ),
+    zoomOut: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={ZoomOut} label="জুম আউট" onClick={() => usePantagraphStore.getState().setStageScale(s => Math.max(0.01, s * 0.8))} size={size} />
+    ),
+    fit: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={Maximize} label="ফিট" onClick={() => { usePantagraphStore.getState().setStageScale(1); usePantagraphStore.getState().setStagePos({ x: 0, y: 0 }); }} size={size} />
+    ),
+  };
+
   return (
-    <div className="absolute top-0 left-0 right-0 md:right-72 h-14 bg-background/95 backdrop-blur-sm border-b border-border flex items-center px-3 gap-1.5 z-30 shadow-sm overflow-x-auto no-scrollbar whitespace-nowrap">
-      {/* Back */}
-      <Link
-        href="/tools"
-        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-xs shrink-0 mr-1"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" />
-        টুলস
-      </Link>
-
-      <div className="w-px h-6 bg-border mx-1" />
-
-      {/* Alignment mode toggle */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant={isAligning ? 'default' : 'outline'}
-          size="sm"
-          onClick={handleToggleAligning}
-        >
-          <Crosshair className="w-3.5 h-3.5 mr-1" />
-          {isAligning ? 'পয়েন্ট মোড চালু' : 'পয়েন্ট মেলাও'}
-        </Button>
-
-        {/* Similarity align button — 2+ points */}
-        <Button
-          variant={!canSimilarity ? 'outline' : 'default'}
-          size="sm"
-          disabled={!canSimilarity}
-          onClick={handleSimilarity}
-        >
-          <AlignStartVertical className="w-3.5 h-3.5 mr-1" />
-          সিমিলারিটি ({pairedCount}/২)
-        </Button>
-
-        {/* Affine align button — 3+ points */}
-        <Button
-          variant={!canAffine ? 'outline' : 'default'}
-          size="sm"
-          disabled={!canAffine}
-          onClick={handleAffine}
-        >
-          <AlignStartVertical className="w-3.5 h-3.5 mr-1" />
-          আফাইন ({pairedCount}/৩)
-        </Button>
+    <>
+      {/* ── Desktop: floating right panel ─────────────────────────────────── */}
+      <div className="absolute right-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl md:flex">
+        {tools.back()}
+        {tools.settings()}
+        <VDivider />
+        {tools.align()}
+        {tools.similarity()}
+        {tools.affine()}
+        <VDivider />
+        {tools.zoomIn()}
+        {tools.zoomOut()}
+        {tools.fit()}
+        <VDivider />
+        {tools.lock()}
+        {tools.pdf()}
       </div>
 
-      <div className="w-px h-6 bg-border mx-1" />
-
-      {/* Lock toggle */}
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        onClick={() => setIsLocked(!isLocked)}
-      >
-        {isLocked ? (
-          <Lock className="w-4 h-4" />
-        ) : (
-          <LockOpen className="w-4 h-4" />
-        )}
-      </Button>
-
-      {/* Zoom controls — pushed to right */}
-      <div className="ml-auto flex items-center gap-0.5">
-        {/* Save as PDF */}
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={!hasAnyMap}
-          onClick={() => usePantagraphStore.getState().saveAsPDF()}
-          title="PDF হিসেবে সংরক্ষণ করুন"
-        >
-          <svg className="w-3.5 h-3.5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-            <polyline points="10 9 9 9 8 9" />
-          </svg>
-          PDF
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => {
-            const store = usePantagraphStore.getState();
-            store.setStageScale(store.stageScale * 0.8);
-          }}
-        >
-          <ZoomOut className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => {
-            const store = usePantagraphStore.getState();
-            store.setStageScale(store.stageScale * 1.25);
-          }}
-        >
-          <ZoomIn className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            usePantagraphStore.getState().setStageScale(1);
-            usePantagraphStore.getState().setStagePos({ x: 0, y: 0 });
-          }}
-        >
-          <Maximize className="w-3.5 h-3.5 mr-1" />
-          ফিট
-        </Button>
+      {/* ── Mobile: floating bottom bar ───────────────────────────────────── */}
+      <div className="absolute bottom-4 left-1/2 z-40 w-max max-w-[95vw] flex md:hidden -translate-x-1/2 flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl">
+        {tools.back('sm')}
+        {tools.settings('sm')}
+        <HDivider />
+        {tools.align('sm')}
+        {tools.similarity('sm')}
+        {tools.affine('sm')}
+        <HDivider />
+        {tools.zoomIn('sm')}
+        {tools.zoomOut('sm')}
+        {tools.fit('sm')}
+        <HDivider />
+        {tools.lock('sm')}
+        {tools.pdf('sm')}
       </div>
-
-      {/* Mobile Sidebar Toggle */}
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        className="md:hidden"
-        onClick={onOpenSidebar}
-      >
-        <Menu className="w-4 h-4" />
-      </Button>
-    </div>
+    </>
   );
 });

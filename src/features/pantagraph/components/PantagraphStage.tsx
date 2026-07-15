@@ -10,7 +10,7 @@ import { MatchPointMarkers } from './MatchPointMarkers';
 import { getPixelColor } from '../utils/getPixelColor';
 import { clamp } from '@/lib/utils';
 
-const STAGE_MIN_ZOOM = 0.1;
+const STAGE_MIN_ZOOM = 0.01;
 const STAGE_MAX_ZOOM = 10;
 const ZOOM_SPEED = 0.001;
 

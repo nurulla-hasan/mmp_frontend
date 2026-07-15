@@ -4,6 +4,7 @@ import { memo, useCallback, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { usePantagraphStore } from '../store/usePantagraphStore';
 import { extractImageFromPDF } from '@/features/map-tool/utils/pdfHelper';
+import { useMediaQuery } from '@/hooks/useUtilityHooks';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -25,6 +26,7 @@ import {
   ZoomIn,
   X,
 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // ─── Shared slider className ──────────────────────────────────────────────────
 const sliderCls = (accent: 'destructive' | 'primary') =>
@@ -160,11 +162,10 @@ const FormerBgSection = memo(function FormerBgSection() {
             type="button"
             onClick={() => isPickingFormer ? cancelColorPick() : startColorPick('former')}
             disabled={isRemovingFormerBg}
-            className={`w-6 h-6 flex items-center justify-center rounded border transition-colors ${
-              isPickingFormer
-                ? 'bg-destructive text-destructive-foreground border-destructive'
-                : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
-            } ${isRemovingFormerBg ? 'opacity-40 cursor-not-allowed' : ''}`}
+            className={`w-6 h-6 flex items-center justify-center rounded border transition-colors ${isPickingFormer
+              ? 'bg-destructive text-destructive-foreground border-destructive'
+              : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+              } ${isRemovingFormerBg ? 'opacity-40 cursor-not-allowed' : ''}`}
             title="ম্যাপ থেকে কালার নিন"
           >
             <Droplets className="w-3.5 h-3.5" />
@@ -180,14 +181,12 @@ const FormerBgSection = memo(function FormerBgSection() {
               role="switch"
               aria-checked={formerBgRemoved}
               onClick={toggleFormerBgRemoval}
-              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                formerBgRemoved ? 'bg-destructive' : 'bg-muted'
-              }`}
+              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${formerBgRemoved ? 'bg-destructive' : 'bg-muted'
+                }`}
             >
               <span
-                className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-background shadow-sm ring-0 transition-transform ${
-                  formerBgRemoved ? 'translate-x-4' : 'translate-x-0'
-                }`}
+                className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-background shadow-sm ring-0 transition-transform ${formerBgRemoved ? 'translate-x-4' : 'translate-x-0'
+                  }`}
               />
             </button>
           )}
@@ -212,8 +211,8 @@ const FormerBgSection = memo(function FormerBgSection() {
           <span className="text-[10px] text-muted-foreground">দাগের রং</span>
           <div className="flex items-center gap-1.5">
             {[
-              { label: 'মূল',   value: '#000000', cls: formerLineColor === '#000000' ? 'border-foreground bg-foreground/5 text-foreground' : 'border-border text-muted-foreground hover:text-foreground' },
-              { label: 'লাল',   value: '#DC2626', cls: formerLineColor === '#DC2626' ? 'border-red-500 bg-red-500/10 text-red-600' : 'border-border text-muted-foreground hover:text-red-600 hover:border-red-300' },
+              { label: 'মূল', value: '#000000', cls: formerLineColor === '#000000' ? 'border-foreground bg-foreground/5 text-foreground' : 'border-border text-muted-foreground hover:text-foreground' },
+              { label: 'লাল', value: '#DC2626', cls: formerLineColor === '#DC2626' ? 'border-red-500 bg-red-500/10 text-red-600' : 'border-border text-muted-foreground hover:text-red-600 hover:border-red-300' },
               { label: 'সবুজ', value: '#16A34A', cls: formerLineColor === '#16A34A' ? 'border-green-500 bg-green-500/10 text-green-600' : 'border-border text-muted-foreground hover:text-green-600 hover:border-green-300' },
             ].map(({ label, value, cls }) => (
               <button
@@ -269,11 +268,10 @@ const CurrentBgSection = memo(function CurrentBgSection() {
             type="button"
             onClick={() => isPickingCurrent ? cancelColorPick() : startColorPick('current')}
             disabled={isRemovingCurrentBg}
-            className={`w-6 h-6 flex items-center justify-center rounded border transition-colors ${
-              isPickingCurrent
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
-            } ${isRemovingCurrentBg ? 'opacity-40 cursor-not-allowed' : ''}`}
+            className={`w-6 h-6 flex items-center justify-center rounded border transition-colors ${isPickingCurrent
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+              } ${isRemovingCurrentBg ? 'opacity-40 cursor-not-allowed' : ''}`}
             title="ম্যাপ থেকে কালার নিন"
           >
             <Droplets className="w-3.5 h-3.5" />
@@ -288,14 +286,12 @@ const CurrentBgSection = memo(function CurrentBgSection() {
               role="switch"
               aria-checked={currentBgRemoved}
               onClick={toggleCurrentBgRemoval}
-              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                currentBgRemoved ? 'bg-primary' : 'bg-muted'
-              }`}
+              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${currentBgRemoved ? 'bg-primary' : 'bg-muted'
+                }`}
             >
               <span
-                className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-background shadow-sm ring-0 transition-transform ${
-                  currentBgRemoved ? 'translate-x-4' : 'translate-x-0'
-                }`}
+                className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-background shadow-sm ring-0 transition-transform ${currentBgRemoved ? 'translate-x-4' : 'translate-x-0'
+                  }`}
               />
             </button>
           )}
@@ -320,8 +316,8 @@ const CurrentBgSection = memo(function CurrentBgSection() {
           <span className="text-[10px] text-muted-foreground">দাগের রং</span>
           <div className="flex items-center gap-1.5">
             {[
-              { label: 'মূল',   value: '#000000', cls: currentLineColor === '#000000' ? 'border-foreground bg-foreground/5 text-foreground' : 'border-border text-muted-foreground hover:text-foreground' },
-              { label: 'লাল',   value: '#DC2626', cls: currentLineColor === '#DC2626' ? 'border-red-500 bg-red-500/10 text-red-600' : 'border-border text-muted-foreground hover:text-red-600 hover:border-red-300' },
+              { label: 'মূল', value: '#000000', cls: currentLineColor === '#000000' ? 'border-foreground bg-foreground/5 text-foreground' : 'border-border text-muted-foreground hover:text-foreground' },
+              { label: 'লাল', value: '#DC2626', cls: currentLineColor === '#DC2626' ? 'border-red-500 bg-red-500/10 text-red-600' : 'border-border text-muted-foreground hover:text-red-600 hover:border-red-300' },
               { label: 'সবুজ', value: '#16A34A', cls: currentLineColor === '#16A34A' ? 'border-green-500 bg-green-500/10 text-green-600' : 'border-border text-muted-foreground hover:text-green-600 hover:border-green-300' },
             ].map(({ label, value, cls }) => (
               <button
@@ -536,8 +532,8 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
 
 // ─── Canvas Background section (simple, stays in parent) ─────────────────────
 const bgOptions = [
-  { label: 'সিস্টেম',   key: 'auto'  as const, color: '#999999' },
-  { label: 'ডার্ক গ্রিড', key: 'dark'  as const, color: '#121212' },
+  { label: 'সিস্টেম', key: 'auto' as const, color: '#999999' },
+  { label: 'ডার্ক গ্রিড', key: 'dark' as const, color: '#121212' },
   { label: 'সাদা গ্রিড', key: 'white' as const, color: '#ffffff' },
 ];
 
@@ -576,9 +572,8 @@ const SidebarContent = memo(function SidebarContent() {
             <button
               key={opt.key}
               onClick={() => setCanvasBg(opt.key)}
-              className={`w-8 h-8 rounded-full border-2 transition-all ${
-                canvasBg === opt.key ? 'border-primary scale-110' : 'border-transparent'
-              }`}
+              className={`w-8 h-8 rounded-full border-2 transition-all ${canvasBg === opt.key ? 'border-primary scale-110' : 'border-transparent'
+                }`}
               style={{ backgroundColor: opt.color }}
               title={opt.label}
             />
@@ -616,46 +611,64 @@ const SidebarContent = memo(function SidebarContent() {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 interface PantagraphSidebarProps {
-  mobileOpen?: boolean;
-  onMobileClose?: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export const PantagraphSidebar = memo(function PantagraphSidebar({ mobileOpen = false, onMobileClose }: PantagraphSidebarProps) {
+export const PantagraphSidebar = memo(function PantagraphSidebar({ isOpen = false, onClose }: PantagraphSidebarProps) {
+  const isMobile = useMediaQuery('(max-width: 767px)');
+
+  if (!isOpen) return null;
+
   return (
     <>
-      {/* Desktop sidebar — visible md+ */}
-      <div className="absolute right-0 top-0 bottom-0 w-72 bg-background border-l border-border flex-col z-20 hidden md:flex overflow-y-auto">
-        <SidebarContent />
+      {/* Desktop sidebar — floating panel on the left */}
+      <div className="absolute left-4 top-4 bottom-24 w-80 bg-card/95 backdrop-blur-md border border-border flex-col z-20 hidden md:flex overflow-hidden rounded-2xl shadow-2xl">
+
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0 bg-muted/30">
+          <h2 className="text-sm font-semibold text-foreground font-heading">ম্যাপ ও সেটিংস</h2>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <ScrollArea className='h-150'>
+          <SidebarContent />
+        </ScrollArea>
       </div>
 
       {/* Mobile Drawer — bottom sheet visible on small screens */}
-      <div className="md:hidden">
-        <Drawer open={mobileOpen} onOpenChange={(open) => { if (!open) onMobileClose?.(); }}>
-          <DrawerPortal>
-            <DrawerOverlay />
-            <DrawerContent className="max-h-[85dvh] flex flex-col">
-              {/* Handle + header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-                <h2 className="text-sm font-semibold text-foreground font-heading">প্যান্টাগ্রাফ সেটিংস</h2>
-                <DrawerClose
-                  render={
-                    <button
-                      onClick={onMobileClose}
-                      className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  }
-                />
-              </div>
-              {/* Scrollable content */}
-              <div className="flex-1 overflow-y-auto">
-                <SidebarContent />
-              </div>
-            </DrawerContent>
-          </DrawerPortal>
-        </Drawer>
-      </div>
+      {isMobile && (
+        <div className="md:hidden">
+          <Drawer open={isOpen} onOpenChange={(open) => { if (!open) onClose?.(); }}>
+            <DrawerPortal>
+              <DrawerOverlay className="md:hidden" />
+              <DrawerContent className="max-h-[85dvh] flex flex-col md:hidden">
+                {/* Handle + header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+                  <h2 className="text-sm font-semibold text-foreground font-heading">ম্যাপ ও সেটিংস</h2>
+                  <DrawerClose
+                    render={
+                      <button
+                        onClick={onClose}
+                        className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    }
+                  />
+                </div>
+                {/* Scrollable content */}
+                <div className="flex-1 overflow-y-auto" style={{ minHeight: 0 }}>
+                  <SidebarContent />
+                </div>
+              </DrawerContent>
+            </DrawerPortal>
+          </Drawer>
+        </div>
+      )}
     </>
   );
 });
