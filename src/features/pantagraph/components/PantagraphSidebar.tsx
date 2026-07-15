@@ -10,8 +10,6 @@ import { Separator } from '@/components/ui/separator';
 import {
   ImageUp,
   Trash2,
-  RotateCcw,
-  RotateCw,
   Droplets,
   Loader2,
 } from 'lucide-react';
@@ -25,8 +23,6 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
     currentMap,
     activeMap,
     canvasBg,
-    formerRotation,
-    currentRotation,
     matchPoints,
     formerBgRemoved,
     currentBgRemoved,
@@ -40,8 +36,6 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
     setCurrentMap,
     setActiveMap,
     setCanvasBg,
-    setFormerRotation,
-    setCurrentRotation,
     removeMatchPoint,
     setMatchPoints,
     toggleFormerBgRemoval,
@@ -57,8 +51,6 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
       currentMap: s.currentMap,
       activeMap: s.activeMap,
       canvasBg: s.canvasBg,
-      formerRotation: s.formerRotation,
-      currentRotation: s.currentRotation,
       matchPoints: s.matchPoints,
       formerBgRemoved: s.formerBgRemoved,
       currentBgRemoved: s.currentBgRemoved,
@@ -397,90 +389,6 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
             </Button>
           </div>
         </div>
-
-        <Separator />
-
-        {/* Former Map Controls */}
-        {formerMap && (
-          <div className="space-y-3 my-4">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 font-heading">
-              <span className="w-2 h-2 rounded-full bg-destructive" />
-              সাবেক ম্যাপ কন্ট্রোল
-            </h3>
-
-            {/* Rotation */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <Label>রোটেশন</Label>
-                <span>{formerRotation.toFixed(1)}°</span>
-              </div>
-              <input
-                type="range"
-                min={-180}
-                max={180}
-                step={0.1}
-                value={formerRotation}
-                onChange={(e) => setFormerRotation(Number(e.target.value))}
-                className="w-full h-1.5 bg-muted rounded-full appearance-none cursor-pointer accent-destructive"
-              />
-              <div className="flex gap-1 mt-1">
-                <Button variant="outline" size="xs" onClick={() => setFormerRotation(formerRotation - 90)}>
-                  <RotateCcw className="w-3 h-3 mr-0.5" />-৯০°
-                </Button>
-                <Button variant="outline" size="xs" onClick={() => setFormerRotation(formerRotation - 0.1)}>
-                  -০.১°
-                </Button>
-                <Button variant="outline" size="xs" onClick={() => setFormerRotation(formerRotation + 0.1)}>
-                  +০.১°
-                </Button>
-                <Button variant="outline" size="xs" onClick={() => setFormerRotation(formerRotation + 90)}>
-                  <RotateCw className="w-3 h-3 mr-0.5" />+৯০°
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Current Map Controls */}
-        {currentMap && (
-          <div className="space-y-3 my-4">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 font-heading">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              হাল ম্যাপ কন্ট্রোল
-            </h3>
-
-            {/* Rotation */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <Label>রোটেশন</Label>
-                <span>{currentRotation.toFixed(1)}°</span>
-              </div>
-              <input
-                type="range"
-                min={-180}
-                max={180}
-                step={0.1}
-                value={currentRotation}
-                onChange={(e) => setCurrentRotation(Number(e.target.value))}
-                className="w-full h-1.5 bg-muted rounded-full appearance-none cursor-pointer accent-primary"
-              />
-              <div className="flex gap-1 mt-1">
-                <Button variant="outline" size="xs" onClick={() => setCurrentRotation(currentRotation - 90)}>
-                  <RotateCcw className="w-3 h-3 mr-0.5" />-৯০°
-                </Button>
-                <Button variant="outline" size="xs" onClick={() => setCurrentRotation(currentRotation - 0.1)}>
-                  -০.১°
-                </Button>
-                <Button variant="outline" size="xs" onClick={() => setCurrentRotation(currentRotation + 0.1)}>
-                  +০.১°
-                </Button>
-                <Button variant="outline" size="xs" onClick={() => setCurrentRotation(currentRotation + 90)}>
-                  <RotateCw className="w-3 h-3 mr-0.5" />+৯০°
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
 
         <Separator />
 
