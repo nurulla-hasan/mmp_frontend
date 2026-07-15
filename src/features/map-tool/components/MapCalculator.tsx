@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 
 import nextDynamic from 'next/dynamic';
@@ -12,7 +12,6 @@ import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { useShallow } from 'zustand/shallow';
 import { TutorialGuide } from '@/features/map-tool/components/tutorial-guide';
 import { Upload, HardDrive } from 'lucide-react';
-import { DriveMapBrowser } from '@/features/map-tool/components/DriveMapBrowser';
 
 const KonvaStage = nextDynamic(
   () => import('@/features/map-tool/components/stage/KonvaStage').then((m) => ({ default: m.KonvaStage })),
@@ -30,7 +29,6 @@ export default function MapCalculator() {
   const stageRef = useRef<any>(null);
   const printRef = useRef<HTMLDivElement | null>(null);
   const previousModeRef = useRef<string | null>(null);
-  const [isDriveBrowserOpen, setIsDriveBrowserOpen] = useState(false);
 
   const {
     savedPlots,
@@ -141,20 +139,21 @@ export default function MapCalculator() {
                     ডিভাইস থেকে আপলোড করুন
                   </Button>
                   <Button
-                    onClick={() => setIsDriveBrowserOpen(true)}
+                    nativeButton={false}
+                    render={<a href="https://drive.google.com/drive/folders/1r0ryb1SyCeYV-41CM1WweokGDKT5t9RB" target="_blank" rel="noopener noreferrer" />}
                     variant="outline"
                     size="lg"
                     className="gap-2 shadow-lg rounded-full bg-background/50 backdrop-blur-sm"
                   >
                     <HardDrive className="h-4 w-4 text-primary" />
-                    ড্রাইভ থেকে আনুন
+                    ড্রাইভ থেকে ডাউনলোড করুন
                   </Button>
                 </div>
               </div>
             </div>
           )}
 
-          <FloatingToolbar onOpenDrive={() => setIsDriveBrowserOpen(true)} />
+          <FloatingToolbar />
           {/* ── Mode-aware floating bottom bars (undo/redo/cancel) ── */}
           <SidebarControls />
         </div>
@@ -196,7 +195,6 @@ export default function MapCalculator() {
 
       <PrintLayout ref={printRef} />
       <DistanceModal />
-      <DriveMapBrowser open={isDriveBrowserOpen} onOpenChange={setIsDriveBrowserOpen} />
       <TutorialGuide />
     </>
   );

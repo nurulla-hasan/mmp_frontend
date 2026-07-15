@@ -68,23 +68,25 @@ npm run lint     # ESLint (run before pushing)
 npm run lint -- --fix  # Auto-fix lint issues
 ```
 
-**Stack:** Next.js 16.2.10, React 19.2.4, TypeScript 5 (strict), Tailwind CSS v4, shadcn/ui (base-nova style), @base-ui/react ^1.6, @tanstack/react-table ^8.21.
+**Stack:** Next.js 16.2.10, React 19.2.4, TypeScript 5 (strict), Tailwind CSS v4, shadcn/ui (base-nova style), @base-ui/react ^1.6, @tanstack/react-table ^8.21, **Zustand ^5.0.14** (map tool & pantagraph).
 
 ## Route Groups
 
-| Group | Path | Layout |
-|---|---|---|
-| `(public)` | `/` | `PublicHeader` + `PublicFooter` + `MobileBottomNav` |
-| `(auth)` | `/login`, `/register`, etc. | Centered layout with Logo |
-| `(user-dashboard)` | `/dashboard/**` | `DashboardShell` role="user" |
-| `(surveyor-dashboard)` | `/surveyor/**` | `DashboardShell` role="surveyor" |
-| `(admin-dashboard)` | `/admin/**` | `DashboardShell` role="admin" |
+| Group | Path | Layout | Notes |
+|---|---|---|---|
+| `(public)` | `/`, `/about`, `/contact`, `/pricing`, `/surveyors` | `PublicHeader` + `PublicFooter` + `MobileBottomNav` | Public pages |
+| `(private)` | `/tools`, `/community`, `/join-as-surveyor`, `/post-request` | Same as `(public)` | **NOT auth-guarded!** |
+| `(auth)` | `/login`, `/register`, `/forgot-password`, etc. | Centered layout with Logo | Auth flows |
+| `(user-dashboard)` | `/dashboard/**` | `DashboardShell` role="user" | User dashboard |
+| `(surveyor-dashboard)` | `/surveyor/**` | `DashboardShell` role="surveyor" | Surveyor dashboard |
+| `(admin-dashboard)` | `/admin/**` | `DashboardShell` role="admin" | Admin panel |
 
 ## Key Patterns
 
 - **`cn()`** from `@/lib/utils` — use for all conditional Tailwind class merging (wraps `clsx` + `tailwind-merge`).
-- **`useNextFilter`** / **`useSmartFilter`** (`src/hooks/useNextFilter.ts`) — manage all URL search params (filter, pagination, search). Generic `useNextFilter<T extends string>(config?)`. Returns `{ updateFilter, toggleFilter, updateBatch, clearAll, getFilter, getArrayFilter, isSelected, isFilterActive, getAllFilters, getActiveCount, pendingKeys }`. Debounced, auto-syncs with browser history.
-- **`nextServerFetch<T>(endpoint, options)`** (`src/lib/nextServerFetch.ts`) — **server-only** data fetching wrapper (marked `"server-only"`). Auto-injects `Authorization: Bearer <accessToken>` from cookies, auto-refreshes expired tokens via `/auth/refresh-token`. Use `isPublic: true` for unauthenticated requests. Options include `setCookies`, `persistCookies`, `revalidate`, `tags`, `invalidateMode` ("updateTag" | "revalidateTag"). Returns typed `T` or throws `ApiError { status, data }`.
+- **`useNextFilter`** / **`useSmartFilter`** (`src/hooks/useNextFilter.ts`) — manage all URL search params (filter, pagination, search). Generic `useNextFilter<T extends string>(config?)`. Returns `{ updateFilter, toggleFilter, updateBatch, clearAll, getFilter, getArrayFilter, isSelected, isFilterActive, getAllFilters, getActiveCount, pendingKeys }`. Debounced, auto-syncs with browser history.  
+  Note: `useSmartFilter` is a thin re-export wrapper — prefer `useNextFilter` directly.
+- **`nextServerFetch<T>(endpoint, options)`** (`src/lib/nextServerFetch.ts`) — **server-only** data fetching wrapper (marked `"server-only"`). Auto-injects `Authorization: Bearer <accessToken>` from cookies, auto-refreshes expired tokens via `/auth/refresh-token`. Use `isPublic: true` for unauthenticated requests. Options include `setCookies`, `persistCookies`, `revalidate`, `tags`, `invalidateMode` ("updateTag" | "revalidateTag"). Returns typed `T` or throws `ApiError { status, data }`. **Cannot be used in client components** — server-only import restriction.
 - **`buildQueryString(query)`** (`src/lib/buildQueryString.ts`) — builds `?key=val&key2=val2` from `Record<string, string | number | string[] | undefined>`. Skips undefined/null/empty.
 - **`DataTable`** (`src/components/ui/custom/data-table.tsx`) — TanStack Table wrapper with URL-driven search via `useSmartFilter` (debounced 500ms), server/client pagination, wrap in `<Suspense>` for `useSearchParams()`. Props: `columns`, `data`, `limit`, `meta`, `searchKey`, `searchPlaceholder`.
 - **`SearchInput`** (`src/components/ui/custom/search-input.tsx`) — connects to URL params via `useNextFilter`. Debounced 300ms, `filterKey` defaults to `"searchTerm"`.
@@ -93,15 +95,23 @@ npm run lint -- --fix  # Auto-fix lint issues
 - **Toast helpers** — `SuccessToast(msg)`, `ErrorToast(msg)`, `WarningToast(msg)`, `InfoToast(msg)` from `@/lib/utils` (wrap `sonner` toast).
 - **Utility helpers** from `@/lib/utils`: `getInitials(name)` → "JD", `formatDate(dateString)` → "dd MMM yyyy", `timeAgo(createdAt)` → "5m ago", `generateSlug(title)`.
 - **`Spinner`** (`src/components/ui/spinner.tsx`) — renders `Loader2Icon` with `animate-spin`, `size-4`, `role="status"`.
+- **`nextDynamic`** — `next/dynamic` aliased as `nextDynamic` for SSR-disabled imports (used for Konva stage, PrintLayout).
+- **`useShallow` from `zustand/shallow`** — used extensively in map tool for selective store subscriptions.
 
 ## Component Architecture
 
 - **Server components by default** — only add `"use client"` when using hooks, browser APIs, or interactivity.
-- **Page shell components** (`dashboard-page.tsx`, `public-page.tsx`): server components (no `"use client"`).
+- **Page shell components** (`dashboard-page.tsx`): server components (no `"use client"`). Note: `public-page.tsx` does NOT exist.
 - **Interactive components** (`dashboard-shell.tsx`, `dashboard-header.tsx`): `"use client"`.
 - **`DashboardPageHeader`** (`src/components/ui/custom/dashboard-page-header.tsx`) — shows back button (`router.back()`), title (uppercase primary), optional `length` badge, description.
-- **`PublicPage`** (`src/components/shared/public-page.tsx`) — server component with title, description, optional eyebrow, cards grid, primaryAction.
 - **`DashboardPage`** (`src/components/shared/dashboard-page.tsx`) — server component with title, description, cards (4-column grid), optional `showBack`.
+- **`PublicDynamicPage` / `DashboardDynamicPage`** (`src/components/shared/dynamic-page.tsx`) — generic route content components.
+- **`SectionWrapper`** (`src/components/shared/section-wrapper.tsx`) — configurable container: `padding` (none/sm/md/lg/xl), `bg` (white/muted/primary), `container`, `asSection`.
+- **`PageWrapper`** (`src/components/shared/page-wrapper.tsx`) — `max-w-7xl` container with `screen-height`, configurable padding.
+- **`RouteCard`** (`src/components/shared/route-card.tsx`) — link card with hover arrow animation.
+- **`LoadingView`** (`src/components/shared/loading-view.tsx`) — centered `Spinner` + label.
+- **`Logo`** (`src/components/shared/logo.tsx`) — image (`/assets/logo.png`) with optional text, 3 sizes.
+- **`ImageCropDialog`** (`src/components/shared/image-crop-dialog.tsx`) — `react-easy-crop` integration for avatar/profile cropping.
 - **`render` prop pattern** for polymorphic composition (e.g., `<Button nativeButton={false} render={<Link href="..." />} />`).
 - **`ConfirmationModal`** (`src/components/ui/custom/confirmation-modal.tsx`) for confirm dialogs.
 - **`ModalWrapper`** (`src/components/ui/custom/modal-wrapper.tsx`) for generic dialogs.
@@ -109,12 +119,15 @@ npm run lint -- --fix  # Auto-fix lint issues
 ## Styling & Theming
 
 - **Tailwind CSS v4** — uses `@import "tailwindcss"` syntax (NOT v3's `@tailwind` directives). Config via `@theme inline` block in CSS, not `tailwind.config`.
-- **CSS variables in OKLCH color space** — defined in `globals.css`. Primary color is green (`oklch(0.527 0.154 150.069)`).
+- **CSS variables in OKLCH color space** — defined in `globals.css`. Primary: `oklch(54.758% 0.12188 161.051)` (green).
 - **Radius system** — `sm=0.6r`, `md=0.8r`, `lg=r`, `xl=1.4r`, `2xl=1.8r`, `3xl=2.2r`, `4xl=2.6r` (where `r=0.425rem`).
-- **Dark mode** — `.dark` class toggle via `next-themes` `<ThemeProvider>`. Dark variables in `.dark {}` block.
-- **Fonts** — `Inter` (variable `--font-sans`), `Geist` (variable `--font-geist-sans`), `Geist_Mono` (variable `--font-geist-mono`). Body uses `font-sans`.
+- **Dark mode** — `.dark` class toggle via `next-themes` `<ThemeProvider>`. Dark variables in `.dark {}` block. Background: `oklch(17.764% 0.00002 271.152)`, borders: `oklch(1 0 0 / 10%)`.
+- **Fonts** — `Noto_Sans_Bengali` (`--font-sans`, body), `Hind_Siliguri` (`--font-heading`), `Space_Grotesk` (`--font-display`), `Geist_Mono` (`--font-mono`). No Inter. Bengali-optimized.
+- **Body constraint**: `<body>` has `max-w-480 mx-auto` — the entire app is max-width ~1920px. Full-width backgrounds or fixed-position elements may behave unexpectedly.
+- **Custom scrollbar**: 6px width, semi-transparent border-colored thumb.
+- **Print styles**: scratch sheet print support with `body.printing-scratch`, A4 portrait, hides modals/overlays.
+- **Chart colors**: 5-level green gradient for multi-plot differentiation.
 - **PostCSS** — `postcss.config.mjs` with only `@tailwindcss/postcss` plugin.
-- Use `cn()` for all class composition; prefer Tailwind utility classes over custom CSS.
 
 ## Navigation
 
@@ -122,7 +135,7 @@ Navigation configs in `src/components/navigation/navigation-config.ts` — three
 
 ## Auth
 
-Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token stored in `httpOnly` `accessToken` cookie. Auto-handled by `nextServerFetch` (auto-injects `Authorization` header, auto-refreshes via `/auth/refresh-token` when expired). No middleware/route guard exists yet — protection is at layout level.
+Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token stored in `httpOnly` `accessToken` cookie. Auto-handled by `nextServerFetch` (auto-injects `Authorization` header, auto-refreshes via `/auth/refresh-token` when expired). No middleware/route guard exists yet — protection is at layout level. **The `(private)` route group has NO auth guard** — all tools/pages there are publicly accessible.
 
 ## UI Components Library
 
@@ -130,13 +143,79 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token stored in `httpOnly` `accessToke
 `alert-dialog`, `button`, `calendar`, `collapsible`, `dialog`, `drawer`, `dropdown-menu`, `field`, `input-otp`, `input`, `label`, `pagination`, `scroll-area`, `separator`, `sonner`, `spinner`, `table`.
 
 **Custom components** (`src/components/ui/custom/`):
-`back-button`, `confirmation-modal`, `custom-calender` (note: typo preserved), `custom-pagination`, `dashboard-page-header`, `data-table-pagination`, `data-table`, `mobile-bottom-nav`, `modal-wrapper`, `search-input`, `star-rating`, `theme-toggle`.
+`back-button`, `confirmation-modal`, `custom-breadcrumb`, `custom-calender` (note: filename typo — "calender" vs "calendar"), `custom-pagination`, `dashboard-page-header`, `data-table-pagination`, `data-table`, `mobile-bottom-nav`, `modal-wrapper`, `search-input`, `star-rating`, `theme-toggle`.
 
 ## State Management
 
-- **No Zustand/global state store** — this project relies on server components, URL search params (via `useNextFilter`), and local React state.
+- **Zustand IS used** for complex features — `useMapStore` (map tool, 7 composed slices) and `usePantagraphStore` (pantagraph tool).
+- **No Zustand for simple pages** — rely on server components, URL search params (via `useNextFilter`), and local React state.
 - **URL as source of truth** for filters, pagination, and search via `useNextFilter`.
 - **Server components** for data fetching via `nextServerFetch` (auto-cached per request).
+
+## Map Tool Feature (`src/features/map-tool/`)
+
+- **Stack**: `react-konva` + `konva` canvas rendering. Import with `nextDynamic(() => import(...), { ssr: false })`.
+- **Zustand store** with 7 composed slices: `imageSlice`, `calibrationSlice`, `uiSlice`, `plotSlice`, `divideSlice`, `measurementSlice`, `savedPlotsSlice`. Orchestrated via `useMapStore`.
+- **Modes**: `'none' | 'calibrating' | 'manual_scale' | 'drawing_plot' | 'measuring' | 'manual_divide_plot'`
+- **Tiling system** (`src/utils/tiling/`): custom tile pyramid stored in IndexedDB (`mouzaMapTiles` DB), `TILE_SIZE = 256`, handles large map images exceeding GPU texture limits.
+- **Bangladeshi land units**: shotok (435.6 sqft), katha (720 sqft), sqft. Scale: 16 inches = 1 mile (330 feet per map inch).
+- **Print system**: SVG-based print layout with Bengali numeral conversion via `PrintLayout`, `PrintMapSVG`, `PrintLabelEngine`.
+- **Google Drive**: `SaveProjectDialog` exports maps as local JSON; Drive API available for cloud storage.
+
+## Pantagraph Tool (`src/features/pantagraph/`)
+
+- Map overlay/comparison tool for comparing former vs current mouza maps.
+- **Zustand store** (`usePantagraphStore`) with: two image layers (opacity, scale, rotation, position), match points, background removal, alignment computation.
+- **Types**: `MatchPoint`, `Point2D`, `SimilarityResult`.
+- **Utils**: `bgRemover.ts`, `getPixelColor.ts`, `similarity.ts`.
+
+## Hooks
+
+| Hook | File | Purpose |
+|---|---|---|
+| `useNextFilter<T>` | `src/hooks/useNextFilter.ts` | URL search params manager |
+| `useSmartFilter<T>` | `src/hooks/useSmartFilter.ts` | Thin re-export of useNextFilter |
+| `usePanZoom` | `src/hooks/usePanZoom.ts` | Pan/zoom/pinch for canvas |
+| `useUtilityHooks` | `src/hooks/useUtilityHooks.ts` | `useCopyToClipboard()`, `useCountdown(seconds, storageKey)` |
+| `useDebounce` | `src/hooks/use-debounce.ts` | ✅ Exists (kebab-case filename) |
+| `useStageEvents` | `src/hooks/map/useStageEvents.ts` | Konva stage events (wheel zoom, touch/pinch) |
+| `useEdgeLabels` | `src/hooks/map/useEdgeLabels.ts` | Edge label positions for polygon side lengths |
+| `useGeometrySnap` | `src/hooks/map/useGeometrySnap.ts` | Snap cursor to polygon vertices/edges |
+| `usePolygonSegments` | `src/hooks/map/usePolygonSegments.ts` | Group segments by co-linearity, compute real-world lengths |
+
+## Server Actions & API Routes
+
+- **`src/actions/drive.ts`** — `getDriveFolders(parentId?)`, `getDriveFiles(folderId)` — Google Drive listing.
+- **`src/app/api/drive/proxy/route.ts`** — `GET?id=fileId` — proxies image files from Google Drive (streams response).
+
+## Key Dependencies Not in Standard Stack
+
+- `zustand ^5.0.14` — map/pantagraph state management
+- `konva ^10.3.0` + `react-konva ^19.2.5` — canvas rendering
+- `framer-motion ^12.42.2` — animations
+- `html2canvas ^1.4.1` — screenshot capture for print
+- `jspdf ^4.2.1` — PDF generation
+- `pdf-lib ^1.17.1` — PDF manipulation
+- `pdfjs-dist ^6.1.200` — PDF rendering for map import
+- `googleapis ^173.0.0` — Google Drive API
+- `react-easy-crop ^6.2.2` — image cropping
+- `@hugeicons/core-free-icons ^4.2.2` — alternative icon library
+- `input-otp ^1.4.2` — OTP input
+- `jwt-decode ^4.0.0` — token expiration checking
+- `zod ^4.4.3` — **v4** syntax (not v3)
+
+## Potential Pitfalls
+
+1. **Hook filenames use kebab-case** — e.g., `use-debounce.ts`, not `useDebounce.ts`. Import from `@/hooks/use-debounce`.
+2. **No auth guard on `(private)`** — all tools, community, and surveyor-join pages are publicly accessible.
+3. **`nextServerFetch` is server-only** — cannot be used in client components; there is no documented client-side fetch wrapper.
+4. **Body has `max-w-480 mx-auto`** — full-width backgrounds or fixed-position elements may behave unexpectedly due to this constraint.
+5. **Map tool stores use `HTMLImageElement`** — they are client-side only and cannot be SSR'd.
+6. **`PublicPage` component does NOT exist** — `src/components/shared/public-page.tsx` is absent. Use `SectionWrapper` + `PageWrapper` instead.
+7. **Login/Register forms are placeholders** — `console.log(data)` in login, `TODO` in surveyor application.
+8. **`zod ^4.4.3`** is used — `@hookform/resolvers` may need different adapter config. Current code uses `as any` casts.
+9. **Filename typo**: `custom-calender.tsx` (should be `calendar`).
+10. **Bangla-first content** — all public-facing content (home, community, surveyor search) is in Bengali. Assume Bengali text for public pages.
 
 ## Project Structure Notes
 

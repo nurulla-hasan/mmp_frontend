@@ -37,6 +37,7 @@ const ToolBtn = memo(function ToolBtn({
     variant = 'default',
     size = 'md',
     id,
+    href,
 }: {
     icon: React.ElementType;
     label: string;
@@ -46,30 +47,33 @@ const ToolBtn = memo(function ToolBtn({
     variant?: 'default' | 'danger';
     size?: 'md' | 'sm';
     id?: string;
+    href?: string;
 }) {
     const dim = size === 'sm' ? 'h-9 w-9' : 'h-10 w-10';
     const iconSize = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
+    const classes = [
+        `flex ${dim} items-center justify-center rounded-xl transition-all`,
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+        active
+            ? 'bg-primary text-primary-foreground shadow-md'
+            : variant === 'danger'
+                ? 'text-destructive hover:bg-destructive/10'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+        disabled ? 'pointer-events-none opacity-40' : '',
+    ].join(' ');
+
     return (
         <ToolTip label={label}>
             <span className={disabled ? "cursor-not-allowed inline-flex" : "inline-flex"}>
-                <button
-                    id={id}
-                    type="button"
-                    onClick={onClick}
-                    disabled={disabled}
-                    className={[
-                        `flex ${dim} items-center justify-center rounded-xl transition-all`,
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                        active
-                            ? 'bg-primary text-primary-foreground shadow-md'
-                            : variant === 'danger'
-                                ? 'text-destructive hover:bg-destructive/10'
-                                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                        disabled ? 'pointer-events-none opacity-40' : '',
-                    ].join(' ')}
-                >
-                    <Icon className={iconSize} />
-                </button>
+                {href ? (
+                    <a id={id} href={href} target="_blank" rel="noopener noreferrer" className={classes}>
+                        <Icon className={iconSize} />
+                    </a>
+                ) : (
+                    <button id={id} type="button" onClick={onClick} disabled={disabled} className={classes}>
+                        <Icon className={iconSize} />
+                    </button>
+                )}
             </span>
         </ToolTip>
     );
@@ -80,7 +84,7 @@ function VDivider() {
     return <div className="my-1 h-px w-7 self-center bg-border" />;
 }
 // ─── Main Component ───────────────────────────────────────────────────────────
-export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
+export function FloatingToolbar() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
     const { theme, setTheme } = useTheme();
@@ -137,16 +141,6 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
         }
     }, [selectedFile, image, confirmClearMap]);
 
-    const handleDriveClick = useCallback(() => {
-        if (selectedFile || image) {
-            confirmClearMap(() => {
-                if (onOpenDrive) onOpenDrive();
-            });
-        } else {
-            if (onOpenDrive) onOpenDrive();
-        }
-    }, [selectedFile, image, confirmClearMap, onOpenDrive]);
-
     const handleCalibrateClick = useCallback(() => {
         if (!image) return;
         confirmClearPlot(() => {
@@ -171,8 +165,8 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
         drive: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={HardDrive}
-                label="ড্রাইভ থেকে আনুন"
-                onClick={handleDriveClick}
+                label="ড্রাইভ থেকে ডাউনলোড করুন"
+                href="https://drive.google.com/drive/folders/1r0ryb1SyCeYV-41CM1WweokGDKT5t9RB"
                 size={size}
                 id="step-drive"
             />
@@ -262,7 +256,7 @@ export function FloatingToolbar({ onOpenDrive }: { onOpenDrive?: () => void }) {
             />
         ),
     }), [
-        selectedFile, isProcessingFile, handleUploadClick, handleDriveClick,
+        selectedFile, isProcessingFile, handleUploadClick,
         scale, mode, image, plots.length, isDrawing, handleCalibrateClick, startPlotDrawing,
         startManualDivide, isShowDiagonals, setIsShowDiagonals,
         isMagnifierEnabled, setIsMagnifierEnabled, router, theme, setTheme,
