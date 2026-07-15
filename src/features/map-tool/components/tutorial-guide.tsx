@@ -21,6 +21,13 @@ const STEPS: TutorialStep[] = [
         highlight: false,
     },
     {
+        targetId: 'step-home',
+        title: "টুলস পেজ",
+        content: "যেকোনো সময় টুলস পেজে ফিরে যেতে এই বাটনে ক্লিক করুন।",
+        position: 'bottom',
+        highlight: true,
+    },
+    {
         targetId: 'step-image-upload',
         title: "ম্যাপ আপলোড",
         content: "শুরু করার জন্য বাম পাশ থেকে আপনার মৌজা ম্যাপের ছবিটি আপলোড করুন।",
@@ -76,13 +83,7 @@ const STEPS: TutorialStep[] = [
         position: 'bottom',
         highlight: true,
     },
-    {
-        targetId: 'step-home',
-        title: "হোম পেজ",
-        content: "যেকোনো সময় হোম পেজে ফিরে যেতে এই বাটনে ক্লিক করুন।",
-        position: 'bottom',
-        highlight: true,
-    },
+
     {
         targetId: 'step-theme',
         title: "থিম পরিবর্তন",

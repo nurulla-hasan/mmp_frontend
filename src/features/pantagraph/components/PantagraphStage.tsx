@@ -128,7 +128,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
 
   // Stage click — handles alignment point placement and color picking
   const handleStageClick = useCallback(
-    async (e: Konva.KonvaEventObject<MouseEvent>) => {
+    async (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
       const stage = e.target.getStage();
       if (!stage) return;
 
@@ -276,10 +276,15 @@ export const PantagraphStage = memo(function PantagraphStage() {
       }}
     >
       {!hasBothMaps && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-          <p className="text-muted-foreground text-lg">
-            তুলনা শুরু করতে সাবেক ও হাল ম্যাপ আপলোড করুন
-          </p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none px-6">
+          <div className="text-center bg-background/50 backdrop-blur-sm rounded-2xl px-8 py-6 border border-border/30 shadow-sm max-w-sm">
+            <div className="text-4xl mb-3 drop-shadow-sm">🗺️</div>
+            <p className="text-sm font-semibold text-foreground mb-1 font-heading">ম্যাপ তুলনা (Pantagraph)</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              সাইডবার থেকে সাবেক ও হাল ম্যাপ আপলোড করুন<br />
+              তারপর পয়েন্ট মিলিয়ে তুলনা শুরু করুন
+            </p>
+          </div>
         </div>
       )}
 
@@ -305,6 +310,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
         y={stagePos.y}
         onWheel={handleWheel}
         onClick={handleStageClick}
+        onTap={handleStageClick}
       >
         {/* Render inactive map first (so it stays underneath) */}
         {activeMap === 'former' ? renderCurrentMap() : renderFormerMap()}
@@ -319,6 +325,11 @@ export const PantagraphStage = memo(function PantagraphStage() {
           </Layer>
         )}
       </Stage>
+
+      {/* ── Zoom indicator ─────────────────────────────────────────────────── */}
+      <div className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-md px-2 py-1 text-[10px] font-mono text-muted-foreground pointer-events-none z-20">
+        {Math.round(stageScale * 100)}%
+      </div>
     </div>
   );
 });

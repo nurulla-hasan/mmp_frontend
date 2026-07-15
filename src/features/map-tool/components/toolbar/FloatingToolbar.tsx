@@ -3,7 +3,7 @@
 import { useRef, useMemo, useCallback, memo } from 'react';
 import {
     Upload, Ruler, PenTool, Scissors, Eye, EyeOff, Search, HelpCircle,
-    Home, Moon, Sun, MoreHorizontal, HardDrive
+    Moon, Sun, MoreHorizontal, HardDrive, ArrowLeft
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
@@ -226,8 +226,8 @@ export function FloatingToolbar() {
         ),
         home: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
-                icon={Home}
-                label="হোম পেজ"
+                icon={ArrowLeft}
+                label="টুলস"
                 onClick={() => router.push('/tools')}
                 size={size}
                 id="step-home"
@@ -279,6 +279,8 @@ export function FloatingToolbar() {
                 id="step-toolbar"
                 className="absolute right-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl md:flex"
             >
+                {commonTools.home()}
+                <VDivider />
                 {commonTools.upload()}
                 {commonTools.drive()}
                 <VDivider />
@@ -291,7 +293,6 @@ export function FloatingToolbar() {
 
                 <VDivider />
                 <span id="step-save"><SaveProjectDialog iconOnly /></span>
-                {commonTools.home()}
                 {commonTools.themeToggle()}
                 {commonTools.help()}
             </div>
@@ -305,13 +306,13 @@ export function FloatingToolbar() {
 
             {/* ── Mobile: floating bottom bar ───────────────────────────────────── */}
             <div id="step-toolbar" className={`absolute bottom-4 left-1/2 z-40 w-max max-w-[95vw] flex-wrap -translate-x-1/2 items-center justify-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl ${isDrawing ? 'hidden' : 'flex md:hidden'}`}>
+                {commonTools.home('sm')}
                 {commonTools.upload('sm')}
                 {commonTools.drive('sm')}
                 {commonTools.calibrate('sm')}
                 {commonTools.draw('sm')}
                 {commonTools.divide('sm')}
                 <span id="step-save"><SaveProjectDialog iconOnly size="sm" /></span>
-                {commonTools.home('sm')}
                 <DropdownMenu>
                     <DropdownMenuTrigger nativeButton={false} render={<div className="inline-flex" />} className="focus-visible:outline-none focus:outline-none">
                         <ToolBtn

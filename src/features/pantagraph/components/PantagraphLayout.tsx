@@ -1,15 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { PantagraphStage } from './PantagraphStage';
 import { PantagraphSidebar } from './PantagraphSidebar';
 import { PantagraphToolbar } from './PantagraphToolbar';
 import { LegendBadge } from './LegendBadge';
 
 export default function PantagraphLayout() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <div className="relative w-full h-screen overflow-hidden bg-background">
       {/* Toolbar (top) */}
-      <PantagraphToolbar />
+      <PantagraphToolbar onOpenSidebar={() => setMobileOpen(true)} />
 
       {/* Legend badge (bottom-left) */}
       <LegendBadge />
@@ -20,7 +23,10 @@ export default function PantagraphLayout() {
       </div>
 
       {/* Sidebar (right) — hidden on mobile */}
-      <PantagraphSidebar />
+      <PantagraphSidebar 
+        mobileOpen={mobileOpen} 
+        onMobileClose={() => setMobileOpen(false)} 
+      />
     </div>
   );
 }

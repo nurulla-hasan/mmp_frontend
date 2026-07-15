@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import {
+  Drawer,
+  DrawerContent,
+  DrawerOverlay,
+  DrawerPortal,
+  DrawerClose,
+} from '@/components/ui/drawer';
+import {
   ImageUp,
   Trash2,
   Droplets,
@@ -16,6 +23,7 @@ import {
   RotateCw,
   Move,
   ZoomIn,
+  X,
 } from 'lucide-react';
 
 // ─── Shared slider className ──────────────────────────────────────────────────
@@ -533,9 +541,8 @@ const bgOptions = [
   { label: 'সাদা গ্রিড', key: 'white' as const, color: '#ffffff' },
 ];
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-export const PantagraphSidebar = memo(function PantagraphSidebar() {
-  // Parent only subscribes to the minimal state needed for conditional rendering
+// ─── Shared Sidebar Content ───────────────────────────────────────────────────
+const SidebarContent = memo(function SidebarContent() {
   const { hasFormerMap, hasCurrentMap, canvasBg, setCanvasBg, reset } = usePantagraphStore(
     useShallow((s) => ({
       hasFormerMap: s.formerMap !== null,
@@ -547,64 +554,108 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
   );
 
   return (
-    <div className="absolute right-0 top-0 bottom-0 w-72 bg-background border-l border-border flex-col z-20 hidden md:flex">
-      <div className="flex-1 px-3 py-4 overflow-y-auto">
-        {/* Image Upload */}
-        <MapUploadSection />
+    <div className="px-3 py-4 space-y-4">
+      {/* Image Upload */}
+      <MapUploadSection />
 
-        {/* Former BG Removal */}
-        {hasFormerMap && <FormerBgSection />}
+      {/* Former BG Removal */}
+      {hasFormerMap && <FormerBgSection />}
 
-        {/* Current BG Removal */}
-        {hasCurrentMap && <CurrentBgSection />}
+      {/* Current BG Removal */}
+      {hasCurrentMap && <CurrentBgSection />}
 
-        <Separator />
+      <Separator />
 
-        {/* Canvas Background */}
-        <div className="space-y-2 my-4">
-          <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold font-heading">
-            ক্যানভাস ব্যাকগ্রাউন্ড
-          </Label>
-          <div className="flex gap-1.5 flex-wrap">
-            {bgOptions.map((opt) => (
-              <button
-                key={opt.key}
-                onClick={() => setCanvasBg(opt.key)}
-                className={`w-8 h-8 rounded-full border-2 transition-all ${
-                  canvasBg === opt.key ? 'border-primary scale-110' : 'border-transparent'
-                }`}
-                style={{ backgroundColor: opt.color }}
-                title={opt.label}
-              />
-            ))}
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Opacity — only when both maps loaded */}
-        {hasFormerMap && hasCurrentMap && <OpacitySection />}
-
-        <Separator />
-
-        {/* Active Map Toggle */}
-        <ActiveMapSection />
-
-        <Separator />
-
-        {/* Match Points */}
-        <MatchPointsSection />
-
-        {/* Alignment Result */}
-        <AlignmentResultSection />
-
-        {/* Reset */}
-        <div className="mt-6 pt-4 border-t border-border">
-          <Button variant="destructive" size="sm" onClick={reset}>
-            রিসেট
-          </Button>
+      {/* Canvas Background */}
+      <div className="space-y-2">
+        <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold font-heading">
+          ক্যানভাস ব্যাকগ্রাউন্ড
+        </Label>
+        <div className="flex gap-1.5 flex-wrap">
+          {bgOptions.map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => setCanvasBg(opt.key)}
+              className={`w-8 h-8 rounded-full border-2 transition-all ${
+                canvasBg === opt.key ? 'border-primary scale-110' : 'border-transparent'
+              }`}
+              style={{ backgroundColor: opt.color }}
+              title={opt.label}
+            />
+          ))}
         </div>
       </div>
+
+      <Separator />
+
+      {/* Opacity — only when both maps loaded */}
+      {hasFormerMap && hasCurrentMap && <OpacitySection />}
+
+      <Separator />
+
+      {/* Active Map Toggle */}
+      <ActiveMapSection />
+
+      <Separator />
+
+      {/* Match Points */}
+      <MatchPointsSection />
+
+      {/* Alignment Result */}
+      <AlignmentResultSection />
+
+      {/* Reset */}
+      <div className="mt-6 pt-4 border-t border-border">
+        <Button variant="destructive" size="sm" onClick={reset}>
+          রিসেট
+        </Button>
+      </div>
     </div>
+  );
+});
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+interface PantagraphSidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export const PantagraphSidebar = memo(function PantagraphSidebar({ mobileOpen = false, onMobileClose }: PantagraphSidebarProps) {
+  return (
+    <>
+      {/* Desktop sidebar — visible md+ */}
+      <div className="absolute right-0 top-0 bottom-0 w-72 bg-background border-l border-border flex-col z-20 hidden md:flex overflow-y-auto">
+        <SidebarContent />
+      </div>
+
+      {/* Mobile Drawer — bottom sheet visible on small screens */}
+      <div className="md:hidden">
+        <Drawer open={mobileOpen} onOpenChange={(open) => { if (!open) onMobileClose?.(); }}>
+          <DrawerPortal>
+            <DrawerOverlay />
+            <DrawerContent className="max-h-[85dvh] flex flex-col">
+              {/* Handle + header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+                <h2 className="text-sm font-semibold text-foreground font-heading">প্যান্টাগ্রাফ সেটিংস</h2>
+                <DrawerClose
+                  render={
+                    <button
+                      onClick={onMobileClose}
+                      className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  }
+                />
+              </div>
+              {/* Scrollable content */}
+              <div className="flex-1 overflow-y-auto">
+                <SidebarContent />
+              </div>
+            </DrawerContent>
+          </DrawerPortal>
+        </Drawer>
+      </div>
+    </>
   );
 });

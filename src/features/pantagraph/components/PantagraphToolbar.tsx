@@ -14,9 +14,14 @@ import {
   Maximize,
   Crosshair,
   ArrowLeft,
+  Menu,
 } from 'lucide-react';
 
-export const PantagraphToolbar = memo(function PantagraphToolbar() {
+interface PantagraphToolbarProps {
+  onOpenSidebar?: () => void;
+}
+
+export const PantagraphToolbar = memo(function PantagraphToolbar({ onOpenSidebar }: PantagraphToolbarProps) {
   const {
     isLocked,
     isAligning,
@@ -83,7 +88,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar() {
   }, [isAligning]);
 
   return (
-    <div className="absolute top-0 left-0 right-0 md:right-72 h-14 bg-background/95 backdrop-blur-sm border-b border-border flex items-center px-3 gap-1.5 z-30 shadow-sm">
+    <div className="absolute top-0 left-0 right-0 md:right-72 h-14 bg-background/95 backdrop-blur-sm border-b border-border flex items-center px-3 gap-1.5 z-30 shadow-sm overflow-x-auto no-scrollbar whitespace-nowrap">
       {/* Back */}
       <Link
         href="/tools"
@@ -195,6 +200,16 @@ export const PantagraphToolbar = memo(function PantagraphToolbar() {
           ফিট
         </Button>
       </div>
+
+      {/* Mobile Sidebar Toggle */}
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="md:hidden"
+        onClick={onOpenSidebar}
+      >
+        <Menu className="w-4 h-4" />
+      </Button>
     </div>
   );
 });
