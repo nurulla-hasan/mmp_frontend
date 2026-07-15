@@ -35,11 +35,17 @@ type NextServerFetchOptions = Omit<RequestInit, "body"> & {
   updateTag?: string | string[];
   next?: NextFetchRequestConfig;
   responseType?: "json" | "text";
+  suppressErrorLogging?: boolean;
 };
 
 export type ApiError = Error & {
   status: number;
   data: unknown;
+};
+
+type ErrorSource = {
+  path?: string;
+  message?: string;
 };
 
 const createApiError = (
@@ -51,6 +57,31 @@ const createApiError = (
   error.status = status;
   error.data = data;
   return error;
+};
+
+const buildApiErrorMessage = (errorData: any, fallbackStatus: number): string => {
+  const baseMessage =
+    typeof errorData?.message === "string" && errorData.message.trim()
+      ? errorData.message.trim()
+      : `HTTP ${fallbackStatus}`;
+
+  const sources = Array.isArray(errorData?.errorSources)
+    ? (errorData.errorSources as ErrorSource[])
+    : [];
+
+  const details = sources
+    .map((source) => {
+      const sourceMessage = source?.message?.trim();
+      const sourcePath = source?.path?.trim();
+
+      if (!sourceMessage) return null;
+      if (sourceMessage === baseMessage) return null;
+
+      return sourcePath ? `${sourcePath} - ${sourceMessage}` : sourceMessage;
+    })
+    .filter((value, index, arr): value is string => Boolean(value) && arr.indexOf(value) === index);
+
+  return details.length > 0 ? `${baseMessage}: ${details.join(", ")}` : baseMessage;
 };
 
 const isTokenExpired = (token: string): boolean => {
@@ -134,6 +165,7 @@ export const nextServerFetch = async <T = any>(
     setCookies,
     persistCookies = false,
     responseType = "json",
+    suppressErrorLogging = false,
     ...rest
   } = options;
 
@@ -142,19 +174,17 @@ export const nextServerFetch = async <T = any>(
 
   const defaultHeaders: Record<string, string> = {};
 
-  if (!isPublic) {
-    const accessToken = await getValidAccessToken(baseUrl);
+  const accessToken = await getValidAccessToken(baseUrl);
 
-    if (accessToken) {
-      defaultHeaders.Authorization = `Bearer ${accessToken}`;
-    } else {
-      throw createApiError("Authorization token is required", 401, {
-        success: false,
-        message: "Authorization token is required",
-        statusCode: 401,
-        data: null,
-      });
-    }
+  if (accessToken) {
+    defaultHeaders.Authorization = `Bearer ${accessToken}`;
+  } else if (!isPublic) {
+    throw createApiError("Authorization token is required", 401, {
+      success: false,
+      message: "Authorization token is required",
+      statusCode: 401,
+      data: null,
+    });
   }
 
   let body = rawBody;
@@ -220,10 +250,10 @@ export const nextServerFetch = async <T = any>(
     }
     if (!res.ok) {
       const errorData = await res.json().catch(() => null);
-      const errorMessage = errorData?.errorSources 
-        ? `${errorData.message}: ${errorData.errorSources.map((e: any) => `${e.path} - ${e.message}`).join(", ")}`
-        : errorData?.message || `HTTP ${res.status}`;
-      console.error(`API Error (${res.status}):`, JSON.stringify(errorData, null, 2));
+      const errorMessage = buildApiErrorMessage(errorData, res.status);
+      if (!suppressErrorLogging) {
+        console.error(`API Error (${res.status}):`, JSON.stringify(errorData, null, 2));
+      }
       throw createApiError(errorMessage, res.status, errorData);
     }
 
@@ -268,7 +298,7 @@ export const nextServerFetch = async <T = any>(
       : (jsonResult as T);
   } catch (error: unknown) {
     const apiError = error as ApiError;
-    if (apiError?.status !== 401) {
+    if (apiError?.status !== 401 && !suppressErrorLogging) {
       console.error("[nextServerFetch] Error:", apiError);
     }
     throw error;

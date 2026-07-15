@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import type Konva from 'konva';
 import type { MatchPoint } from '../types';
 import { removeBackground, parseHex } from '../utils/bgRemover';
+import { colorizeImage } from '../utils/colorizeImage';
 
 type CanvasBg = 'auto' | 'grid' | 'white' | 'yellow' | 'dark';
 
@@ -17,6 +18,9 @@ export interface PantagraphState {
   currentBgRemoved: boolean;
   formerBgColor: string;
   currentBgColor: string;
+  /** Clean (non-colorized) version — used to re-apply line color */
+  formerMapClean: HTMLImageElement | null;
+  currentMapClean: HTMLImageElement | null;
   activeMap: 'former' | 'current';
   canvasBg: CanvasBg;
 
@@ -53,6 +57,11 @@ export interface PantagraphState {
   isPickingColor: boolean;
   pickingTarget: 'former' | 'current' | null;
 
+  // Line colorization (replace dark pixels with chosen color)
+  formerLineColor: string;
+  currentLineColor: string;
+  lineColorizeThreshold: number;
+
   // BG removal tolerance (0-255, how wide a color range to remove)
   formerBgTolerance: number;
   currentBgTolerance: number;
@@ -67,13 +76,6 @@ export interface PantagraphState {
 
   // Redo stack
   redoStack: MatchPoint[];
-
-  // Duster (brush eraser)
-  isDusting: boolean;
-  dustingTarget: 'former' | 'current' | null;
-  dusterSize: number;
-  eraserUndoStack: HTMLImageElement[];
-  eraserRedoStack: HTMLImageElement[];
 
   // PDF export
   stageRef: Konva.Stage | null;
@@ -93,6 +95,11 @@ export interface PantagraphActions {
   toggleCurrentBgRemoval: () => Promise<void>;
   setFormerBgColor: (color: string) => void;
   setCurrentBgColor: (color: string) => void;
+  // Line colorization
+  setFormerLineColor: (color: string) => void;
+  setCurrentLineColor: (color: string) => void;
+  setLineColorizeThreshold: (threshold: number) => void;
+
   setFormerBgTolerance: (tolerance: number) => void;
   setCurrentBgTolerance: (tolerance: number) => void;
   setFormerOpacity: (opacity: number) => void;
@@ -133,17 +140,6 @@ export interface PantagraphActions {
   // Reset
   reset: () => void;
 
-  // Duster (brush eraser)
-  setDusting: (target: 'former' | 'current' | null) => void;
-  setDusterSize: (size: number) => void;
-  applyDusterStroke: (
-    target: 'former' | 'current',
-    points: Array<{ x: number; y: number }>,
-    radius: number
-  ) => Promise<void>;
-  undoEraser: () => void;
-  redoEraser: () => void;
-
   // PDF export
   setStageRef: (ref: Konva.Stage | null) => void;
   saveAsPDF: () => Promise<void>;
@@ -160,6 +156,14 @@ const initialState: PantagraphState = {
   currentBgRemoved: false,
   formerBgColor: '#ffffff',
   currentBgColor: '#ffffff',
+
+  formerMapClean: null,
+  currentMapClean: null,
+
+  formerLineColor: '#000000',
+  currentLineColor: '#000000',
+  lineColorizeThreshold: 200,
+
   formerBgTolerance: 60,
   currentBgTolerance: 60,
   formerOpacity: 1,
@@ -196,13 +200,23 @@ const initialState: PantagraphState = {
   isRemovingCurrentBg: false,
   redoStack: [],
   
-  isDusting: false,
-  dustingTarget: null,
-  dusterSize: 20,
-  eraserUndoStack: [],
-  eraserRedoStack: [],
   stageRef: null,
 };
+
+/** Helper: apply line colorization on top of a clean (bg-removed) map. */
+async function applyLineToCleanMap(
+  cleanMap: HTMLImageElement | null,
+  lineColor: string,
+  threshold: number,
+): Promise<HTMLImageElement | null> {
+  if (!cleanMap) return null;
+  if (lineColor === '#000000') return cleanMap;
+  try {
+    return await colorizeImage(cleanMap, lineColor, threshold);
+  } catch {
+    return cleanMap;
+  }
+}
 
 export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   ...initialState,
@@ -211,80 +225,120 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     set({
       formerMap,
       formerMapOriginal: formerMap,
+      formerMapClean: formerMap,
       formerBgRemoved: false,
+      formerLineColor: '#000000',
     }),
   setCurrentMap: (currentMap) =>
     set({
       currentMap,
       currentMapOriginal: currentMap,
+      currentMapClean: currentMap,
       currentBgRemoved: false,
+      currentLineColor: '#000000',
     }),
   setActiveMap: (activeMap) => set({ activeMap }),
   setCanvasBg: (canvasBg) => set({ canvasBg }),
 
-  setFormerBgColor: (formerBgColor) => {
-    const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgTolerance } = get();
+  setFormerBgColor: async (formerBgColor) => {
+    const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgTolerance, formerLineColor, lineColorizeThreshold } = get();
     set({ formerBgColor });
     if (formerBgRemoved && formerMapOriginal && !isRemovingFormerBg) {
       set({ isRemovingFormerBg: true });
-      const parsed = parseHex(formerBgColor);
-      removeBackground(formerMapOriginal, [parsed], formerBgTolerance)
-        .then((processed) => {
-          set({ formerMap: processed, isRemovingFormerBg: false });
-        })
-        .catch((e) => {
-          console.error('BG re-apply failed (former):', e);
-          set({ isRemovingFormerBg: false });
-        });
+      try {
+        const parsed = parseHex(formerBgColor);
+        const processed = await removeBackground(formerMapOriginal, [parsed], formerBgTolerance);
+        set({ formerMapClean: processed });
+        const final = await applyLineToCleanMap(processed, formerLineColor, lineColorizeThreshold);
+        set({ formerMap: final ?? processed, isRemovingFormerBg: false });
+      } catch (e) {
+        console.error('BG re-apply failed (former):', e);
+        set({ isRemovingFormerBg: false });
+      }
     }
   },
-  setCurrentBgColor: (currentBgColor) => {
-    const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgTolerance } = get();
+  setCurrentBgColor: async (currentBgColor) => {
+    const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgTolerance, currentLineColor, lineColorizeThreshold } = get();
     set({ currentBgColor });
     if (currentBgRemoved && currentMapOriginal && !isRemovingCurrentBg) {
       set({ isRemovingCurrentBg: true });
-      const parsed = parseHex(currentBgColor);
-      removeBackground(currentMapOriginal, [parsed], currentBgTolerance)
-        .then((processed) => {
-          set({ currentMap: processed, isRemovingCurrentBg: false });
-        })
-        .catch((e) => {
-          console.error('BG re-apply failed (current):', e);
-          set({ isRemovingCurrentBg: false });
-        });
+      try {
+        const parsed = parseHex(currentBgColor);
+        const processed = await removeBackground(currentMapOriginal, [parsed], currentBgTolerance);
+        set({ currentMapClean: processed });
+        const final = await applyLineToCleanMap(processed, currentLineColor, lineColorizeThreshold);
+        set({ currentMap: final ?? processed, isRemovingCurrentBg: false });
+      } catch (e) {
+        console.error('BG re-apply failed (current):', e);
+        set({ isRemovingCurrentBg: false });
+      }
     }
   },
 
-  setFormerBgTolerance: (formerBgTolerance) => {
-    const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgColor } = get();
+  setFormerLineColor: async (formerLineColor) => {
+    const { formerMapClean, lineColorizeThreshold } = get();
+    set({ formerLineColor });
+    if (!formerMapClean) return;
+    if (formerLineColor === '#000000') {
+      set({ formerMap: formerMapClean });
+      return;
+    }
+    try {
+      const processed = await colorizeImage(formerMapClean, formerLineColor, lineColorizeThreshold);
+      set({ formerMap: processed });
+    } catch (e) {
+      console.error('Line colorize failed (former):', e);
+    }
+  },
+  setCurrentLineColor: async (currentLineColor) => {
+    const { currentMapClean, lineColorizeThreshold } = get();
+    set({ currentLineColor });
+    if (!currentMapClean) return;
+    if (currentLineColor === '#000000') {
+      set({ currentMap: currentMapClean });
+      return;
+    }
+    try {
+      const processed = await colorizeImage(currentMapClean, currentLineColor, lineColorizeThreshold);
+      set({ currentMap: processed });
+    } catch (e) {
+      console.error('Line colorize failed (current):', e);
+    }
+  },
+  setLineColorizeThreshold: (lineColorizeThreshold) => set({ lineColorizeThreshold }),
+
+  setFormerBgTolerance: async (formerBgTolerance) => {
+    const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgColor, formerLineColor, lineColorizeThreshold } = get();
     set({ formerBgTolerance });
     if (formerBgRemoved && formerMapOriginal && !isRemovingFormerBg) {
       set({ isRemovingFormerBg: true });
-      const parsed = parseHex(formerBgColor);
-      removeBackground(formerMapOriginal, [parsed], formerBgTolerance)
-        .then((processed) => {
-          set({ formerMap: processed, isRemovingFormerBg: false });
-        })
-        .catch((e) => {
-          console.error('BG re-apply failed (former):', e);
-          set({ isRemovingFormerBg: false });
-        });
+      try {
+        const parsed = parseHex(formerBgColor);
+        const processed = await removeBackground(formerMapOriginal, [parsed], formerBgTolerance);
+        set({ formerMapClean: processed });
+        const final = await applyLineToCleanMap(processed, formerLineColor, lineColorizeThreshold);
+        set({ formerMap: final ?? processed, isRemovingFormerBg: false });
+      } catch (e) {
+        console.error('BG re-apply failed (former):', e);
+        set({ isRemovingFormerBg: false });
+      }
     }
   },
-  setCurrentBgTolerance: (currentBgTolerance) => {
-    const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgColor } = get();
+  setCurrentBgTolerance: async (currentBgTolerance) => {
+    const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgColor, currentLineColor, lineColorizeThreshold } = get();
     set({ currentBgTolerance });
     if (currentBgRemoved && currentMapOriginal && !isRemovingCurrentBg) {
       set({ isRemovingCurrentBg: true });
-      const parsed = parseHex(currentBgColor);
-      removeBackground(currentMapOriginal, [parsed], currentBgTolerance)
-        .then((processed) => {
-          set({ currentMap: processed, isRemovingCurrentBg: false });
-        })
-        .catch((e) => {
-          console.error('BG re-apply failed (current):', e);
-          set({ isRemovingCurrentBg: false });
-        });
+      try {
+        const parsed = parseHex(currentBgColor);
+        const processed = await removeBackground(currentMapOriginal, [parsed], currentBgTolerance);
+        set({ currentMapClean: processed });
+        const final = await applyLineToCleanMap(processed, currentLineColor, lineColorizeThreshold);
+        set({ currentMap: final ?? processed, isRemovingCurrentBg: false });
+      } catch (e) {
+        console.error('BG re-apply failed (current):', e);
+        set({ isRemovingCurrentBg: false });
+      }
     }
   },
 
@@ -292,17 +346,22 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   setCurrentOpacity: (currentOpacity) => set({ currentOpacity }),
 
   toggleFormerBgRemoval: async () => {
-    const { formerMapOriginal, formerBgRemoved, formerBgColor, formerBgTolerance, isRemovingFormerBg } = get();
+    const { formerMapOriginal, formerBgRemoved, formerBgColor, formerBgTolerance, isRemovingFormerBg, formerLineColor, lineColorizeThreshold } = get();
     if (!formerMapOriginal || isRemovingFormerBg) return;
 
     if (formerBgRemoved) {
-      set({ formerMap: formerMapOriginal, formerBgRemoved: false });
+      // Turn bg removal OFF
+      set({ formerBgRemoved: false, formerMapClean: formerMapOriginal });
+      const final = await applyLineToCleanMap(formerMapOriginal, formerLineColor, lineColorizeThreshold);
+      set({ formerMap: final ?? formerMapOriginal });
     } else {
       set({ isRemovingFormerBg: true });
       try {
         const parsed = parseHex(formerBgColor);
         const processed = await removeBackground(formerMapOriginal, [parsed], formerBgTolerance);
-        set({ formerMap: processed, formerBgRemoved: true, isRemovingFormerBg: false });
+        set({ formerMapClean: processed });
+        const final = await applyLineToCleanMap(processed, formerLineColor, lineColorizeThreshold);
+        set({ formerMap: final ?? processed, formerBgRemoved: true, isRemovingFormerBg: false });
       } catch (e) {
         console.error('BG removal failed (former):', e);
         set({ isRemovingFormerBg: false });
@@ -311,17 +370,22 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   },
 
   toggleCurrentBgRemoval: async () => {
-    const { currentMapOriginal, currentBgRemoved, currentBgColor, currentBgTolerance, isRemovingCurrentBg } = get();
+    const { currentMapOriginal, currentBgRemoved, currentBgColor, currentBgTolerance, isRemovingCurrentBg, currentLineColor, lineColorizeThreshold } = get();
     if (!currentMapOriginal || isRemovingCurrentBg) return;
 
     if (currentBgRemoved) {
-      set({ currentMap: currentMapOriginal, currentBgRemoved: false });
+      // Turn bg removal OFF
+      set({ currentBgRemoved: false, currentMapClean: currentMapOriginal });
+      const final = await applyLineToCleanMap(currentMapOriginal, currentLineColor, lineColorizeThreshold);
+      set({ currentMap: final ?? currentMapOriginal });
     } else {
       set({ isRemovingCurrentBg: true });
       try {
         const parsed = parseHex(currentBgColor);
         const processed = await removeBackground(currentMapOriginal, [parsed], currentBgTolerance);
-        set({ currentMap: processed, currentBgRemoved: true, isRemovingCurrentBg: false });
+        set({ currentMapClean: processed });
+        const final = await applyLineToCleanMap(processed, currentLineColor, lineColorizeThreshold);
+        set({ currentMap: final ?? processed, currentBgRemoved: true, isRemovingCurrentBg: false });
       } catch (e) {
         console.error('BG removal failed (current):', e);
         set({ isRemovingCurrentBg: false });
@@ -476,83 +540,6 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   startColorPick: (target) => set({ isPickingColor: true, pickingTarget: target }),
   cancelColorPick: () => set({ isPickingColor: false, pickingTarget: null }),
 
-  // ── Duster actions ──
-
-  setDusting: (target) => set({ isDusting: target !== null, dustingTarget: target }),
-  setDusterSize: (dusterSize) => set({ dusterSize }),
-
-  applyDusterStroke: async (target, points, radius) => {
-    if (points.length === 0) return;
-    const state = get();
-    const mapKey = target === 'former' ? 'formerMap' : 'currentMap';
-    const img = state[mapKey];
-    if (!img) return;
-    const loadKey = target === 'former' ? 'isRemovingFormerBg' : 'isRemovingCurrentBg';
-    if (state[loadKey]) return;
-
-    // Save current image onto undo stack before modifying
-    set({
-      eraserUndoStack: [...state.eraserUndoStack, img],
-      eraserRedoStack: [], // clear redo stack on new stroke
-      [loadKey]: true,
-    } as unknown as Partial<PantagraphStore>);
-
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth || img.width;
-      canvas.height = img.naturalHeight || img.height;
-      const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(img, 0, 0);
-
-      ctx.save();
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineWidth = radius * 2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      for (let i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i].x, points[i].y);
-      }
-      ctx.stroke();
-
-      // Also draw circles at each point for single clicks
-      for (const p of points) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
-
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((b) => {
-          if (b) resolve(b);
-          else reject(new Error('toBlob failed'));
-        }, 'image/png');
-      });
-
-      const url = URL.createObjectURL(blob);
-      const outImg = new window.Image();
-      await new Promise<void>((resolve, reject) => {
-        outImg.onload = () => {
-          URL.revokeObjectURL(url);
-          resolve();
-        };
-        outImg.onerror = () => {
-          URL.revokeObjectURL(url);
-          reject(new Error('Image decode failed'));
-        };
-        outImg.src = url;
-      });
-
-      set({ [mapKey]: outImg, [loadKey]: false } as unknown as Partial<PantagraphStore>);
-    } catch (e) {
-      console.error('Duster apply failed:', e);
-      set({ [loadKey]: false } as Partial<PantagraphStore>);
-    }
-  },
-
   // ── PDF export ──
 
   setStageRef: (ref) => set({ stageRef: ref }),
@@ -693,36 +680,6 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     } catch (error) {
       console.error('PDF export failed:', error);
     }
-  },
-
-  undoEraser: () => {
-    const { eraserUndoStack, dustingTarget } = get();
-    if (eraserUndoStack.length === 0) return;
-    const mapKey = dustingTarget === 'former' ? 'formerMap' : 'currentMap';
-    const img = get()[mapKey];
-    if (!img) return;
-
-    const prev = eraserUndoStack[eraserUndoStack.length - 1];
-    set({
-      [mapKey]: prev,
-      eraserUndoStack: eraserUndoStack.slice(0, -1),
-      eraserRedoStack: [...get().eraserRedoStack, img],
-    } as unknown as Partial<PantagraphStore>);
-  },
-
-  redoEraser: () => {
-    const { eraserRedoStack, dustingTarget } = get();
-    if (eraserRedoStack.length === 0) return;
-    const mapKey = dustingTarget === 'former' ? 'formerMap' : 'currentMap';
-    const img = get()[mapKey];
-    if (!img) return;
-
-    const next = eraserRedoStack[eraserRedoStack.length - 1];
-    set({
-      [mapKey]: next,
-      eraserRedoStack: eraserRedoStack.slice(0, -1),
-      eraserUndoStack: [...get().eraserUndoStack, img],
-    } as unknown as Partial<PantagraphStore>);
   },
 
   reset: () => set({ ...initialState }),

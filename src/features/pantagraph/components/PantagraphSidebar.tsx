@@ -41,11 +41,9 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
     currentBgTolerance,
     formerOpacity,
     currentOpacity,
-    isDusting,
-    dustingTarget,
-    dusterSize,
-    eraserUndoStack,
-    eraserRedoStack,
+    formerLineColor,
+    currentLineColor,
+    lineColorizeThreshold,
     setFormerMap,
     setCurrentMap,
     setActiveMap,
@@ -60,12 +58,11 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
     setCurrentBgTolerance,
     setFormerOpacity,
     setCurrentOpacity,
+    setFormerLineColor,
+    setCurrentLineColor,
+    setLineColorizeThreshold,
     startColorPick,
     cancelColorPick,
-    setDusting,
-    setDusterSize,
-    undoEraser,
-    redoEraser,
     clearAlignment,
     reset,
   } = usePantagraphStore(
@@ -87,11 +84,9 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
       currentBgTolerance: s.currentBgTolerance,
       formerOpacity: s.formerOpacity,
       currentOpacity: s.currentOpacity,
-      isDusting: s.isDusting,
-      dustingTarget: s.dustingTarget,
-      dusterSize: s.dusterSize,
-      eraserUndoStack: s.eraserUndoStack,
-      eraserRedoStack: s.eraserRedoStack,
+      formerLineColor: s.formerLineColor,
+      currentLineColor: s.currentLineColor,
+      lineColorizeThreshold: s.lineColorizeThreshold,
       setFormerMap: s.setFormerMap,
       setCurrentMap: s.setCurrentMap,
       setActiveMap: s.setActiveMap,
@@ -107,12 +102,11 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
       setCurrentBgTolerance: s.setCurrentBgTolerance,
       setFormerOpacity: s.setFormerOpacity,
       setCurrentOpacity: s.setCurrentOpacity,
+      setFormerLineColor: s.setFormerLineColor,
+      setCurrentLineColor: s.setCurrentLineColor,
+      setLineColorizeThreshold: s.setLineColorizeThreshold,
       startColorPick: s.startColorPick,
       cancelColorPick: s.cancelColorPick,
-      setDusting: s.setDusting,
-      setDusterSize: s.setDusterSize,
-      undoEraser: s.undoEraser,
-      redoEraser: s.redoEraser,
       clearAlignment: s.clearAlignment,
       reset: s.reset,
     }))
@@ -275,26 +269,7 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
                 >
                   <Droplets className="w-3.5 h-3.5" />
                 </button>
-                {/* Duster — click on map to remove additional colors */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    isDusting && dustingTarget === 'former'
-                      ? setDusting(null)
-                      : setDusting('former')
-                  }
-                  disabled={!formerMap}
-                  className={`w-6 h-6 flex items-center justify-center rounded border transition-colors ${
-                    isDusting && dustingTarget === 'former'
-                      ? 'bg-destructive text-destructive-foreground border-destructive'
-                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
-                  } ${!formerMap ? 'opacity-40 cursor-not-allowed' : ''}`}
-                  title="ম্যানুয়াল ইরেজার — ব্রাশ দিয়ে ম্যাপ মুছুন (ড্র্যাগ করুন)"
-                >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="10" cy="10" r="4" /><path d="M15 15l6 6" /><path d="M3 12h4" /><path d="M12 3v4" />
-                  </svg>
-                </button>
+
                 {/* Toggle switch */}
                 {isRemovingFormerBg ? (
                   <div className="flex items-center justify-center w-9 h-5">
@@ -340,45 +315,45 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
                 />
               </div>
             )}
-            {/* Duster size slider */}
-            {isDusting && dustingTarget === 'former' && (
-              <div className="space-y-1 pt-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground">
-                    ডাস্টার সাইজ
-                  </span>
-                  <span className="text-[10px] font-mono text-muted-foreground">
-                    {dusterSize}px
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="5"
-                  max="80"
-                  value={dusterSize}
-                  onChange={(e) => setDusterSize(Number(e.target.value))}
-                  className="w-full h-1.5 appearance-none cursor-pointer rounded-full bg-muted accent-destructive [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-destructive [&::-webkit-slider-thumb]:shadow-sm"
-                />
-                <div className="flex items-center gap-2 pt-1">
+            {/* Line color picker — shown when bg is removed */}
+            {formerBgRemoved && (
+              <div className="flex items-center justify-between pt-2">
+                <span className="text-[10px] text-muted-foreground">
+                  দাগের রং
+                </span>
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={undoEraser}
-                    disabled={eraserUndoStack.length === 0}
-                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="পূর্বাবস্থায় ফেরান (Ctrl+Z)"
+                    onClick={() => setFormerLineColor('#000000')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                      formerLineColor === '#000000'
+                        ? 'border-foreground bg-foreground/5 text-foreground'
+                        : 'border-border text-muted-foreground hover:text-foreground'
+                    }`}
                   >
-                    <Undo2 className="w-3 h-3" />
-                    Undo
+                    মূল
                   </button>
                   <button
                     type="button"
-                    onClick={redoEraser}
-                    disabled={eraserRedoStack.length === 0}
-                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="পুনরায় করুন (Ctrl+Shift+Z)"
+                    onClick={() => setFormerLineColor('#DC2626')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                      formerLineColor === '#DC2626'
+                        ? 'border-red-500 bg-red-500/10 text-red-600'
+                        : 'border-border text-muted-foreground hover:text-red-600 hover:border-red-300'
+                    }`}
                   >
-                    <Undo2 className="w-3 h-3 rotate-180" />
-                    Redo
+                    লাল
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormerLineColor('#16A34A')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                      formerLineColor === '#16A34A'
+                        ? 'border-green-500 bg-green-500/10 text-green-600'
+                        : 'border-border text-muted-foreground hover:text-green-600 hover:border-green-300'
+                    }`}
+                  >
+                    সবুজ
                   </button>
                 </div>
               </div>
@@ -410,26 +385,7 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
                 >
                   <Droplets className="w-3.5 h-3.5" />
                 </button>
-                {/* Duster */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    isDusting && dustingTarget === 'current'
-                      ? setDusting(null)
-                      : setDusting('current')
-                  }
-                  disabled={!currentMap}
-                  className={`w-6 h-6 flex items-center justify-center rounded border transition-colors ${
-                    isDusting && dustingTarget === 'current'
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
-                  } ${!currentMap ? 'opacity-40 cursor-not-allowed' : ''}`}
-                  title="ম্যানুয়াল ইরেজার — ব্রাশ দিয়ে ম্যাপ মুছুন (ড্র্যাগ করুন)"
-                >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="10" cy="10" r="4" /><path d="M15 15l6 6" /><path d="M3 12h4" /><path d="M12 3v4" />
-                  </svg>
-                </button>
+
                 {isRemovingCurrentBg ? (
                   <div className="flex items-center justify-center w-9 h-5">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
@@ -473,49 +429,50 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
                 />
               </div>
             )}
-            {/* Duster size slider - current */}
-            {isDusting && dustingTarget === 'current' && (
-              <div className="space-y-1 pt-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground">
-                    ডাস্টার সাইজ
-                  </span>
-                  <span className="text-[10px] font-mono text-muted-foreground">
-                    {dusterSize}px
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="5"
-                  max="80"
-                  value={dusterSize}
-                  onChange={(e) => setDusterSize(Number(e.target.value))}
-                  className="w-full h-1.5 appearance-none cursor-pointer rounded-full bg-muted accent-primary [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-sm"
-                />
-                <div className="flex items-center gap-2 pt-1">
+            {/* Line color picker — shown when bg is removed */}
+            {currentBgRemoved && (
+              <div className="flex items-center justify-between pt-2">
+                <span className="text-[10px] text-muted-foreground">
+                  দাগের রং
+                </span>
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={undoEraser}
-                    disabled={eraserUndoStack.length === 0}
-                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="পূর্বাবস্থায় ফেরান (Ctrl+Z)"
+                    onClick={() => setCurrentLineColor('#000000')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                      currentLineColor === '#000000'
+                        ? 'border-foreground bg-foreground/5 text-foreground'
+                        : 'border-border text-muted-foreground hover:text-foreground'
+                    }`}
                   >
-                    <Undo2 className="w-3 h-3" />
-                    Undo
+                    মূল
                   </button>
                   <button
                     type="button"
-                    onClick={redoEraser}
-                    disabled={eraserRedoStack.length === 0}
-                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="পুনরায় করুন (Ctrl+Shift+Z)"
+                    onClick={() => setCurrentLineColor('#DC2626')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                      currentLineColor === '#DC2626'
+                        ? 'border-red-500 bg-red-500/10 text-red-600'
+                        : 'border-border text-muted-foreground hover:text-red-600 hover:border-red-300'
+                    }`}
                   >
-                    <Undo2 className="w-3 h-3 rotate-180" />
-                    Redo
+                    লাল
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentLineColor('#16A34A')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                      currentLineColor === '#16A34A'
+                        ? 'border-green-500 bg-green-500/10 text-green-600'
+                        : 'border-border text-muted-foreground hover:text-green-600 hover:border-green-300'
+                    }`}
+                  >
+                    সবুজ
                   </button>
                 </div>
               </div>
-            )}          </div>
+            )}
+          </div>
         )}
 
         <Separator />
