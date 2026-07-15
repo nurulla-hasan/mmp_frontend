@@ -704,7 +704,7 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
       const offsetX = (pdfW - imgW) / 2;
       const offsetY = (pdfH - imgH) / 2;
 
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.96);
       const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
       pdf.addImage(dataUrl, 'JPEG', offsetX, offsetY, imgW, imgH);
       pdf.save('pantagraph-alignment.pdf');

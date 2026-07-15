@@ -95,6 +95,7 @@ export async function detectPdfDpi(file: File): Promise<PdfDpiInfo | null> {
 
         if (typeof pdfDoc.context?.enumerateIndirectObjects === 'function') {
           for (const [, obj] of pdfDoc.context.enumerateIndirectObjects()) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const stream = obj as any;
             if (stream?.dict?.get) {
               const subtype = stream.dict.get(PDFName.of('Subtype'));
@@ -166,7 +167,7 @@ export const extractImageFromPDF = async (file: File): Promise<HTMLImageElement>
         const typedarray = new Uint8Array(event.target.result);
         const pdf = await pdfjs.getDocument({ data: typedarray }).promise;
         const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 2.0 });
+        const viewport = page.getViewport({ scale: 4.0 });
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         if (!context) {

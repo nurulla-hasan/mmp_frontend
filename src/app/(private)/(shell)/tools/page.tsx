@@ -1,4 +1,4 @@
-import { Calculator, Map, MoveDiagonal, Scaling } from "lucide-react";
+import { Calculator, Map, MoveDiagonal, PenLine, Scaling } from "lucide-react";
 import Link from "next/link";
 
 import { PageWrapper } from "@/components/shared/page-wrapper";
@@ -24,6 +24,24 @@ const featuredTool = {
 
 const quickTools = [
   {
+    icon: Scaling,
+    title: "ম্যাপ স্কেল ও প্যান্টাগ্রাফ",
+    description:
+      "ম্যাপের স্কেল হিসাব করুন, এক স্কেল থেকে অন্য স্কেলে রূপান্তর করুন এবং প্যান্টাগ্রাফ রেশিও বের করুন।",
+    href: "/tools/pantagraph",
+    badge: "নতুন",
+    color: "text-cyan-600 bg-cyan-100 dark:text-cyan-400 dark:bg-cyan-900/30",
+  },
+  {
+    icon: PenLine,
+    title: "ডিজিটাল ম্যাপ ট্রেসিং",
+    description:
+      "পুরানো মৌজা ম্যাপের উপর সরাসরি C.S ও B.S দাগের সীমানা ট্রেস করে পরিষ্কার ভেক্টর ম্যাপ তৈরি করুন।",
+    href: "/tools/tracer",
+    badge: "নতুন",
+    color: "text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30",
+  },
+  {
     icon: MoveDiagonal,
     title: "জমির একক রূপান্তর",
     description:
@@ -39,14 +57,6 @@ const quickTools = [
       "মোট জমি ও অংশীদারদের অনুপাত অনুযায়ী প্রত্যেকের প্রাপ্য জমির পরিমাণ নির্ণয় করুন।",
     href: "/tools/inheritance-calculator",
     color: "text-rose-600 bg-rose-100 dark:text-rose-400 dark:bg-rose-900/30",
-  },
-  {
-    icon: Scaling,
-    title: "ম্যাপ স্কেল ও প্যান্টাগ্রাফ",
-    description:
-      "ম্যাপের স্কেল হিসাব করুন, এক স্কেল থেকে অন্য স্কেলে রূপান্তর করুন এবং প্যান্টাগ্রাফ রেশিও বের করুন।",
-    href: "/tools/pantagraph",
-    color: "text-cyan-600 bg-cyan-100 dark:text-cyan-400 dark:bg-cyan-900/30",
   },
 ];
 
@@ -115,17 +125,24 @@ export default function ToolsPage() {
           দ্রুত প্রয়োজনীয় গণনার জন্য সহায়ক টুলসমূহ।
         </p>
 
-        <div className="mt-6 grid gap-6 md:grid-cols-3">
+        <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {quickTools.map((tool) => {
             const Icon = tool.icon;
             return (
               <Link key={tool.href} href={tool.href} className="group">
                 <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:ring-2 hover:ring-primary/30 hover:shadow-lg hover:shadow-primary/5">
                   <CardContent>
-                    <div
-                      className={`mb-4 inline-flex size-12 items-center justify-center rounded-xl ${tool.color}`}
-                    >
-                      <Icon className="size-6" />
+                    <div className="flex items-start justify-between mb-4">
+                      <div
+                        className={`inline-flex size-12 items-center justify-center rounded-xl ${tool.color}`}
+                      >
+                        <Icon className="size-6" />
+                      </div>
+                      {"badge" in tool && tool.badge && (
+                        <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] px-1.5 py-0.5">
+                          {tool.badge}
+                        </Badge>
+                      )}
                     </div>
                     <h3 className="text-base font-semibold font-heading">
                       {tool.title}

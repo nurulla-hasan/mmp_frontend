@@ -3,7 +3,7 @@
 import { memo, useCallback } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { usePantagraphStore } from '../store/usePantagraphStore';
-import { Logo } from '@/components/shared/logo';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   Lock,
@@ -13,6 +13,7 @@ import {
   ZoomOut,
   Maximize,
   Crosshair,
+  ArrowLeft,
 } from 'lucide-react';
 
 export const PantagraphToolbar = memo(function PantagraphToolbar() {
@@ -83,13 +84,14 @@ export const PantagraphToolbar = memo(function PantagraphToolbar() {
 
   return (
     <div className="absolute top-0 left-0 right-0 md:right-72 h-14 bg-background/95 backdrop-blur-sm border-b border-border flex items-center px-3 gap-1.5 z-30 shadow-sm">
-      {/* Logo / Title */}
-      <div className="flex items-center gap-2 mr-3">
-        <Logo size="sm" />
-        <span className="text-sm font-semibold text-foreground hidden sm:inline font-heading">
-          প্যান্টাগ্রাফ
-        </span>
-      </div>
+      {/* Back */}
+      <Link
+        href="/tools"
+        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-xs shrink-0 mr-1"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        টুলস
+      </Link>
 
       <div className="w-px h-6 bg-border mx-1" />
 

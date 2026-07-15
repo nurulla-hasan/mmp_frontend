@@ -113,14 +113,23 @@ export default function MapCalculator() {
       <DistanceModal />
       <div className="print:hidden">
         {/* ── Canvas + Floating toolbar ── */}
-        <div className="relative w-full" ref={containerRef}>
+        <div 
+          className="relative w-full rounded-lg overflow-hidden border border-border" 
+          ref={containerRef}
+          style={{
+            backgroundColor: '#121212',
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`,
+            backgroundSize: '20px 20px',
+            minHeight: '600px'
+          }}
+        >
           <KonvaStage
             containerRef={containerRef}
             stageRef={stageRef}
           />
 
           {!image && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/60">
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
               <div className="flex flex-col items-center p-6 text-center animate-in fade-in zoom-in duration-500">
                 <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
                   <Upload className="h-10 w-10 text-primary opacity-80" />
