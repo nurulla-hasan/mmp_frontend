@@ -18,12 +18,12 @@ const COLOR_PRESETS = [
 // ─── Background Section ───────────────────────────────────────────────────────
 const BackgroundSection = memo(function BackgroundSection() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { backgroundImage, backgroundOpacity, setBackground, setBackgroundOpacity } = useTracerStore(
+  const { backgroundImage, imageLoading, setBackground, setImageLoading } = useTracerStore(
     useShallow(s => ({
       backgroundImage: s.backgroundImage,
-      backgroundOpacity: s.backgroundOpacity,
+      imageLoading: s.imageLoading,
       setBackground: s.setBackground,
-      setBackgroundOpacity: s.setBackgroundOpacity,
+      setImageLoading: s.setImageLoading,
     })),
   );
 
@@ -31,6 +31,7 @@ const BackgroundSection = memo(function BackgroundSection() {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = '';
+    setImageLoading(true);
 
     if (file.type === 'application/pdf') {
       try {
@@ -38,16 +39,18 @@ const BackgroundSection = memo(function BackgroundSection() {
         setBackground(img);
       } catch (err) {
         console.error('PDF load error:', err);
+      } finally {
+        setImageLoading(false);
       }
       return;
     }
 
     const url = URL.createObjectURL(file);
     const img = new window.Image();
-    img.onload = () => { URL.revokeObjectURL(url); setBackground(img); };
-    img.onerror = () => URL.revokeObjectURL(url);
+    img.onload = () => { URL.revokeObjectURL(url); setBackground(img); setImageLoading(false); };
+    img.onerror = () => { URL.revokeObjectURL(url); setImageLoading(false); };
     img.src = url;
-  }, [setBackground]);
+  }, [setBackground, setImageLoading]);
 
   return (
     <div className="space-y-2.5">
@@ -56,30 +59,16 @@ const BackgroundSection = memo(function BackgroundSection() {
       </h3>
       <input ref={inputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleUpload} />
       <div className="flex gap-1.5">
-        <Button variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
+        <Button variant="outline" size="sm" onClick={() => inputRef.current?.click()} disabled={imageLoading}>
           <ImageUp className="w-3.5 h-3.5 mr-1" />
-          {backgroundImage ? 'পরিবর্তন' : 'আপলোড'}
+          {imageLoading ? 'লোড হচ্ছে...' : backgroundImage ? 'পরিবর্তন' : 'আপলোড'}
         </Button>
         {backgroundImage && (
-          <Button variant="ghost" size="icon-sm" onClick={() => setBackground(null)}>
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
-        )}
-      </div>
-      {backgroundImage && (
-        <div className="space-y-1">
-          <div className="flex justify-between items-center">
-            <span className="text-[10px] text-muted-foreground">ব্যাকগ্রাউন্ড অপাসিটি</span>
-            <span className="text-[10px] font-mono text-muted-foreground">{Math.round(backgroundOpacity * 100)}%</span>
-          </div>
-          <input
-            type="range" min="0.1" max="1" step="0.05"
-            value={backgroundOpacity}
-            onChange={e => setBackgroundOpacity(Number(e.target.value))}
-            className="w-full h-1.5 appearance-none cursor-pointer rounded-full bg-muted accent-primary [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-sm"
-          />
-        </div>
+        <Button variant="ghost" size="icon-sm" onClick={() => setBackground(null)}>
+          <Trash2 className="w-3.5 h-3.5" />
+        </Button>
       )}
+    </div>
     </div>
   );
 });
@@ -197,7 +186,7 @@ const LayersSection = memo(function LayersSection() {
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-muted-foreground">লাইন</span>
                     <div className="flex gap-1">
-                      {[1, 2, 3].map(w => (
+                      {[1, 2, 3, 4, 5].map(w => (
                         <button
                           key={w}
                           onClick={() => setLayerLineWidth(layer.id, w)}

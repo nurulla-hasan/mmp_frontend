@@ -10,18 +10,27 @@ function drawLayersOnCanvas(
   referenceW: number,
   offsetX: number = 0,
   offsetY: number = 0,
+  totalW: number = 0,
 ): void {
   const targetLayers = which === 'all' ? layers : layers.filter(l => l.id === which);
-  const fontSize = Math.max(18, referenceW / 80);
+
+  // Proportional sizing so output looks consistent on A4 paper (~180mm usable width)
+  const A4_USABLE = 180;
+  const fontSize = totalW > 0
+    ? Math.max(4, 3 * totalW / A4_USABLE)
+    : Math.max(6, referenceW / 320);
 
   ctx.save();
   ctx.translate(-offsetX, -offsetY);
 
-  for (const layer of targetLayers) {
+  // Sort: CS layer last so it draws on top
+  const sorted = [...targetLayers].sort((a, b) => (a.id === 'cs' ? 1 : b.id === 'cs' ? -1 : 0));
+
+  for (const layer of sorted) {
     if (!layer.visible) continue;
 
     ctx.strokeStyle = layer.color;
-    ctx.lineWidth = layer.lineWidth * 2.5; // upscale for print
+    ctx.lineWidth = layer.lineWidth;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.fillStyle = layer.color;
@@ -39,7 +48,9 @@ function drawLayersOnCanvas(
       ctx.stroke();
 
       if (poly.label) {
-        const c = centroid(poly.points);
+        const c = poly.labelX != null && poly.labelY != null
+          ? { x: poly.labelX, y: poly.labelY }
+          : centroid(poly.points);
         ctx.fillText(poly.label, c.x, c.y);
       }
     }
@@ -87,15 +98,25 @@ function buildCanvas(
   const referenceW = bgImage?.naturalWidth ?? 2480;
 
   const canvas = document.createElement('canvas');
-  canvas.width = croppedW;
-  canvas.height = croppedH;
+  let canvasW = croppedW;
+  let canvasH = croppedH;
+  let drawScale = 1;
+  const MAX_DIM = 4000;
+  if (canvasW > MAX_DIM || canvasH > MAX_DIM) {
+    drawScale = Math.min(MAX_DIM / canvasW, MAX_DIM / canvasH);
+    canvasW = Math.round(canvasW * drawScale);
+    canvasH = Math.round(canvasH * drawScale);
+  }
+  canvas.width = canvasW;
+  canvas.height = canvasH;
   const ctx = canvas.getContext('2d')!;
+  ctx.scale(drawScale, drawScale);
 
   // 3. White background
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, croppedW, croppedH);
 
-  drawLayersOnCanvas(ctx, layers, which, referenceW, minX, minY);
+  drawLayersOnCanvas(ctx, layers, which, referenceW, minX, minY, croppedW);
   return canvas;
 }
 
@@ -123,18 +144,32 @@ export async function exportAsPDF(
 ): Promise<void> {
   const canvas = buildCanvas(layers, bgImage, which);
   if (!canvas) return; // nothing to export
-  const w = canvas.width;
-  const h = canvas.height;
+  const cw = canvas.width;
+  const ch = canvas.height;
 
-  const blob = await canvasToBlob(canvas, 'image/jpeg', 0.92);
+  const blob = await canvasToBlob(canvas, 'image/jpeg', 0.98);
   const imgData = await blobToBase64(blob);
 
+  // A4: 210 × 297 mm. Reserve 15mm margins = 180 × 267 mm usable area.
+  const A4_W = 210;
+  const A4_H = 297;
+  const margin = 15;
+  const maxW = A4_W - margin * 2;
+  const maxH = A4_H - margin * 2;
+
+  // Scale to fit while maintaining aspect ratio
+  const scale = Math.min(maxW / cw, maxH / ch);
+  const imgW = cw * scale;
+  const imgH = ch * scale;
+  const offsetX = (A4_W - imgW) / 2;
+  const offsetY = (A4_H - imgH) / 2;
+
   const pdf = new jsPDF({
-    orientation: w > h ? 'landscape' : 'portrait',
-    unit: 'px',
-    format: [w, h],
+    orientation: A4_W > A4_H ? 'landscape' : 'portrait',
+    unit: 'mm',
+    format: 'a4',
   });
-  pdf.addImage(imgData, 'JPEG', 0, 0, w, h);
+  pdf.addImage(imgData, 'JPEG', offsetX, offsetY, imgW, imgH);
   pdf.save('tracer-map.pdf');
 }
 

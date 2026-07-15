@@ -43,6 +43,11 @@ export const TracerToolbar = memo(function TracerToolbar() {
     reset: s.reset,
   })));
 
+  // Status bar text
+  const statusText = mode === 'polygon' && pendingPoints.length > 0
+    ? `${pendingPoints.length} পয়েন্ট`
+    : null;
+
   return (
     <div className="absolute top-0 left-0 right-0 md:right-72 h-12 bg-background/95 backdrop-blur-sm border-b border-border flex items-center px-3 gap-2 z-30 shadow-sm overflow-x-auto">
       {/* Back */}
@@ -107,7 +112,10 @@ export const TracerToolbar = memo(function TracerToolbar() {
         </button>
       )}
 
-      <Separator orientation="vertical" className="h-6 shrink-0" />
+      {/* ── Separator before history — only when there's content to separate ── */}
+      {(pendingPoints.length > 0 || (selectedPolygonId && selectedLayerId)) && (
+        <Separator orientation="vertical" className="h-6 shrink-0" />
+      )}
 
       {/* Undo / redo */}
       <div className="flex items-center gap-0.5 shrink-0">

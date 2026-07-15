@@ -1,10 +1,12 @@
 'use client';
 
-import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import { memo, useRef, useState, useCallback, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { Loader2 } from 'lucide-react';
 import { Stage, Layer, Group, Image as KonvaImage, Line, Circle, Text } from 'react-konva';
 import type Konva from 'konva';
 import { useTracerStore, centroid } from '../store/useTracerStore';
+import { getSnappedPoint } from '@/features/map-tool/utils/geometry';
 
 const TracerCanvas = memo(function TracerCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -21,25 +23,24 @@ const TracerCanvas = memo(function TracerCanvas() {
   const spaceDown = useRef(false);
   const clickTimeRef = useRef(0); // timestamp of last click (for double-click detection)
 
-  // ── Label popup local state ─────────────────────────────────────────────────
-  const [labelValue, setLabelValue] = useState('');
-  const labelInputRef = useRef<HTMLInputElement>(null);
+  // ── Snap-to-first-point ────────────────────────────────────────────────────
+  const [snapActive, setSnapActive] = useState(false);
+  const [edgeSnapped, setEdgeSnapped] = useState(false);
+  const SNAP_DIST = 20; // screen pixels
 
   // ── Store ───────────────────────────────────────────────────────────────────
   const {
-    backgroundImage, backgroundOpacity,
+    backgroundImage, imageLoading,
     layers, activeLayerId,
     mode,
     pendingPoints, hoverPoint,
     selectedPolygonId, selectedLayerId,
-    pendingLabelId, pendingLabelLayerId,
     addPendingPoint, setHoverPoint,
     commitPolygon, cancelDrawing,
-    setPolygonLabel, clearPendingLabel,
     selectPolygon, deletePolygon,
   } = useTracerStore(useShallow(s => ({
     backgroundImage: s.backgroundImage,
-    backgroundOpacity: s.backgroundOpacity,
+    imageLoading: s.imageLoading,
     layers: s.layers,
     activeLayerId: s.activeLayerId,
     mode: s.mode,
@@ -47,14 +48,10 @@ const TracerCanvas = memo(function TracerCanvas() {
     hoverPoint: s.hoverPoint,
     selectedPolygonId: s.selectedPolygonId,
     selectedLayerId: s.selectedLayerId,
-    pendingLabelId: s.pendingLabelId,
-    pendingLabelLayerId: s.pendingLabelLayerId,
     addPendingPoint: s.addPendingPoint,
     setHoverPoint: s.setHoverPoint,
     commitPolygon: s.commitPolygon,
     cancelDrawing: s.cancelDrawing,
-    setPolygonLabel: s.setPolygonLabel,
-    clearPendingLabel: s.clearPendingLabel,
     selectPolygon: s.selectPolygon,
     deletePolygon: s.deletePolygon,
   })));
@@ -98,8 +95,24 @@ const TracerCanvas = memo(function TracerCanvas() {
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPolygonId && selectedLayerId) {
         deletePolygon(selectedLayerId, selectedPolygonId);
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); useTracerStore.getState().undo(); }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); useTracerStore.getState().redo(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        const st = useTracerStore.getState();
+        if (st.mode === 'polygon' && st.pendingPoints.length > 0) {
+          st.undoPendingPoint();
+        } else {
+          st.undo();
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault();
+        const st = useTracerStore.getState();
+        if (st.mode === 'polygon' && st.pendingRedoPoints.length > 0) {
+          st.redoPendingPoint();
+        } else {
+          st.redo();
+        }
+      }
       if (e.key === ' ') { e.preventDefault(); spaceDown.current = true; }
     };
     const onUp = (e: KeyboardEvent) => { if (e.key === ' ') spaceDown.current = false; };
@@ -112,15 +125,6 @@ const TracerCanvas = memo(function TracerCanvas() {
   useEffect(() => {
     containerRef.current?.setAttribute('tabindex', '0');
   }, []);
-
-  // ── Label popup: focus input when shown ─────────────────────────────────────
-  useEffect(() => {
-    if (pendingLabelId) {
-      setLabelValue('');
-      const t = setTimeout(() => labelInputRef.current?.focus(), 60);
-      return () => clearTimeout(t);
-    }
-  }, [pendingLabelId]);
 
   // ── Convert screen → image space ────────────────────────────────────────────
   const getImagePos = useCallback((): { x: number; y: number } | null => {
@@ -167,9 +171,32 @@ const TracerCanvas = memo(function TracerCanvas() {
     }
     if (mode === 'polygon' && pendingPoints.length > 0) {
       const pos = getImagePos();
-      if (pos) setHoverPoint(pos);
+      if (pos) {
+        const snapThreshold = SNAP_DIST / stageScale;
+
+        // Snap to first point if close enough
+        if (pendingPoints.length >= 3) {
+          const first = pendingPoints[0];
+          const dist = Math.hypot(pos.x - first.x, pos.y - first.y);
+          if (dist <= snapThreshold) {
+            setSnapActive(true);
+            setEdgeSnapped(false);
+            setHoverPoint({ x: first.x, y: first.y });
+            return;
+          }
+        }
+
+        // Snap to nearest edge/vertex of existing polygons (from all layers)
+        const allPolyPoints = layers.flatMap(l => l.polygons.map(p => p.points));
+        const snapped = getSnappedPoint(pos, allPolyPoints, snapThreshold);
+        const isEdgeSnapped = snapped.x !== pos.x || snapped.y !== pos.y;
+
+        setSnapActive(false);
+        setEdgeSnapped(isEdgeSnapped);
+        setHoverPoint(snapped);
+      }
     }
-  }, [mode, pendingPoints.length, getImagePos, setHoverPoint]);
+  }, [mode, pendingPoints, layers, stageScale, getImagePos, setHoverPoint]);
 
   const handleMouseUp = useCallback(() => {
     isPanningRef.current = false;
@@ -187,38 +214,32 @@ const TracerCanvas = memo(function TracerCanvas() {
     const isDbl = (now - clickTimeRef.current) < 300;
     clickTimeRef.current = now;
     if (isDbl) {
-      if (pendingPoints.length >= 3) commitPolygon();
+      if (pendingPoints.length >= 3) { setSnapActive(false); commitPolygon(); }
+      return;
+    }
+
+    // Snap-to-first: if cursor is near first point, close polygon
+    if (snapActive && pendingPoints.length >= 3) {
+      setSnapActive(false);
+      commitPolygon();
       return;
     }
 
     const pos = getImagePos();
     if (!pos) return;
-    addPendingPoint(pos);
-  }, [mode, getImagePos, addPendingPoint, commitPolygon, pendingPoints.length]);
+
+    // Apply edge snap to placed point
+    const snapThreshold = SNAP_DIST / stageScale;
+    const allPolyPoints = layers.flatMap(l => l.polygons.map(p => p.points));
+    const snapped = getSnappedPoint(pos, allPolyPoints, snapThreshold);
+    addPendingPoint(snapped);
+  }, [mode, layers, stageScale, getImagePos, addPendingPoint, commitPolygon, pendingPoints.length, snapActive]);
 
   // Double-click is still handled here for browsers that fire native dblclick
   const handleDblClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
     if (e.evt.button !== 0 || mode !== 'polygon') return;
-    if (pendingPoints.length >= 3) commitPolygon();
+    if (pendingPoints.length >= 3) { setSnapActive(false); commitPolygon(); }
   }, [mode, pendingPoints.length, commitPolygon]);
-
-  // ── Label popup position (image-space → screen-space) ───────────────────────
-  const labelScreenPos = useMemo(() => {
-    if (!pendingLabelId || !pendingLabelLayerId) return null;
-    const lyr = layers.find(l => l.id === pendingLabelLayerId);
-    const poly = lyr?.polygons.find(p => p.id === pendingLabelId);
-    if (!poly?.points.length) return null;
-    const c = centroid(poly.points);
-    return { x: c.x * stageScale + stagePos.x, y: c.y * stageScale + stagePos.y };
-  }, [pendingLabelId, pendingLabelLayerId, layers, stageScale, stagePos]);
-
-  const handleLabelSubmit = useCallback(() => {
-    if (pendingLabelId && pendingLabelLayerId) {
-      setPolygonLabel(pendingLabelLayerId, pendingLabelId, labelValue.trim());
-    }
-    clearPendingLabel();
-    setLabelValue('');
-  }, [pendingLabelId, pendingLabelLayerId, labelValue, setPolygonLabel, clearPendingLabel]);
 
   // ── Pending points flat array ────────────────────────────────────────────────
   const flatPending = pendingPoints.flatMap(p => [p.x, p.y]);
@@ -230,7 +251,9 @@ const TracerCanvas = memo(function TracerCanvas() {
     ? 'grab'
     : mode === 'select'
       ? 'default'
-      : 'crosshair';
+      : snapActive
+        ? 'pointer'
+        : 'crosshair';
 
   return (
     <div
@@ -243,6 +266,19 @@ const TracerCanvas = memo(function TracerCanvas() {
         backgroundSize: '20px 20px',
       }}
     >
+      {/* ── Image loading overlay ────────────────────────────────────────── */}
+      {imageLoading && (
+        <div className="absolute inset-0 z-60 flex items-center justify-center bg-[#121212]/80">
+          <div className="flex min-w-60 flex-col items-center gap-4 rounded-lg border border-border bg-card px-6 py-5 text-center shadow-lg">
+            <Loader2 className="h-7 w-7 animate-spin text-primary" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">ম্যাপ লোড হচ্ছে</p>
+              <p className="mt-1 text-xs text-muted-foreground">বড় ফাইল হলে একটু সময় লাগতে পারে</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Stage
         ref={stageRef}
         width={stageSize.width}
@@ -261,7 +297,7 @@ const TracerCanvas = memo(function TracerCanvas() {
 
             {/* ── Background image (when loaded) ──────────────── */}
             {backgroundImage && (
-              <KonvaImage image={backgroundImage} opacity={backgroundOpacity} listening={false} perfectDrawEnabled={false} />
+              <KonvaImage image={backgroundImage} listening={false} perfectDrawEnabled={false} />
             )}
 
             {/* ── Completed polygon layers ──────────────────────────── */}
@@ -292,8 +328,8 @@ const TracerCanvas = memo(function TracerCanvas() {
                         />
                         {poly.label ? (
                           <Text
-                            x={c.x}
-                            y={c.y}
+                            x={poly.labelX ?? c.x}
+                            y={poly.labelY ?? c.y}
                             text={poly.label}
                             fontSize={labelFontSize}
                             fontStyle="bold"
@@ -302,7 +338,12 @@ const TracerCanvas = memo(function TracerCanvas() {
                             width={80 / stageScale}
                             offsetX={40 / stageScale}
                             offsetY={labelFontSize / 2}
-                            listening={false}
+                            draggable
+                            onDragEnd={e => {
+                              e.cancelBubble = true;
+                              useTracerStore.getState().setPolygonLabelPosition(layer.id, poly.id, e.target.x(), e.target.y());
+                            }}
+                            listening={mode !== 'polygon'}
                           />
                         ) : null}
                       </Group>
@@ -324,6 +365,18 @@ const TracerCanvas = memo(function TracerCanvas() {
                     perfectDrawEnabled={false}
                   />
                 )}
+                {/* Edge-snap indicator */}
+                {hoverPoint && edgeSnapped && !snapActive && (
+                  <Circle
+                    x={hoverPoint.x}
+                    y={hoverPoint.y}
+                    radius={10 / stageScale}
+                    stroke="#2563EB"
+                    strokeWidth={2 / stageScale}
+                    dash={[5 / stageScale, 4 / stageScale]}
+                    opacity={0.7}
+                  />
+                )}
                 {/* Rubber-band to cursor */}
                 {hoverPoint && (
                   <Line
@@ -342,15 +395,26 @@ const TracerCanvas = memo(function TracerCanvas() {
                 )}
                 {/* Vertex dots */}
                 {pendingPoints.map((p, i) => (
-                  <Circle
-                    key={i}
-                    x={p.x}
-                    y={p.y}
-                    radius={(i === 0 ? 5 : 3.5) / stageScale}
-                    fill={i === 0 ? activeLayer.color : '#ffffff'}
-                    stroke={activeLayer.color}
-                    strokeWidth={1.5 / stageScale}
-                  />
+                  <Group key={i}>
+                    {i === 0 && snapActive && (
+                      <Circle
+                        x={p.x}
+                        y={p.y}
+                        radius={12 / stageScale}
+                        stroke="#2563EB"
+                        strokeWidth={2.5 / stageScale}
+                        dash={[6 / stageScale, 4 / stageScale]}
+                      />
+                    )}
+                    <Circle
+                      x={p.x}
+                      y={p.y}
+                      radius={(i === 0 ? (snapActive ? 7 : 5) : 3.5) / stageScale}
+                      fill={i === 0 ? (snapActive ? '#2563EB' : activeLayer.color) : '#ffffff'}
+                      stroke={snapActive && i === 0 ? '#2563EB' : activeLayer.color}
+                      strokeWidth={1.5 / stageScale}
+                    />
+                  </Group>
                 ))}
               </Group>
             )}
@@ -358,54 +422,23 @@ const TracerCanvas = memo(function TracerCanvas() {
         </Layer>
       </Stage>
 
-      {/* ── Label input popup ─────────────────────────────────────────────── */}
-      {labelScreenPos && pendingLabelId && (
-        <div
-          className="absolute z-50 bg-background border-2 border-primary/60 rounded-xl shadow-2xl p-3 w-56"
-          style={{ left: labelScreenPos.x, top: labelScreenPos.y, transform: 'translate(-50%, calc(-100% - 12px))' }}
-        >
-          <p className="text-[10px] text-muted-foreground mb-1.5 font-heading">দাগ নম্বর লিখুন</p>
-          <input
-            ref={labelInputRef}
-            value={labelValue}
-            onChange={e => setLabelValue(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') { e.stopPropagation(); handleLabelSubmit(); }
-              if (e.key === 'Escape') { e.stopPropagation(); clearPendingLabel(); setLabelValue(''); }
-            }}
-            placeholder="D 50"
-            className="w-full px-2.5 py-1.5 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-          />
-          <div className="flex gap-2 mt-2">
-            <button
-              onClick={handleLabelSubmit}
-              className="flex-1 text-xs bg-primary text-primary-foreground rounded-lg py-1.5 hover:bg-primary/90 transition-colors font-medium"
-            >
-              সংরক্ষণ
-            </button>
-            <button
-              onClick={() => { clearPendingLabel(); setLabelValue(''); }}
-              className="text-xs text-muted-foreground hover:text-foreground px-2 transition-colors"
-            >
-              বাদ
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* ── Drawing status bar ────────────────────────────────────────────── */}
       {pendingPoints.length > 0 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm border border-border rounded-full px-4 py-1.5 text-xs text-muted-foreground shadow-lg whitespace-nowrap pointer-events-none">
           {pendingPoints.length} পয়েন্ট
-          {pendingPoints.length >= 3
-            ? ' · দুই-ক্লিক বা Enter চাপুন বন্ধ করতে'
-            : ` · আরও ${3 - pendingPoints.length}টা পয়েন্ট দরকার`}
+          {snapActive
+            ? ' · ক্লিক করলেই বন্ধ হবে'
+            : edgeSnapped
+              ? ' · লাইনে স্ন্যাপ'
+              : pendingPoints.length >= 3
+                ? ' · প্রথম পয়েন্টের কাছে গিয়ে ক্লিক করুন বন্ধ করতে'
+                : ` · আরও ${3 - pendingPoints.length}টা পয়েন্ট দরকার`}
           {' · Esc = বাতিল'}
         </div>
       )}
 
       {/* ── Hint when canvas is empty ─────────────────────────────────────── */}
-      {!backgroundImage && layers.every(l => l.polygons.length === 0) && pendingPoints.length === 0 && (
+      {!imageLoading && !backgroundImage && layers.every(l => l.polygons.length === 0) && pendingPoints.length === 0 && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
           <div className="text-center bg-background/50 backdrop-blur-sm rounded-2xl px-8 py-6 border border-border/30">
             <div className="text-4xl mb-3">✏️</div>
