@@ -20,6 +20,8 @@ export const PantagraphToolbar = memo(function PantagraphToolbar() {
     isLocked,
     isAligning,
     matchPoints,
+    formerMap,
+    currentMap,
     setIsLocked,
     applyAlignment,
   } = usePantagraphStore(
@@ -27,10 +29,14 @@ export const PantagraphToolbar = memo(function PantagraphToolbar() {
       isLocked: s.isLocked,
       isAligning: s.isAligning,
       matchPoints: s.matchPoints,
+      formerMap: s.formerMap,
+      currentMap: s.currentMap,
       setIsLocked: s.setIsLocked,
       applyAlignment: s.applyAlignment,
     }))
   );
+
+  const hasAnyMap = !!formerMap || !!currentMap;
 
   // Count fully paired points (both former and current placed)
   const pairedCount = matchPoints.filter((p) => p.current !== null).length;
@@ -142,6 +148,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar() {
         <Button
           variant="ghost"
           size="sm"
+          disabled={!hasAnyMap}
           onClick={() => usePantagraphStore.getState().saveAsPDF()}
           title="PDF হিসেবে সংরক্ষণ করুন"
         >

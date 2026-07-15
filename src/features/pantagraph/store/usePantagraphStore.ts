@@ -558,23 +558,137 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   setStageRef: (ref) => set({ stageRef: ref }),
 
   saveAsPDF: async () => {
-    const stage = get().stageRef;
-    if (!stage) return;
+    const state = get();
+    if (!state.formerMap && !state.currentMap) return;
 
     try {
-      const dataUrl = stage.toDataURL({ pixelRatio: 2, mimeType: 'image/png' });
       const { default: jsPDF } = await import('jspdf');
 
-      const stageWidth = stage.width();
-      const stageHeight = stage.height();
+      // Determine content bounds across all visible elements
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+      const maps: Array<{
+        img: HTMLImageElement;
+        x: number; y: number;
+        w: number; h: number;
+        rot: number;
+        sx: number; sy: number;
+        skewX: number;
+        opacity: number;
+      }> = [];
+
+      if (state.formerMap && state.formerOpacity > 0) {
+        maps.push({
+          img: state.formerMap,
+          x: state.formerPosition.x,
+          y: state.formerPosition.y,
+          w: state.formerMap.width,
+          h: state.formerMap.height,
+          rot: state.formerRotation,
+          sx: state.formerScaleX,
+          sy: state.formerScaleY,
+          skewX: state.formerSkewX,
+          opacity: state.formerOpacity,
+        });
+      }
+      if (state.currentMap && state.currentOpacity > 0) {
+        maps.push({
+          img: state.currentMap,
+          x: state.currentPosition.x,
+          y: state.currentPosition.y,
+          w: state.currentMap.width,
+          h: state.currentMap.height,
+          rot: state.currentRotation,
+          sx: 1,
+          sy: 1,
+          skewX: 0,
+          opacity: state.currentOpacity,
+        });
+      }
+
+      // Compute bounding box of all maps
+      for (const m of maps) {
+        // Apply transform to get all 4 corners
+        const rad = (m.rot * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        const corners = [
+          { x: 0, y: 0 },
+          { x: m.w * m.sx, y: 0 },
+          { x: 0, y: m.h * m.sy },
+          { x: m.w * m.sx, y: m.h * m.sy },
+        ];
+        for (const c of corners) {
+          // Apply skew
+          const skX = c.y * Math.tan(m.skewX * Math.PI / 180);
+          // Apply rotation
+          const rx = c.x * cos - c.y * sin;
+          const ry = c.x * sin + c.y * cos;
+          // Apply translation
+          const gx = rx + skX + m.x;
+          const gy = ry + m.y;
+          if (gx < minX) minX = gx;
+          if (gy < minY) minY = gy;
+          if (gx > maxX) maxX = gx;
+          if (gy > maxY) maxY = gy;
+        }
+      }
+
+      if (!isFinite(minX)) return;
+
+      const contentW = maxX - minX;
+      const contentH = maxY - minY;
+      if (contentW <= 0 || contentH <= 0) return;
+
+      // 300 DPI government standard
+      const targetDPI = 300;
+
+      // Render offscreen canvas at 300 DPI
+      const renderScale = targetDPI / 72;
+      const canvasW = Math.round(contentW * renderScale);
+      const canvasH = Math.round(contentH * renderScale);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasW;
+      canvas.height = canvasH;
+      const ctx = canvas.getContext('2d')!;
+
+      // White background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvasW, canvasH);
+
+      // Draw each map with full transform
+      for (const m of maps) {
+        ctx.save();
+        ctx.globalAlpha = m.opacity;
+        ctx.translate(
+          (m.x - minX) * renderScale,
+          (m.y - minY) * renderScale
+        );
+        ctx.rotate((m.rot * Math.PI) / 180);
+        ctx.scale(m.sx * renderScale, m.sy * renderScale);
+        if (m.skewX !== 0) {
+          ctx.transform(1, 0, Math.tan(m.skewX * Math.PI / 180), 1, 0, 0);
+        }
+        ctx.drawImage(m.img, 0, 0, m.w, m.h);
+        ctx.restore();
+      }
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+
+      // Page size in mm matching content at 300 DPI
+      const pxPerMm = targetDPI / 25.4;
+      const pageW = Math.round(contentW / pxPerMm);
+      const pageH = Math.round(contentH / pxPerMm);
 
       const pdf = new jsPDF({
-        orientation: stageWidth > stageHeight ? 'landscape' : 'portrait',
-        unit: 'px',
-        format: [stageWidth, stageHeight],
+        orientation: pageW > pageH ? 'landscape' : 'portrait',
+        unit: 'mm',
+        format: [pageW, pageH],
       });
 
-      pdf.addImage(dataUrl, 'PNG', 0, 0, stageWidth, stageHeight);
+      // Image fills the page exactly since canvas = exact content at 300 DPI
+      pdf.addImage(dataUrl, 'JPEG', 0, 0, pageW, pageH);
       pdf.save('pantagraph-alignment.pdf');
     } catch (error) {
       console.error('PDF export failed:', error);
