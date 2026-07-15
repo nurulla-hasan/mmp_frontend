@@ -11,8 +11,8 @@ export function FinalCtaSection() {
     <div className="relative overflow-hidden bg-primary/5">
       {/* Ambient Glows */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-0 right-1/4 h-[500px] w-[500px] -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" />
-        <div className="absolute bottom-0 left-1/4 h-[400px] w-[400px] translate-y-1/2 -translate-x-1/2 rounded-full bg-blue-500/15 blur-[100px]" />
+        <div className="absolute top-0 right-1/4 h-125 w-125 -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" />
+        <div className="absolute bottom-0 left-1/4 h-100 w-100 translate-y-1/2 -translate-x-1/2 rounded-full bg-blue-500/15 blur-[100px]" />
       </div>
 
       <SectionWrapper id="get-started">

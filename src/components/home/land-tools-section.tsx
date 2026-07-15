@@ -53,87 +53,90 @@ export function LandToolsSection() {
     <div className="relative overflow-hidden bg-background">
       {/* Ambient Glows */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-1/2 left-1/4 h-[500px] w-[500px] -translate-y-1/2 -translate-x-1/2 rounded-full bg-primary/10 blur-[100px]" />
-        <div className="absolute top-1/2 right-1/4 h-[400px] w-[400px] -translate-y-1/2 translate-x-1/2 rounded-full bg-blue-500/10 blur-[100px]" />
+        <div className="absolute top-1/2 left-1/4 h-125 w-125 -translate-y-1/2 -translate-x-1/2 rounded-full bg-primary/10 blur-[100px]" />
+        <div className="absolute top-1/2 right-1/4 h-125 w-125 -translate-y-1/2 translate-x-1/2 rounded-full bg-blue-500/10 blur-[100px]" />
       </div>
 
       <SectionWrapper id="tools">
         <SectionHeading
-        badge="Land Tools"
-        title="জমির প্রয়োজনীয় হিসাব করুন সহজে"
-        description="বাংলাদেশে ব্যবহৃত জমির একক ও পরিমাপ অনুযায়ী তৈরি দরকারি tools ব্যবহার করুন।"
-      />
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Featured tool card - Banner */}
-        <Link
-          href="/tools/land-measurement"
-          className="group sm:col-span-2 lg:col-span-3"
-        >
-          <Card className="h-full border-primary/10 bg-card/60 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:ring-1 hover:ring-primary/30">
-            <CardContent className="flex flex-col md:flex-row items-center justify-between gap-8 p-6 md:p-8">
-              <div className="flex-1">
-                <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Ruler className="size-6" />
+          badge="Land Tools"
+          title="জমির প্রয়োজনীয় হিসাব করুন সহজে"
+          description="বাংলাদেশে ব্যবহৃত জমির একক ও পরিমাপ অনুযায়ী তৈরি দরকারি tools ব্যবহার করুন।"
+        />
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Featured tool card - Banner */}
+          <Link
+            href="/tools/land-measurement"
+            className="group sm:col-span-2 lg:col-span-3"
+          >
+            <Card className="h-full border-primary/10 bg-card/60 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:ring-1 hover:ring-primary/30">
+              <CardContent className="flex flex-col md:flex-row items-center justify-between gap-8 p-6 md:p-8">
+                <div className="flex-1">
+                  <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Ruler className="size-6" />
+                  </div>
+                  <h3 className="mt-4 text-xl font-semibold">জমির ক্ষেত্রফল</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground max-w-md">
+                    যেকোনো আকারের প্লটের সঠিক ক্ষেত্রফল শতাংশ, বিঘা ও বর্গফুটে
+                    নির্ধারণ করুন।
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                    Tool ব্যবহার করুন <ArrowRight className="size-4" />
+                  </span>
                 </div>
-                <h3 className="mt-4 text-xl font-semibold">জমির ক্ষেত্রফল</h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground max-w-md">
-                  যেকোনো আকারের প্লটের সঠিক ক্ষেত্রফল শতাংশ, বিঘা ও বর্গফুটে
-                  নির্ধারণ করুন।
-                </p>
-                <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">
-                  Tool ব্যবহার করুন <ArrowRight className="size-4" />
-                </span>
-              </div>
-              
-              {/* Mini visual */}
-              <div className="w-full md:w-1/3 grid grid-cols-3 gap-2">
-                <div className="h-16 rounded-lg border-2 border-primary/20 bg-primary/5 transition-all duration-500 group-hover:h-20" />
-                <div className="h-24 rounded-lg border-2 border-primary/30 bg-primary/10 transition-all duration-500 group-hover:h-28" />
-                <div className="h-12 rounded-lg border-2 border-primary/20 bg-primary/5 transition-all duration-500 group-hover:h-16" />
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-        {tools.slice(1).map((tool) => {
-          const Icon = tool.icon;
-          return (
-            <Link
-              key={tool.href}
-              href={tool.href}
-              className="group"
-            >
-              <Card className="h-full border-primary/10 bg-card/60 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:ring-1 hover:ring-primary/30">
-                <CardContent className="flex items-start gap-4">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Icon className="size-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{tool.title}</h3>
-                    <p className="mt-0.5 text-sm text-muted-foreground">
-                      {tool.description}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          );
-        })}
-      </div>
-      {/* Benefits + CTA */}
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-6 rounded-xl border border-primary/10 bg-card/60 p-5 backdrop-blur-xl shadow-lg transition-all duration-500 hover:shadow-xl">
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          {benefits.map((b) => (
-            <div key={b} className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Map className="size-3.5 text-primary" />
-              {b}
-            </div>
-          ))}
+
+                {/* Mini visual */}
+                <div className="w-full md:w-1/3 grid grid-cols-3 gap-2">
+                  <div className="h-16 rounded-lg border-2 border-primary/20 bg-primary/5 transition-all duration-500 group-hover:h-20" />
+                  <div className="h-24 rounded-lg border-2 border-primary/30 bg-primary/10 transition-all duration-500 group-hover:h-28" />
+                  <div className="h-12 rounded-lg border-2 border-primary/20 bg-primary/5 transition-all duration-500 group-hover:h-16" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+          {tools.slice(1).map((tool) => {
+            const Icon = tool.icon;
+            return (
+              <Link key={tool.href} href={tool.href} className="group">
+                <Card className="h-full border-primary/10 bg-card/60 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:ring-1 hover:ring-primary/30">
+                  <CardContent className="flex items-start gap-4">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Icon className="size-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{tool.title}</h3>
+                      <p className="mt-0.5 text-sm text-muted-foreground">
+                        {tool.description}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
-        <Button variant="outline" nativeButton={false} render={<Link href="/tools" />}>
-          সব Land Tools দেখুন &rarr;
-        </Button>
-      </div>
-    </SectionWrapper>
-  </div >
+        {/* Benefits + CTA */}
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-6 rounded-xl border border-primary/10 bg-card/60 p-5 backdrop-blur-xl shadow-lg transition-all duration-500 hover:shadow-xl">
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            {benefits.map((b) => (
+              <div
+                key={b}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground"
+              >
+                <Map className="size-3.5 text-primary" />
+                {b}
+              </div>
+            ))}
+          </div>
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href="/tools" />}
+          >
+            সব Land Tools দেখুন &rarr;
+          </Button>
+        </div>
+      </SectionWrapper>
+    </div>
   );
 }
