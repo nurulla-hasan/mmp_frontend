@@ -1,12 +1,14 @@
+import { getPixelWorker } from './pixelWorker';
+
 /**
- * Canvas-based utility that replaces dark pixels (map lines) with a chosen color.
+ * Canvas-based utility that replaces dark pixels (map lines) with a chosen colour.
  *
- * Processes the image ONCE on a canvas — no per-frame Konva filter overhead.
- * Already-transparent pixels (alpha < 128) are skipped.
+ * Uses a shared Web Worker for non-blocking pixel processing.
+ * Falls back to synchronous processing if the worker is unavailable.
  *
- * @param img  Source HTMLImageElement (e.g. a bg-removed map)
- * @param color  Target hex color (e.g. '#DC2626'). When '#000000', returns original.
- * @param threshold  Luminance threshold 0-255 (default 200). Higher = more pixels changed.
+ * @param img       Source HTMLImageElement (e.g. a bg-removed map)
+ * @param color     Target hex colour (e.g. '#DC2626'). When '#000000', returns the original.
+ * @param threshold Luminance threshold 0-255 (default 200). Higher = more pixels changed.
  */
 export function colorizeImage(
   img: HTMLImageElement,
@@ -14,7 +16,7 @@ export function colorizeImage(
   threshold = 200,
 ): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
-    // If black (original), return as-is
+    // Black = original colour → return as-is
     if (color === '#000000' || color === '#000') {
       resolve(img);
       return;
@@ -27,64 +29,65 @@ export function colorizeImage(
       return;
     }
 
-    canvas.width = img.naturalWidth || img.width;
+    canvas.width  = img.naturalWidth  || img.width;
     canvas.height = img.naturalHeight || img.height;
-
-    // Draw image onto canvas
     ctx.drawImage(img, 0, 0);
 
-    // Get pixel data
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
 
-    // Parse target color
-    const hex = color.replace(/^#/, '');
+    // Parse target colour
+    const hex    = color.replace(/^#/, '');
     const targetR = parseInt(hex.slice(0, 2), 16);
     const targetG = parseInt(hex.slice(2, 4), 16);
     const targetB = parseInt(hex.slice(4, 6), 16);
 
-    // Process pixels
-    for (let i = 0; i < data.length; i += 4) {
-      const alpha = data[i + 3];
+    const worker = getPixelWorker();
 
-      // Skip transparent pixels
-      if (alpha < 128) continue;
+    const finish = (processedData: Uint8ClampedArray) => {
+      const newImageData = new ImageData(
+        new Uint8ClampedArray(processedData.buffer as ArrayBuffer),
+        canvas.width,
+        canvas.height,
+      );
+      ctx.putImageData(newImageData, 0, 0);
 
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
+      canvas.toBlob((blob) => {
+        if (!blob) { reject(new Error('Failed to create blob')); return; }
+        const url = URL.createObjectURL(blob);
+        const outImg = new window.Image();
+        outImg.onload = () => { URL.revokeObjectURL(url); resolve(outImg); };
+        outImg.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image decode failed')); };
+        outImg.src = url;
+      }, 'image/png');
+    };
 
-      // Perceived luminance
-      const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-
-      // Replace dark pixels (map lines) with target color
-      if (luminance < threshold) {
-        data[i] = targetR;
-        data[i + 1] = targetG;
-        data[i + 2] = targetB;
-        // Alpha unchanged
+    if (!worker) {
+      // Sync fallback — blocks main thread
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] < 128) continue;
+        const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        if (lum < threshold) {
+          data[i]     = targetR;
+          data[i + 1] = targetG;
+          data[i + 2] = targetB;
+        }
       }
+      finish(data);
+      return;
     }
 
-    ctx.putImageData(imageData, 0, 0);
+    // Transfer a copy to the worker (zero-copy transfer to worker thread)
+    const copy = imageData.data.buffer.slice(0) as ArrayBuffer;
 
-    // Convert to HTMLImageElement
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        reject(new Error('Failed to create blob'));
-        return;
-      }
-      const url = URL.createObjectURL(blob);
-      const outImg = new window.Image();
-      outImg.onload = () => {
-        URL.revokeObjectURL(url);
-        resolve(outImg);
-      };
-      outImg.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error('Image decode failed'));
-      };
-      outImg.src = url;
-    }, 'image/png');
+    worker.addEventListener(
+      'message',
+      (e: MessageEvent<{ buffer: ArrayBuffer }>) => {
+        finish(new Uint8ClampedArray(e.data.buffer));
+      },
+      { once: true },
+    );
+
+    worker.postMessage({ type: 'colorize', buffer: copy, targetR, targetG, targetB, threshold }, [copy]);
   });
 }

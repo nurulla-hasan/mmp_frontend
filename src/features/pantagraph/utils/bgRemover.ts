@@ -1,4 +1,4 @@
-const MAX_PIXELS = 3_000_000; // ~ 1732×1732 — max pixels to process synchronously
+import { getPixelWorker } from './pixelWorker';
 
 /**
  * Parse a hex color string like "#aabbcc" or "#abc" to R,G,B.
@@ -20,20 +20,21 @@ export function parseHex(hex: string): { r: number; g: number; b: number } {
 }
 
 /**
- * Process a single ImageData buffer — make pixels matching ANY target color transparent.
- * Mutates `data` in place for speed.
+ * Synchronous pixel removal — used as fallback when Web Worker is unavailable.
+ * Mutates `data` in place.
  */
-function processPixels(
+function processPixelsSync(
   data: Uint8ClampedArray,
   colors: Array<{ r: number; g: number; b: number }>,
-  tolerance: number
+  tolerance: number,
 ): void {
   for (let i = 0; i < data.length; i += 4) {
     for (const c of colors) {
-      const dr = Math.abs(data[i] - c.r);
-      const dg = Math.abs(data[i + 1] - c.g);
-      const db = Math.abs(data[i + 2] - c.b);
-      if (dr <= tolerance && dg <= tolerance && db <= tolerance) {
+      if (
+        Math.abs(data[i]     - c.r) <= tolerance &&
+        Math.abs(data[i + 1] - c.g) <= tolerance &&
+        Math.abs(data[i + 2] - c.b) <= tolerance
+      ) {
         data[i + 3] = 0;
         break;
       }
@@ -42,63 +43,58 @@ function processPixels(
 }
 
 /**
- * Process a large ImageData in chunks using requestAnimationFrame
- * so the main thread stays responsive.
+ * Process pixels via Web Worker (non-blocking).
+ * Falls back to sync if the worker is unavailable.
+ *
+ * Returns the processed Uint8ClampedArray (may be a different object than input).
  */
-function processPixelsChunked(
+function processPixelsAsync(
   data: Uint8ClampedArray,
   colors: Array<{ r: number; g: number; b: number }>,
-  tolerance: number
-): Promise<void> {
+  tolerance: number,
+): Promise<Uint8ClampedArray> {
   return new Promise((resolve) => {
-    const total = data.length;
-    const chunkSize = MAX_PIXELS * 4;
-    let offset = 0;
+    const worker = getPixelWorker();
 
-    function nextChunk(): void {
-      const end = Math.min(offset + chunkSize, total);
-      for (let i = offset; i < end; i += 4) {
-        for (const c of colors) {
-          const dr = Math.abs(data[i] - c.r);
-          const dg = Math.abs(data[i + 1] - c.g);
-          const db = Math.abs(data[i + 2] - c.b);
-          if (dr <= tolerance && dg <= tolerance && db <= tolerance) {
-            data[i + 3] = 0;
-            break;
-          }
-        }
-      }
-      offset = end;
-      if (offset < total) {
-        requestAnimationFrame(nextChunk);
-      } else {
-        resolve();
-      }
+    if (!worker) {
+      // Sync fallback — blocks main thread but always works
+      processPixelsSync(data, colors, tolerance);
+      resolve(data);
+      return;
     }
 
-    requestAnimationFrame(nextChunk);
+    // Copy the buffer so the caller's ImageData reference stays intact.
+    // The copy is transferred to the worker zero-copy from JS engine perspective.
+    const copy = data.buffer.slice(0) as ArrayBuffer;
+
+    worker.addEventListener(
+      'message',
+      (e: MessageEvent<{ buffer: ArrayBuffer }>) => {
+        resolve(new Uint8ClampedArray(e.data.buffer));
+      },
+      { once: true },
+    );
+
+    worker.postMessage({ type: 'removeBg', buffer: copy, colors, tolerance }, [copy]);
   });
 }
 
 /**
  * Remove target color(s) from a map image by making matching pixels transparent.
  *
- * Performance notes:
- * - Images smaller than ~3M pixels are processed in one synchronous pass.
- * - Larger images are chunked via requestAnimationFrame (non-blocking).
- * - Uses canvas.toBlob() + URL.createObjectURL instead of toDataURL().
+ * Uses a Web Worker for non-blocking processing.
+ * Falls back to synchronous processing if the worker is unavailable.
  *
- * @param img - Source HTMLImageElement
- * @param colors - Array of {r,g,b} colors to remove. If empty/undefined, auto-detects from edges.
- * @param tolerance - 0-255, how close a pixel must be to any target color (default 60)
- * @param onProgress - Optional callback with 0-1 progress
- * @returns A new HTMLImageElement with transparent background
+ * @param img       Source HTMLImageElement
+ * @param colors    Colors to remove. Auto-detected from edges if empty/undefined.
+ * @param tolerance 0-255, colour distance threshold (default 60)
+ * @param onProgress Optional 0-1 progress callback
  */
 export function removeBackground(
   img: HTMLImageElement,
   colors?: Array<{ r: number; g: number; b: number }>,
   tolerance = 60,
-  onProgress?: (pct: number) => void
+  onProgress?: (pct: number) => void,
 ): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
@@ -108,38 +104,33 @@ export function removeBackground(
       return;
     }
 
-    canvas.width = img.naturalWidth;
+    canvas.width  = img.naturalWidth;
     canvas.height = img.naturalHeight;
-
-    // Draw original image
     ctx.drawImage(img, 0, 0);
 
-    // Get pixel data
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    const pixelCount = canvas.width * canvas.height;
 
-    // If no colors provided, auto-detect from edges
+    // Auto-detect background colour from image edges if none provided
     let colorsToRemove = colors;
     if (!colorsToRemove || colorsToRemove.length === 0) {
-      const edgeColor = detectEdgeColor(data, canvas.width, canvas.height);
-      colorsToRemove = [
-        { r: Math.round(edgeColor.r), g: Math.round(edgeColor.g), b: Math.round(edgeColor.b) },
-      ];
+      const edgeColor = detectEdgeColor(imageData.data, canvas.width, canvas.height);
+      colorsToRemove = [{ r: Math.round(edgeColor.r), g: Math.round(edgeColor.g), b: Math.round(edgeColor.b) }];
       tolerance = edgeColor.isWhite ? 50 : 70;
     }
 
     onProgress?.(0.1);
 
-    const processPromise =
-      pixelCount > MAX_PIXELS
-        ? processPixelsChunked(data, colorsToRemove, tolerance)
-        : Promise.resolve(processPixels(data, colorsToRemove, tolerance));
-
-    processPromise
-      .then(() => {
+    processPixelsAsync(imageData.data, colorsToRemove, tolerance)
+      .then((processedData) => {
         onProgress?.(0.7);
-        ctx.putImageData(imageData, 0, 0);
+
+        // Write processed pixels back to the canvas
+        const newImageData = new ImageData(
+          new Uint8ClampedArray(processedData.buffer as ArrayBuffer),
+          canvas.width,
+          canvas.height,
+        );
+        ctx.putImageData(newImageData, 0, 0);
 
         canvas.toBlob((blob) => {
           if (!blob) {
@@ -166,61 +157,45 @@ export function removeBackground(
 }
 
 /**
- * Detect the dominant background color by sampling the edges of the image.
- * Returns the color and whether it's likely a white/light background.
+ * Detect the dominant background colour by sampling the edges of the image.
+ * Returns the colour and whether it's likely a white/light background.
  */
 function detectEdgeColor(
   data: Uint8ClampedArray,
   width: number,
-  height: number
+  height: number,
 ): { r: number; g: number; b: number; isWhite: boolean } {
-  let rTotal = 0;
-  let gTotal = 0;
-  let bTotal = 0;
-  let count = 0;
+  let rTotal = 0, gTotal = 0, bTotal = 0, count = 0;
 
   // Sample top edge
   for (let x = 0; x < width; x += 3) {
     const idx = x * 4;
-    rTotal += data[idx];
-    gTotal += data[idx + 1];
-    bTotal += data[idx + 2];
+    rTotal += data[idx]; gTotal += data[idx + 1]; bTotal += data[idx + 2];
     count++;
   }
-
   // Sample bottom edge
   const bottomRow = (height - 1) * width * 4;
   for (let x = 0; x < width; x += 3) {
     const idx = bottomRow + x * 4;
-    rTotal += data[idx];
-    gTotal += data[idx + 1];
-    bTotal += data[idx + 2];
+    rTotal += data[idx]; gTotal += data[idx + 1]; bTotal += data[idx + 2];
     count++;
   }
-
-  // Sample left edge (minus corners already sampled)
+  // Sample left edge
   for (let y = 1; y < height - 1; y += 3) {
     const idx = y * width * 4;
-    rTotal += data[idx];
-    gTotal += data[idx + 1];
-    bTotal += data[idx + 2];
+    rTotal += data[idx]; gTotal += data[idx + 1]; bTotal += data[idx + 2];
     count++;
   }
-
-  // Sample right edge (minus corners already sampled)
+  // Sample right edge
   for (let y = 1; y < height - 1; y += 3) {
     const idx = y * width * 4 + (width - 1) * 4;
-    rTotal += data[idx];
-    gTotal += data[idx + 1];
-    bTotal += data[idx + 2];
+    rTotal += data[idx]; gTotal += data[idx + 1]; bTotal += data[idx + 2];
     count++;
   }
 
   const r = rTotal / count;
   const g = gTotal / count;
   const b = bTotal / count;
-
-  // Check if background is white/light (all channels > 180)
   const isWhite = r > 180 && g > 180 && b > 180;
 
   return { r, g, b, isWhite };

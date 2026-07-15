@@ -219,6 +219,15 @@ async function applyLineToCleanMap(
   }
 }
 
+// ── Slider debounce timers (module-level, NOT reactive Zustand state) ──────
+// Prevents running heavy pixel processing on every slider tick during drag.
+const SLIDER_DEBOUNCE_MS = 300;
+const _bgTimers: Record<string, ReturnType<typeof setTimeout>> = {};
+function debounceBg(key: string, fn: () => void) {
+  clearTimeout(_bgTimers[key]);
+  _bgTimers[key] = setTimeout(fn, SLIDER_DEBOUNCE_MS);
+}
+
 export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   ...initialState,
 
@@ -241,10 +250,11 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   setActiveMap: (activeMap) => set({ activeMap }),
   setCanvasBg: (canvasBg) => set({ canvasBg }),
 
-  setFormerBgColor: async (formerBgColor) => {
-    const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgTolerance, formerLineColor, lineColorizeThreshold } = get();
+  setFormerBgColor: (formerBgColor) => {
     set({ formerBgColor });
-    if (formerBgRemoved && formerMapOriginal && !isRemovingFormerBg) {
+    debounceBg('formerBgColor', async () => {
+      const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgTolerance, formerLineColor, lineColorizeThreshold } = get();
+      if (!formerBgRemoved || !formerMapOriginal || isRemovingFormerBg) return;
       set({ isRemovingFormerBg: true });
       try {
         const parsed = parseHex(formerBgColor);
@@ -256,12 +266,13 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
         console.error('BG re-apply failed (former):', e);
         set({ isRemovingFormerBg: false });
       }
-    }
+    });
   },
-  setCurrentBgColor: async (currentBgColor) => {
-    const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgTolerance, currentLineColor, lineColorizeThreshold } = get();
+  setCurrentBgColor: (currentBgColor) => {
     set({ currentBgColor });
-    if (currentBgRemoved && currentMapOriginal && !isRemovingCurrentBg) {
+    debounceBg('currentBgColor', async () => {
+      const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgTolerance, currentLineColor, lineColorizeThreshold } = get();
+      if (!currentBgRemoved || !currentMapOriginal || isRemovingCurrentBg) return;
       set({ isRemovingCurrentBg: true });
       try {
         const parsed = parseHex(currentBgColor);
@@ -273,7 +284,7 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
         console.error('BG re-apply failed (current):', e);
         set({ isRemovingCurrentBg: false });
       }
-    }
+    });
   },
 
   setFormerLineColor: async (formerLineColor) => {
@@ -308,10 +319,11 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   },
   setLineColorizeThreshold: (lineColorizeThreshold) => set({ lineColorizeThreshold }),
 
-  setFormerBgTolerance: async (formerBgTolerance) => {
-    const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgColor, formerLineColor, lineColorizeThreshold } = get();
+  setFormerBgTolerance: (formerBgTolerance) => {
     set({ formerBgTolerance });
-    if (formerBgRemoved && formerMapOriginal && !isRemovingFormerBg) {
+    debounceBg('formerBgTolerance', async () => {
+      const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgColor, formerLineColor, lineColorizeThreshold } = get();
+      if (!formerBgRemoved || !formerMapOriginal || isRemovingFormerBg) return;
       set({ isRemovingFormerBg: true });
       try {
         const parsed = parseHex(formerBgColor);
@@ -323,12 +335,13 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
         console.error('BG re-apply failed (former):', e);
         set({ isRemovingFormerBg: false });
       }
-    }
+    });
   },
-  setCurrentBgTolerance: async (currentBgTolerance) => {
-    const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgColor, currentLineColor, lineColorizeThreshold } = get();
+  setCurrentBgTolerance: (currentBgTolerance) => {
     set({ currentBgTolerance });
-    if (currentBgRemoved && currentMapOriginal && !isRemovingCurrentBg) {
+    debounceBg('currentBgTolerance', async () => {
+      const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgColor, currentLineColor, lineColorizeThreshold } = get();
+      if (!currentBgRemoved || !currentMapOriginal || isRemovingCurrentBg) return;
       set({ isRemovingCurrentBg: true });
       try {
         const parsed = parseHex(currentBgColor);
@@ -340,7 +353,7 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
         console.error('BG re-apply failed (current):', e);
         set({ isRemovingCurrentBg: false });
       }
-    }
+    });
   },
 
   setFormerOpacity: (formerOpacity) => set({ formerOpacity }),
