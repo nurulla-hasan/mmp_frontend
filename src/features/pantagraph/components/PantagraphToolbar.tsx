@@ -34,27 +34,42 @@ export const PantagraphToolbar = memo(function PantagraphToolbar() {
 
   // Count fully paired points (both former and current placed)
   const pairedCount = matchPoints.filter((p) => p.current !== null).length;
-  const canAlign = pairedCount >= 4;
+  const canSimilarity = pairedCount >= 2;
+  const canAffine = pairedCount >= 3;
 
-  const handleAlign = useCallback(async () => {
-    if (!canAlign) return;
+  const handleSimilarity = useCallback(async () => {
+    if (!canSimilarity) return;
 
-    // Filter only fully paired points
     const pairedPoints = matchPoints.filter((p) => p.current !== null);
-
-    // Dynamic import to keep initial bundle small
     const { computeSimilarity } = await import('../utils/similarity');
 
     const former = pairedPoints.map((p) => p.former);
-    const current = pairedPoints.map((p) => p.current!); // non-null asserted since filtered
+    const current = pairedPoints.map((p) => p.current!);
 
     try {
       const result = computeSimilarity(former, current);
-      applyAlignment(result); // syncs store + sidebar values
+      applyAlignment({ ...result, type: 'similarity' });
     } catch (error: unknown) {
-      console.error('Alignment failed:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Similarity alignment failed:', error instanceof Error ? error.message : 'Unknown error');
     }
-  }, [canAlign, matchPoints, applyAlignment]);
+  }, [canSimilarity, matchPoints, applyAlignment]);
+
+  const handleAffine = useCallback(async () => {
+    if (!canAffine) return;
+
+    const pairedPoints = matchPoints.filter((p) => p.current !== null);
+    const { computeAffine } = await import('../utils/affine');
+
+    const former = pairedPoints.map((p) => p.former);
+    const current = pairedPoints.map((p) => p.current!);
+
+    try {
+      const result = computeAffine(former, current);
+      applyAlignment({ ...result, type: 'affine' });
+    } catch (error: unknown) {
+      console.error('Affine alignment failed:', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }, [canAffine, matchPoints, applyAlignment]);
 
   const handleToggleAligning = useCallback(() => {
     usePantagraphStore.getState().setIsAligning(!isAligning);
@@ -83,15 +98,26 @@ export const PantagraphToolbar = memo(function PantagraphToolbar() {
           {isAligning ? 'পয়েন্ট মোড চালু' : 'পয়েন্ট মেলাও'}
         </Button>
 
-        {/* Align button */}
+        {/* Similarity align button — 2+ points */}
         <Button
-          variant={canAlign ? 'default' : 'outline'}
+          variant={!canSimilarity ? 'outline' : 'default'}
           size="sm"
-          disabled={!canAlign}
-          onClick={handleAlign}
+          disabled={!canSimilarity}
+          onClick={handleSimilarity}
         >
           <AlignStartVertical className="w-3.5 h-3.5 mr-1" />
-          অ্যালাইন ({pairedCount}/৪)
+          সিমিলারিটি ({pairedCount}/২)
+        </Button>
+
+        {/* Affine align button — 3+ points */}
+        <Button
+          variant={!canAffine ? 'outline' : 'default'}
+          size="sm"
+          disabled={!canAffine}
+          onClick={handleAffine}
+        >
+          <AlignStartVertical className="w-3.5 h-3.5 mr-1" />
+          আফাইন ({pairedCount}/৩)
         </Button>
       </div>
 

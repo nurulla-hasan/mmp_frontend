@@ -33,6 +33,12 @@ export const PantagraphStage = memo(function PantagraphStage() {
     formerPosition,
     currentRotation,
     currentPosition,
+    formerOpacity,
+    currentOpacity,
+    formerScaleX,
+    formerScaleY,
+    formerSkewX,
+    formerSkewY,
     isLocked,
     setStageScale,
     setStagePos,
@@ -52,6 +58,12 @@ export const PantagraphStage = memo(function PantagraphStage() {
       formerPosition: s.formerPosition,
       currentRotation: s.currentRotation,
       currentPosition: s.currentPosition,
+      formerOpacity: s.formerOpacity,
+      currentOpacity: s.currentOpacity,
+      formerScaleX: s.formerScaleX,
+      formerScaleY: s.formerScaleY,
+      formerSkewX: s.formerSkewX,
+      formerSkewY: s.formerSkewY,
       isLocked: s.isLocked,
       setStageScale: s.setStageScale,
       setStagePos: s.setStagePos,
@@ -201,6 +213,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
           width={currentMap.width}
           height={currentMap.height}
           rotation={currentRotation}
+          opacity={currentOpacity}
           imageSmoothingEnabled
           perfectDrawEnabled={false}
           draggable={!isLocked}
@@ -221,6 +234,10 @@ export const PantagraphStage = memo(function PantagraphStage() {
           width={formerMap.width}
           height={formerMap.height}
           rotation={formerRotation}
+          opacity={formerOpacity}
+          scaleX={formerScaleX}
+          scaleY={formerScaleY}
+          skewX={formerSkewX}
           imageSmoothingEnabled
           perfectDrawEnabled={false}
           draggable={!isLocked}

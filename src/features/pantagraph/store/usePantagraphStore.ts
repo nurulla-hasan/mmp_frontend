@@ -39,21 +39,38 @@ export interface PantagraphState {
   matchPoints: MatchPoint[];
 
   // Alignment result
-  alignmentResult: {
-    tx: number;
-    ty: number;
-    rotation: number;
-    scale: number;
-  } | null;
+  alignmentResult: Record<string, number> | null;
+  alignmentType: 'similarity' | 'affine' | null;
+
+  // Affine former image transform props (applied after alignment)
+  formerScaleX: number;
+  formerScaleY: number;
+  formerSkewX: number;
+  formerSkewY: number;
 
   // Color pick mode
   isPickingColor: boolean;
   pickingTarget: 'former' | 'current' | null;
 
+  // BG removal tolerance (0-255, how wide a color range to remove)
+  formerBgTolerance: number;
+  currentBgTolerance: number;
+
+  // Opacity (0-1)
+  formerOpacity: number;
+  currentOpacity: number;
+
   // BG removal loading
   isRemovingFormerBg: boolean;
   isRemovingCurrentBg: boolean;
+
+  // Redo stack
+  redoStack: MatchPoint[];
 }
+
+type AlignmentParams =
+  | { type: 'similarity'; tx: number; ty: number; rotation: number; scale: number }
+  | { type: 'affine'; a: number; b: number; c: number; d: number; tx: number; ty: number };
 
 export interface PantagraphActions {
   // Image actions
@@ -65,6 +82,10 @@ export interface PantagraphActions {
   toggleCurrentBgRemoval: () => Promise<void>;
   setFormerBgColor: (color: string) => void;
   setCurrentBgColor: (color: string) => void;
+  setFormerBgTolerance: (tolerance: number) => void;
+  setCurrentBgTolerance: (tolerance: number) => void;
+  setFormerOpacity: (opacity: number) => void;
+  setCurrentOpacity: (opacity: number) => void;
 
   // Stage actions
   setStageScale: (scale: number | ((prev: number) => number)) => void;
@@ -86,10 +107,12 @@ export interface PantagraphActions {
   setMatchPoints: (points: MatchPoint[] | ((prev: MatchPoint[]) => MatchPoint[])) => void;
   addMatchPoint: (point: MatchPoint) => void;
   removeMatchPoint: (id: string) => void;
+  removeLastMatchPoint: () => void;
+  restoreLastMatchPoint: () => void;
   updateMatchPoint: (id: string, updates: Partial<Pick<MatchPoint, 'former' | 'current'>>) => void;
 
   // Alignment
-  applyAlignment: (result: { tx: number; ty: number; rotation: number; scale: number }) => void;
+  applyAlignment: (result: AlignmentParams) => void;
   clearAlignment: () => void;
 
   // Color pick
@@ -111,6 +134,10 @@ const initialState: PantagraphState = {
   currentBgRemoved: false,
   formerBgColor: '#ffffff',
   currentBgColor: '#ffffff',
+  formerBgTolerance: 60,
+  currentBgTolerance: 60,
+  formerOpacity: 1,
+  currentOpacity: 1,
   activeMap: 'former',
   canvasBg: 'dark',
 
@@ -129,12 +156,19 @@ const initialState: PantagraphState = {
   matchPoints: [],
 
   alignmentResult: null,
+  alignmentType: null,
+
+  formerScaleX: 1,
+  formerScaleY: 1,
+  formerSkewX: 0,
+  formerSkewY: 0,
 
   isPickingColor: false,
   pickingTarget: null,
 
   isRemovingFormerBg: false,
   isRemovingCurrentBg: false,
+  redoStack: [],
 };
 
 export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
@@ -154,16 +188,13 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     }),
   setActiveMap: (activeMap) => set({ activeMap }),
   setCanvasBg: (canvasBg) => set({ canvasBg }),
+
   setFormerBgColor: (formerBgColor) => {
-    const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg } = get();
+    const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgTolerance } = get();
     set({ formerBgColor });
-    // If bg removal is currently on, re-apply with new color (skip if already processing)
     if (formerBgRemoved && formerMapOriginal && !isRemovingFormerBg) {
       set({ isRemovingFormerBg: true });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      removeBackground(formerMapOriginal, formerBgColor, 60, (pct) => {
-        // Could update a progress percentage if needed
-      })
+      removeBackground(formerMapOriginal, formerBgColor, formerBgTolerance)
         .then((processed) => {
           set({ formerMap: processed, isRemovingFormerBg: false });
         })
@@ -174,11 +205,11 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     }
   },
   setCurrentBgColor: (currentBgColor) => {
-    const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg } = get();
+    const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgTolerance } = get();
     set({ currentBgColor });
     if (currentBgRemoved && currentMapOriginal && !isRemovingCurrentBg) {
       set({ isRemovingCurrentBg: true });
-      removeBackground(currentMapOriginal, currentBgColor, 60)
+      removeBackground(currentMapOriginal, currentBgColor, currentBgTolerance)
         .then((processed) => {
           set({ currentMap: processed, isRemovingCurrentBg: false });
         })
@@ -189,8 +220,42 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     }
   },
 
+  setFormerBgTolerance: (formerBgTolerance) => {
+    const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgColor } = get();
+    set({ formerBgTolerance });
+    if (formerBgRemoved && formerMapOriginal && !isRemovingFormerBg) {
+      set({ isRemovingFormerBg: true });
+      removeBackground(formerMapOriginal, formerBgColor, formerBgTolerance)
+        .then((processed) => {
+          set({ formerMap: processed, isRemovingFormerBg: false });
+        })
+        .catch((e) => {
+          console.error('BG re-apply failed (former):', e);
+          set({ isRemovingFormerBg: false });
+        });
+    }
+  },
+  setCurrentBgTolerance: (currentBgTolerance) => {
+    const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgColor } = get();
+    set({ currentBgTolerance });
+    if (currentBgRemoved && currentMapOriginal && !isRemovingCurrentBg) {
+      set({ isRemovingCurrentBg: true });
+      removeBackground(currentMapOriginal, currentBgColor, currentBgTolerance)
+        .then((processed) => {
+          set({ currentMap: processed, isRemovingCurrentBg: false });
+        })
+        .catch((e) => {
+          console.error('BG re-apply failed (current):', e);
+          set({ isRemovingCurrentBg: false });
+        });
+    }
+  },
+
+  setFormerOpacity: (formerOpacity) => set({ formerOpacity }),
+  setCurrentOpacity: (currentOpacity) => set({ currentOpacity }),
+
   toggleFormerBgRemoval: async () => {
-    const { formerMapOriginal, formerBgRemoved, formerBgColor, isRemovingFormerBg } = get();
+    const { formerMapOriginal, formerBgRemoved, formerBgColor, formerBgTolerance, isRemovingFormerBg } = get();
     if (!formerMapOriginal || isRemovingFormerBg) return;
 
     if (formerBgRemoved) {
@@ -198,7 +263,7 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     } else {
       set({ isRemovingFormerBg: true });
       try {
-        const processed = await removeBackground(formerMapOriginal, formerBgColor);
+        const processed = await removeBackground(formerMapOriginal, formerBgColor, formerBgTolerance);
         set({ formerMap: processed, formerBgRemoved: true, isRemovingFormerBg: false });
       } catch (e) {
         console.error('BG removal failed (former):', e);
@@ -208,7 +273,7 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   },
 
   toggleCurrentBgRemoval: async () => {
-    const { currentMapOriginal, currentBgRemoved, currentBgColor, isRemovingCurrentBg } = get();
+    const { currentMapOriginal, currentBgRemoved, currentBgColor, currentBgTolerance, isRemovingCurrentBg } = get();
     if (!currentMapOriginal || isRemovingCurrentBg) return;
 
     if (currentBgRemoved) {
@@ -216,7 +281,7 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     } else {
       set({ isRemovingCurrentBg: true });
       try {
-        const processed = await removeBackground(currentMapOriginal, currentBgColor);
+        const processed = await removeBackground(currentMapOriginal, currentBgColor, currentBgTolerance);
         set({ currentMap: processed, currentBgRemoved: true, isRemovingCurrentBg: false });
       } catch (e) {
         console.error('BG removal failed (current):', e);
@@ -256,11 +321,30 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   addMatchPoint: (point) =>
     set((state) => ({
       matchPoints: [...state.matchPoints, point],
+      redoStack: [],
     })),
   removeMatchPoint: (id) =>
     set((state) => ({
       matchPoints: state.matchPoints.filter((p) => p.id !== id),
     })),
+  removeLastMatchPoint: () =>
+    set((state) => {
+      if (state.matchPoints.length === 0) return state;
+      const removed = state.matchPoints[state.matchPoints.length - 1];
+      return {
+        matchPoints: state.matchPoints.slice(0, -1),
+        redoStack: [...state.redoStack, removed],
+      };
+    }),
+  restoreLastMatchPoint: () =>
+    set((state) => {
+      if (state.redoStack.length === 0) return state;
+      const restored = state.redoStack[state.redoStack.length - 1];
+      return {
+        matchPoints: [...state.matchPoints, restored],
+        redoStack: state.redoStack.slice(0, -1),
+      };
+    }),
   updateMatchPoint: (id, updates) =>
     set((state) => ({
       matchPoints: state.matchPoints.map((p) =>
@@ -271,37 +355,82 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   // Apply alignment result AND sync store values so sidebar stays in sync
   applyAlignment: (result) =>
     set((state) => {
-      // result is T_sim: maps former intrinsic -> current intrinsic
-      const r1 = result.rotation; // in radians
-      const t1x = result.tx;
-      const t1y = result.ty;
-
-      // state is T_current: maps current intrinsic -> stage
-      const r2 = (state.currentRotation * Math.PI) / 180; // in radians
+      const { type: alignType, ...alignRest } = result;
+      const r2 = (state.currentRotation * Math.PI) / 180;
+      const cos2 = Math.cos(r2);
+      const sin2 = Math.sin(r2);
       const t2x = state.currentPosition.x;
       const t2y = state.currentPosition.y;
 
-      // Final rotation & translation
-      const finalRotation = (r1 + r2) * 180 / Math.PI;
+      if (alignType === 'affine') {
+        // result is M_affine: maps former intrinsic -> current intrinsic
+        // Chain with current map transform: total = T_current * M_affine
+        const t11 = result.a * cos2 - result.c * sin2;
+        const t12 = result.b * cos2 - result.d * sin2;
+        const ttx = result.tx * cos2 - result.ty * sin2 + t2x;
 
-      // Final translation: R2 * t1 + t2 (no scale)
-      const cos2 = Math.cos(r2);
-      const sin2 = Math.sin(r2);
-      
-      const finalTx = (t1x * cos2 - t1y * sin2) + t2x;
-      const finalTy = (t1x * sin2 + t1y * cos2) + t2y;
+        const t21 = result.a * sin2 + result.c * cos2;
+        const t22 = result.b * sin2 + result.d * cos2;
+        const tty = result.tx * sin2 + result.ty * cos2 + t2y;
 
-      return {
-        alignmentResult: result,
-        formerPosition: { x: finalTx, y: finalTy },
-        formerRotation: finalRotation,
-        isLocked: true,
-      };
+        // Decompose [t11, t12; t21, t22] into Konva properties
+        const sx = Math.sqrt(t11 * t11 + t21 * t21);
+        const rotation = Math.atan2(t21, t11);
+        const cosR = Math.cos(rotation);
+        const sinR = Math.sin(rotation);
+        const sy = t22 * cosR - t12 * sinR;
+
+        let skewX = 0;
+        const denom = sy * cosR;
+        if (Math.abs(denom) > 1e-10) {
+          skewX = (t12 + sy * sinR) / denom;
+        } else if (Math.abs(sy * sinR) > 1e-10) {
+          skewX = (t22 - sy * cosR) / (sy * sinR);
+        }
+
+        return {
+          alignmentResult: alignRest,
+          alignmentType: 'affine' as const,
+          formerPosition: { x: ttx, y: tty },
+          formerRotation: (rotation * 180) / Math.PI,
+          formerScaleX: sx,
+          formerScaleY: sy,
+          formerSkewX: skewX,
+          formerSkewY: 0,
+          isLocked: true,
+        };
+      } else {
+        // Similarity: result maps former intrinsic -> current intrinsic
+        const r1 = result.rotation;
+        const t1x = result.tx;
+        const t1y = result.ty;
+
+        const finalRotation = (r1 + r2) * 180 / Math.PI;
+        const finalTx = (t1x * cos2 - t1y * sin2) + t2x;
+        const finalTy = (t1x * sin2 + t1y * cos2) + t2y;
+
+        return {
+          alignmentResult: alignRest,
+          alignmentType: 'similarity' as const,
+          formerPosition: { x: finalTx, y: finalTy },
+          formerRotation: finalRotation,
+          formerScaleX: 1,
+          formerScaleY: 1,
+          formerSkewX: 0,
+          formerSkewY: 0,
+          isLocked: true,
+        };
+      }
     }),
 
   clearAlignment: () =>
     set({
       alignmentResult: null,
+      alignmentType: null,
+      formerScaleX: 1,
+      formerScaleY: 1,
+      formerSkewX: 0,
+      formerSkewY: 0,
       isLocked: false,
     }),
 

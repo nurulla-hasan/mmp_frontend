@@ -78,19 +78,19 @@ export const MatchPointMarkers = memo(function MatchPointMarkers() {
                 <Circle
                   x={LABEL_OFFSET}
                   y={-LABEL_OFFSET}
-                  radius={10}
+                  radius={12}
                   fill={FORMER_COLOR}
                   perfectDrawEnabled={false}
                 />
                 <Text
-                  x={LABEL_OFFSET - 5}
-                  y={-LABEL_OFFSET - 6}
+                  x={LABEL_OFFSET - 6}
+                  y={-LABEL_OFFSET - 7.5}
                   text={label}
-                  fontSize={12}
+                  fontSize={14}
                   fill="#fff"
                   fontStyle="bold"
                   align="center"
-                  width={10}
+                  width={12}
                   perfectDrawEnabled={false}
                 />
               </Group>
@@ -118,19 +118,19 @@ export const MatchPointMarkers = memo(function MatchPointMarkers() {
                   <Circle
                     x={LABEL_OFFSET}
                     y={-LABEL_OFFSET}
-                    radius={10}
+                    radius={12}
                     fill={CURRENT_COLOR}
                     perfectDrawEnabled={false}
                   />
                   <Text
-                    x={LABEL_OFFSET - 5}
-                    y={-LABEL_OFFSET - 6}
+                    x={LABEL_OFFSET - 6}
+                    y={-LABEL_OFFSET - 7.5}
                     text={label}
-                    fontSize={12}
+                    fontSize={14}
                     fill="#fff"
                     fontStyle="bold"
                     align="center"
-                    width={10}
+                    width={12}
                     perfectDrawEnabled={false}
                   />
                 </Group>

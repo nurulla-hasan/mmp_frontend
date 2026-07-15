@@ -12,6 +12,10 @@ import {
   Trash2,
   Droplets,
   Loader2,
+  Undo2,
+  RotateCw,
+  Move,
+  ZoomIn,
 } from 'lucide-react';
 
 export const PantagraphSidebar = memo(function PantagraphSidebar() {
@@ -26,24 +30,34 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
     matchPoints,
     formerBgRemoved,
     currentBgRemoved,
-    formerBgColor,
-    currentBgColor,
+    alignmentResult,
+    alignmentType,
+    redoStack,
     isPickingColor,
     pickingTarget,
     isRemovingFormerBg,
     isRemovingCurrentBg,
+    formerBgTolerance,
+    currentBgTolerance,
+    formerOpacity,
+    currentOpacity,
     setFormerMap,
     setCurrentMap,
     setActiveMap,
     setCanvasBg,
     removeMatchPoint,
+    removeLastMatchPoint,
+    restoreLastMatchPoint,
     setMatchPoints,
     toggleFormerBgRemoval,
     toggleCurrentBgRemoval,
-    setFormerBgColor,
-    setCurrentBgColor,
+    setFormerBgTolerance,
+    setCurrentBgTolerance,
+    setFormerOpacity,
+    setCurrentOpacity,
     startColorPick,
     cancelColorPick,
+    clearAlignment,
     reset,
   } = usePantagraphStore(
     useShallow((s) => ({
@@ -54,26 +68,34 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
       matchPoints: s.matchPoints,
       formerBgRemoved: s.formerBgRemoved,
       currentBgRemoved: s.currentBgRemoved,
-      formerBgColor: s.formerBgColor,
-      currentBgColor: s.currentBgColor,
+      alignmentResult: s.alignmentResult,
+      alignmentType: s.alignmentType,
       isPickingColor: s.isPickingColor,
       pickingTarget: s.pickingTarget,
       isRemovingFormerBg: s.isRemovingFormerBg,
       isRemovingCurrentBg: s.isRemovingCurrentBg,
+      formerBgTolerance: s.formerBgTolerance,
+      currentBgTolerance: s.currentBgTolerance,
+      formerOpacity: s.formerOpacity,
+      currentOpacity: s.currentOpacity,
       setFormerMap: s.setFormerMap,
       setCurrentMap: s.setCurrentMap,
       setActiveMap: s.setActiveMap,
       setCanvasBg: s.setCanvasBg,
-      setFormerRotation: s.setFormerRotation,
-      setCurrentRotation: s.setCurrentRotation,
+      redoStack: s.redoStack,
       removeMatchPoint: s.removeMatchPoint,
+      removeLastMatchPoint: s.removeLastMatchPoint,
+      restoreLastMatchPoint: s.restoreLastMatchPoint,
       setMatchPoints: s.setMatchPoints,
       toggleFormerBgRemoval: s.toggleFormerBgRemoval,
       toggleCurrentBgRemoval: s.toggleCurrentBgRemoval,
-      setFormerBgColor: s.setFormerBgColor,
-      setCurrentBgColor: s.setCurrentBgColor,
+      setFormerBgTolerance: s.setFormerBgTolerance,
+      setCurrentBgTolerance: s.setCurrentBgTolerance,
+      setFormerOpacity: s.setFormerOpacity,
+      setCurrentOpacity: s.setCurrentOpacity,
       startColorPick: s.startColorPick,
       cancelColorPick: s.cancelColorPick,
+      clearAlignment: s.clearAlignment,
       reset: s.reset,
     }))
   );
@@ -216,21 +238,6 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
                 সাবেক ব্যাকগ্রাউন্ড সরান
               </Label>
               <div className="flex items-center gap-1.5">
-                {/* Hidden native color picker triggered by swatch click */}
-                <input
-                  type="color"
-                  value={formerBgColor}
-                  onChange={(e) => setFormerBgColor(e.target.value)}
-                  id="former-bg-color"
-                  className="sr-only"
-                />
-                {/* Color swatch */}
-                <label
-                  htmlFor="former-bg-color"
-                  className="w-5 h-5 rounded border border-border cursor-pointer"
-                  style={{ backgroundColor: formerBgColor }}
-                  title="কালার পিকার"
-                />
                 {/* Eyedropper — pick color from map */}
                 <button
                   type="button"
@@ -273,6 +280,27 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
                 )}
               </div>
             </div>
+            {/* Tolerance slider */}
+            {formerBgRemoved && (
+              <div className="space-y-1 pt-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground">
+                    টলারেন্স
+                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground">
+                    {formerBgTolerance}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="255"
+                  value={formerBgTolerance}
+                  onChange={(e) => setFormerBgTolerance(Number(e.target.value))}
+                  className="w-full h-1.5 appearance-none cursor-pointer rounded-full bg-muted accent-destructive [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-destructive [&::-webkit-slider-thumb]:shadow-sm"
+                />
+              </div>
+            )}
           </div>
         )}
         {currentMap && (
@@ -283,19 +311,6 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
                 হাল ব্যাকগ্রাউন্ড সরান
               </Label>
               <div className="flex items-center gap-1.5">
-                <input
-                  type="color"
-                  value={currentBgColor}
-                  onChange={(e) => setCurrentBgColor(e.target.value)}
-                  id="current-bg-color"
-                  className="sr-only"
-                />
-                <label
-                  htmlFor="current-bg-color"
-                  className="w-5 h-5 rounded border border-border cursor-pointer"
-                  style={{ backgroundColor: currentBgColor }}
-                  title="কালার পিকার"
-                />
                 <button
                   type="button"
                   onClick={() =>
@@ -335,8 +350,27 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
                   </button>
                 )}
               </div>
-            </div>
-          </div>
+            </div>            {/* Tolerance slider */}
+            {currentBgRemoved && (
+              <div className="space-y-1 pt-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground">
+                    টলারেন্স
+                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground">
+                    {currentBgTolerance}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="255"
+                  value={currentBgTolerance}
+                  onChange={(e) => setCurrentBgTolerance(Number(e.target.value))}
+                  className="w-full h-1.5 appearance-none cursor-pointer rounded-full bg-muted accent-primary [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-sm"
+                />
+              </div>
+            )}          </div>
         )}
 
         <Separator />
@@ -362,6 +396,59 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
             ))}
           </div>
         </div>
+
+        <Separator />
+
+        {/* Opacity Controls */}
+        {formerMap && currentMap && (
+          <div className="space-y-3 my-4">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
+              ওপাসিটি
+            </h3>
+            {/* Former opacity */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-destructive" />
+                  সাবেক
+                </Label>
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  {Math.round(formerOpacity * 100)}%
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={formerOpacity}
+                onChange={(e) => setFormerOpacity(Number(e.target.value))}
+                className="w-full h-1.5 appearance-none cursor-pointer rounded-full bg-muted accent-destructive [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-destructive [&::-webkit-slider-thumb]:shadow-sm"
+              />
+            </div>
+            {/* Current opacity */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-primary" />
+                  হাল
+                </Label>
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  {Math.round(currentOpacity * 100)}%
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={currentOpacity}
+                onChange={(e) => setCurrentOpacity(Number(e.target.value))}
+                className="w-full h-1.5 appearance-none cursor-pointer rounded-full bg-muted accent-primary [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-sm"
+              />
+            </div>
+          </div>
+        )}
 
         <Separator />
 
@@ -399,13 +486,35 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
                 পয়েন্ট ({matchPoints.length})
               </h3>
-              <Button
-                variant="ghost"
-                size="xs"
-                onClick={() => setMatchPoints([])}
-              >
-                সব মুছুন
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => removeLastMatchPoint()}
+                    title="শেষ পয়েন্ট আনডু"
+                    disabled={matchPoints.length === 0}
+                  >
+                    <Undo2 className="w-3 h-3 mr-1" />
+                    আনডু
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => restoreLastMatchPoint()}
+                    title="শেষ পয়েন্ট রিডু"
+                    disabled={redoStack.length === 0}
+                  >
+                    <Undo2 className="w-3 h-3 mr-1 rotate-180" />
+                    রিডু
+                  </Button>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => setMatchPoints([])}
+                >
+                  সব মুছুন
+                </Button>
+              </div>
             </div>
             <div className="space-y-1">
               {matchPoints.map((point, index) => (
@@ -430,6 +539,106 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Alignment Result */}
+        {alignmentResult && (
+          <>
+            <Separator />
+            <div className="space-y-2 my-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
+                  অ্যালাইনমেন্ট রেজাল্ট
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => clearAlignment()}
+                >
+                  সরান
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-muted/50 rounded px-2.5 py-2">
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
+                    <RotateCw className="w-3 h-3" />
+                    রোটেশন
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {(alignmentResult.rotation! * 180 / Math.PI).toFixed(2)}°
+                  </p>
+                </div>
+                {alignmentType === 'affine' ? (
+                  <>
+                    <div className="bg-muted/50 rounded px-2.5 py-2">
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
+                        <ZoomIn className="w-3 h-3" />
+                        স্কেল X
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {alignmentResult.a!.toFixed(4)}×
+                      </p>
+                    </div>
+                    <div className="bg-muted/50 rounded px-2.5 py-2">
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
+                        <ZoomIn className="w-3 h-3" />
+                        স্কেল Y
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {alignmentResult.d!.toFixed(4)}×
+                      </p>
+                    </div>
+                    <div className="bg-muted/50 rounded px-2.5 py-2">
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
+                        <RotateCw className="w-3 h-3" />
+                        স্কিউ X
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {alignmentResult.b!.toFixed(4)}
+                      </p>
+                    </div>
+                    <div className="bg-muted/50 rounded px-2.5 py-2">
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
+                        <RotateCw className="w-3 h-3" />
+                        স্কিউ Y
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {alignmentResult.c!.toFixed(4)}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-muted/50 rounded px-2.5 py-2">
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
+                      <ZoomIn className="w-3 h-3" />
+                      স্কেল
+                    </div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {alignmentResult.scale!.toFixed(4)}×
+                    </p>
+                  </div>
+                )}
+                <div className="bg-muted/50 rounded px-2.5 py-2">
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
+                    <Move className="w-3 h-3" />
+                    ট্রান্সলেশন X
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {alignmentResult.tx.toFixed(1)}px
+                  </p>
+                </div>
+                <div className="bg-muted/50 rounded px-2.5 py-2">
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
+                    <Move className="w-3 h-3" />
+                    ট্রান্সলেশন Y
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {alignmentResult.ty.toFixed(1)}px
+                  </p>
+                </div>
+              </div>
+            </div>
+          </>
         )}
 
         {/* Reset */}
