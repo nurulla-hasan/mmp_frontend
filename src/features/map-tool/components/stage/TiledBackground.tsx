@@ -1,7 +1,7 @@
 import { memo, useState, useEffect, useRef } from 'react';
 import { Image as KonvaImage } from 'react-konva';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
-import { useDebounce } from '@/hooks/use-debounce';
+import { useDebounce } from '@/features/map-tool/hooks/use-debounce';
 import { TILE_SIZE, type TileCoord } from '@/features/map-tool/utils/tiling/types';
 import {
   getVisibleTiles,

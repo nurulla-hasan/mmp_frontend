@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 
 import type Konva from 'konva';
 import type { KonvaStageProps } from '@/features/map-tool/types/konva';
-import { useStageEvents } from '@/hooks/map/useStageEvents';
+import { useStageEvents } from '@/features/map-tool/hooks/useStageEvents';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { STAGE_MIN_ZOOM, STAGE_MAX_ZOOM, STAGE_ZOOM_SPEED_FACTOR } from '@/features/map-tool/utils/canvas';
 

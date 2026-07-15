@@ -178,10 +178,10 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token stored in `httpOnly` `accessToke
 | `usePanZoom` | `src/hooks/usePanZoom.ts` | Pan/zoom/pinch for canvas |
 | `useUtilityHooks` | `src/hooks/useUtilityHooks.ts` | `useCopyToClipboard()`, `useCountdown(seconds, storageKey)` |
 | `useDebounce` | `src/hooks/use-debounce.ts` | ✅ Exists (kebab-case filename) |
-| `useStageEvents` | `src/hooks/map/useStageEvents.ts` | Konva stage events (wheel zoom, touch/pinch) |
-| `useEdgeLabels` | `src/hooks/map/useEdgeLabels.ts` | Edge label positions for polygon side lengths |
-| `useGeometrySnap` | `src/hooks/map/useGeometrySnap.ts` | Snap cursor to polygon vertices/edges |
-| `usePolygonSegments` | `src/hooks/map/usePolygonSegments.ts` | Group segments by co-linearity, compute real-world lengths |
+| `useStageEvents` | `src/features/map-tool/hooks/useStageEvents.ts` | Konva stage events (wheel zoom, touch/pinch) |
+| `useEdgeLabels` | `src/features/map-tool/hooks/useEdgeLabels.ts` | Edge label positions for polygon side lengths |
+| `useGeometrySnap` | `src/features/map-tool/hooks/useGeometrySnap.ts` | Snap cursor to polygon vertices/edges |
+| `usePolygonSegments` | `src/features/map-tool/hooks/usePolygonSegments.ts` | Group segments by co-linearity, compute real-world lengths |
 
 ## Server Actions & API Routes
 
