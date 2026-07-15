@@ -41,6 +41,11 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
     currentBgTolerance,
     formerOpacity,
     currentOpacity,
+    isDusting,
+    dustingTarget,
+    dusterSize,
+    eraserUndoStack,
+    eraserRedoStack,
     setFormerMap,
     setCurrentMap,
     setActiveMap,
@@ -57,6 +62,10 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
     setCurrentOpacity,
     startColorPick,
     cancelColorPick,
+    setDusting,
+    setDusterSize,
+    undoEraser,
+    redoEraser,
     clearAlignment,
     reset,
   } = usePantagraphStore(
@@ -78,6 +87,11 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
       currentBgTolerance: s.currentBgTolerance,
       formerOpacity: s.formerOpacity,
       currentOpacity: s.currentOpacity,
+      isDusting: s.isDusting,
+      dustingTarget: s.dustingTarget,
+      dusterSize: s.dusterSize,
+      eraserUndoStack: s.eraserUndoStack,
+      eraserRedoStack: s.eraserRedoStack,
       setFormerMap: s.setFormerMap,
       setCurrentMap: s.setCurrentMap,
       setActiveMap: s.setActiveMap,
@@ -95,6 +109,10 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
       setCurrentOpacity: s.setCurrentOpacity,
       startColorPick: s.startColorPick,
       cancelColorPick: s.cancelColorPick,
+      setDusting: s.setDusting,
+      setDusterSize: s.setDusterSize,
+      undoEraser: s.undoEraser,
+      redoEraser: s.redoEraser,
       clearAlignment: s.clearAlignment,
       reset: s.reset,
     }))
@@ -147,6 +165,7 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
   );
 
   const bgOptions = [
+    { label: 'সিস্টেম', key: 'auto' as const, color: '#999999' },
     { label: 'ডার্ক গ্রিড', key: 'dark' as const, color: '#121212' },
     { label: 'সাদা গ্রিড', key: 'white' as const, color: '#ffffff' },
   ];
@@ -256,6 +275,26 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
                 >
                   <Droplets className="w-3.5 h-3.5" />
                 </button>
+                {/* Duster — click on map to remove additional colors */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    isDusting && dustingTarget === 'former'
+                      ? setDusting(null)
+                      : setDusting('former')
+                  }
+                  disabled={!formerMap}
+                  className={`w-6 h-6 flex items-center justify-center rounded border transition-colors ${
+                    isDusting && dustingTarget === 'former'
+                      ? 'bg-destructive text-destructive-foreground border-destructive'
+                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+                  } ${!formerMap ? 'opacity-40 cursor-not-allowed' : ''}`}
+                  title="ম্যানুয়াল ইরেজার — ব্রাশ দিয়ে ম্যাপ মুছুন (ড্র্যাগ করুন)"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="10" cy="10" r="4" /><path d="M15 15l6 6" /><path d="M3 12h4" /><path d="M12 3v4" />
+                  </svg>
+                </button>
                 {/* Toggle switch */}
                 {isRemovingFormerBg ? (
                   <div className="flex items-center justify-center w-9 h-5">
@@ -301,6 +340,49 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
                 />
               </div>
             )}
+            {/* Duster size slider */}
+            {isDusting && dustingTarget === 'former' && (
+              <div className="space-y-1 pt-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground">
+                    ডাস্টার সাইজ
+                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground">
+                    {dusterSize}px
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="80"
+                  value={dusterSize}
+                  onChange={(e) => setDusterSize(Number(e.target.value))}
+                  className="w-full h-1.5 appearance-none cursor-pointer rounded-full bg-muted accent-destructive [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-destructive [&::-webkit-slider-thumb]:shadow-sm"
+                />
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={undoEraser}
+                    disabled={eraserUndoStack.length === 0}
+                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="পূর্বাবস্থায় ফেরান (Ctrl+Z)"
+                  >
+                    <Undo2 className="w-3 h-3" />
+                    Undo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={redoEraser}
+                    disabled={eraserRedoStack.length === 0}
+                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="পুনরায় করুন (Ctrl+Shift+Z)"
+                  >
+                    <Undo2 className="w-3 h-3 rotate-180" />
+                    Redo
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
         {currentMap && (
@@ -327,6 +409,26 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
                   title="ম্যাপ থেকে কালার নিন"
                 >
                   <Droplets className="w-3.5 h-3.5" />
+                </button>
+                {/* Duster */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    isDusting && dustingTarget === 'current'
+                      ? setDusting(null)
+                      : setDusting('current')
+                  }
+                  disabled={!currentMap}
+                  className={`w-6 h-6 flex items-center justify-center rounded border transition-colors ${
+                    isDusting && dustingTarget === 'current'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+                  } ${!currentMap ? 'opacity-40 cursor-not-allowed' : ''}`}
+                  title="ম্যানুয়াল ইরেজার — ব্রাশ দিয়ে ম্যাপ মুছুন (ড্র্যাগ করুন)"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="10" cy="10" r="4" /><path d="M15 15l6 6" /><path d="M3 12h4" /><path d="M12 3v4" />
+                  </svg>
                 </button>
                 {isRemovingCurrentBg ? (
                   <div className="flex items-center justify-center w-9 h-5">
@@ -369,6 +471,49 @@ export const PantagraphSidebar = memo(function PantagraphSidebar() {
                   onChange={(e) => setCurrentBgTolerance(Number(e.target.value))}
                   className="w-full h-1.5 appearance-none cursor-pointer rounded-full bg-muted accent-primary [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-sm"
                 />
+              </div>
+            )}
+            {/* Duster size slider - current */}
+            {isDusting && dustingTarget === 'current' && (
+              <div className="space-y-1 pt-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground">
+                    ডাস্টার সাইজ
+                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground">
+                    {dusterSize}px
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="80"
+                  value={dusterSize}
+                  onChange={(e) => setDusterSize(Number(e.target.value))}
+                  className="w-full h-1.5 appearance-none cursor-pointer rounded-full bg-muted accent-primary [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-sm"
+                />
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={undoEraser}
+                    disabled={eraserUndoStack.length === 0}
+                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="পূর্বাবস্থায় ফেরান (Ctrl+Z)"
+                  >
+                    <Undo2 className="w-3 h-3" />
+                    Undo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={redoEraser}
+                    disabled={eraserRedoStack.length === 0}
+                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="পুনরায় করুন (Ctrl+Shift+Z)"
+                  >
+                    <Undo2 className="w-3 h-3 rotate-180" />
+                    Redo
+                  </button>
+                </div>
               </div>
             )}          </div>
         )}

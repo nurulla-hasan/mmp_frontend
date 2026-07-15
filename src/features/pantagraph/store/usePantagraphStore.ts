@@ -1,10 +1,11 @@
 'use client';
 
 import { create } from 'zustand';
+import type Konva from 'konva';
 import type { MatchPoint } from '../types';
-import { removeBackground } from '../utils/bgRemover';
+import { removeBackground, parseHex } from '../utils/bgRemover';
 
-type CanvasBg = 'grid' | 'white' | 'yellow' | 'dark';
+type CanvasBg = 'auto' | 'grid' | 'white' | 'yellow' | 'dark';
 
 export interface PantagraphState {
   // Images
@@ -66,6 +67,16 @@ export interface PantagraphState {
 
   // Redo stack
   redoStack: MatchPoint[];
+
+  // Duster (brush eraser)
+  isDusting: boolean;
+  dustingTarget: 'former' | 'current' | null;
+  dusterSize: number;
+  eraserUndoStack: HTMLImageElement[];
+  eraserRedoStack: HTMLImageElement[];
+
+  // PDF export
+  stageRef: Konva.Stage | null;
 }
 
 type AlignmentParams =
@@ -121,6 +132,21 @@ export interface PantagraphActions {
 
   // Reset
   reset: () => void;
+
+  // Duster (brush eraser)
+  setDusting: (target: 'former' | 'current' | null) => void;
+  setDusterSize: (size: number) => void;
+  applyDusterStroke: (
+    target: 'former' | 'current',
+    points: Array<{ x: number; y: number }>,
+    radius: number
+  ) => Promise<void>;
+  undoEraser: () => void;
+  redoEraser: () => void;
+
+  // PDF export
+  setStageRef: (ref: Konva.Stage | null) => void;
+  saveAsPDF: () => Promise<void>;
 }
 
 export type PantagraphStore = PantagraphState & PantagraphActions;
@@ -139,7 +165,7 @@ const initialState: PantagraphState = {
   formerOpacity: 1,
   currentOpacity: 1,
   activeMap: 'former',
-  canvasBg: 'dark',
+  canvasBg: 'auto',
 
   stageScale: 1,
   stagePos: { x: 0, y: 0 },
@@ -169,6 +195,13 @@ const initialState: PantagraphState = {
   isRemovingFormerBg: false,
   isRemovingCurrentBg: false,
   redoStack: [],
+  
+  isDusting: false,
+  dustingTarget: null,
+  dusterSize: 20,
+  eraserUndoStack: [],
+  eraserRedoStack: [],
+  stageRef: null,
 };
 
 export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
@@ -194,7 +227,8 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     set({ formerBgColor });
     if (formerBgRemoved && formerMapOriginal && !isRemovingFormerBg) {
       set({ isRemovingFormerBg: true });
-      removeBackground(formerMapOriginal, formerBgColor, formerBgTolerance)
+      const parsed = parseHex(formerBgColor);
+      removeBackground(formerMapOriginal, [parsed], formerBgTolerance)
         .then((processed) => {
           set({ formerMap: processed, isRemovingFormerBg: false });
         })
@@ -209,7 +243,8 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     set({ currentBgColor });
     if (currentBgRemoved && currentMapOriginal && !isRemovingCurrentBg) {
       set({ isRemovingCurrentBg: true });
-      removeBackground(currentMapOriginal, currentBgColor, currentBgTolerance)
+      const parsed = parseHex(currentBgColor);
+      removeBackground(currentMapOriginal, [parsed], currentBgTolerance)
         .then((processed) => {
           set({ currentMap: processed, isRemovingCurrentBg: false });
         })
@@ -225,7 +260,8 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     set({ formerBgTolerance });
     if (formerBgRemoved && formerMapOriginal && !isRemovingFormerBg) {
       set({ isRemovingFormerBg: true });
-      removeBackground(formerMapOriginal, formerBgColor, formerBgTolerance)
+      const parsed = parseHex(formerBgColor);
+      removeBackground(formerMapOriginal, [parsed], formerBgTolerance)
         .then((processed) => {
           set({ formerMap: processed, isRemovingFormerBg: false });
         })
@@ -240,7 +276,8 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     set({ currentBgTolerance });
     if (currentBgRemoved && currentMapOriginal && !isRemovingCurrentBg) {
       set({ isRemovingCurrentBg: true });
-      removeBackground(currentMapOriginal, currentBgColor, currentBgTolerance)
+      const parsed = parseHex(currentBgColor);
+      removeBackground(currentMapOriginal, [parsed], currentBgTolerance)
         .then((processed) => {
           set({ currentMap: processed, isRemovingCurrentBg: false });
         })
@@ -263,7 +300,8 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     } else {
       set({ isRemovingFormerBg: true });
       try {
-        const processed = await removeBackground(formerMapOriginal, formerBgColor, formerBgTolerance);
+        const parsed = parseHex(formerBgColor);
+        const processed = await removeBackground(formerMapOriginal, [parsed], formerBgTolerance);
         set({ formerMap: processed, formerBgRemoved: true, isRemovingFormerBg: false });
       } catch (e) {
         console.error('BG removal failed (former):', e);
@@ -281,7 +319,8 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     } else {
       set({ isRemovingCurrentBg: true });
       try {
-        const processed = await removeBackground(currentMapOriginal, currentBgColor, currentBgTolerance);
+        const parsed = parseHex(currentBgColor);
+        const processed = await removeBackground(currentMapOriginal, [parsed], currentBgTolerance);
         set({ currentMap: processed, currentBgRemoved: true, isRemovingCurrentBg: false });
       } catch (e) {
         console.error('BG removal failed (current):', e);
@@ -436,6 +475,141 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
 
   startColorPick: (target) => set({ isPickingColor: true, pickingTarget: target }),
   cancelColorPick: () => set({ isPickingColor: false, pickingTarget: null }),
+
+  // ── Duster actions ──
+
+  setDusting: (target) => set({ isDusting: target !== null, dustingTarget: target }),
+  setDusterSize: (dusterSize) => set({ dusterSize }),
+
+  applyDusterStroke: async (target, points, radius) => {
+    if (points.length === 0) return;
+    const state = get();
+    const mapKey = target === 'former' ? 'formerMap' : 'currentMap';
+    const img = state[mapKey];
+    if (!img) return;
+    const loadKey = target === 'former' ? 'isRemovingFormerBg' : 'isRemovingCurrentBg';
+    if (state[loadKey]) return;
+
+    // Save current image onto undo stack before modifying
+    set({
+      eraserUndoStack: [...state.eraserUndoStack, img],
+      eraserRedoStack: [], // clear redo stack on new stroke
+      [loadKey]: true,
+    } as unknown as Partial<PantagraphStore>);
+
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = radius * 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+      ctx.stroke();
+
+      // Also draw circles at each point for single clicks
+      for (const p of points) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => {
+          if (b) resolve(b);
+          else reject(new Error('toBlob failed'));
+        }, 'image/png');
+      });
+
+      const url = URL.createObjectURL(blob);
+      const outImg = new window.Image();
+      await new Promise<void>((resolve, reject) => {
+        outImg.onload = () => {
+          URL.revokeObjectURL(url);
+          resolve();
+        };
+        outImg.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Image decode failed'));
+        };
+        outImg.src = url;
+      });
+
+      set({ [mapKey]: outImg, [loadKey]: false } as unknown as Partial<PantagraphStore>);
+    } catch (e) {
+      console.error('Duster apply failed:', e);
+      set({ [loadKey]: false } as Partial<PantagraphStore>);
+    }
+  },
+
+  // ── PDF export ──
+
+  setStageRef: (ref) => set({ stageRef: ref }),
+
+  saveAsPDF: async () => {
+    const stage = get().stageRef;
+    if (!stage) return;
+
+    try {
+      const dataUrl = stage.toDataURL({ pixelRatio: 2, mimeType: 'image/png' });
+      const { default: jsPDF } = await import('jspdf');
+
+      const stageWidth = stage.width();
+      const stageHeight = stage.height();
+
+      const pdf = new jsPDF({
+        orientation: stageWidth > stageHeight ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [stageWidth, stageHeight],
+      });
+
+      pdf.addImage(dataUrl, 'PNG', 0, 0, stageWidth, stageHeight);
+      pdf.save('pantagraph-alignment.pdf');
+    } catch (error) {
+      console.error('PDF export failed:', error);
+    }
+  },
+
+  undoEraser: () => {
+    const { eraserUndoStack, dustingTarget } = get();
+    if (eraserUndoStack.length === 0) return;
+    const mapKey = dustingTarget === 'former' ? 'formerMap' : 'currentMap';
+    const img = get()[mapKey];
+    if (!img) return;
+
+    const prev = eraserUndoStack[eraserUndoStack.length - 1];
+    set({
+      [mapKey]: prev,
+      eraserUndoStack: eraserUndoStack.slice(0, -1),
+      eraserRedoStack: [...get().eraserRedoStack, img],
+    } as unknown as Partial<PantagraphStore>);
+  },
+
+  redoEraser: () => {
+    const { eraserRedoStack, dustingTarget } = get();
+    if (eraserRedoStack.length === 0) return;
+    const mapKey = dustingTarget === 'former' ? 'formerMap' : 'currentMap';
+    const img = get()[mapKey];
+    if (!img) return;
+
+    const next = eraserRedoStack[eraserRedoStack.length - 1];
+    set({
+      [mapKey]: next,
+      eraserRedoStack: eraserRedoStack.slice(0, -1),
+      eraserUndoStack: [...get().eraserUndoStack, img],
+    } as unknown as Partial<PantagraphStore>);
+  },
 
   reset: () => set({ ...initialState }),
 }));

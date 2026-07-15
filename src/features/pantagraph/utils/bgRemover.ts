@@ -3,7 +3,7 @@ const MAX_PIXELS = 3_000_000; // ~ 1732×1732 — max pixels to process synchron
 /**
  * Parse a hex color string like "#aabbcc" or "#abc" to R,G,B.
  */
-function parseHex(hex: string): { r: number; g: number; b: number } {
+export function parseHex(hex: string): { r: number; g: number; b: number } {
   const h = hex.replace(/^#/, '');
   if (h.length === 3) {
     return {
@@ -20,23 +20,23 @@ function parseHex(hex: string): { r: number; g: number; b: number } {
 }
 
 /**
- * Process a single ImageData buffer — make matching pixels transparent.
+ * Process a single ImageData buffer — make pixels matching ANY target color transparent.
  * Mutates `data` in place for speed.
  */
 function processPixels(
   data: Uint8ClampedArray,
-  targetR: number,
-  targetG: number,
-  targetB: number,
+  colors: Array<{ r: number; g: number; b: number }>,
   tolerance: number
 ): void {
   for (let i = 0; i < data.length; i += 4) {
-    const dr = Math.abs(data[i] - targetR);
-    const dg = Math.abs(data[i + 1] - targetG);
-    const db = Math.abs(data[i + 2] - targetB);
-
-    if (dr <= tolerance && dg <= tolerance && db <= tolerance) {
-      data[i + 3] = 0; // transparent
+    for (const c of colors) {
+      const dr = Math.abs(data[i] - c.r);
+      const dg = Math.abs(data[i + 1] - c.g);
+      const db = Math.abs(data[i + 2] - c.b);
+      if (dr <= tolerance && dg <= tolerance && db <= tolerance) {
+        data[i + 3] = 0;
+        break;
+      }
     }
   }
 }
@@ -47,25 +47,25 @@ function processPixels(
  */
 function processPixelsChunked(
   data: Uint8ClampedArray,
-  targetR: number,
-  targetG: number,
-  targetB: number,
+  colors: Array<{ r: number; g: number; b: number }>,
   tolerance: number
 ): Promise<void> {
   return new Promise((resolve) => {
     const total = data.length;
-    const chunkSize = MAX_PIXELS * 4; // 4 channels per pixel
+    const chunkSize = MAX_PIXELS * 4;
     let offset = 0;
 
     function nextChunk(): void {
       const end = Math.min(offset + chunkSize, total);
       for (let i = offset; i < end; i += 4) {
-        const dr = Math.abs(data[i] - targetR);
-        const dg = Math.abs(data[i + 1] - targetG);
-        const db = Math.abs(data[i + 2] - targetB);
-
-        if (dr <= tolerance && dg <= tolerance && db <= tolerance) {
-          data[i + 3] = 0;
+        for (const c of colors) {
+          const dr = Math.abs(data[i] - c.r);
+          const dg = Math.abs(data[i + 1] - c.g);
+          const db = Math.abs(data[i + 2] - c.b);
+          if (dr <= tolerance && dg <= tolerance && db <= tolerance) {
+            data[i + 3] = 0;
+            break;
+          }
         }
       }
       offset = end;
@@ -81,8 +81,7 @@ function processPixelsChunked(
 }
 
 /**
- * Remove a target color (typically background) from a map image
- * by making matching pixels transparent.
+ * Remove target color(s) from a map image by making matching pixels transparent.
  *
  * Performance notes:
  * - Images smaller than ~3M pixels are processed in one synchronous pass.
@@ -90,14 +89,14 @@ function processPixelsChunked(
  * - Uses canvas.toBlob() + URL.createObjectURL instead of toDataURL().
  *
  * @param img - Source HTMLImageElement
- * @param targetColor - Hex color string like "#ffffff". If omitted, auto-detects from edges.
- * @param tolerance - 0-255, how close a pixel must be to targetColor (default 60)
+ * @param colors - Array of {r,g,b} colors to remove. If empty/undefined, auto-detects from edges.
+ * @param tolerance - 0-255, how close a pixel must be to any target color (default 60)
  * @param onProgress - Optional callback with 0-1 progress
  * @returns A new HTMLImageElement with transparent background
  */
 export function removeBackground(
   img: HTMLImageElement,
-  targetColor?: string,
+  colors?: Array<{ r: number; g: number; b: number }>,
   tolerance = 60,
   onProgress?: (pct: number) => void
 ): Promise<HTMLImageElement> {
@@ -120,21 +119,13 @@ export function removeBackground(
     const data = imageData.data;
     const pixelCount = canvas.width * canvas.height;
 
-    let targetR: number;
-    let targetG: number;
-    let targetB: number;
-
-    if (targetColor) {
-      const parsed = parseHex(targetColor);
-      targetR = parsed.r;
-      targetG = parsed.g;
-      targetB = parsed.b;
-    } else {
-      // Auto-detect background color from edges
+    // If no colors provided, auto-detect from edges
+    let colorsToRemove = colors;
+    if (!colorsToRemove || colorsToRemove.length === 0) {
       const edgeColor = detectEdgeColor(data, canvas.width, canvas.height);
-      targetR = Math.round(edgeColor.r);
-      targetG = Math.round(edgeColor.g);
-      targetB = Math.round(edgeColor.b);
+      colorsToRemove = [
+        { r: Math.round(edgeColor.r), g: Math.round(edgeColor.g), b: Math.round(edgeColor.b) },
+      ];
       tolerance = edgeColor.isWhite ? 50 : 70;
     }
 
@@ -142,15 +133,14 @@ export function removeBackground(
 
     const processPromise =
       pixelCount > MAX_PIXELS
-        ? processPixelsChunked(data, targetR, targetG, targetB, tolerance)
-        : Promise.resolve(processPixels(data, targetR, targetG, targetB, tolerance));
+        ? processPixelsChunked(data, colorsToRemove, tolerance)
+        : Promise.resolve(processPixels(data, colorsToRemove, tolerance));
 
     processPromise
       .then(() => {
         onProgress?.(0.7);
         ctx.putImageData(imageData, 0, 0);
 
-        // Use toBlob() instead of toDataURL() — async, no base64 overhead
         canvas.toBlob((blob) => {
           if (!blob) {
             reject(new Error('Failed to create blob from canvas'));

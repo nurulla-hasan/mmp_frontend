@@ -3,9 +3,11 @@
 import { memo, useRef, useCallback, useEffect, useState } from 'react';
 import { Stage, Layer, Image as KonvaImage } from 'react-konva';
 import { useShallow } from 'zustand/shallow';
+import { useTheme } from 'next-themes';
 import type Konva from 'konva';
 import { usePantagraphStore } from '../store/usePantagraphStore';
 import { MatchPointMarkers } from './MatchPointMarkers';
+import { PantagraphDuster } from './PantagraphDuster';
 import { getPixelColor } from '../utils/getPixelColor';
 import { clamp } from '@/lib/utils';
 
@@ -28,6 +30,8 @@ export const PantagraphStage = memo(function PantagraphStage() {
     isAligning,
     isPickingColor,
     pickingTarget,
+    isDusting,
+    dustingTarget,
     matchPoints,
     formerRotation,
     formerPosition,
@@ -53,6 +57,8 @@ export const PantagraphStage = memo(function PantagraphStage() {
       isAligning: s.isAligning,
       isPickingColor: s.isPickingColor,
       pickingTarget: s.pickingTarget,
+      isDusting: s.isDusting,
+      dustingTarget: s.dustingTarget,
       matchPoints: s.matchPoints,
       formerRotation: s.formerRotation,
       formerPosition: s.formerPosition,
@@ -69,6 +75,14 @@ export const PantagraphStage = memo(function PantagraphStage() {
       setStagePos: s.setStagePos,
     }))
   );
+
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+
+  // Sync stageRef to store
+  useEffect(() => {
+    usePantagraphStore.getState().setStageRef(stageRef.current);
+  }, []);
 
   // Resize observer
   useEffect(() => {
@@ -115,9 +129,9 @@ export const PantagraphStage = memo(function PantagraphStage() {
     [setStageScale, setStagePos]
   );
 
-  // Stage click — handles both alignment point placement AND color picking
+  // Stage click — handles alignment point placement, color picking, and duster
   const handleStageClick = useCallback(
-    (e: Konva.KonvaEventObject<MouseEvent>) => {
+    async (e: Konva.KonvaEventObject<MouseEvent>) => {
       const stage = e.target.getStage();
       if (!stage) return;
 
@@ -238,6 +252,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
           scaleX={formerScaleX}
           scaleY={formerScaleY}
           skewX={formerSkewX}
+          skewY={formerSkewY}
           imageSmoothingEnabled
           perfectDrawEnabled={false}
           draggable={!isLocked}
@@ -253,11 +268,13 @@ export const PantagraphStage = memo(function PantagraphStage() {
       ref={containerRef}
       className="absolute inset-0 overflow-hidden"
       style={{ 
-        cursor: isAligning || isPickingColor ? 'crosshair' : 'default',
-        backgroundColor: canvasBg === 'white' ? '#ffffff' : '#121212',
-        backgroundImage: canvasBg === 'white' 
-          ? `linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px)`
-          : `linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)`,
+        cursor: isAligning || isPickingColor || isDusting ? 'crosshair' : 'default',
+        backgroundColor: canvasBg === 'auto' 
+          ? (isDark ? '#121212' : '#ffffff')
+          : canvasBg === 'dark' ? '#121212' : '#ffffff',
+        backgroundImage: (canvasBg === 'auto' ? isDark : canvasBg === 'dark')
+          ? `linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)`
+          : `linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px)`,
         backgroundSize: '20px 20px',
       }}
     >
@@ -280,6 +297,30 @@ export const PantagraphStage = memo(function PantagraphStage() {
           </div>
         </div>
       )}
+
+      {/* Duster mode indicator */}
+      {isDusting && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+          <div className="bg-background/90 backdrop-blur border border-destructive/50 rounded-lg px-4 py-2 shadow-lg">
+            <p className="text-xs text-foreground flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+              {dustingTarget === 'former' ? 'সাবেক' : 'হাল'} ম্যাপে ডাস্টার — ক্লিক+ড্র্যাগ করে মুছুন
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Duster overlay */}
+      {isDusting && dustingTarget && (
+        <PantagraphDuster
+          containerWidth={stageSize.width}
+          containerHeight={stageSize.height}
+          stagePos={stagePos}
+          stageScale={stageScale}
+          target={dustingTarget}
+        />
+      )}
+
       <Stage
         ref={stageRef}
         width={stageSize.width}
