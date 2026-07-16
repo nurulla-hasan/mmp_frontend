@@ -42,6 +42,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
     formerSkewX,
     formerSkewY,
     isLocked,
+    isPanning,
     imageLoading,
     setStageScale,
     setStagePos,
@@ -68,6 +69,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
       formerSkewX: s.formerSkewX,
       formerSkewY: s.formerSkewY,
       isLocked: s.isLocked,
+      isPanning: s.isPanning,
       imageLoading: s.imageLoading,
       setStageScale: s.setStageScale,
       setStagePos: s.setStagePos,
@@ -239,7 +241,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
           opacity={currentOpacity}
           imageSmoothingEnabled
           perfectDrawEnabled={false}
-          draggable={!isLocked}
+          draggable={!isLocked && !isPanning}
           onDragStart={(e) => {
             if (e.evt && 'touches' in e.evt && (e.evt as unknown as TouchEvent).touches?.length > 1) {
               e.target.stopDrag();
@@ -276,7 +278,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
           skewY={formerSkewY}
           imageSmoothingEnabled
           perfectDrawEnabled={false}
-          draggable={!isLocked}
+          draggable={!isLocked && !isPanning}
           onDragStart={(e) => {
             if (e.evt && 'touches' in e.evt && (e.evt as unknown as TouchEvent).touches?.length > 1) {
               e.target.stopDrag();
@@ -301,7 +303,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
       ref={containerRef}
       className="absolute inset-0 overflow-hidden"
       style={{ 
-        cursor: isAligning || isPickingColor ? 'crosshair' : 'default',
+        cursor: isAligning || isPickingColor ? 'crosshair' : isPanning ? 'grab' : 'default',
         backgroundColor: canvasBg === 'auto' 
           ? (isDark ? '#121212' : '#ffffff')
           : canvasBg === 'dark' ? '#121212' : '#ffffff',
@@ -350,6 +352,15 @@ export const PantagraphStage = memo(function PantagraphStage() {
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
+        draggable={isPanning}
+        onDragStart={(e) => {
+          if (e.target !== stageRef.current) return;
+        }}
+        onDragEnd={(e) => {
+          if (e.target === stageRef.current) {
+            setStagePos({ x: e.target.x(), y: e.target.y() });
+          }
+        }}
       >
         {/* Render inactive map first (so it stays underneath) */}
         {activeMap === 'former' ? renderCurrentMap() : renderFormerMap()}

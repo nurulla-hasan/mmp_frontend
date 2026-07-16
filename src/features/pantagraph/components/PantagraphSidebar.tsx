@@ -20,7 +20,6 @@ import {
   Trash2,
   Droplets,
   Loader2,
-  Undo2,
   RotateCw,
   Move,
   ZoomIn,
@@ -504,16 +503,12 @@ const ActiveMapSection = memo(function ActiveMapSection() {
 // ─── Sub-component: Match Points ─────────────────────────────────────────────
 const MatchPointsSection = memo(function MatchPointsSection() {
   const {
-    matchPoints, redoStack,
-    removeMatchPoint, removeLastMatchPoint, restoreLastMatchPoint, setMatchPoints,
+    matchPoints,
+    removeMatchPoint,
   } = usePantagraphStore(
     useShallow((s) => ({
       matchPoints: s.matchPoints,
-      redoStack: s.redoStack,
       removeMatchPoint: s.removeMatchPoint,
-      removeLastMatchPoint: s.removeLastMatchPoint,
-      restoreLastMatchPoint: s.restoreLastMatchPoint,
-      setMatchPoints: s.setMatchPoints,
     })),
   );
 
@@ -525,17 +520,6 @@ const MatchPointsSection = memo(function MatchPointsSection() {
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
           পয়েন্ট ({matchPoints.length})
         </h3>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" onClick={removeLastMatchPoint} title="শেষ পয়েন্ট আনডু" disabled={matchPoints.length === 0}>
-            <Undo2 className="w-4 h-4 mr-1.5" />আনডু
-          </Button>
-          <Button variant="ghost" onClick={restoreLastMatchPoint} title="শেষ পয়েন্ট রিডু" disabled={redoStack.length === 0}>
-            <Undo2 className="w-4 h-4 mr-1.5 rotate-180" />রিডু
-          </Button>
-          <Button variant="ghost" onClick={() => setMatchPoints([])}>
-            সব মুছুন
-          </Button>
-        </div>
       </div>
       <div className="space-y-1">
         {matchPoints.map((point, index) => (
@@ -633,7 +617,7 @@ const bgOptions = [
 
 // ─── Shared Sidebar Content ───────────────────────────────────────────────────
 const SidebarContent = memo(function SidebarContent() {
-  const { hasFormerMap, hasCurrentMap, canvasBg, setCanvasBg, reset } = usePantagraphStore(
+  const { hasFormerMap, hasCurrentMap, canvasBg, setCanvasBg } = usePantagraphStore(
     useShallow((s) => ({
       hasFormerMap: s.formerMap !== null,
       hasCurrentMap: s.currentMap !== null,
@@ -695,13 +679,6 @@ const SidebarContent = memo(function SidebarContent() {
 
       {/* Alignment Result */}
       <AlignmentResultSection />
-
-      {/* Reset */}
-      <div className="mt-6 pt-4 border-t border-border">
-        <Button variant="destructive" onClick={reset}>
-          রিসেট
-        </Button>
-      </div>
     </div>
   );
 });

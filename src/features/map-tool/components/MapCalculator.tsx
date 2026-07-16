@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 
 import nextDynamic from 'next/dynamic';
@@ -25,6 +26,8 @@ const PrintLayout = nextDynamic(
 
 export default function MapCalculator() {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const stageRef = useRef<any>(null);
   const printRef = useRef<HTMLDivElement | null>(null);
@@ -117,8 +120,10 @@ export default function MapCalculator() {
           className="relative w-full rounded-lg overflow-hidden border border-border" 
           ref={containerRef}
           style={{
-            backgroundColor: '#121212',
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`,
+            backgroundColor: isDark ? '#121212' : '#ffffff',
+            backgroundImage: isDark
+              ? `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`
+              : `linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)`,
             backgroundSize: '20px 20px',
             minHeight: '600px'
           }}

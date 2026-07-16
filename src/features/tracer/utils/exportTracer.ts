@@ -101,12 +101,22 @@ function buildCanvas(
   let canvasW = croppedW;
   let canvasH = croppedH;
   let drawScale = 1;
-  const MAX_DIM = 4000;
-  if (canvasW > MAX_DIM || canvasH > MAX_DIM) {
-    drawScale = Math.min(MAX_DIM / canvasW, MAX_DIM / canvasH);
-    canvasW = Math.round(canvasW * drawScale);
-    canvasH = Math.round(canvasH * drawScale);
+  
+  const maxDimension = Math.max(canvasW, canvasH);
+  const TARGET_DIM = 3000; // Ensure high resolution for crisp PDF/PNG
+  const MAX_DIM = 4000;    // Prevent out-of-memory on massive exports
+  
+  if (maxDimension > 0) {
+    if (maxDimension < TARGET_DIM) {
+      drawScale = TARGET_DIM / maxDimension;
+    } else if (maxDimension > MAX_DIM) {
+      drawScale = MAX_DIM / maxDimension;
+    }
   }
+  
+  canvasW = Math.round(canvasW * drawScale);
+  canvasH = Math.round(canvasH * drawScale);
+  
   canvas.width = canvasW;
   canvas.height = canvasH;
   const ctx = canvas.getContext('2d')!;

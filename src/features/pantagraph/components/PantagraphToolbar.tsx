@@ -7,15 +7,18 @@ import {
   Lock,
   LockOpen,
   AlignStartVertical,
-  ZoomIn,
-  ZoomOut,
+  Wand2,
   Maximize,
   Crosshair,
   ArrowLeft,
   ImageDown,
   Settings2,
+  Hand,
   FileDown,
-  MoreHorizontal
+  MoreHorizontal,
+  RotateCcw,
+  Undo2,
+  Redo2
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -91,17 +94,27 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
     matchPoints,
     formerMap,
     currentMap,
+    isPanning,
     setIsLocked,
+    setIsPanning,
     applyAlignment,
+    redoStack,
+    removeLastMatchPoint,
+    restoreLastMatchPoint,
   } = usePantagraphStore(
     useShallow((s) => ({
       isLocked: s.isLocked,
       isAligning: s.isAligning,
       matchPoints: s.matchPoints,
+      redoStack: s.redoStack,
       formerMap: s.formerMap,
       currentMap: s.currentMap,
+      isPanning: s.isPanning,
       setIsLocked: s.setIsLocked,
+      setIsPanning: s.setIsPanning,
       applyAlignment: s.applyAlignment,
+      removeLastMatchPoint: s.removeLastMatchPoint,
+      restoreLastMatchPoint: s.restoreLastMatchPoint,
     }))
   );
 
@@ -149,6 +162,9 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
     settings: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn icon={Settings2} label="ম্যাপ ও সেটিংস" onClick={() => onToggleSidebar?.()} size={size} />
     ),
+    pan: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={Hand} label={isPanning ? 'প্যান মোড বন্ধ' : 'প্যান (মাউস/আঙুল)'} active={isPanning} onClick={() => setIsPanning(!isPanning)} size={size} />
+    ),
     align: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn icon={Crosshair} label={isAligning ? 'পয়েন্ট মোড বন্ধ' : 'পয়েন্ট মেলাও'} active={isAligning} onClick={handleToggleAligning} size={size} />
     ),
@@ -156,7 +172,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
       <ToolBtn icon={AlignStartVertical} label={`সিমিলারিটি (${pairedCount}/২)`} disabled={!canSimilarity} onClick={handleSimilarity} size={size} />
     ),
     affine: (size: 'md' | 'sm' = 'md') => (
-      <ToolBtn icon={AlignStartVertical} label={`আফাইন (${pairedCount}/৩)`} disabled={!canAffine} onClick={handleAffine} size={size} />
+      <ToolBtn icon={Wand2} label={`আফাইন (${pairedCount}/৩)`} disabled={!canAffine} onClick={handleAffine} size={size} />
     ),
     lock: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn icon={isLocked ? Lock : LockOpen} label={isLocked ? 'আনলক' : 'লক'} onClick={() => setIsLocked(!isLocked)} size={size} />
@@ -167,14 +183,17 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
     pdf: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn icon={FileDown} label="PDF সেভ করুন" disabled={!hasAnyMap} onClick={() => usePantagraphStore.getState().exportMap('pdf')} size={size} />
     ),
-    zoomIn: (size: 'md' | 'sm' = 'md') => (
-      <ToolBtn icon={ZoomIn} label="জুম ইন" onClick={() => usePantagraphStore.getState().setStageScale(s => Math.min(10, s * 1.25))} size={size} />
-    ),
-    zoomOut: (size: 'md' | 'sm' = 'md') => (
-      <ToolBtn icon={ZoomOut} label="জুম আউট" onClick={() => usePantagraphStore.getState().setStageScale(s => Math.max(0.01, s * 0.8))} size={size} />
-    ),
     fit: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn icon={Maximize} label="ফিট" onClick={() => { usePantagraphStore.getState().setStageScale(1); usePantagraphStore.getState().setStagePos({ x: 0, y: 0 }); }} size={size} />
+    ),
+    undo: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={Undo2} label="আনডু" disabled={matchPoints.length === 0} onClick={removeLastMatchPoint} size={size} />
+    ),
+    redo: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={Redo2} label="রিডু" disabled={redoStack.length === 0} onClick={restoreLastMatchPoint} size={size} />
+    ),
+    reset: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={RotateCcw} label="সব মুছুন" onClick={() => usePantagraphStore.getState().reset()} size={size} />
     ),
   };
 
@@ -185,17 +204,21 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
         {tools.back()}
         {tools.settings()}
         <VDivider />
+        {tools.pan()}
         {tools.align()}
         {tools.similarity()}
         {tools.affine()}
         <VDivider />
-        {tools.zoomIn()}
-        {tools.zoomOut()}
+        {tools.undo()}
+        {tools.redo()}
+        <VDivider />
         {tools.fit()}
         <VDivider />
         {tools.lock()}
         {tools.png()}
         {tools.pdf()}
+        <VDivider />
+        {tools.reset()}
       </div>
 
       {/* ── Mobile: floating bottom bar ───────────────────────────────────── */}
@@ -206,12 +229,15 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
         {tools.back('sm')}
         {tools.settings('sm')}
         <HDivider />
+        {tools.pan('sm')}
         {tools.align('sm')}
         {tools.similarity('sm')}
         {tools.affine('sm')}
         <HDivider />
-        {tools.zoomIn('sm')}
-        {tools.zoomOut('sm')}
+        {tools.undo('sm')}
+        {tools.redo('sm')}
+        <HDivider />
+        {tools.lock('sm')}
 
         <HDivider />
         <DropdownMenu>
@@ -225,14 +251,14 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
               <Button variant="ghost" size="icon" onClick={() => { usePantagraphStore.getState().setStageScale(1); usePantagraphStore.getState().setStagePos({ x: 0, y: 0 }); }} title="ফিট" className="text-muted-foreground">
                 <Maximize className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => setIsLocked(!isLocked)} title={isLocked ? "আনলক করুন" : "লক করুন"} className="text-muted-foreground">
-                {isLocked ? <LockOpen className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-              </Button>
               <Button variant="ghost" size="icon" onClick={() => usePantagraphStore.getState().exportMap('png')} disabled={!hasAnyMap} title="PNG ডাউনলোড করুন" className="text-muted-foreground">
                 <ImageDown className="w-4 h-4" />
               </Button>
               <Button variant="ghost" size="icon" onClick={() => usePantagraphStore.getState().exportMap('pdf')} disabled={!hasAnyMap} title="PDF ডাউনলোড করুন" className="text-muted-foreground">
                 <FileDown className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => usePantagraphStore.getState().reset()} title="সব মুছুন" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                <RotateCcw className="w-4 h-4" />
               </Button>
             </div>
           </DropdownMenuContent>

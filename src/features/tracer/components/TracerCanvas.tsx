@@ -1,19 +1,99 @@
 'use client';
 
-import { memo, useRef, useState, useCallback, useEffect } from 'react';
+import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { useTheme } from 'next-themes';
 import { Stage, Layer, Group, Image as KonvaImage, Line, Circle, Text } from 'react-konva';
 import type Konva from 'konva';
-import { useTracerStore, centroid } from '../store/useTracerStore';
+import { useTracerStore, centroid, type TracerLayer } from '../store/useTracerStore';
 import { getSnappedPoint } from '@/features/map-tool/utils/geometry';
 import { useTracerTouch } from '../hooks/useTracerTouch';
+
+// ── Memoized Completed Polygons ──────────────────────────────────────────────
+const CompletedPolygons = memo(function CompletedPolygons({
+  layers,
+  selectedPolygonId,
+  selectedLayerId,
+  mode,
+  stageScale,
+  selectPolygon,
+  setPolygonLabelPosition,
+}: {
+  layers: TracerLayer[];
+  selectedPolygonId: string | null;
+  selectedLayerId: string | null;
+  mode: string;
+  stageScale: number;
+  selectPolygon: (layerId: string | null, polyId: string | null) => void;
+  setPolygonLabelPosition: (layerId: string, polyId: string, x: number, y: number) => void;
+}) {
+  const labelFontSize = Math.max(8, 14 / stageScale);
+
+  return (
+    <>
+      {layers.map(layer =>
+        layer.visible
+          ? layer.polygons.map(poly => {
+              const flat = poly.points.flatMap(p => [p.x, p.y]);
+              const c = centroid(poly.points);
+              const isSelected = selectedPolygonId === poly.id && selectedLayerId === layer.id;
+              return (
+                <Group key={poly.id}>
+                  <Line
+                    name="polygon"
+                    points={flat}
+                    closed
+                    stroke={isSelected ? '#F59E0B' : layer.color}
+                    strokeWidth={(isSelected ? layer.lineWidth + 0.5 : layer.lineWidth) / stageScale}
+                    fill={isSelected ? `${layer.color}1A` : 'transparent'}
+                    hitStrokeWidth={14 / stageScale}
+                    perfectDrawEnabled={false}
+                    listening={mode === 'select'}
+                    onClick={e => {
+                      if (mode === 'select') {
+                        e.cancelBubble = true;
+                        selectPolygon(layer.id, poly.id);
+                      }
+                    }}
+                  />
+                  {poly.label ? (
+                    <Text
+                      x={poly.labelX ?? c.x}
+                      y={poly.labelY ?? c.y}
+                      text={poly.label}
+                      fontSize={labelFontSize}
+                      fontStyle="bold"
+                      fill={layer.color}
+                      align="center"
+                      width={80 / stageScale}
+                      offsetX={40 / stageScale}
+                      offsetY={labelFontSize / 2}
+                      draggable
+                      onDragEnd={e => {
+                        e.cancelBubble = true;
+                        setPolygonLabelPosition(layer.id, poly.id, e.target.x(), e.target.y());
+                      }}
+                      listening={mode !== 'polygon'}
+                    />
+                  ) : null}
+                </Group>
+              );
+            })
+          : null,
+      )}
+    </>
+  );
+});
 
 const TracerCanvas = memo(function TracerCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
 
   // ── Viewport state ──────────────────────────────────────────────────────────
-  const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+
+  const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
   const [stagePos, setStagePos] = useState({ x: 32, y: 32 });
   const [stageScale, setStageScale] = useState(0.5);
 
@@ -28,16 +108,20 @@ const TracerCanvas = memo(function TracerCanvas() {
   const [edgeSnapped, setEdgeSnapped] = useState(false);
   const SNAP_DIST = 20; // screen pixels
 
+  // ── Local state for drawing ────────────────────────────────────────────────
+  const [hoverPoint, setHoverPoint] = useState<{ x: number; y: number } | null>(null);
+
   // ── Store ───────────────────────────────────────────────────────────────────
   const {
     backgroundImage, imageLoading,
     layers, activeLayerId,
     mode,
-    pendingPoints, hoverPoint,
+    pendingPoints,
     selectedPolygonId, selectedLayerId,
-    addPendingPoint, setHoverPoint,
+    addPendingPoint,
     commitPolygon, cancelDrawing,
     selectPolygon, deletePolygon,
+    setPolygonLabelPosition,
   } = useTracerStore(useShallow(s => ({
     backgroundImage: s.backgroundImage,
     imageLoading: s.imageLoading,
@@ -45,18 +129,20 @@ const TracerCanvas = memo(function TracerCanvas() {
     activeLayerId: s.activeLayerId,
     mode: s.mode,
     pendingPoints: s.pendingPoints,
-    hoverPoint: s.hoverPoint,
     selectedPolygonId: s.selectedPolygonId,
     selectedLayerId: s.selectedLayerId,
     addPendingPoint: s.addPendingPoint,
-    setHoverPoint: s.setHoverPoint,
     commitPolygon: s.commitPolygon,
     cancelDrawing: s.cancelDrawing,
     selectPolygon: s.selectPolygon,
     deletePolygon: s.deletePolygon,
+    setPolygonLabelPosition: s.setPolygonLabelPosition,
   })));
 
   const activeLayer = layers.find(l => l.id === activeLayerId);
+
+  // Memoize all polygon points for fast snapping during mouse move
+  const allPolyPoints = useMemo(() => layers.flatMap(l => l.polygons.map(p => p.points)), [layers]);
 
   // ── Resize observer ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -187,7 +273,6 @@ const TracerCanvas = memo(function TracerCanvas() {
         }
 
         // Snap to nearest edge/vertex of existing polygons (from all layers)
-        const allPolyPoints = layers.flatMap(l => l.polygons.map(p => p.points));
         const snapped = getSnappedPoint(pos, allPolyPoints, snapThreshold);
         const isEdgeSnapped = snapped.x !== pos.x || snapped.y !== pos.y;
 
@@ -195,8 +280,10 @@ const TracerCanvas = memo(function TracerCanvas() {
         setEdgeSnapped(isEdgeSnapped);
         setHoverPoint(snapped);
       }
+    } else if (hoverPoint) {
+      setHoverPoint(null);
     }
-  }, [mode, pendingPoints, layers, stageScale, getImagePos, setHoverPoint]);
+  }, [mode, pendingPoints, allPolyPoints, stageScale, getImagePos, hoverPoint]);
 
   const handleMouseUp = useCallback(() => {
     isPanningRef.current = false;
@@ -232,10 +319,9 @@ const TracerCanvas = memo(function TracerCanvas() {
 
     // Apply edge snap to placed point
     const snapThreshold = SNAP_DIST / stageScale;
-    const allPolyPoints = layers.flatMap(l => l.polygons.map(p => p.points));
     const snapped = getSnappedPoint(pos, allPolyPoints, snapThreshold);
     addPendingPoint(snapped);
-  }, [mode, layers, stageScale, getImagePos, addPendingPoint, commitPolygon, pendingPoints.length, snapActive]);
+  }, [mode, allPolyPoints, stageScale, getImagePos, addPendingPoint, commitPolygon, pendingPoints.length, snapActive]);
 
   // Double-click is still handled here for browsers that fire native dblclick
   const handleDblClick = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
@@ -246,9 +332,6 @@ const TracerCanvas = memo(function TracerCanvas() {
 
   // ── Pending points flat array ────────────────────────────────────────────────
   const flatPending = pendingPoints.flatMap(p => [p.x, p.y]);
-
-  // ── Dynamic font size (stays readable regardless of zoom) ───────────────────
-  const labelFontSize = Math.max(8, 14 / stageScale);
 
   const cursorStyle = mode === 'pan' || spaceDown.current
     ? 'grab'
@@ -272,8 +355,10 @@ const TracerCanvas = memo(function TracerCanvas() {
       className="relative w-full h-full overflow-hidden focus:outline-none"
       style={{
         cursor: cursorStyle,
-        backgroundColor: '#121212',
-        backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`,
+        backgroundColor: isDark ? '#121212' : '#ffffff',
+        backgroundImage: isDark
+          ? `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`
+          : `linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)`,
         backgroundSize: '20px 20px',
       }}
     >
@@ -306,56 +391,15 @@ const TracerCanvas = memo(function TracerCanvas() {
             )}
 
             {/* ── Completed polygon layers ──────────────────────────── */}
-            {layers.map(layer =>
-              layer.visible
-                ? layer.polygons.map(poly => {
-                    const flat = poly.points.flatMap(p => [p.x, p.y]);
-                    const c = centroid(poly.points);
-                    const isSelected = selectedPolygonId === poly.id && selectedLayerId === layer.id;
-                    return (
-                      <Group key={poly.id}>
-                        <Line
-                          name="polygon"
-                          points={flat}
-                          closed
-                          stroke={isSelected ? '#F59E0B' : layer.color}
-                          strokeWidth={(isSelected ? layer.lineWidth + 0.5 : layer.lineWidth) / stageScale}
-                          fill={isSelected ? `${layer.color}1A` : 'transparent'}
-                          hitStrokeWidth={14 / stageScale}
-                          perfectDrawEnabled={false}
-                          listening={mode === 'select'}
-                          onClick={e => {
-                            if (mode === 'select') {
-                              e.cancelBubble = true;
-                              selectPolygon(layer.id, poly.id);
-                            }
-                          }}
-                        />
-                        {poly.label ? (
-                          <Text
-                            x={poly.labelX ?? c.x}
-                            y={poly.labelY ?? c.y}
-                            text={poly.label}
-                            fontSize={labelFontSize}
-                            fontStyle="bold"
-                            fill={layer.color}
-                            align="center"
-                            width={80 / stageScale}
-                            offsetX={40 / stageScale}
-                            offsetY={labelFontSize / 2}
-                            draggable
-                            onDragEnd={e => {
-                              e.cancelBubble = true;
-                              useTracerStore.getState().setPolygonLabelPosition(layer.id, poly.id, e.target.x(), e.target.y());
-                            }}
-                            listening={mode !== 'polygon'}
-                          />
-                        ) : null}
-                      </Group>
-                    );
-                  })
-                : null,
-            )}
+            <CompletedPolygons
+              layers={layers}
+              selectedPolygonId={selectedPolygonId}
+              selectedLayerId={selectedLayerId}
+              mode={mode}
+              stageScale={stageScale}
+              selectPolygon={selectPolygon}
+              setPolygonLabelPosition={setPolygonLabelPosition}
+            />
 
             {/* ── Pending polygon being drawn ───────────────────────── */}
             {pendingPoints.length > 0 && activeLayer && (

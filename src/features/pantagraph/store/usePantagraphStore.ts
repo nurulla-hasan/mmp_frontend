@@ -40,6 +40,7 @@ export interface PantagraphState {
   // Interaction mode
   isLocked: boolean;
   isAligning: boolean;
+  isPanning: boolean;
 
   // Match points
   matchPoints: MatchPoint[];
@@ -129,6 +130,7 @@ export interface PantagraphActions {
   // Mode actions
   setIsLocked: (locked: boolean) => void;
   setIsAligning: (aligning: boolean) => void;
+  setIsPanning: (panning: boolean) => void;
 
   // Match points
   setMatchPoints: (points: MatchPoint[] | ((prev: MatchPoint[]) => MatchPoint[])) => void;
@@ -193,6 +195,7 @@ const initialState: PantagraphState = {
 
   isLocked: false,
   isAligning: false,
+  isPanning: false,
 
   matchPoints: [],
 
@@ -500,7 +503,8 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     })),
 
   setIsLocked: (isLocked) => set({ isLocked }),
-  setIsAligning: (isAligning) => set({ isAligning }),
+  setIsAligning: (isAligning) => set({ isAligning, ...(isAligning ? { isPanning: false } : {}) }),
+  setIsPanning: (isPanning) => set({ isPanning, ...(isPanning ? { isAligning: false } : {}) }),
 
   setMatchPoints: (points) =>
     set((state) => ({

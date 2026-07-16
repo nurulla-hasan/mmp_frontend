@@ -2,7 +2,7 @@
 
 import { memo, useRef, useState, useCallback } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { ImageUp, Plus, Trash2, Eye, EyeOff, ChevronDown, ChevronRight, FileDown, Download, X } from 'lucide-react';
+import { ImageUp, Plus, Trash2, Eye, EyeOff, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import {
@@ -309,21 +309,20 @@ const ExportSection = memo(function ExportSection() {
       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
         এক্সপোর্ট
       </h3>
-      <div className="space-y-1">
-        <Button variant="outline" onClick={() => exportAsPDF(layers, backgroundImage, 'all')}>
-          <FileDown className="w-4 h-4 mr-1.5" />
-          PDF — সব লেয়ার
-        </Button>
+      <div className="flex flex-col items-start space-y-1">
         {layers.map(l => (
-          <Button key={l.id} variant="ghost" onClick={() => exportAsPDF(layers, backgroundImage, l.id)}>
+          <Button key={`pdf-${l.id}`} variant="ghost" className="justify-start" onClick={() => exportAsPDF(layers, backgroundImage, l.id)}>
             <div className="w-2.5 h-2.5 rounded-full mr-1.5 shrink-0" style={{ backgroundColor: l.color }} />
             PDF — {l.name}
           </Button>
         ))}
-        <Button variant="ghost" onClick={() => exportAsPNG(layers, backgroundImage, 'all')}>
-          <Download className="w-4 h-4 mr-1.5" />
-          PNG — সব লেয়ার
-        </Button>
+        <div className="h-2 w-full border-b border-border/50 mb-2" />
+        {layers.map(l => (
+          <Button key={`png-${l.id}`} variant="ghost" className="justify-start" onClick={() => exportAsPNG(layers, backgroundImage, l.id)}>
+            <div className="w-2.5 h-2.5 rounded-full mr-1.5 shrink-0" style={{ backgroundColor: l.color }} />
+            PNG — {l.name}
+          </Button>
+        ))}
       </div>
     </div>
   );

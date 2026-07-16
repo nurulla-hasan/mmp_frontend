@@ -57,7 +57,6 @@ export interface TracerStore {
   mode: TracerMode;
   pendingPoints: Point[];
   pendingRedoPoints: Point[];
-  hoverPoint: Point | null;
 
   // Selection
   selectedPolygonId: string | null;
@@ -82,7 +81,6 @@ export interface TracerStore {
   addPendingPoint(p: Point): void;
   undoPendingPoint(): void;
   redoPendingPoint(): void;
-  setHoverPoint(p: Point | null): void;
   commitPolygon(): void;
   cancelDrawing(): void;
 
@@ -107,7 +105,6 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
   mode: 'pan',
   pendingPoints: [],
   pendingRedoPoints: [],
-  hoverPoint: null,
 
   selectedPolygonId: null,
   selectedLayerId: null,
@@ -139,7 +136,7 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
       return { layers, activeLayerId: s.activeLayerId === id ? (layers[0]?.id ?? 'cs') : s.activeLayerId };
     }),
 
-  setActiveLayer: (id) => set({ activeLayerId: id, pendingPoints: [], pendingRedoPoints: [], hoverPoint: null }),
+  setActiveLayer: (id) => set({ activeLayerId: id, pendingPoints: [], pendingRedoPoints: [] }),
   toggleLayerVisibility: (id) => set(s => ({ layers: s.layers.map(l => l.id === id ? { ...l, visible: !l.visible } : l) })),
   setLayerColor: (id, color) => set(s => ({ layers: s.layers.map(l => l.id === id ? { ...l, color } : l) })),
   setLayerLineWidth: (id, lineWidth) => set(s => ({ layers: s.layers.map(l => l.id === id ? { ...l, lineWidth } : l) })),
@@ -168,11 +165,10 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
     }));
   },
 
-  setHoverPoint: (hoverPoint) => set({ hoverPoint }),
 
   commitPolygon: () => {
     const { pendingPoints, activeLayerId, layers, past } = get();
-    if (pendingPoints.length < 3) { set({ pendingPoints: [], pendingRedoPoints: [], hoverPoint: null }); return; }
+    if (pendingPoints.length < 3) { set({ pendingPoints: [], pendingRedoPoints: [] }); return; }
     const id = `poly_${++_polyId}`;
     const c = centroid(pendingPoints);
     const polygon: TracerPolygon = { id, points: [...pendingPoints], label: '', labelX: c.x, labelY: c.y };
@@ -182,11 +178,10 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
       layers: layers.map(l => l.id === activeLayerId ? { ...l, polygons: [...l.polygons, polygon] } : l),
       pendingPoints: [],
       pendingRedoPoints: [],
-      hoverPoint: null,
     });
   },
 
-  cancelDrawing: () => set({ pendingPoints: [], pendingRedoPoints: [], hoverPoint: null }),
+  cancelDrawing: () => set({ pendingPoints: [], pendingRedoPoints: [] }),
 
   // ── Polygons ──────────────────────────────────────────────────────────────────
 
@@ -223,7 +218,7 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
 
   // ── Mode / History ───────────────────────────────────────────────────────────
   setMode: (mode) =>
-    set({ mode, pendingPoints: [], pendingRedoPoints: [], hoverPoint: null, selectedPolygonId: null, selectedLayerId: null }),
+    set({ mode, pendingPoints: [], pendingRedoPoints: [], selectedPolygonId: null, selectedLayerId: null }),
 
   undo: () => {
     const { past, layers, future } = get();
@@ -234,7 +229,6 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
       future: [cloneLayers(layers), ...future],
       pendingPoints: [],
       pendingRedoPoints: [],
-      hoverPoint: null,
     });
   },
 
@@ -253,7 +247,6 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
       mode: 'pan',
       pendingPoints: [],
       pendingRedoPoints: [],
-      hoverPoint: null,
       selectedPolygonId: null,
       selectedLayerId: null,
       past: [],
