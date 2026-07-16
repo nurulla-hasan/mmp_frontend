@@ -6,7 +6,7 @@ import { useTheme } from 'next-themes';
 import { Stage, Layer, Group, Image as KonvaImage, Line, Circle, Text } from 'react-konva';
 import type Konva from 'konva';
 import { useTracerStore, centroid, type TracerLayer } from '../store/useTracerStore';
-import { getSnappedPoint } from '@/features/map-tool/utils/geometry';
+import { getClosestPointOnSegment } from '@/features/map-tool/utils/geometry';
 import { useTracerTouch } from '../hooks/useTracerTouch';
 
 // ── Memoized Completed Polygons ──────────────────────────────────────────────
@@ -84,6 +84,57 @@ const CompletedPolygons = memo(function CompletedPolygons({
     </>
   );
 });
+
+// Helper function for Tracer's specific snapping logic
+const getTracerSnappedPoint = (pt: Konva.Vector2d, polygons: Konva.Vector2d[][], thresholdPx: number, ignoreFlatVerticesThreshold = 15): Konva.Vector2d => {
+  let minVertexDist = thresholdPx * 1.5;
+  let minEdgeDist = thresholdPx;
+  let snappedVertex: Konva.Vector2d | null = null;
+  let snappedEdge: Konva.Vector2d | null = null;
+
+  for (const poly of polygons) {
+    for (let i = 0; i < poly.length; i++) {
+      const p1 = poly[i];
+      const p2 = poly[(i + 1) % poly.length];
+
+      // Calculate angle deflection at p1
+      let magnetMultiplier = 1.5;
+      if (poly.length > 2) {
+        const prev = poly[(i - 1 + poly.length) % poly.length];
+        const next = p2;
+        const angle1 = (Math.atan2(p1.y - prev.y, p1.x - prev.x) * 180) / Math.PI;
+        const angle2 = (Math.atan2(next.y - p1.y, next.x - p1.x) * 180) / Math.PI;
+        let deflection = Math.abs(angle1 - angle2);
+        if (deflection > 180) deflection = 360 - deflection;
+        
+        // If it's a flat vertex, use a weak magnet so it doesn't aggressively pull
+        // when trying to place a point nearby on the straight line.
+        if (deflection <= ignoreFlatVerticesThreshold) {
+          magnetMultiplier = 0.5;
+        }
+      }
+
+      const vDist = Math.hypot(p1.x - pt.x, p1.y - pt.y);
+      if (vDist < thresholdPx * magnetMultiplier && vDist < minVertexDist) {
+        minVertexDist = vDist;
+        snappedVertex = p1;
+      }
+
+      // Check edge
+      const closest = getClosestPointOnSegment(pt, p1, p2);
+      const eDist = Math.hypot(closest.x - pt.x, closest.y - pt.y);
+      if (eDist < minEdgeDist) {
+        minEdgeDist = eDist;
+        snappedEdge = closest;
+      }
+    }
+  }
+
+  if (snappedVertex) return snappedVertex;
+  if (snappedEdge) return snappedEdge;
+  
+  return pt;
+};
 
 const TracerCanvas = memo(function TracerCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -248,6 +299,82 @@ const TracerCanvas = memo(function TracerCanvas() {
     }
   }, [mode, stagePos]);
 
+  const resolveSnap = useCallback((pos: { x: number, y: number }) => {
+    const snapThreshold = SNAP_DIST / stageScale;
+    const finalPos = { ...pos };
+    let isAngleSnapped = false;
+
+    if (pendingPoints.length > 0) {
+      const lastPoint = pendingPoints[pendingPoints.length - 1];
+      const candidateRays: { dx: number; dy: number; angle: number }[] = [];
+      
+      for (const poly of allPolyPoints) {
+        for (let i = 0; i < poly.length; i++) {
+          const p1 = poly[i];
+          const p2 = poly[(i + 1) % poly.length];
+          const closest = getClosestPointOnSegment(lastPoint, p1, p2);
+          const distToSegment = Math.hypot(closest.x - lastPoint.x, closest.y - lastPoint.y);
+          
+          if (distToSegment < 1) { // lastPoint is on this segment
+            const angle1 = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+            const angle2 = Math.atan2(p1.y - p2.y, p1.x - p2.x) * 180 / Math.PI;
+            candidateRays.push({ dx: p2.x - p1.x, dy: p2.y - p1.y, angle: angle1 });
+            candidateRays.push({ dx: p1.x - p2.x, dy: p1.y - p2.y, angle: angle2 });
+          }
+        }
+      }
+
+      if (candidateRays.length > 0) {
+        const currentAngle = Math.atan2(pos.y - lastPoint.y, pos.x - lastPoint.x) * 180 / Math.PI;
+        let bestRay = null;
+        let minDiff = 5; // 5 degrees threshold
+        
+        for (const ray of candidateRays) {
+          let diff = Math.abs(currentAngle - ray.angle);
+          if (diff > 180) diff = 360 - diff;
+          if (diff < minDiff) {
+            minDiff = diff;
+            bestRay = ray;
+          }
+        }
+        
+        if (bestRay) {
+          const rayLen = Math.hypot(bestRay.dx, bestRay.dy);
+          if (rayLen > 0) {
+            const dirX = bestRay.dx / rayLen;
+            const dirY = bestRay.dy / rayLen;
+            const vx = pos.x - lastPoint.x;
+            const vy = pos.y - lastPoint.y;
+            const proj = vx * dirX + vy * dirY;
+            
+            if (proj > 0) {
+              finalPos.x = lastPoint.x + proj * dirX;
+              finalPos.y = lastPoint.y + proj * dirY;
+              isAngleSnapped = true;
+            }
+          }
+        }
+      }
+    }
+
+    if (pendingPoints.length >= 3) {
+      const first = pendingPoints[0];
+      const dist = Math.hypot(finalPos.x - first.x, finalPos.y - first.y);
+      if (dist <= snapThreshold) {
+        return { point: first, isSnapFirst: true, isEdgeSnap: false };
+      }
+    }
+
+    const snapped = getTracerSnappedPoint(finalPos, allPolyPoints, snapThreshold, 15);
+    const isPointSnapped = snapped.x !== finalPos.x || snapped.y !== finalPos.y;
+
+    return { 
+      point: snapped, 
+      isSnapFirst: false, 
+      isEdgeSnap: isPointSnapped || isAngleSnapped 
+    };
+  }, [allPolyPoints, pendingPoints, stageScale]);
+
   const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
     if (isPanningRef.current && panStart.current) {
       setStagePos({
@@ -258,32 +385,15 @@ const TracerCanvas = memo(function TracerCanvas() {
     if (mode === 'polygon' && pendingPoints.length > 0) {
       const pos = getImagePos();
       if (pos) {
-        const snapThreshold = SNAP_DIST / stageScale;
-
-        // Snap to first point if close enough
-        if (pendingPoints.length >= 3) {
-          const first = pendingPoints[0];
-          const dist = Math.hypot(pos.x - first.x, pos.y - first.y);
-          if (dist <= snapThreshold) {
-            setSnapActive(true);
-            setEdgeSnapped(false);
-            setHoverPoint({ x: first.x, y: first.y });
-            return;
-          }
-        }
-
-        // Snap to nearest edge/vertex of existing polygons (from all layers)
-        const snapped = getSnappedPoint(pos, allPolyPoints, snapThreshold);
-        const isEdgeSnapped = snapped.x !== pos.x || snapped.y !== pos.y;
-
-        setSnapActive(false);
-        setEdgeSnapped(isEdgeSnapped);
-        setHoverPoint(snapped);
+        const resolved = resolveSnap(pos);
+        setSnapActive(resolved.isSnapFirst);
+        setEdgeSnapped(resolved.isEdgeSnap);
+        setHoverPoint(resolved.point);
       }
     } else if (hoverPoint) {
       setHoverPoint(null);
     }
-  }, [mode, pendingPoints, allPolyPoints, stageScale, getImagePos, hoverPoint]);
+  }, [mode, pendingPoints.length, getImagePos, hoverPoint, resolveSnap]);
 
   const handleMouseUp = useCallback(() => {
     isPanningRef.current = false;
@@ -317,11 +427,10 @@ const TracerCanvas = memo(function TracerCanvas() {
     const pos = getImagePos();
     if (!pos) return;
 
-    // Apply edge snap to placed point
-    const snapThreshold = SNAP_DIST / stageScale;
-    const snapped = getSnappedPoint(pos, allPolyPoints, snapThreshold);
-    addPendingPoint(snapped);
-  }, [mode, allPolyPoints, stageScale, getImagePos, addPendingPoint, commitPolygon, pendingPoints.length, snapActive]);
+    // Apply edge/angle snap to placed point
+    const resolved = resolveSnap(pos);
+    addPendingPoint(resolved.point);
+  }, [mode, getImagePos, addPendingPoint, commitPolygon, pendingPoints.length, snapActive, resolveSnap]);
 
   // Double-click is still handled here for browsers that fire native dblclick
   const handleDblClick = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {

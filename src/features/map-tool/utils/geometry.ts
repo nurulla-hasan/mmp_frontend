@@ -399,38 +399,23 @@ export const getClosestPointOnSegment = (p: Point, p1: Point, p2: Point): Point 
  * original point unchanged if nothing is close enough.
  */
 export const getSnappedPoint = (pt: Point, polygons: Point[][], thresholdPx: number): Point => {
-  const vertexThreshold = thresholdPx * 1.5; // Stronger magnet for corners
-  let minVertexDist = vertexThreshold;
-  let minEdgeDist = thresholdPx;
-  let snappedVertex: Point | null = null;
-  let snappedEdge: Point | null = null;
+  let minDistance = thresholdPx;
+  let snapped = pt;
 
   for (const poly of polygons) {
     for (let i = 0; i < poly.length; i++) {
       const p1 = poly[i];
       const p2 = poly[(i + 1) % poly.length];
 
-      // Check vertex
-      const vDist = Math.hypot(p1.x - pt.x, p1.y - pt.y);
-      if (vDist < minVertexDist) {
-        minVertexDist = vDist;
-        snappedVertex = p1;
-      }
-
-      // Check edge
       const closest = getClosestPointOnSegment(pt, p1, p2);
-      const eDist = Math.hypot(closest.x - pt.x, closest.y - pt.y);
-      if (eDist < minEdgeDist) {
-        minEdgeDist = eDist;
-        snappedEdge = closest;
+      const dist = Math.hypot(closest.x - pt.x, closest.y - pt.y);
+      if (dist < minDistance) {
+        minDistance = dist;
+        snapped = closest;
       }
     }
   }
-
-  if (snappedVertex) return snappedVertex;
-  if (snappedEdge) return snappedEdge;
-  
-  return pt;
+  return snapped;
 };
 
 // ============================================================================
