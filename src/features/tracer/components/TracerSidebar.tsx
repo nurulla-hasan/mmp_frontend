@@ -14,6 +14,7 @@ import {
 import { useTracerStore } from '../store/useTracerStore';
 import { exportAsPDF, exportAsPNG } from '../utils/exportTracer';
 import { extractImageFromPDF } from '@/features/map-tool/utils/pdfHelper';
+import { useMediaQuery } from '@/hooks/useUtilityHooks';
 
 // ─── Color presets ────────────────────────────────────────────────────────────
 const COLOR_PRESETS = [
@@ -350,29 +351,43 @@ export const TracerSidebar = memo(function TracerSidebar({
   isOpen?: boolean;
   onClose?: () => void;
 }) {
+  const isMobile = useMediaQuery('(max-width: 767px)');
+
+  if (!isOpen) return null;
+
   return (
     <>
       {/* ── Desktop Sidebar ── */}
-      <div className="absolute right-0 top-0 bottom-0 w-72 bg-background border-l border-border flex-col z-20 hidden md:flex">
-        <SidebarContent />
+      <div className="absolute left-4 top-4 max-h-[calc(100dvh-2rem)] w-80 bg-card/95 backdrop-blur-md border border-border flex-col z-20 hidden md:flex overflow-hidden rounded-2xl shadow-2xl">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0 bg-muted/30">
+          <h2 className="text-sm font-semibold text-foreground font-heading">ট্রেসার সেটিংস</h2>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full shrink-0" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="overflow-y-auto" style={{ minHeight: 0 }}>
+          <SidebarContent />
+        </div>
       </div>
 
       {/* ── Mobile Drawer ── */}
-      <div className="md:hidden">
-        <Drawer open={isOpen} onOpenChange={(open) => !open && onClose?.()}>
-          <DrawerContent className="max-h-[85dvh]">
-            <DrawerHeader className="border-b border-border py-3 flex flex-row items-center justify-between">
-              <DrawerTitle className="text-left font-heading text-lg">ট্রেসার সেটিংস</DrawerTitle>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full shrink-0" onClick={onClose}>
-                <X className="w-4 h-4" />
-              </Button>
-            </DrawerHeader>
-            <div className="overflow-y-auto">
-              <SidebarContent />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      </div>
+      {isMobile && (
+        <div className="md:hidden">
+          <Drawer open={isOpen} onOpenChange={(open) => !open && onClose?.()}>
+            <DrawerContent className="max-h-[85dvh]">
+              <DrawerHeader className="border-b border-border py-3 flex flex-row items-center justify-between">
+                <DrawerTitle className="text-left font-heading text-lg">ট্রেসার সেটিংস</DrawerTitle>
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full shrink-0" onClick={onClose}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </DrawerHeader>
+              <div className="overflow-y-auto">
+                <SidebarContent />
+              </div>
+            </DrawerContent>
+          </Drawer>
+        </div>
+      )}
     </>
   );
 });

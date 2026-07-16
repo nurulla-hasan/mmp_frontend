@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { PantagraphStage } from './PantagraphStage';
 import { PantagraphSidebar } from './PantagraphSidebar';
 import { PantagraphToolbar } from './PantagraphToolbar';
-import { LegendBadge } from './LegendBadge';
 import { usePantagraphStore } from '../store/usePantagraphStore';
 import { Loader2 } from 'lucide-react';
 
@@ -17,14 +16,12 @@ export default function PantagraphLayout() {
       {/* Floating Toolbar */}
       <PantagraphToolbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-      {/* Legend badge (bottom-left) */}
-      <LegendBadge />
 
       {/* Main canvas area — full screen */}
       <div className="absolute inset-0">
         <PantagraphStage />
         {imageLoading && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/75 backdrop-blur-sm">
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/75">
             <div className="flex min-w-60 flex-col items-center gap-4 rounded-xl border border-border bg-card px-6 py-5 text-center shadow-lg">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <div>

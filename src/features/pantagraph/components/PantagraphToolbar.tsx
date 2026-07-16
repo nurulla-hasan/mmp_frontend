@@ -64,11 +64,12 @@ const ToolBtn = memo(function ToolBtn({
       <Button
         id={id}
         variant={active ? "default" : "ghost"}
+        size={size === 'md' ? "icon-lg" : "icon"}
         onClick={onClick}
         disabled={disabled}
-        className={active ? "px-2" : "px-2 text-muted-foreground"}
+        className={active ? "" : "text-muted-foreground"}
       >
-        <Icon className="w-4 h-4" />
+        <Icon className={size === 'md' ? "w-5 h-5" : "w-4 h-4"} />
       </Button>
     </ToolTip>
   );
@@ -221,16 +222,16 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="end" alignOffset={-10} sideOffset={12} className="w-fit p-1">
             <div className="flex flex-row gap-1">
-              <Button variant="ghost" onClick={() => { usePantagraphStore.getState().setStageScale(1); usePantagraphStore.getState().setStagePos({ x: 0, y: 0 }); }} title="ফিট" className="w-9 h-9 p-0 text-muted-foreground">
+              <Button variant="ghost" size="icon" onClick={() => { usePantagraphStore.getState().setStageScale(1); usePantagraphStore.getState().setStagePos({ x: 0, y: 0 }); }} title="ফিট" className="text-muted-foreground">
                 <Maximize className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" onClick={() => setIsLocked(!isLocked)} title={isLocked ? "আনলক করুন" : "লক করুন"} className="w-9 h-9 p-0 text-muted-foreground">
+              <Button variant="ghost" size="icon" onClick={() => setIsLocked(!isLocked)} title={isLocked ? "আনলক করুন" : "লক করুন"} className="text-muted-foreground">
                 {isLocked ? <LockOpen className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
               </Button>
-              <Button variant="ghost" onClick={() => usePantagraphStore.getState().exportMap('png')} disabled={!hasAnyMap} title="PNG ডাউনলোড করুন" className="w-9 h-9 p-0 text-muted-foreground">
+              <Button variant="ghost" size="icon" onClick={() => usePantagraphStore.getState().exportMap('png')} disabled={!hasAnyMap} title="PNG ডাউনলোড করুন" className="text-muted-foreground">
                 <ImageDown className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" onClick={() => usePantagraphStore.getState().exportMap('pdf')} disabled={!hasAnyMap} title="PDF ডাউনলোড করুন" className="w-9 h-9 p-0 text-muted-foreground">
+              <Button variant="ghost" size="icon" onClick={() => usePantagraphStore.getState().exportMap('pdf')} disabled={!hasAnyMap} title="PDF ডাউনলোড করুন" className="text-muted-foreground">
                 <FileDown className="w-4 h-4" />
               </Button>
             </div>

@@ -22,11 +22,12 @@ const clamp = (v: number, min: number, max: number) =>
 export const useStageEvents = () => {
   const isPinchingRef = useRef<boolean>(false);
   const lastPinchDistRef = useRef<number>(0);
-  const pinchStartRef = useRef<PinchStart>({
+  const pinchStartRef = useRef<PinchStart & { mousePointTo?: Point }>({
     distance: 0,
     scale: 1,
     stagePos: { x: 0, y: 0 },
     centerClient: { x: 0, y: 0 },
+    mousePointTo: { x: 0, y: 0 },
   });
   const blockTapRef = useRef<boolean>(false);
   const pinchLastStartRef = useRef<number>(0);
@@ -96,25 +97,7 @@ export const useStageEvents = () => {
     stageScaleRef.current = stageScale;
   });
 
-  const zoomAtPoint = useCallback(
-    (s: number, p: Point, meta: { scale: number; pos: Point }) => {
-      const stage = document.querySelector(".konvajs-content")?.parentElement;
-      if (!stage) return;
-      const rect = stage.getBoundingClientRect();
-      const pointerX = p.x - rect.left;
-      const pointerY = p.y - rect.top;
-      const mousePointTo = {
-        x: (pointerX - meta.pos.x) / meta.scale,
-        y: (pointerY - meta.pos.y) / meta.scale,
-      };
-      setStageScale(s);
-      setStagePos({
-        x: pointerX - mousePointTo.x * s,
-        y: pointerY - mousePointTo.y * s,
-      });
-    },
-    [setStageScale, setStagePos],
-  );
+
 
   // Helper: check snap and update only if changed (throttled via rAF)
   const checkSnapThrottled = useCallback(() => {
@@ -151,11 +134,26 @@ export const useStageEvents = () => {
         setIsPinching(true);
         const d = getDistance(touches[0], touches[1]);
         lastPinchDistRef.current = d;
+        const centerClient = getMidpoint(touches[0], touches[1]);
+        const stage = document.querySelector('.konvajs-content')?.parentElement;
+        let mousePointTo = { x: 0, y: 0 };
+        
+        if (stage) {
+          const rect = stage.getBoundingClientRect();
+          const pointerX = centerClient.x - rect.left;
+          const pointerY = centerClient.y - rect.top;
+          mousePointTo = {
+            x: (pointerX - stagePos.x) / stageScale,
+            y: (pointerY - stagePos.y) / stageScale,
+          };
+        }
+
         pinchStartRef.current = {
           distance: d,
           scale: stageScale,
           stagePos: { ...stagePos },
-          centerClient: getMidpoint(touches[0], touches[1]),
+          centerClient,
+          mousePointTo,
         };
         blockTapRef.current = true;
         pinchLastStartRef.current = Date.now();
@@ -192,10 +190,18 @@ export const useStageEvents = () => {
               const rawScale = start.scale * (newDist / start.distance);
               const clamped = clamp(rawScale, STAGE_MIN_ZOOM, STAGE_MAX_ZOOM);
               const centerClient = getMidpoint(touches[0], touches[1]);
-              zoomAtPoint(clamped, centerClient, {
-                scale: start.scale,
-                pos: start.stagePos,
-              });
+              const stage = document.querySelector('.konvajs-content')?.parentElement;
+              if (stage && start.mousePointTo) {
+                const rect = stage.getBoundingClientRect();
+                const pointerX = centerClient.x - rect.left;
+                const pointerY = centerClient.y - rect.top;
+                
+                setStageScale(clamped);
+                setStagePos({
+                  x: pointerX - start.mousePointTo.x * clamped,
+                  y: pointerY - start.mousePointTo.y * clamped,
+                });
+              }
             }
             lastPinchDistRef.current = newDist;
           });
@@ -217,7 +223,7 @@ export const useStageEvents = () => {
         setSnapHint(false);
       }
     },
-    [zoomAtPoint, checkSnapThrottled, setSnapHint],
+    [checkSnapThrottled, setSnapHint, setStageScale, setStagePos],
   );
 
   const onTouchEnd = useCallback(

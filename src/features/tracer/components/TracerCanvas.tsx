@@ -2,7 +2,6 @@
 
 import { memo, useRef, useState, useCallback, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { Loader2 } from 'lucide-react';
 import { Stage, Layer, Group, Image as KonvaImage, Line, Circle, Text } from 'react-konva';
 import type Konva from 'konva';
 import { useTracerStore, centroid } from '../store/useTracerStore';
@@ -278,18 +277,7 @@ const TracerCanvas = memo(function TracerCanvas() {
         backgroundSize: '20px 20px',
       }}
     >
-      {/* ── Image loading overlay ────────────────────────────────────────── */}
-      {imageLoading && (
-        <div className="absolute inset-0 z-60 flex items-center justify-center bg-[#121212]/80">
-          <div className="flex min-w-60 flex-col items-center gap-4 rounded-lg border border-border bg-card px-6 py-5 text-center shadow-lg">
-            <Loader2 className="h-7 w-7 animate-spin text-primary" />
-            <div>
-              <p className="text-sm font-semibold text-foreground">ম্যাপ লোড হচ্ছে</p>
-              <p className="mt-1 text-xs text-muted-foreground">বড় ফাইল হলে একটু সময় লাগতে পারে</p>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       <Stage
         ref={stageRef}
@@ -457,9 +445,9 @@ const TracerCanvas = memo(function TracerCanvas() {
       {/* ── Hint when canvas is empty ─────────────────────────────────────── */}
       {!imageLoading && !backgroundImage && layers.every(l => l.polygons.length === 0) && pendingPoints.length === 0 && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-          <div className="text-center bg-background/50 backdrop-blur-sm rounded-2xl px-8 py-6 border border-border/30">
-            <div className="text-4xl mb-3">✏️</div>
-            <p className="text-sm font-medium text-foreground mb-1">ডিজিটাল ম্যাপ ট্রেসিং</p>
+          <div className="text-center bg-background/50 backdrop-blur-sm rounded-2xl px-8 py-6 border border-border/30 shadow-sm max-w-sm">
+            <div className="text-4xl mb-3 drop-shadow-sm">✏️</div>
+            <p className="text-sm font-semibold text-foreground mb-1 font-heading">ডিজিটাল ম্যাপ ট্রেসিং</p>
             <p className="text-xs text-muted-foreground leading-relaxed">
               ডান পাশের সাইডবার থেকে পুরানো ম্যাপ আপলোড করুন<br />
               তারপর ক্লিক করে দাগের সীমানা আঁকুন

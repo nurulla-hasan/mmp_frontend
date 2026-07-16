@@ -334,7 +334,7 @@ export function PantagraphCropDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o && !isBusy) onClose(); }}>
-      <DialogContent showCloseButton={false} className="max-w-6xl p-0 overflow-hidden">
+      <DialogContent showCloseButton={false} className="max-w-6xl overflow-hidden">
         {/* Header */}
         <DialogHeader className="px-5 pt-5 pb-3">
           <DialogTitle className="flex items-center gap-2">

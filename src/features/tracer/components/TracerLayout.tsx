@@ -13,10 +13,10 @@ export default function TracerLayout() {
   return (
     <div className="relative w-full h-dvh overflow-hidden bg-background">
       <TracerToolbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-      <div className="absolute inset-0 top-0 md:top-12 bottom-0 left-0 right-0 md:right-72">
+      <div className="absolute inset-0">
         <TracerCanvas />
         {imageLoading && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/75 backdrop-blur-sm">
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/75">
             <div className="flex min-w-60 flex-col items-center gap-4 rounded-xl border border-border bg-card px-6 py-5 text-center shadow-lg">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <div>

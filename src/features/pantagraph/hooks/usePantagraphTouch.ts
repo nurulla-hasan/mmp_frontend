@@ -23,8 +23,7 @@ export const usePantagraphTouch = () => {
   const pinchStartRef = useRef({
     distance: 0,
     scale: 1,
-    stagePos: { x: 0, y: 0 },
-    centerClient: { x: 0, y: 0 },
+    mousePointTo: { x: 0, y: 0 },
   });
 
   const {
@@ -49,28 +48,7 @@ export const usePantagraphTouch = () => {
     stagePosRef.current = stagePos;
   });
 
-  const zoomAtPoint = useCallback(
-    (s: number, centerClient: { x: number; y: number }, meta: { scale: number; pos: { x: number; y: number } }) => {
-      // Find the stage container to get bounding rect
-      const stage = document.querySelector('.konvajs-content')?.parentElement;
-      if (!stage) return;
-      const rect = stage.getBoundingClientRect();
-      const pointerX = centerClient.x - rect.left;
-      const pointerY = centerClient.y - rect.top;
-      
-      const mousePointTo = {
-        x: (pointerX - meta.pos.x) / meta.scale,
-        y: (pointerY - meta.pos.y) / meta.scale,
-      };
-      
-      setStageScale(s);
-      setStagePos({
-        x: pointerX - mousePointTo.x * s,
-        y: pointerY - mousePointTo.y * s,
-      });
-    },
-    [setStageScale, setStagePos]
-  );
+
 
   const onTouchStart = useCallback(
     (e: Konva.KonvaEventObject<TouchEvent>) => {
@@ -79,11 +57,24 @@ export const usePantagraphTouch = () => {
         isPinchingRef.current = true;
         const d = getDistance(touches[0], touches[1]);
         lastPinchDistRef.current = d;
+        const centerClient = getMidpoint(touches[0], touches[1]);
+        const stage = document.querySelector('.konvajs-content')?.parentElement;
+        let mousePointTo = { x: 0, y: 0 };
+        
+        if (stage) {
+          const rect = stage.getBoundingClientRect();
+          const pointerX = centerClient.x - rect.left;
+          const pointerY = centerClient.y - rect.top;
+          mousePointTo = {
+            x: (pointerX - stagePosRef.current.x) / stageScaleRef.current,
+            y: (pointerY - stagePosRef.current.y) / stageScaleRef.current,
+          };
+        }
+
         pinchStartRef.current = {
           distance: d,
           scale: stageScaleRef.current,
-          stagePos: { ...stagePosRef.current },
-          centerClient: getMidpoint(touches[0], touches[1]),
+          mousePointTo,
         };
       }
     },
@@ -113,17 +104,25 @@ export const usePantagraphTouch = () => {
               const rawScale = start.scale * (newDist / start.distance);
               const clamped = clamp(rawScale, STAGE_MIN_ZOOM, STAGE_MAX_ZOOM);
               const centerClient = getMidpoint(touches[0], touches[1]);
-              zoomAtPoint(clamped, centerClient, {
-                scale: start.scale,
-                pos: start.stagePos,
-              });
+              const stage = document.querySelector('.konvajs-content')?.parentElement;
+              if (stage) {
+                const rect = stage.getBoundingClientRect();
+                const pointerX = centerClient.x - rect.left;
+                const pointerY = centerClient.y - rect.top;
+                
+                setStageScale(clamped);
+                setStagePos({
+                  x: pointerX - start.mousePointTo.x * clamped,
+                  y: pointerY - start.mousePointTo.y * clamped,
+                });
+              }
             }
             lastPinchDistRef.current = newDist;
           });
         }
       }
     },
-    [zoomAtPoint]
+    [setStageScale, setStagePos]
   );
 
   const onTouchEnd = useCallback(
@@ -135,8 +134,7 @@ export const usePantagraphTouch = () => {
         pinchStartRef.current = {
           distance: 0,
           scale: stageScaleRef.current,
-          stagePos: { ...stagePosRef.current },
-          centerClient: { x: 0, y: 0 },
+          mousePointTo: { x: 0, y: 0 },
         };
       }
     },

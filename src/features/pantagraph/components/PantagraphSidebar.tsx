@@ -26,11 +26,15 @@ import {
   ZoomIn,
   X,
 } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 // ─── Shared slider className ──────────────────────────────────────────────────
-const sliderCls = (accent: 'destructive' | 'primary') =>
-  `w-full h-1.5 appearance-none cursor-pointer rounded-full bg-muted accent-${accent} [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-${accent} [&::-webkit-slider-thumb]:shadow-sm`;
+const sliderCls = (accent: 'destructive' | 'primary') => {
+  const base = "w-full h-1.5 appearance-none cursor-pointer rounded-full bg-muted [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-sm";
+  if (accent === 'destructive') {
+    return `${base} accent-destructive [&::-webkit-slider-thumb]:bg-destructive`;
+  }
+  return `${base} accent-primary [&::-webkit-slider-thumb]:bg-primary`;
+};
 
 // ─── Sub-component: Map Upload Section ───────────────────────────────────────
 const MapUploadSection = memo(function MapUploadSection() {
@@ -715,8 +719,7 @@ export const PantagraphSidebar = memo(function PantagraphSidebar({ isOpen = fals
 
   return (
     <>
-      {/* Desktop sidebar — floating panel on the left */}
-      <div className="absolute left-4 top-4 bottom-24 w-80 bg-card/95 backdrop-blur-md border border-border flex-col z-20 hidden md:flex overflow-hidden rounded-2xl shadow-2xl">
+      <div className="absolute left-4 top-4 max-h-[calc(100dvh-2rem)] w-80 bg-card/95 backdrop-blur-md border border-border flex-col z-20 hidden md:flex overflow-hidden rounded-2xl shadow-2xl">
 
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0 bg-muted/30">
           <h2 className="text-sm font-semibold text-foreground font-heading">ম্যাপ ও সেটিংস</h2>
@@ -724,9 +727,9 @@ export const PantagraphSidebar = memo(function PantagraphSidebar({ isOpen = fals
             <X className="w-4 h-4" />
           </Button>
         </div>
-        <ScrollArea className='h-150'>
+        <div className="overflow-y-auto" style={{ minHeight: 0 }}>
           <SidebarContent />
-        </ScrollArea>
+        </div>
       </div>
 
       {/* Mobile Drawer — bottom sheet visible on small screens */}

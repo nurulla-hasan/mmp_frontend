@@ -42,6 +42,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
     formerSkewX,
     formerSkewY,
     isLocked,
+    imageLoading,
     setStageScale,
     setStagePos,
   } = usePantagraphStore(
@@ -67,6 +68,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
       formerSkewX: s.formerSkewX,
       formerSkewY: s.formerSkewY,
       isLocked: s.isLocked,
+      imageLoading: s.imageLoading,
       setStageScale: s.setStageScale,
       setStagePos: s.setStagePos,
     }))
@@ -238,8 +240,16 @@ export const PantagraphStage = memo(function PantagraphStage() {
           imageSmoothingEnabled
           perfectDrawEnabled={false}
           draggable={!isLocked}
+          onDragStart={(e) => {
+            if (e.evt && 'touches' in e.evt && (e.evt as unknown as TouchEvent).touches?.length > 1) {
+              e.target.stopDrag();
+            }
+          }}
           onDragMove={(e) => {
-            // Keep markers in sync while dragging (not just on DragEnd)
+            if (e.evt && 'touches' in e.evt && (e.evt as unknown as TouchEvent).touches?.length > 1) {
+              e.target.stopDrag();
+              return;
+            }
             usePantagraphStore.getState().setCurrentPosition({ x: e.target.x(), y: e.target.y() });
           }}
           onDragEnd={(e) => {
@@ -267,8 +277,16 @@ export const PantagraphStage = memo(function PantagraphStage() {
           imageSmoothingEnabled
           perfectDrawEnabled={false}
           draggable={!isLocked}
+          onDragStart={(e) => {
+            if (e.evt && 'touches' in e.evt && (e.evt as unknown as TouchEvent).touches?.length > 1) {
+              e.target.stopDrag();
+            }
+          }}
           onDragMove={(e) => {
-            // Keep markers in sync while dragging (not just on DragEnd)
+            if (e.evt && 'touches' in e.evt && (e.evt as unknown as TouchEvent).touches?.length > 1) {
+              e.target.stopDrag();
+              return;
+            }
             usePantagraphStore.getState().setFormerPosition({ x: e.target.x(), y: e.target.y() });
           }}
           onDragEnd={(e) => {
@@ -293,7 +311,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
         backgroundSize: '20px 20px',
       }}
     >
-      {!hasBothMaps && (
+      {!hasBothMaps && !imageLoading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none px-6">
           <div className="text-center bg-background/50 backdrop-blur-sm rounded-2xl px-8 py-6 border border-border/30 shadow-sm max-w-sm">
             <div className="text-4xl mb-3 drop-shadow-sm">🗺️</div>

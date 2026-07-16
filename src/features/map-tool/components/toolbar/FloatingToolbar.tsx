@@ -11,6 +11,7 @@ import { useShallow } from 'zustand/shallow';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { SaveProjectDialog } from '@/features/map-tool/components/SaveProjectDialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 
 // ─── Tooltip wrapper ─────────────────────────────────────────────────────────
@@ -49,32 +50,31 @@ const ToolBtn = memo(function ToolBtn({
     id?: string;
     href?: string;
 }) {
-    const dim = size === 'sm' ? 'h-9 w-9' : 'h-10 w-10';
-    const iconSize = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
-    const classes = [
-        `flex ${dim} items-center justify-center rounded-xl transition-all`,
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-        active
-            ? 'bg-primary text-primary-foreground shadow-md'
-            : variant === 'danger'
-                ? 'text-destructive hover:bg-destructive/10'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-        disabled ? 'pointer-events-none opacity-40' : '',
-    ].join(' ');
+    const actualVariant = active ? "default" : (variant === 'danger' ? 'destructive' : 'ghost');
+    const sizeClass = size === 'md' ? "icon-lg" : "icon";
+    
+    const btn = (
+        <Button
+            id={id}
+            variant={actualVariant}
+            size={sizeClass}
+            onClick={href ? undefined : onClick}
+            disabled={disabled}
+            className={active ? "" : (variant === 'danger' ? "text-destructive hover:bg-destructive/10" : "text-muted-foreground")}
+            nativeButton={!href}
+            render={href ? <a href={href} target="_blank" rel="noopener noreferrer" /> : undefined}
+        >
+            <Icon className={size === 'md' ? "w-5 h-5" : "w-4 h-4"} />
+        </Button>
+    );
 
     return (
         <ToolTip label={label}>
-            <span className={disabled ? "cursor-not-allowed inline-flex" : "inline-flex"}>
-                {href ? (
-                    <a id={id} href={href} target="_blank" rel="noopener noreferrer" className={classes}>
-                        <Icon className={iconSize} />
-                    </a>
-                ) : (
-                    <button id={id} type="button" onClick={onClick} disabled={disabled} className={classes}>
-                        <Icon className={iconSize} />
-                    </button>
-                )}
-            </span>
+            {disabled ? (
+                <span className="cursor-not-allowed inline-flex">
+                    {btn}
+                </span>
+            ) : btn}
         </ToolTip>
     );
 });
