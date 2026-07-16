@@ -21,9 +21,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
 // ─── Tooltip wrapper ─────────────────────────────────────────────────────────
@@ -59,21 +59,17 @@ const ToolBtn = memo(function ToolBtn({
   size?: 'md' | 'sm';
   id?: string;
 }) {
-  const iconSize = size === 'md' ? 'w-4 h-4' : 'w-3.5 h-3.5';
-  const btnSize = size === 'md' ? 'w-10 h-10 rounded-2xl' : 'w-8 h-8 rounded-xl';
   return (
     <ToolTip label={label} side={size === 'md' ? 'left' : 'top'}>
-      <button
+      <Button
         id={id}
+        variant={active ? "default" : "ghost"}
         onClick={onClick}
         disabled={disabled}
-        className={`flex shrink-0 items-center justify-center transition-all duration-200 ease-out active:scale-95 ${btnSize} ${active
-          ? 'bg-primary text-primary-foreground shadow-sm'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={active ? "px-2" : "px-2 text-muted-foreground"}
       >
-        <Icon className={iconSize} />
-      </button>
+        <Icon className="w-4 h-4" />
+      </Button>
     </ToolTip>
   );
 });
@@ -215,33 +211,29 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
         <HDivider />
         {tools.zoomIn('sm')}
         {tools.zoomOut('sm')}
-        {tools.fit('sm')}
+
         <HDivider />
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex shrink-0 items-center justify-center transition-all duration-200 ease-out active:scale-95 w-8 h-8 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground outline-none">
-            <MoreHorizontal className="w-4 h-4" />
+          <DropdownMenuTrigger nativeButton={false} render={<div className="inline-flex" />} className="focus-visible:outline-none focus:outline-none">
+            <Button variant="ghost" className="px-2 text-muted-foreground">
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="end" className="w-auto flex flex-row gap-1 p-1 min-w-0">
-            <DropdownMenuItem
-              onClick={() => setIsLocked(!isLocked)}
-              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-xl p-0"
-            >
-              {isLocked ? <LockOpen className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => usePantagraphStore.getState().exportMap('png')}
-              disabled={!hasAnyMap}
-              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-xl p-0"
-            >
-              <ImageDown className="w-4 h-4" />
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => usePantagraphStore.getState().exportMap('pdf')}
-              disabled={!hasAnyMap}
-              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-xl p-0"
-            >
-              <FileDown className="w-4 h-4" />
-            </DropdownMenuItem>
+          <DropdownMenuContent side="top" align="end" alignOffset={-10} sideOffset={12} className="w-fit p-1">
+            <div className="flex flex-row gap-1">
+              <Button variant="ghost" onClick={() => { usePantagraphStore.getState().setStageScale(1); usePantagraphStore.getState().setStagePos({ x: 0, y: 0 }); }} title="ফিট" className="w-9 h-9 p-0 text-muted-foreground">
+                <Maximize className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" onClick={() => setIsLocked(!isLocked)} title={isLocked ? "আনলক করুন" : "লক করুন"} className="w-9 h-9 p-0 text-muted-foreground">
+                {isLocked ? <LockOpen className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+              </Button>
+              <Button variant="ghost" onClick={() => usePantagraphStore.getState().exportMap('png')} disabled={!hasAnyMap} title="PNG ডাউনলোড করুন" className="w-9 h-9 p-0 text-muted-foreground">
+                <ImageDown className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" onClick={() => usePantagraphStore.getState().exportMap('pdf')} disabled={!hasAnyMap} title="PDF ডাউনলোড করুন" className="w-9 h-9 p-0 text-muted-foreground">
+                <FileDown className="w-4 h-4" />
+              </Button>
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

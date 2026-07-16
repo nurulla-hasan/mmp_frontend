@@ -2,9 +2,15 @@
 
 import { memo, useRef, useState, useCallback } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { ImageUp, Plus, Trash2, Eye, EyeOff, ChevronDown, ChevronRight, FileDown, Download } from 'lucide-react';
+import { ImageUp, Plus, Trash2, Eye, EyeOff, ChevronDown, ChevronRight, FileDown, Download, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { useTracerStore } from '../store/useTracerStore';
 import { exportAsPDF, exportAsPNG } from '../utils/exportTracer';
 import { extractImageFromPDF } from '@/features/map-tool/utils/pdfHelper';
@@ -59,13 +65,13 @@ const BackgroundSection = memo(function BackgroundSection() {
       </h3>
       <input ref={inputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleUpload} />
       <div className="flex gap-1.5">
-        <Button variant="outline" size="sm" onClick={() => inputRef.current?.click()} disabled={imageLoading}>
-          <ImageUp className="w-3.5 h-3.5 mr-1" />
+        <Button variant="outline" onClick={() => inputRef.current?.click()} disabled={imageLoading}>
+          <ImageUp className="w-4 h-4 mr-1.5" />
           {imageLoading ? 'লোড হচ্ছে...' : backgroundImage ? 'পরিবর্তন' : 'আপলোড'}
         </Button>
         {backgroundImage && (
-        <Button variant="ghost" size="icon-sm" onClick={() => setBackground(null)}>
-          <Trash2 className="w-3.5 h-3.5" />
+        <Button variant="ghost" size="icon" onClick={() => setBackground(null)}>
+          <Trash2 className="w-4 h-4" />
         </Button>
       )}
     </div>
@@ -100,8 +106,8 @@ const LayersSection = memo(function LayersSection() {
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
           লেয়ার ({layers.length})
         </h3>
-        <Button variant="ghost" size="xs" onClick={addLayer}>
-          <Plus className="w-3 h-3 mr-1" />যোগ করুন
+        <Button variant="ghost" onClick={addLayer}>
+          <Plus className="w-4 h-4 mr-1.5" />যোগ করুন
         </Button>
       </div>
 
@@ -303,18 +309,18 @@ const ExportSection = memo(function ExportSection() {
         এক্সপোর্ট
       </h3>
       <div className="space-y-1">
-        <Button variant="outline" size="sm" onClick={() => exportAsPDF(layers, backgroundImage, 'all')}>
-          <FileDown className="w-3.5 h-3.5 mr-1.5" />
+        <Button variant="outline" onClick={() => exportAsPDF(layers, backgroundImage, 'all')}>
+          <FileDown className="w-4 h-4 mr-1.5" />
           PDF — সব লেয়ার
         </Button>
         {layers.map(l => (
-          <Button key={l.id} variant="ghost" size="sm" onClick={() => exportAsPDF(layers, backgroundImage, l.id)}>
+          <Button key={l.id} variant="ghost" onClick={() => exportAsPDF(layers, backgroundImage, l.id)}>
             <div className="w-2.5 h-2.5 rounded-full mr-1.5 shrink-0" style={{ backgroundColor: l.color }} />
             PDF — {l.name}
           </Button>
         ))}
-        <Button variant="ghost" size="sm" onClick={() => exportAsPNG(layers, backgroundImage, 'all')}>
-          <Download className="w-3.5 h-3.5 mr-1.5" />
+        <Button variant="ghost" onClick={() => exportAsPNG(layers, backgroundImage, 'all')}>
+          <Download className="w-4 h-4 mr-1.5" />
           PNG — সব লেয়ার
         </Button>
       </div>
@@ -322,19 +328,51 @@ const ExportSection = memo(function ExportSection() {
   );
 });
 
-// ─── Root Sidebar ─────────────────────────────────────────────────────────────
-export const TracerSidebar = memo(function TracerSidebar() {
+const SidebarContent = memo(function SidebarContent() {
   return (
-    <div className="absolute right-0 top-0 bottom-0 w-72 bg-background border-l border-border flex-col z-20 hidden md:flex">
-      <div className="flex-1 px-3 py-4 overflow-y-auto space-y-5">
-        <BackgroundSection />
-        <Separator />
-        <LayersSection />
-        <Separator />
-        <PolygonListSection />
-        <Separator />
-        <ExportSection />
-      </div>
+    <div className="flex-1 p-4 md:p-5 overflow-y-auto space-y-6">
+      <BackgroundSection />
+      <Separator />
+      <LayersSection />
+      <Separator />
+      <PolygonListSection />
+      <Separator />
+      <ExportSection />
     </div>
+  );
+});
+
+// ─── Root Sidebar ─────────────────────────────────────────────────────────────
+export const TracerSidebar = memo(function TracerSidebar({
+  isOpen,
+  onClose,
+}: {
+  isOpen?: boolean;
+  onClose?: () => void;
+}) {
+  return (
+    <>
+      {/* ── Desktop Sidebar ── */}
+      <div className="absolute right-0 top-0 bottom-0 w-72 bg-background border-l border-border flex-col z-20 hidden md:flex">
+        <SidebarContent />
+      </div>
+
+      {/* ── Mobile Drawer ── */}
+      <div className="md:hidden">
+        <Drawer open={isOpen} onOpenChange={(open) => !open && onClose?.()}>
+          <DrawerContent className="max-h-[85dvh]">
+            <DrawerHeader className="border-b border-border py-3 flex flex-row items-center justify-between">
+              <DrawerTitle className="text-left font-heading text-lg">ট্রেসার সেটিংস</DrawerTitle>
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full shrink-0" onClick={onClose}>
+                <X className="w-4 h-4" />
+              </Button>
+            </DrawerHeader>
+            <div className="overflow-y-auto">
+              <SidebarContent />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      </div>
+    </>
   );
 });

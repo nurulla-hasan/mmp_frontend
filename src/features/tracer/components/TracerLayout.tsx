@@ -1,17 +1,33 @@
 'use client';
 
+import { useState } from 'react';
 import { TracerToolbar } from './TracerToolbar';
 import { TracerSidebar } from './TracerSidebar';
 import TracerCanvas from './TracerCanvas';
+import { useTracerStore } from '../store/useTracerStore';
+import { Loader2 } from 'lucide-react';
 
 export default function TracerLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const imageLoading = useTracerStore(s => s.imageLoading);
   return (
-    <div className="relative w-full h-[100dvh] overflow-hidden bg-background">
-      <TracerToolbar />
-      <div className="absolute inset-0 top-12 bottom-0 left-0 right-0 md:right-72">
+    <div className="relative w-full h-dvh overflow-hidden bg-background">
+      <TracerToolbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+      <div className="absolute inset-0 top-0 md:top-12 bottom-0 left-0 right-0 md:right-72">
         <TracerCanvas />
+        {imageLoading && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/75 backdrop-blur-sm">
+            <div className="flex min-w-60 flex-col items-center gap-4 rounded-xl border border-border bg-card px-6 py-5 text-center shadow-lg">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">ম্যাপ লোড হচ্ছে</p>
+                <p className="mt-1 text-xs text-muted-foreground">একটু সময় লাগতে পারে</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      <TracerSidebar />
+      <TracerSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </div>
   );
 }

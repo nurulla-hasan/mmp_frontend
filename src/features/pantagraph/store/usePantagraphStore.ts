@@ -78,6 +78,9 @@ export interface PantagraphState {
   isRemovingFormerBg: boolean;
   isRemovingCurrentBg: boolean;
 
+  // General loading (map processing etc)
+  imageLoading: boolean;
+
   // Redo stack
   redoStack: MatchPoint[];
 
@@ -99,6 +102,7 @@ export interface PantagraphActions {
   toggleCurrentBgRemoval: () => Promise<void>;
   setFormerBgColor: (color: string) => void;
   setCurrentBgColor: (color: string) => void;
+  setImageLoading: (loading: boolean) => void;
   // Line colorization
   setFormerLineColor: (color: string) => void;
   setCurrentLineColor: (color: string) => void;
@@ -206,6 +210,8 @@ const initialState: PantagraphState = {
   isRemovingFormerBg: false,
   isRemovingCurrentBg: false,
 
+  imageLoading: false,
+
   redoStack: [],
   
   stageRef: null,
@@ -254,6 +260,7 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     }),
   setActiveMap: (activeMap) => set({ activeMap }),
   setCanvasBg: (canvasBg) => set({ canvasBg }),
+  setImageLoading: (imageLoading) => set({ imageLoading }),
 
   setFormerBgColor: (formerBgColor) => {
     set({ formerBgColor });

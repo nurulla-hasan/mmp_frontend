@@ -14,7 +14,6 @@ import {
   DrawerContent,
   DrawerOverlay,
   DrawerPortal,
-  DrawerClose,
 } from '@/components/ui/drawer';
 import {
   ImageUp,
@@ -42,12 +41,14 @@ const MapUploadSection = memo(function MapUploadSection() {
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [cropTarget, setCropTarget] = useState<'former' | 'current' | null>(null);
 
-  const { formerMap, currentMap, setFormerMap, setCurrentMap } = usePantagraphStore(
+  const { formerMap, currentMap, setFormerMap, setCurrentMap, imageLoading, setImageLoading } = usePantagraphStore(
     useShallow((s) => ({
       formerMap: s.formerMap,
       currentMap: s.currentMap,
       setFormerMap: s.setFormerMap,
       setCurrentMap: s.setCurrentMap,
+      imageLoading: s.imageLoading,
+      setImageLoading: s.setImageLoading,
     })),
   );
 
@@ -56,10 +57,14 @@ const MapUploadSection = memo(function MapUploadSection() {
     file: File,
     target: 'former' | 'current',
   ) => {
+    setImageLoading(true);
     if (file.type === 'application/pdf') {
       try {
         const img = await extractImageFromPDF(file);
-        if (!img) return;
+        if (!img) {
+          setImageLoading(false);
+          return;
+        }
         // Convert the HTMLImageElement src to a stable data URL for the cropper
         const canvas = document.createElement('canvas');
         canvas.width = img.naturalWidth;
@@ -71,6 +76,8 @@ const MapUploadSection = memo(function MapUploadSection() {
         setCropTarget(target);
       } catch (error) {
         console.error('PDF load error:', error);
+      } finally {
+        setImageLoading(false);
       }
       return;
     }
@@ -81,9 +88,11 @@ const MapUploadSection = memo(function MapUploadSection() {
         setCropSrc(dataUrl);
         setCropTarget(target);
       }
+      setImageLoading(false);
     };
+    reader.onerror = () => setImageLoading(false);
     reader.readAsDataURL(file);
-  }, []);
+  }, [setImageLoading]);
 
   const handleFormerUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -123,14 +132,14 @@ const MapUploadSection = memo(function MapUploadSection() {
             সাবেক ম্যাপ
           </Label>
           <input ref={formerInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFormerUpload} />
-          <div className="flex gap-1">
-            <Button variant="outline" size="sm" onClick={() => formerInputRef.current?.click()}>
-              <ImageUp className="w-3.5 h-3.5 mr-1" />
-              {formerMap ? 'পরিবর্তন' : 'আপলোড'}
+          <div className="flex gap-1.5">
+            <Button variant="outline" onClick={() => formerInputRef.current?.click()} disabled={imageLoading}>
+              <ImageUp className="w-4 h-4 mr-1.5" />
+              {imageLoading ? 'লোড হচ্ছে...' : (formerMap ? 'পরিবর্তন' : 'আপলোড')}
             </Button>
             {formerMap && (
-              <Button variant="ghost" size="icon-sm" onClick={() => setFormerMap(null)}>
-                <Trash2 className="w-3.5 h-3.5" />
+              <Button variant="ghost" size="icon" onClick={() => setFormerMap(null)}>
+                <Trash2 className="w-4 h-4" />
               </Button>
             )}
           </div>
@@ -142,14 +151,14 @@ const MapUploadSection = memo(function MapUploadSection() {
             হাল ম্যাপ
           </Label>
           <input ref={currentInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleCurrentUpload} />
-          <div className="flex gap-1">
-            <Button variant="outline" size="sm" onClick={() => currentInputRef.current?.click()}>
-              <ImageUp className="w-3.5 h-3.5 mr-1" />
-              {currentMap ? 'পরিবর্তন' : 'আপলোড'}
+          <div className="flex gap-1.5">
+            <Button variant="outline" onClick={() => currentInputRef.current?.click()} disabled={imageLoading}>
+              <ImageUp className="w-4 h-4 mr-1.5" />
+              {imageLoading ? 'লোড হচ্ছে...' : (currentMap ? 'পরিবর্তন' : 'আপলোড')}
             </Button>
             {currentMap && (
-              <Button variant="ghost" size="icon-sm" onClick={() => setCurrentMap(null)}>
-                <Trash2 className="w-3.5 h-3.5" />
+              <Button variant="ghost" size="icon" onClick={() => setCurrentMap(null)}>
+                <Trash2 className="w-4 h-4" />
               </Button>
             )}
           </div>
@@ -430,9 +439,9 @@ const OpacitySection = memo(function OpacitySection() {
 const LineSmoothingSection = memo(function LineSmoothingSection() {
   const { lineSmoothing, setLineSmoothing, formerBgRemoved, currentBgRemoved } = usePantagraphStore(
     useShallow((s) => ({
-      lineSmoothing:    s.lineSmoothing,
+      lineSmoothing: s.lineSmoothing,
       setLineSmoothing: s.setLineSmoothing,
-      formerBgRemoved:  s.formerBgRemoved,
+      formerBgRemoved: s.formerBgRemoved,
       currentBgRemoved: s.currentBgRemoved,
     })),
   );
@@ -474,14 +483,14 @@ const ActiveMapSection = memo(function ActiveMapSection() {
       <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold font-heading">
         সক্রিয় ম্যাপ
       </Label>
-      <div className="flex gap-1">
-        <Button variant={activeMap === 'former' ? 'destructive' : 'outline'} size="sm" onClick={() => setActiveMap('former')}>
-          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${activeMap === 'former' ? 'bg-current' : 'bg-destructive'}`} />
-          সাবেক
+      <div className="flex gap-2">
+        <Button variant={activeMap === 'former' ? 'destructive' : 'outline'} onClick={() => setActiveMap('former')}>
+          <span className="w-2.5 h-2.5 rounded-full bg-destructive mr-1.5" />
+          সাবেক ম্যাপ
         </Button>
-        <Button variant={activeMap === 'current' ? 'default' : 'outline'} size="sm" onClick={() => setActiveMap('current')}>
-          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${activeMap === 'current' ? 'bg-current' : 'bg-primary'}`} />
-          হাল
+        <Button variant={activeMap === 'current' ? 'default' : 'outline'} onClick={() => setActiveMap('current')}>
+          <span className="w-2.5 h-2.5 rounded-full bg-primary mr-1.5" />
+          হাল ম্যাপ
         </Button>
       </div>
     </div>
@@ -513,13 +522,13 @@ const MatchPointsSection = memo(function MatchPointsSection() {
           পয়েন্ট ({matchPoints.length})
         </h3>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="xs" onClick={removeLastMatchPoint} title="শেষ পয়েন্ট আনডু" disabled={matchPoints.length === 0}>
-            <Undo2 className="w-3 h-3 mr-1" />আনডু
+          <Button variant="ghost" onClick={removeLastMatchPoint} title="শেষ পয়েন্ট আনডু" disabled={matchPoints.length === 0}>
+            <Undo2 className="w-4 h-4 mr-1.5" />আনডু
           </Button>
-          <Button variant="ghost" size="xs" onClick={restoreLastMatchPoint} title="শেষ পয়েন্ট রিডু" disabled={redoStack.length === 0}>
-            <Undo2 className="w-3 h-3 mr-1 rotate-180" />রিডু
+          <Button variant="ghost" onClick={restoreLastMatchPoint} title="শেষ পয়েন্ট রিডু" disabled={redoStack.length === 0}>
+            <Undo2 className="w-4 h-4 mr-1.5 rotate-180" />রিডু
           </Button>
-          <Button variant="ghost" size="xs" onClick={() => setMatchPoints([])}>
+          <Button variant="ghost" onClick={() => setMatchPoints([])}>
             সব মুছুন
           </Button>
         </div>
@@ -531,8 +540,8 @@ const MatchPointsSection = memo(function MatchPointsSection() {
               <span className="text-xs font-medium text-foreground">পয়েন্ট #{index + 1}</span>
               {point.current === null && <span className="text-[10px] text-destructive">(অসম্পূর্ণ)</span>}
             </div>
-            <Button variant="ghost" size="icon-xs" onClick={() => removeMatchPoint(point.id)}>
-              <Trash2 className="w-3 h-3" />
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeMatchPoint(point.id)}>
+              <X className="w-3 h-3" />
             </Button>
           </div>
         ))}
@@ -561,7 +570,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
             অ্যালাইনমেন্ট রেজাল্ট
           </h3>
-          <Button variant="ghost" size="xs" onClick={clearAlignment}>সরান</Button>
+          <Button variant="ghost" onClick={clearAlignment} className="h-7 text-xs">সরান</Button>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-muted/50 rounded px-2.5 py-2">
@@ -631,7 +640,7 @@ const SidebarContent = memo(function SidebarContent() {
   );
 
   return (
-    <div className="px-3 py-4 space-y-4">
+    <div className="p-4 md:p-5 space-y-6">
       {/* Image Upload */}
       <MapUploadSection />
 
@@ -685,7 +694,7 @@ const SidebarContent = memo(function SidebarContent() {
 
       {/* Reset */}
       <div className="mt-6 pt-4 border-t border-border">
-        <Button variant="destructive" size="sm" onClick={reset}>
+        <Button variant="destructive" onClick={reset}>
           রিসেট
         </Button>
       </div>
@@ -711,12 +720,9 @@ export const PantagraphSidebar = memo(function PantagraphSidebar({ isOpen = fals
 
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0 bg-muted/30">
           <h2 className="text-sm font-semibold text-foreground font-heading">ম্যাপ ও সেটিংস</h2>
-          <button
-            onClick={onClose}
-            className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          >
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full shrink-0" onClick={onClose}>
             <X className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
         <ScrollArea className='h-150'>
           <SidebarContent />
@@ -733,16 +739,9 @@ export const PantagraphSidebar = memo(function PantagraphSidebar({ isOpen = fals
                 {/* Handle + header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
                   <h2 className="text-sm font-semibold text-foreground font-heading">ম্যাপ ও সেটিংস</h2>
-                  <DrawerClose
-                    render={
-                      <button
-                        onClick={onClose}
-                        className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    }
-                  />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full shrink-0" onClick={onClose}>
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
                 {/* Scrollable content */}
                 <div className="flex-1 overflow-y-auto" style={{ minHeight: 0 }}>

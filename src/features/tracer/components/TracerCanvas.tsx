@@ -7,6 +7,7 @@ import { Stage, Layer, Group, Image as KonvaImage, Line, Circle, Text } from 're
 import type Konva from 'konva';
 import { useTracerStore, centroid } from '../store/useTracerStore';
 import { getSnappedPoint } from '@/features/map-tool/utils/geometry';
+import { useTracerTouch } from '../hooks/useTracerTouch';
 
 const TracerCanvas = memo(function TracerCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -203,8 +204,10 @@ const TracerCanvas = memo(function TracerCanvas() {
     panStart.current = null;
   }, []);
 
-  const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (e.evt.button !== 0 || mode !== 'polygon') return;
+  const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+    // Only allow left click or touch
+    if ('button' in e.evt && e.evt.button !== 0) return;
+    if (mode !== 'polygon') return;
     if (isPanningRef.current || spaceDown.current) return;
     // Ignore clicks on existing polygon elements
     if (e.target !== stageRef.current && e.target.hasName('polygon')) return;
@@ -236,8 +239,9 @@ const TracerCanvas = memo(function TracerCanvas() {
   }, [mode, layers, stageScale, getImagePos, addPendingPoint, commitPolygon, pendingPoints.length, snapActive]);
 
   // Double-click is still handled here for browsers that fire native dblclick
-  const handleDblClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (e.evt.button !== 0 || mode !== 'polygon') return;
+  const handleDblClick = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+    if ('button' in e.evt && e.evt.button !== 0) return;
+    if (mode !== 'polygon') return;
     if (pendingPoints.length >= 3) { setSnapActive(false); commitPolygon(); }
   }, [mode, pendingPoints.length, commitPolygon]);
 
@@ -254,6 +258,14 @@ const TracerCanvas = memo(function TracerCanvas() {
       : snapActive
         ? 'pointer'
         : 'crosshair';
+
+  // ── Touch controls ─────────────────────────────────────────────────────────
+  const { onTouchStart, onTouchMove, onTouchEnd } = useTracerTouch(
+    stageScale,
+    setStageScale,
+    stagePos,
+    setStagePos
+  );
 
   return (
     <div
@@ -289,6 +301,11 @@ const TracerCanvas = memo(function TracerCanvas() {
         onMouseUp={handleMouseUp}
         onClick={handleClick}
         onDblClick={handleDblClick}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onTap={handleClick}
+        onDblTap={handleDblClick}
         onContextMenu={(e) => e.evt.preventDefault()}
         style={{ display: 'block' }}
       >
