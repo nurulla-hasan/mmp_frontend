@@ -9,6 +9,7 @@ import { usePantagraphStore } from '../store/usePantagraphStore';
 import { MatchPointMarkers } from './MatchPointMarkers';
 import { getPixelColor } from '../utils/getPixelColor';
 import { clamp } from '@/lib/utils';
+import { usePantagraphTouch } from '../hooks/usePantagraphTouch';
 
 const STAGE_MIN_ZOOM = 0.01;
 const STAGE_MAX_ZOOM = 10;
@@ -75,6 +76,15 @@ export const PantagraphStage = memo(function PantagraphStage() {
 
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
+  
+  const { onTouchStart, onTouchMove, onTouchEnd } = usePantagraphTouch();
+
+  // Keep latest stagePos/stageScale in refs so handleStageClick can read
+  // fresh values without being recreated on every pan/zoom.
+  const stagePosRef = useRef(stagePos);
+  const stageScaleRef = useRef(stageScale);
+  useEffect(() => { stagePosRef.current = stagePos; }, [stagePos]);
+  useEffect(() => { stageScaleRef.current = stageScale; }, [stageScale]);
 
   // Sync stageRef to store
   useEffect(() => {
@@ -135,9 +145,9 @@ export const PantagraphStage = memo(function PantagraphStage() {
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
 
-      // Convert screen coordinates to stage coordinates
-      const stageX = (pointer.x - stagePos.x) / stageScale;
-      const stageY = (pointer.y - stagePos.y) / stageScale;
+      // Convert screen coordinates to stage coordinates using ref values
+      const stageX = (pointer.x - stagePosRef.current.x) / stageScaleRef.current;
+      const stageY = (pointer.y - stagePosRef.current.y) / stageScaleRef.current;
 
       const store = usePantagraphStore.getState();
       const { isPickingColor, pickingTarget } = store;
@@ -209,7 +219,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
         }
       }
     },
-    [isAligning, stagePos, stageScale]
+    [isAligning]
   );
 
   const hasBothMaps = formerMap || currentMap;
@@ -228,6 +238,10 @@ export const PantagraphStage = memo(function PantagraphStage() {
           imageSmoothingEnabled
           perfectDrawEnabled={false}
           draggable={!isLocked}
+          onDragMove={(e) => {
+            // Keep markers in sync while dragging (not just on DragEnd)
+            usePantagraphStore.getState().setCurrentPosition({ x: e.target.x(), y: e.target.y() });
+          }}
           onDragEnd={(e) => {
             usePantagraphStore.getState().setCurrentPosition({ x: e.target.x(), y: e.target.y() });
           }}
@@ -253,6 +267,10 @@ export const PantagraphStage = memo(function PantagraphStage() {
           imageSmoothingEnabled
           perfectDrawEnabled={false}
           draggable={!isLocked}
+          onDragMove={(e) => {
+            // Keep markers in sync while dragging (not just on DragEnd)
+            usePantagraphStore.getState().setFormerPosition({ x: e.target.x(), y: e.target.y() });
+          }}
           onDragEnd={(e) => {
             usePantagraphStore.getState().setFormerPosition({ x: e.target.x(), y: e.target.y() });
           }}
@@ -311,6 +329,9 @@ export const PantagraphStage = memo(function PantagraphStage() {
         onWheel={handleWheel}
         onClick={handleStageClick}
         onTap={handleStageClick}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
       >
         {/* Render inactive map first (so it stays underneath) */}
         {activeMap === 'former' ? renderCurrentMap() : renderFormerMap()}

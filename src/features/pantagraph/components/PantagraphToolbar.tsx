@@ -12,9 +12,18 @@ import {
   Maximize,
   Crosshair,
   ArrowLeft,
+  ImageDown,
+  Settings2,
+  FileDown,
+  MoreHorizontal
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Settings2, FileDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
 
 // ─── Tooltip wrapper ─────────────────────────────────────────────────────────
@@ -155,8 +164,11 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
     lock: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn icon={isLocked ? Lock : LockOpen} label={isLocked ? 'আনলক' : 'লক'} onClick={() => setIsLocked(!isLocked)} size={size} />
     ),
+    png: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={ImageDown} label="PNG সেভ করুন" disabled={!hasAnyMap} onClick={() => usePantagraphStore.getState().exportMap('png')} size={size} />
+    ),
     pdf: (size: 'md' | 'sm' = 'md') => (
-      <ToolBtn icon={FileDown} label="PDF সেভ করুন" disabled={!hasAnyMap} onClick={() => usePantagraphStore.getState().saveAsPDF()} size={size} />
+      <ToolBtn icon={FileDown} label="PDF সেভ করুন" disabled={!hasAnyMap} onClick={() => usePantagraphStore.getState().exportMap('pdf')} size={size} />
     ),
     zoomIn: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn icon={ZoomIn} label="জুম ইন" onClick={() => usePantagraphStore.getState().setStageScale(s => Math.min(10, s * 1.25))} size={size} />
@@ -185,11 +197,15 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
         {tools.fit()}
         <VDivider />
         {tools.lock()}
+        {tools.png()}
         {tools.pdf()}
       </div>
 
       {/* ── Mobile: floating bottom bar ───────────────────────────────────── */}
-      <div className="absolute bottom-4 left-1/2 z-40 w-max max-w-[95vw] flex md:hidden -translate-x-1/2 flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl">
+      <div
+        className="absolute bottom-4 left-1/2 z-40 w-max max-w-[95vw] flex md:hidden -translate-x-1/2 overflow-x-auto whitespace-nowrap items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
         {tools.back('sm')}
         {tools.settings('sm')}
         <HDivider />
@@ -201,8 +217,33 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
         {tools.zoomOut('sm')}
         {tools.fit('sm')}
         <HDivider />
-        {tools.lock('sm')}
-        {tools.pdf('sm')}
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex shrink-0 items-center justify-center transition-all duration-200 ease-out active:scale-95 w-8 h-8 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground outline-none">
+            <MoreHorizontal className="w-4 h-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="end" className="w-auto flex flex-row gap-1 p-1 min-w-0">
+            <DropdownMenuItem
+              onClick={() => setIsLocked(!isLocked)}
+              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-xl p-0"
+            >
+              {isLocked ? <LockOpen className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => usePantagraphStore.getState().exportMap('png')}
+              disabled={!hasAnyMap}
+              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-xl p-0"
+            >
+              <ImageDown className="w-4 h-4" />
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => usePantagraphStore.getState().exportMap('pdf')}
+              disabled={!hasAnyMap}
+              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-xl p-0"
+            >
+              <FileDown className="w-4 h-4" />
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </>
   );

@@ -4,7 +4,7 @@ import { memo } from 'react';
 
 export const LegendBadge = memo(function LegendBadge() {
   return (
-    <div className="absolute bottom-4 left-4 z-20 bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 space-y-1.5 shadow-sm">
+    <div className="absolute bottom-4 left-4 z-20 hidden md:block bg-background/90 border rounded-lg px-3 py-2 space-y-1.5 shadow-sm">
       <div className="flex items-center gap-2">
         <span className="w-3 h-3 rounded-full bg-destructive border border-destructive/60" />
         <span className="text-xs text-muted-foreground">সাবেক ম্যাপ</span>

@@ -18,7 +18,7 @@ export function DashboardShell({ role, children }: { role: DashboardRole; childr
   const [mobileOpen, setMobileOpen] = useState(false);
   const config = roleConfig[role];
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-[100dvh] bg-muted/30">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r bg-sidebar lg:flex lg:flex-col">
         <DashboardSidebar label={config.label} navigation={config.navigation} />
       </aside>

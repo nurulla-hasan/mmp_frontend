@@ -24,16 +24,27 @@ ctx.onmessage = (e: MessageEvent) => {
     const data = new Uint8ClampedArray(msg.buffer);
     const { colors, tolerance } = msg;
 
+    const feather = 20;
+
     for (let i = 0; i < data.length; i += 4) {
+      let minAlpha = 255;
       for (const c of colors) {
-        if (
-          Math.abs(data[i]     - c.r) <= tolerance &&
-          Math.abs(data[i + 1] - c.g) <= tolerance &&
-          Math.abs(data[i + 2] - c.b) <= tolerance
-        ) {
-          data[i + 3] = 0;
+        const dist = Math.max(
+          Math.abs(data[i]     - c.r),
+          Math.abs(data[i + 1] - c.g),
+          Math.abs(data[i + 2] - c.b)
+        );
+
+        if (dist <= tolerance) {
+          minAlpha = 0;
           break;
+        } else if (dist < tolerance + feather) {
+          const alpha = Math.round(((dist - tolerance) / feather) * 255);
+          if (alpha < minAlpha) minAlpha = alpha;
         }
+      }
+      if (minAlpha < 255) {
+        data[i + 3] = minAlpha;
       }
     }
 
@@ -44,7 +55,8 @@ ctx.onmessage = (e: MessageEvent) => {
     const { targetR, targetG, targetB, threshold } = msg;
 
     for (let i = 0; i < data.length; i += 4) {
-      if (data[i + 3] < 128) continue; // skip transparent
+      if (data[i + 3] === 0) continue; // skip fully transparent only
+      
       const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
       if (lum < threshold) {
         data[i]     = targetR;

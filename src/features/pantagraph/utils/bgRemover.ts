@@ -28,16 +28,26 @@ function processPixelsSync(
   colors: Array<{ r: number; g: number; b: number }>,
   tolerance: number,
 ): void {
+  const feather = 20; // Anti-aliasing smoothness width
   for (let i = 0; i < data.length; i += 4) {
+    let minAlpha = 255;
     for (const c of colors) {
-      if (
-        Math.abs(data[i]     - c.r) <= tolerance &&
-        Math.abs(data[i + 1] - c.g) <= tolerance &&
-        Math.abs(data[i + 2] - c.b) <= tolerance
-      ) {
-        data[i + 3] = 0;
+      const dist = Math.max(
+        Math.abs(data[i]     - c.r),
+        Math.abs(data[i + 1] - c.g),
+        Math.abs(data[i + 2] - c.b)
+      );
+
+      if (dist <= tolerance) {
+        minAlpha = 0;
         break;
+      } else if (dist < tolerance + feather) {
+        const alpha = Math.round(((dist - tolerance) / feather) * 255);
+        if (alpha < minAlpha) minAlpha = alpha;
       }
+    }
+    if (minAlpha < 255) {
+      data[i + 3] = minAlpha;
     }
   }
 }
@@ -63,9 +73,9 @@ function processPixelsAsync(
       return;
     }
 
-    // Copy the buffer so the caller's ImageData reference stays intact.
+    // Copy the exact elements to a new buffer to avoid any row-padding in the original buffer.
     // The copy is transferred to the worker zero-copy from JS engine perspective.
-    const copy = data.buffer.slice(0) as ArrayBuffer;
+    const copy = new Uint8ClampedArray(data).buffer as ArrayBuffer;
 
     worker.addEventListener(
       'message',
@@ -85,15 +95,17 @@ function processPixelsAsync(
  * Uses a Web Worker for non-blocking processing.
  * Falls back to synchronous processing if the worker is unavailable.
  *
- * @param img       Source HTMLImageElement
- * @param colors    Colors to remove. Auto-detected from edges if empty/undefined.
- * @param tolerance 0-255, colour distance threshold (default 60)
- * @param onProgress Optional 0-1 progress callback
+ * @param img            Source HTMLImageElement
+ * @param colors         Colors to remove. Auto-detected from edges if empty/undefined.
+ * @param tolerance      0-255, colour distance threshold (default 60)
+ * @param lineSmoothing  0-5, how much to smooth line edges (0=none, default 2)
+ * @param onProgress     Optional 0-1 progress callback
  */
 export function removeBackground(
   img: HTMLImageElement,
   colors?: Array<{ r: number; g: number; b: number }>,
   tolerance = 60,
+  lineSmoothing = 2,
   onProgress?: (pct: number) => void,
 ): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -131,26 +143,64 @@ export function removeBackground(
           canvas.height,
         );
         ctx.putImageData(newImageData, 0, 0);
+        onProgress?.(0.75);
 
-        canvas.toBlob((blob) => {
-          if (!blob) {
-            reject(new Error('Failed to create blob from canvas'));
-            return;
+        // ── Smooth pass (only when lineSmoothing > 0) ──────────────────────────
+        if (lineSmoothing > 0) {
+          const blurRadius = lineSmoothing * 0.2; // 0.2 – 1.0 px
+          const smoothCanvas = document.createElement('canvas');
+          smoothCanvas.width  = canvas.width;
+          smoothCanvas.height = canvas.height;
+          const sCtx = smoothCanvas.getContext('2d', { willReadFrequently: true })!;
+
+          // 1. Draw with Gaussian blur to soften jagged edges
+          sCtx.filter = `blur(${blurRadius}px)`;
+          sCtx.drawImage(canvas, 0, 0);
+          sCtx.filter = 'none';
+
+          // 2. Overlay the original at 60% to recover crisp line centers
+          sCtx.globalAlpha = 0.6;
+          sCtx.drawImage(canvas, 0, 0);
+          sCtx.globalAlpha = 1;
+
+          // 3. Alpha smoothstep: push edges cleanly to 0 or 255
+          //    strength scales the sharpness of the S-curve
+          const strength = lineSmoothing / 5; // 0.2 – 2.0 (when slider is up to 10)
+          const edge0 = Math.max(0, 0.05 + 0.15 * (1 - strength)); // background cutoff (must not be negative)
+          const edge1 = 0.5  + 0.20 * (1 - strength);  // line interior cutoff
+
+          const finalData = sCtx.getImageData(0, 0, smoothCanvas.width, smoothCanvas.height);
+          const fd = finalData.data;
+          for (let i = 3; i < fd.length; i += 4) {
+            const a = fd[i] / 255;
+            const t = Math.max(0, Math.min(1, (a - edge0) / Math.max(edge1 - edge0, 0.01)));
+            // Smoothstep: S-curve (3t² - 2t³)
+            fd[i] = Math.round(t * t * (3 - 2 * t) * 255);
           }
+          sCtx.putImageData(finalData, 0, 0);
+
           onProgress?.(0.9);
-          const url = URL.createObjectURL(blob);
-          const outImg = new window.Image();
-          outImg.onload = () => {
-            URL.revokeObjectURL(url);
-            onProgress?.(1);
-            resolve(outImg);
-          };
-          outImg.onerror = () => {
-            URL.revokeObjectURL(url);
-            reject(new Error('Failed to decode output image'));
-          };
-          outImg.src = url;
-        }, 'image/png');
+          smoothCanvas.toBlob((blob) => {
+            if (!blob) { reject(new Error('Failed to create blob from canvas')); return; }
+            const url = URL.createObjectURL(blob);
+            const outImg = new window.Image();
+            outImg.onload = () => { URL.revokeObjectURL(url); onProgress?.(1); resolve(outImg); };
+            outImg.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to decode output image')); };
+            outImg.src = url;
+          }, 'image/png');
+
+        } else {
+          // No smoothing — export as-is
+          onProgress?.(0.9);
+          canvas.toBlob((blob) => {
+            if (!blob) { reject(new Error('Failed to create blob from canvas')); return; }
+            const url = URL.createObjectURL(blob);
+            const outImg = new window.Image();
+            outImg.onload = () => { URL.revokeObjectURL(url); onProgress?.(1); resolve(outImg); };
+            outImg.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to decode output image')); };
+            outImg.src = url;
+          }, 'image/png');
+        }
       })
       .catch(reject);
   });

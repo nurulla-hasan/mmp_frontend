@@ -1,6 +1,7 @@
 'use client';
 
-import { memo, useCallback, useRef } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
+import { PantagraphCropDialog } from './PantagraphCropDialog';
 import { useShallow } from 'zustand/shallow';
 import { usePantagraphStore } from '../store/usePantagraphStore';
 import { extractImageFromPDF } from '@/features/map-tool/utils/pdfHelper';
@@ -37,6 +38,10 @@ const MapUploadSection = memo(function MapUploadSection() {
   const formerInputRef = useRef<HTMLInputElement>(null);
   const currentInputRef = useRef<HTMLInputElement>(null);
 
+  // Crop dialog state
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropTarget, setCropTarget] = useState<'former' | 'current' | null>(null);
+
   const { formerMap, currentMap, setFormerMap, setCurrentMap } = usePantagraphStore(
     useShallow((s) => ({
       formerMap: s.formerMap,
@@ -46,81 +51,122 @@ const MapUploadSection = memo(function MapUploadSection() {
     })),
   );
 
-  const loadImage = useCallback(async (file: File, setter: (img: HTMLImageElement | null) => void) => {
+  // ── Load file → data URL → open crop dialog ─────────────────────────────────
+  const loadFileForCrop = useCallback(async (
+    file: File,
+    target: 'former' | 'current',
+  ) => {
     if (file.type === 'application/pdf') {
       try {
         const img = await extractImageFromPDF(file);
-        setter(img);
+        if (!img) return;
+        // Convert the HTMLImageElement src to a stable data URL for the cropper
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = canvas.toDataURL('image/png');
+        setCropSrc(dataUrl);
+        setCropTarget(target);
       } catch (error) {
-        console.error('PDF upload error:', error);
+        console.error('PDF load error:', error);
       }
       return;
     }
-    const url = URL.createObjectURL(file);
-    const img = new window.Image();
-    img.src = url;
-    img.onload = () => { URL.revokeObjectURL(url); setter(img); };
-    img.onerror = () => { URL.revokeObjectURL(url); };
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      if (dataUrl) {
+        setCropSrc(dataUrl);
+        setCropTarget(target);
+      }
+    };
+    reader.readAsDataURL(file);
   }, []);
 
   const handleFormerUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    loadImage(file, setFormerMap);
+    loadFileForCrop(file, 'former');
     e.target.value = '';
-  }, [loadImage, setFormerMap]);
+  }, [loadFileForCrop]);
 
   const handleCurrentUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    loadImage(file, setCurrentMap);
+    loadFileForCrop(file, 'current');
     e.target.value = '';
-  }, [loadImage, setCurrentMap]);
+  }, [loadFileForCrop]);
+
+  // ── When crop is done ────────────────────────────────────────────────────────
+  const handleCropDone = useCallback((img: HTMLImageElement) => {
+    if (cropTarget === 'former') setFormerMap(img);
+    else if (cropTarget === 'current') setCurrentMap(img);
+  }, [cropTarget, setFormerMap, setCurrentMap]);
+
+  const handleCropClose = useCallback(() => {
+    setCropSrc(null);
+    setCropTarget(null);
+  }, []);
 
   return (
-    <div className="space-y-3 mb-4">
-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
-        ম্যাপ আপলোড
-      </h3>
-      {/* Former Map */}
-      <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-destructive" />
-          সাবেক ম্যাপ
-        </Label>
-        <input ref={formerInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFormerUpload} />
-        <div className="flex gap-1">
-          <Button variant="outline" size="sm" onClick={() => formerInputRef.current?.click()}>
-            <ImageUp className="w-3.5 h-3.5 mr-1" />
-            {formerMap ? 'পরিবর্তন' : 'আপলোড'}
-          </Button>
-          {formerMap && (
-            <Button variant="ghost" size="icon-sm" onClick={() => setFormerMap(null)}>
-              <Trash2 className="w-3.5 h-3.5" />
+    <>
+      <div className="space-y-3 mb-4">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
+          ম্যাপ আপলোড
+        </h3>
+        {/* Former Map */}
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-destructive" />
+            সাবেক ম্যাপ
+          </Label>
+          <input ref={formerInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFormerUpload} />
+          <div className="flex gap-1">
+            <Button variant="outline" size="sm" onClick={() => formerInputRef.current?.click()}>
+              <ImageUp className="w-3.5 h-3.5 mr-1" />
+              {formerMap ? 'পরিবর্তন' : 'আপলোড'}
             </Button>
-          )}
+            {formerMap && (
+              <Button variant="ghost" size="icon-sm" onClick={() => setFormerMap(null)}>
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
+        </div>
+        {/* Current Map */}
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-primary" />
+            হাল ম্যাপ
+          </Label>
+          <input ref={currentInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleCurrentUpload} />
+          <div className="flex gap-1">
+            <Button variant="outline" size="sm" onClick={() => currentInputRef.current?.click()}>
+              <ImageUp className="w-3.5 h-3.5 mr-1" />
+              {currentMap ? 'পরিবর্তন' : 'আপলোড'}
+            </Button>
+            {currentMap && (
+              <Button variant="ghost" size="icon-sm" onClick={() => setCurrentMap(null)}>
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
-      {/* Current Map */}
-      <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-primary" />
-          হাল ম্যাপ
-        </Label>
-        <input ref={currentInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleCurrentUpload} />
-        <div className="flex gap-1">
-          <Button variant="outline" size="sm" onClick={() => currentInputRef.current?.click()}>
-            <ImageUp className="w-3.5 h-3.5 mr-1" />
-            {currentMap ? 'পরিবর্তন' : 'আপলোড'}
-          </Button>
-          {currentMap && (
-            <Button variant="ghost" size="icon-sm" onClick={() => setCurrentMap(null)}>
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
+
+      {/* Crop Dialog — mounts outside the scroll container to avoid z-index issues */}
+      {cropSrc && cropTarget && (
+        <PantagraphCropDialog
+          open={true}
+          imageSrc={cropSrc}
+          mapLabel={cropTarget === 'former' ? 'সাবেক ম্যাপ' : 'হাল ম্যাপ'}
+          onClose={handleCropClose}
+          onDone={handleCropDone}
+        />
+      )}
+    </>
   );
 });
 
@@ -335,8 +381,6 @@ const CurrentBgSection = memo(function CurrentBgSection() {
     </div>
   );
 });
-
-// ─── Sub-component: Opacity ───────────────────────────────────────────────────
 const OpacitySection = memo(function OpacitySection() {
   const { formerOpacity, currentOpacity, setFormerOpacity, setCurrentOpacity } = usePantagraphStore(
     useShallow((s) => ({
@@ -378,6 +422,43 @@ const OpacitySection = memo(function OpacitySection() {
           className={sliderCls('primary')}
         />
       </div>
+    </div>
+  );
+});
+
+// ─── Sub-component: Line Smoothing ───────────────────────────────────────────
+const LineSmoothingSection = memo(function LineSmoothingSection() {
+  const { lineSmoothing, setLineSmoothing, formerBgRemoved, currentBgRemoved } = usePantagraphStore(
+    useShallow((s) => ({
+      lineSmoothing:    s.lineSmoothing,
+      setLineSmoothing: s.setLineSmoothing,
+      formerBgRemoved:  s.formerBgRemoved,
+      currentBgRemoved: s.currentBgRemoved,
+    })),
+  );
+
+  // Only show when at least one BG has been removed
+  if (!formerBgRemoved && !currentBgRemoved) return null;
+
+  return (
+    <div className="space-y-2 py-2 border-t border-border">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs text-muted-foreground font-semibold">
+          লাইন মসৃণতা
+        </Label>
+        <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+          {lineSmoothing === 0 ? 'বন্ধ' : `${lineSmoothing}/10`}
+        </span>
+      </div>
+      <input
+        type="range" min="0" max="10" step="1"
+        value={lineSmoothing}
+        onChange={(e) => setLineSmoothing(Number(e.target.value))}
+        className={sliderCls('primary')}
+      />
+      <p className="text-[9px] text-muted-foreground/70 leading-tight">
+        স্লাইডার পরিবর্তন করলে পুনরায় প্রক্রিয়া হবে
+      </p>
     </div>
   );
 });
@@ -559,6 +640,9 @@ const SidebarContent = memo(function SidebarContent() {
 
       {/* Current BG Removal */}
       {hasCurrentMap && <CurrentBgSection />}
+
+      {/* Line Smoothing (auto-hides if no BG removed) */}
+      <LineSmoothingSection />
 
       <Separator />
 

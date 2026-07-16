@@ -10,7 +10,7 @@ export default function PantagraphLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-background">
+    <div className="relative w-full h-[100dvh] overflow-hidden bg-background">
       {/* Floating Toolbar */}
       <PantagraphToolbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 

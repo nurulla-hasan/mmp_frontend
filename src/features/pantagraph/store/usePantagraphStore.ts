@@ -63,6 +63,9 @@ export interface PantagraphState {
   currentLineColor: string;
   lineColorizeThreshold: number;
 
+  // Line smoothing after BG removal (0 = none, 5 = max)
+  lineSmoothing: number;
+
   // BG removal tolerance (0-255, how wide a color range to remove)
   formerBgTolerance: number;
   currentBgTolerance: number;
@@ -103,6 +106,7 @@ export interface PantagraphActions {
 
   setFormerBgTolerance: (tolerance: number) => void;
   setCurrentBgTolerance: (tolerance: number) => void;
+  setLineSmoothing: (smoothing: number) => void;
   setFormerOpacity: (opacity: number) => void;
   setCurrentOpacity: (opacity: number) => void;
 
@@ -141,9 +145,9 @@ export interface PantagraphActions {
   // Reset
   reset: () => void;
 
-  // PDF export
+  // PDF/PNG export
   setStageRef: (ref: Konva.Stage | null) => void;
-  saveAsPDF: () => Promise<void>;
+  exportMap: (format: 'pdf' | 'png') => Promise<void>;
 }
 
 export type PantagraphStore = PantagraphState & PantagraphActions;
@@ -164,6 +168,8 @@ const initialState: PantagraphState = {
   formerLineColor: '#000000',
   currentLineColor: '#000000',
   lineColorizeThreshold: 200,
+
+  lineSmoothing: 2,
 
   formerBgTolerance: 60,
   currentBgTolerance: 60,
@@ -199,6 +205,7 @@ const initialState: PantagraphState = {
 
   isRemovingFormerBg: false,
   isRemovingCurrentBg: false,
+
   redoStack: [],
   
   stageRef: null,
@@ -237,7 +244,6 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
       formerMapOriginal: formerMap,
       formerMapClean: formerMap,
       formerBgRemoved: false,
-      formerLineColor: '#000000',
     }),
   setCurrentMap: (currentMap) =>
     set({
@@ -245,7 +251,6 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
       currentMapOriginal: currentMap,
       currentMapClean: currentMap,
       currentBgRemoved: false,
-      currentLineColor: '#000000',
     }),
   setActiveMap: (activeMap) => set({ activeMap }),
   setCanvasBg: (canvasBg) => set({ canvasBg }),
@@ -253,12 +258,12 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   setFormerBgColor: (formerBgColor) => {
     set({ formerBgColor });
     debounceBg('formerBgColor', async () => {
-      const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgTolerance, formerLineColor, lineColorizeThreshold } = get();
+      const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgTolerance, lineSmoothing, formerLineColor, lineColorizeThreshold } = get();
       if (!formerBgRemoved || !formerMapOriginal || isRemovingFormerBg) return;
       set({ isRemovingFormerBg: true });
       try {
         const parsed = parseHex(formerBgColor);
-        const processed = await removeBackground(formerMapOriginal, [parsed], formerBgTolerance);
+        const processed = await removeBackground(formerMapOriginal, [parsed], formerBgTolerance, lineSmoothing);
         set({ formerMapClean: processed });
         const final = await applyLineToCleanMap(processed, formerLineColor, lineColorizeThreshold);
         set({ formerMap: final ?? processed, isRemovingFormerBg: false });
@@ -271,12 +276,12 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   setCurrentBgColor: (currentBgColor) => {
     set({ currentBgColor });
     debounceBg('currentBgColor', async () => {
-      const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgTolerance, currentLineColor, lineColorizeThreshold } = get();
+      const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgTolerance, lineSmoothing, currentLineColor, lineColorizeThreshold } = get();
       if (!currentBgRemoved || !currentMapOriginal || isRemovingCurrentBg) return;
       set({ isRemovingCurrentBg: true });
       try {
         const parsed = parseHex(currentBgColor);
-        const processed = await removeBackground(currentMapOriginal, [parsed], currentBgTolerance);
+        const processed = await removeBackground(currentMapOriginal, [parsed], currentBgTolerance, lineSmoothing);
         set({ currentMapClean: processed });
         const final = await applyLineToCleanMap(processed, currentLineColor, lineColorizeThreshold);
         set({ currentMap: final ?? processed, isRemovingCurrentBg: false });
@@ -317,17 +322,39 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
       console.error('Line colorize failed (current):', e);
     }
   },
-  setLineColorizeThreshold: (lineColorizeThreshold) => set({ lineColorizeThreshold }),
+  // Debounced so heavy colorize only fires after slider settles
+  setLineColorizeThreshold: (lineColorizeThreshold) => {
+    set({ lineColorizeThreshold });
+    debounceBg('lineColorizeThreshold', async () => {
+      const { formerMapClean, formerLineColor, currentMapClean, currentLineColor } = get();
+      const tasks: Promise<void>[] = [];
+      if (formerMapClean && formerLineColor !== '#000000') {
+        tasks.push(
+          colorizeImage(formerMapClean, formerLineColor, lineColorizeThreshold)
+            .then((img) => set({ formerMap: img }))
+            .catch((e) => console.error('Threshold re-colorize failed (former):', e))
+        );
+      }
+      if (currentMapClean && currentLineColor !== '#000000') {
+        tasks.push(
+          colorizeImage(currentMapClean, currentLineColor, lineColorizeThreshold)
+            .then((img) => set({ currentMap: img }))
+            .catch((e) => console.error('Threshold re-colorize failed (current):', e))
+        );
+      }
+      await Promise.all(tasks);
+    });
+  },
 
   setFormerBgTolerance: (formerBgTolerance) => {
     set({ formerBgTolerance });
     debounceBg('formerBgTolerance', async () => {
-      const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgColor, formerLineColor, lineColorizeThreshold } = get();
+      const { formerBgRemoved, formerMapOriginal, isRemovingFormerBg, formerBgColor, lineSmoothing, formerLineColor, lineColorizeThreshold } = get();
       if (!formerBgRemoved || !formerMapOriginal || isRemovingFormerBg) return;
       set({ isRemovingFormerBg: true });
       try {
         const parsed = parseHex(formerBgColor);
-        const processed = await removeBackground(formerMapOriginal, [parsed], formerBgTolerance);
+        const processed = await removeBackground(formerMapOriginal, [parsed], formerBgTolerance, lineSmoothing);
         set({ formerMapClean: processed });
         const final = await applyLineToCleanMap(processed, formerLineColor, lineColorizeThreshold);
         set({ formerMap: final ?? processed, isRemovingFormerBg: false });
@@ -340,12 +367,12 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   setCurrentBgTolerance: (currentBgTolerance) => {
     set({ currentBgTolerance });
     debounceBg('currentBgTolerance', async () => {
-      const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgColor, currentLineColor, lineColorizeThreshold } = get();
+      const { currentBgRemoved, currentMapOriginal, isRemovingCurrentBg, currentBgColor, lineSmoothing, currentLineColor, lineColorizeThreshold } = get();
       if (!currentBgRemoved || !currentMapOriginal || isRemovingCurrentBg) return;
       set({ isRemovingCurrentBg: true });
       try {
         const parsed = parseHex(currentBgColor);
-        const processed = await removeBackground(currentMapOriginal, [parsed], currentBgTolerance);
+        const processed = await removeBackground(currentMapOriginal, [parsed], currentBgTolerance, lineSmoothing);
         set({ currentMapClean: processed });
         const final = await applyLineToCleanMap(processed, currentLineColor, lineColorizeThreshold);
         set({ currentMap: final ?? processed, isRemovingCurrentBg: false });
@@ -356,11 +383,48 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
     });
   },
 
+  setLineSmoothing: (lineSmoothing) => {
+    set({ lineSmoothing });
+    // Re-apply BG removal for both maps with new smoothing level
+    debounceBg('lineSmoothing', async () => {
+      const s = get();
+      const tasks: Promise<void>[] = [];
+
+      if (s.formerBgRemoved && s.formerMapOriginal && !s.isRemovingFormerBg) {
+        set({ isRemovingFormerBg: true });
+        tasks.push(
+          removeBackground(s.formerMapOriginal, [parseHex(s.formerBgColor)], s.formerBgTolerance, lineSmoothing)
+            .then(async (processed) => {
+              set({ formerMapClean: processed });
+              const final = await applyLineToCleanMap(processed, s.formerLineColor, s.lineColorizeThreshold);
+              set({ formerMap: final ?? processed, isRemovingFormerBg: false });
+            })
+            .catch((e) => { console.error(e); set({ isRemovingFormerBg: false }); })
+        );
+      }
+
+      if (s.currentBgRemoved && s.currentMapOriginal && !s.isRemovingCurrentBg) {
+        set({ isRemovingCurrentBg: true });
+        tasks.push(
+          removeBackground(s.currentMapOriginal, [parseHex(s.currentBgColor)], s.currentBgTolerance, lineSmoothing)
+            .then(async (processed) => {
+              set({ currentMapClean: processed });
+              const final = await applyLineToCleanMap(processed, s.currentLineColor, s.lineColorizeThreshold);
+              set({ currentMap: final ?? processed, isRemovingCurrentBg: false });
+            })
+            .catch((e) => { console.error(e); set({ isRemovingCurrentBg: false }); })
+        );
+      }
+
+      await Promise.all(tasks);
+    });
+  },
+
   setFormerOpacity: (formerOpacity) => set({ formerOpacity }),
   setCurrentOpacity: (currentOpacity) => set({ currentOpacity }),
 
   toggleFormerBgRemoval: async () => {
-    const { formerMapOriginal, formerBgRemoved, formerBgColor, formerBgTolerance, isRemovingFormerBg, formerLineColor, lineColorizeThreshold } = get();
+    const { formerMapOriginal, formerBgRemoved, formerBgColor, formerBgTolerance, lineSmoothing, isRemovingFormerBg, formerLineColor, lineColorizeThreshold } = get();
     if (!formerMapOriginal || isRemovingFormerBg) return;
 
     if (formerBgRemoved) {
@@ -372,7 +436,7 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
       set({ isRemovingFormerBg: true });
       try {
         const parsed = parseHex(formerBgColor);
-        const processed = await removeBackground(formerMapOriginal, [parsed], formerBgTolerance);
+        const processed = await removeBackground(formerMapOriginal, [parsed], formerBgTolerance, lineSmoothing);
         set({ formerMapClean: processed });
         const final = await applyLineToCleanMap(processed, formerLineColor, lineColorizeThreshold);
         set({ formerMap: final ?? processed, formerBgRemoved: true, isRemovingFormerBg: false });
@@ -384,7 +448,7 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   },
 
   toggleCurrentBgRemoval: async () => {
-    const { currentMapOriginal, currentBgRemoved, currentBgColor, currentBgTolerance, isRemovingCurrentBg, currentLineColor, lineColorizeThreshold } = get();
+    const { currentMapOriginal, currentBgRemoved, currentBgColor, currentBgTolerance, lineSmoothing, isRemovingCurrentBg, currentLineColor, lineColorizeThreshold } = get();
     if (!currentMapOriginal || isRemovingCurrentBg) return;
 
     if (currentBgRemoved) {
@@ -396,7 +460,7 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
       set({ isRemovingCurrentBg: true });
       try {
         const parsed = parseHex(currentBgColor);
-        const processed = await removeBackground(currentMapOriginal, [parsed], currentBgTolerance);
+        const processed = await removeBackground(currentMapOriginal, [parsed], currentBgTolerance, lineSmoothing);
         set({ currentMapClean: processed });
         const final = await applyLineToCleanMap(processed, currentLineColor, lineColorizeThreshold);
         set({ currentMap: final ?? processed, currentBgRemoved: true, isRemovingCurrentBg: false });
@@ -554,11 +618,11 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
   startColorPick: (target) => set({ isPickingColor: true, pickingTarget: target }),
   cancelColorPick: () => set({ isPickingColor: false, pickingTarget: null }),
 
-  // ── PDF export ──
+  // ── PDF / PNG export ──
 
   setStageRef: (ref) => set({ stageRef: ref }),
 
-  saveAsPDF: async () => {
+  exportMap: async (format: 'pdf' | 'png') => {
     const s = get();
     const { formerMap, currentMap } = s;
 
@@ -581,29 +645,42 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
         rotDeg: number,
         scaleX: number,
         scaleY: number,
+        skewX: number,
+        skewY: number,
       ) {
-        const w = img.width * scaleX;
-        const h = img.height * scaleY;
+        const w = img.width;
+        const h = img.height;
         const rad = (rotDeg * Math.PI) / 180;
         const cos = Math.cos(rad);
         const sin = Math.sin(rad);
+        
         const corners = [
           { x: 0, y: 0 },
           { x: w, y: 0 },
           { x: w, y: h },
           { x: 0, y: h },
         ];
-        return corners.map(({ x, y }) => ({
-          x: pos.x + x * cos - y * sin,
-          y: pos.y + x * sin + y * cos,
-        }));
+        
+        return corners.map(({ x, y }) => {
+          // 1. Scale & Skew
+          const x1 = scaleX * x + skewX * y;
+          const y1 = skewY * x + scaleY * y;
+          // 2. Rotate
+          const x2 = x1 * cos - y1 * sin;
+          const y2 = x1 * sin + y1 * cos;
+          // 3. Translate
+          return {
+            x: x2 + pos.x,
+            y: y2 + pos.y,
+          };
+        });
       }
 
       const allCorners: { x: number; y: number }[] = [];
 
       if (currentMap) {
         allCorners.push(
-          ...getTransformedCorners(currentMap, s.currentPosition, s.currentRotation, 1, 1),
+          ...getTransformedCorners(currentMap, s.currentPosition, s.currentRotation, 1, 1, 0, 0),
         );
       }
       if (formerMap) {
@@ -614,6 +691,8 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
             s.formerRotation,
             s.formerScaleX,
             s.formerScaleY,
+            s.formerSkewX,
+            s.formerSkewY,
           ),
         );
       }
@@ -627,7 +706,9 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
       const contentH = Math.ceil(maxY - minY);
 
       // ── 2. Create offscreen canvas ──────────────────────────────────────────
-      const SCALE = 1.5; // output pixel density (balance quality vs size)
+      // Higher scale = better resolution, but capped to avoid browser OOM crash.
+      const MAX_CANVAS_DIM = 8192; // safe limit for most browsers (8K)
+      const SCALE = Math.min(4, MAX_CANVAS_DIM / Math.max(contentW, contentH, 1));
       const canvas = document.createElement('canvas');
       canvas.width = Math.round(contentW * SCALE);
       canvas.height = Math.round(contentH * SCALE);
@@ -686,33 +767,42 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => ({
         drawCurrent();
       }
 
-      // ── 3. Fit into A4 and save PDF ─────────────────────────────────────────
-      const A4_W = 210;
-      const A4_H = 297;
-      const MARGIN = 8;
+      if (format === 'png') {
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = 'pantagraph-alignment.png';
+        link.href = dataUrl;
+        link.click();
+        SuccessToast('PNG সফলভাবে ডাউনলোড হয়েছে!');
+      } else {
+        // ── 3. Fit into A4 and save PDF ─────────────────────────────────────────
+        const A4_W = 210;
+        const A4_H = 297;
+        const MARGIN = 8;
 
-      const orientation = contentW > contentH ? 'landscape' : 'portrait';
-      // Swap A4 dims for landscape
-      const pdfW = orientation === 'landscape' ? A4_H : A4_W;
-      const pdfH = orientation === 'landscape' ? A4_W : A4_H;
-      const printMaxW = pdfW - MARGIN * 2;
-      const printMaxH = pdfH - MARGIN * 2;
+        const orientation = contentW > contentH ? 'landscape' : 'portrait';
+        // Swap A4 dims for landscape
+        const pdfW = orientation === 'landscape' ? A4_H : A4_W;
+        const pdfH = orientation === 'landscape' ? A4_W : A4_H;
+        const printMaxW = pdfW - MARGIN * 2;
+        const printMaxH = pdfH - MARGIN * 2;
 
-      const fitScale = Math.min(printMaxW / contentW, printMaxH / contentH);
-      const imgW = contentW * fitScale;
-      const imgH = contentH * fitScale;
-      const offsetX = (pdfW - imgW) / 2;
-      const offsetY = (pdfH - imgH) / 2;
+        const fitScale = Math.min(printMaxW / contentW, printMaxH / contentH);
+        const imgW = contentW * fitScale;
+        const imgH = contentH * fitScale;
+        const offsetX = (pdfW - imgW) / 2;
+        const offsetY = (pdfH - imgH) / 2;
 
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.96);
-      const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
-      pdf.addImage(dataUrl, 'JPEG', offsetX, offsetY, imgW, imgH);
-      pdf.save('pantagraph-alignment.pdf');
-
-      SuccessToast('PDF সফলভাবে ডাউনলোড হয়েছে!');
+        // Use JPEG for PDF to keep size manageable, but high quality
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+        const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
+        pdf.addImage(dataUrl, 'JPEG', offsetX, offsetY, imgW, imgH);
+        pdf.save('pantagraph-alignment.pdf');
+        SuccessToast('PDF সফলভাবে ডাউনলোড হয়েছে!');
+      }
     } catch (error) {
-      console.error('PDF export failed:', error);
-      ErrorToast('PDF জেনারেট করতে ব্যর্থ হয়েছে');
+      console.error('Export failed:', error);
+      ErrorToast('ফাইল জেনারেট করতে ব্যর্থ হয়েছে');
     }
   },
 

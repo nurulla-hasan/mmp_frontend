@@ -65,7 +65,7 @@ export function colorizeImage(
       // Sync fallback — blocks main thread
       const data = imageData.data;
       for (let i = 0; i < data.length; i += 4) {
-        if (data[i + 3] < 128) continue;
+        if (data[i + 3] === 0) continue; // skip fully transparent only
         const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
         if (lum < threshold) {
           data[i]     = targetR;
@@ -78,7 +78,8 @@ export function colorizeImage(
     }
 
     // Transfer a copy to the worker (zero-copy transfer to worker thread)
-    const copy = imageData.data.buffer.slice(0) as ArrayBuffer;
+    // Copy exact elements to avoid buffer padding issues
+    const copy = new Uint8ClampedArray(imageData.data).buffer as ArrayBuffer;
 
     worker.addEventListener(
       'message',
