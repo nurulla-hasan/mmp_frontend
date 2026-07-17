@@ -9,10 +9,12 @@ import { TiledBackground } from './TiledBackground';
 /** Images below this pixel area won't crash even low-end GPUs. */
 
 export const StageBackground = memo(function StageBackground() {
-  const { image, tilePyramidInfo } = useMapStore(useShallow((s) => ({
+  const { image, tilePyramidInfo, originalWidth, originalHeight } = useMapStore(useShallow((s) => ({
     image: s.image,
     tilePyramidInfo: s.tilePyramidInfo,
     isGeneratingTiles: s.isGeneratingTiles,
+    originalWidth: s.originalWidth,
+    originalHeight: s.originalHeight,
   })));
   if (!image) return null;
 
@@ -29,5 +31,13 @@ export const StageBackground = memo(function StageBackground() {
   // }
 
   // Fall back to single KonvaImage for small images
-  return <KonvaImage image={image} imageSmoothingEnabled={false} perfectDrawEnabled={false} />;
+  return (
+    <KonvaImage 
+      image={image} 
+      width={originalWidth || image.naturalWidth}
+      height={originalHeight || image.naturalHeight}
+      imageSmoothingEnabled={true} 
+      perfectDrawEnabled={false} 
+    />
+  );
 });

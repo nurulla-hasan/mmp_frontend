@@ -90,6 +90,7 @@ export const useStageEvents = () => {
   const plotPointsRef = useRef(plotPoints);
   const snapHintRef = useRef(snapHint);
   const stageScaleRef = useRef(stageScale);
+  const stagePosRef = useRef(stagePos);
 
   useLayoutEffect(() => {
     modeRef.current = mode;
@@ -97,6 +98,7 @@ export const useStageEvents = () => {
     plotPointsRef.current = plotPoints;
     snapHintRef.current = snapHint;
     stageScaleRef.current = stageScale;
+    stagePosRef.current = stagePos;
   });
 
 
@@ -258,8 +260,8 @@ export const useStageEvents = () => {
           lastPinchDistRef.current = 0;
           pinchStartRef.current = {
             distance: 0,
-            scale: stageScale,
-            stagePos: { ...stagePos },
+            scale: stageScaleRef.current,
+            stagePos: { ...stagePosRef.current },
             centerClient: { x: 0, y: 0 },
           };
           blockTapRef.current = false;
@@ -277,8 +279,8 @@ export const useStageEvents = () => {
         lastPinchDistRef.current = 0;
         pinchStartRef.current = {
           distance: 0,
-          scale: stageScale,
-          stagePos: { ...stagePos },
+          scale: stageScaleRef.current,
+          stagePos: { ...stagePosRef.current },
           centerClient: { x: 0, y: 0 },
         };
         blockTapRef.current = false;
@@ -292,8 +294,8 @@ export const useStageEvents = () => {
         lastPinchDistRef.current = 0;
         pinchStartRef.current = {
           distance: 0,
-          scale: stageScale,
-          stagePos: { ...stagePos },
+          scale: stageScaleRef.current,
+          stagePos: { ...stagePosRef.current },
           centerClient: { x: 0, y: 0 },
         };
         if (blockTapRef.current) {
@@ -320,7 +322,7 @@ export const useStageEvents = () => {
         touchSessionRef.current.active = false;
       }
     },
-    [setIsPinching, stageScale, stagePos, TAP_GRACE_MS, TAP_MIN_MS],
+    [setIsPinching, TAP_GRACE_MS, TAP_MIN_MS],
   );
 
   const onDragMove = useCallback(

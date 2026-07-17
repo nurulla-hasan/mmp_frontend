@@ -69,6 +69,9 @@ export interface ImageState {
   image: HTMLImageElement | null;
   /** Full-resolution original image (kept for accurate tile generation). */
   _originalImage: HTMLImageElement | null;
+  /** The natural dimensions of the full-resolution image. Used for coordinate system consistency. */
+  originalWidth: number;
+  originalHeight: number;
   selectedFile: File | null;
   imageName: string;
   isProcessingFile: boolean;
@@ -100,6 +103,8 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
   // State
   image: null,
   _originalImage: null,
+  originalWidth: 0,
+  originalHeight: 0,
   selectedFile: null,
   imageName: 'map.jpg',
   isProcessingFile: false,
@@ -151,7 +156,15 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
           displayImg = await downscaleImage(img, safeMax);
           console.info(`📐 PDF image downscaled for GPU safety: ${img.naturalWidth}×${img.naturalHeight} → ${displayImg.naturalWidth}×${displayImg.naturalHeight} (max: ${safeMax})`);
         }
-        set({ selectedFile: file, image: displayImg, _originalImage: img, pdfDpiInfo: dpiInfo, isProcessingFile: false });
+        set({ 
+          selectedFile: file, 
+          image: displayImg, 
+          _originalImage: img, 
+          originalWidth: img.naturalWidth,
+          originalHeight: img.naturalHeight,
+          pdfDpiInfo: dpiInfo, 
+          isProcessingFile: false 
+        });
         if (dpiInfo) {
           console.info(`📐 PDF DPI detected: ${dpiInfo.dpi} DPI (page: ${dpiInfo.pageWidthInches.toFixed(1)}"×${dpiInfo.pageHeightInches.toFixed(1)}", image: ${dpiInfo.imageWidthPx}×${dpiInfo.imageHeightPx}px)`);
         }
@@ -178,7 +191,15 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
             displayImg = await downscaleImage(img, safeMax);
             console.info(`📐 Image downscaled for GPU safety: ${img.naturalWidth}×${img.naturalHeight} → ${displayImg.naturalWidth}×${displayImg.naturalHeight} (max: ${safeMax})`);
           }
-          set({ selectedFile: file, imageName: file.name || 'image', image: displayImg, _originalImage: img, isProcessingFile: false });
+          set({ 
+            selectedFile: file, 
+            imageName: file.name || 'image', 
+            image: displayImg, 
+            _originalImage: img, 
+            originalWidth: img.naturalWidth,
+            originalHeight: img.naturalHeight,
+            isProcessingFile: false 
+          });
           // Start tile building in the background (uses original image for accuracy)
           get().buildTilePyramid();
           resolve(true);
@@ -207,7 +228,19 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
         console.error('Failed to clear tiles from IndexedDB:', err);
       }
     }
-    set({ image: null, _originalImage: null, selectedFile: null, imageName: '', pdfDpiInfo: null, isProcessingFile: false, tilePyramidInfo: null, isGeneratingTiles: false, tileProgress: 0 });
+    set({ 
+      image: null, 
+      _originalImage: null, 
+      originalWidth: 0,
+      originalHeight: 0,
+      selectedFile: null, 
+      imageName: '', 
+      pdfDpiInfo: null, 
+      isProcessingFile: false, 
+      tilePyramidInfo: null, 
+      isGeneratingTiles: false, 
+      tileProgress: 0 
+    });
     const fileInput = document.getElementById('map-upload') as HTMLInputElement | null;
     if (fileInput) fileInput.value = '';
   },

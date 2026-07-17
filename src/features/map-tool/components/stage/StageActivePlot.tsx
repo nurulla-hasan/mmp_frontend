@@ -110,11 +110,22 @@ const LiveDashedLine = memo(() => {
     if (!snapHint && plotPoints.length > 0) {
       const firstPt = plotPoints[0];
       for (const plot of plots) {
-        if (isPointInPolygon(firstPt, plot.points)) {
-          const clipped = clipLineToPolygon(lastPt, { x: targetX, y: targetY }, plot.points);
-          targetX = clipped.x;
-          targetY = clipped.y;
-          break;
+        // Fast bounding box pre-check
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const p of plot.points) {
+          if (p.x < minX) minX = p.x;
+          if (p.x > maxX) maxX = p.x;
+          if (p.y < minY) minY = p.y;
+          if (p.y > maxY) maxY = p.y;
+        }
+        
+        if (firstPt.x >= minX && firstPt.x <= maxX && firstPt.y >= minY && firstPt.y <= maxY) {
+          if (isPointInPolygon(firstPt, plot.points)) {
+            const clipped = clipLineToPolygon(lastPt, { x: targetX, y: targetY }, plot.points);
+            targetX = clipped.x;
+            targetY = clipped.y;
+            break;
+          }
         }
       }
     }

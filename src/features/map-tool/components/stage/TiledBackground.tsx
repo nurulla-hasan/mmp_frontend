@@ -1,6 +1,7 @@
 import { memo, useState, useEffect, useRef } from 'react';
 import { Image as KonvaImage } from 'react-konva';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
+import { useShallow } from 'zustand/shallow';
 import { useDebounce } from '@/features/map-tool/hooks/use-debounce';
 import { TILE_SIZE, type TileCoord } from '@/features/map-tool/utils/tiling/types';
 import {
@@ -25,10 +26,14 @@ interface TileRender {
  * dramatically reducing GPU memory for large images.
  */
 export const TiledBackground = memo(() => {
-  const tilePyramidInfo = useMapStore((s) => s.tilePyramidInfo);
-  const stagePos = useMapStore((s) => s.stagePos);
-  const stageScale = useMapStore((s) => s.stageScale);
-  const stageSize = useMapStore((s) => s.stageSize);
+  const { tilePyramidInfo, stagePos, stageScale, stageSize } = useMapStore(
+    useShallow((s) => ({
+      tilePyramidInfo: s.tilePyramidInfo,
+      stagePos: s.stagePos,
+      stageScale: s.stageScale,
+      stageSize: s.stageSize,
+    }))
+  );
 
   // Debounce stage values so we don't recompute tiles on every pixel of pan
   const debouncedPos = useDebounce(stagePos, 80);

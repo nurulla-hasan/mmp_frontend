@@ -1,4 +1,6 @@
-import { memo, useMemo } from 'react';
+
+import { memo, useMemo, useCallback } from 'react';
+import Konva from 'konva';
 import { useShallow } from 'zustand/shallow';
 import { Group, Line, Label as KonvaLabel, Tag, Text } from 'react-konva';
 import {
@@ -18,8 +20,7 @@ import { getLineIntersection, getVisualCenter, groupPolygonSegments } from '@/fe
 import { signedArea } from '@/features/map-tool/utils/component-helpers';
 import { getReadableRotation, hexToRgba } from '@/features/map-tool/utils/component-helpers';
 import { useMapStore } from '@/features/map-tool/store/useMapStore';
-import type { Point } from '@/features/map-tool/types/map';
-import type Konva from 'konva';
+import type { Point, MapMode, PlotRecord } from '@/features/map-tool/types/map';
 import type { PlotsLabelData, PlotSegment, PlotSegmentGroup } from '@/features/map-tool/types/stage';
 import { PlotEdgeLabels } from './PlotEdgeLabels';
 
@@ -52,6 +53,171 @@ const getDefaultManualCutLine = (plotPoints: Point[], center: Point, stageScale:
     { x: center.x + fallbackOffset, y: center.y }
   ];
 };
+
+
+type SinglePlotProps = {
+  plot: {
+    id: string;
+    points: number[];
+    first: Point;
+    areaCenter: Point;
+    plotIndex: number;
+    color: string;
+    groups: PlotSegmentGroup[];
+    isClockwise: boolean;
+  };
+  mode: MapMode;
+  manualDividePlotId: string | null;
+  setManualDividePlotId: (id: string | null) => void;
+  manualCutLine: Point[] | null;
+  setManualCutLine: (pts: Point[] | null) => void;
+  stageScale: number;
+  plotData: PlotRecord;
+  isShowDiagonals: boolean;
+};
+
+const SinglePlot = memo(({ 
+  plot, 
+  mode, 
+  manualDividePlotId, 
+  setManualDividePlotId, 
+  manualCutLine, 
+  setManualCutLine, 
+  stageScale, 
+  plotData, 
+  isShowDiagonals 
+}: SinglePlotProps) => {
+  const { id, points, first, areaCenter, color, groups } = plot;
+  const isManualSelected = mode === 'manual_divide_plot' && manualDividePlotId === id;
+  const plotFill = hexToRgba(color, isManualSelected ? 0.18 : 0.10);
+  const hoverFill = hexToRgba(color, 0.15);
+  const areaText = `${plotData.results.shotok.toFixed(2)} শতক`;
+  const areaFontSize = (UI_CONFIG.fontSize.small * AREA_LABEL_FONT_SCALE) / stageScale;
+  const areaPadding = (UI_CONFIG.padding.small * AREA_LABEL_PADDING_FACTOR) / stageScale;
+  const areaWidth = areaText.length * areaFontSize * AREA_LABEL_WIDTH_FACTOR + areaPadding * 2;
+  const areaHeight = areaFontSize * AREA_LABEL_HEIGHT_FACTOR + areaPadding * 2;
+
+  const onMouseEnter = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (mode !== 'manual_divide_plot') return;
+    const container = e.target.getStage()?.container();
+    if (container) container.style.cursor = 'pointer';
+    if (!isManualSelected) (e.target as Konva.Shape).fill(hoverFill);
+  }, [mode, isManualSelected, hoverFill]);
+
+  const onMouseLeave = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (mode !== 'manual_divide_plot') return;
+    const container = e.target.getStage()?.container();
+    if (container) container.style.cursor = 'default';
+    if (!isManualSelected) (e.target as Konva.Shape).fill(plotFill);
+  }, [mode, isManualSelected, plotFill]);
+
+  const handleClickTap = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+    if (mode !== 'manual_divide_plot') return;
+    e.cancelBubble = true;
+    if (manualDividePlotId === id && manualCutLine && manualCutLine.length >= 2) return;
+    setManualDividePlotId(id);
+    const plotPts = groups.flatMap((g) => g.segments.map((s) => s.point));
+    const xs = plotPts.map((p) => p.x);
+    const ys = plotPts.map((p) => p.y);
+    const pos = e.target.getStage()?.getRelativePointerPosition();
+    const minPxX = Math.min(...xs);
+    const maxPxX = Math.max(...xs);
+    const minPxY = Math.min(...ys);
+    const maxPxY = Math.max(...ys);
+    const midPxX = pos ? pos.x : (minPxX + maxPxX) / 2;
+    const midPxY = pos ? pos.y : (minPxY + maxPxY) / 2;
+    setManualCutLine(getDefaultManualCutLine(plotPts, { x: midPxX, y: midPxY }, stageScale));
+  }, [mode, id, manualDividePlotId, manualCutLine, setManualDividePlotId, groups, setManualCutLine, stageScale]);
+
+  return (
+    <Group>
+      <Line
+        points={[...points, first.x, first.y]}
+        stroke={color}
+        strokeWidth={UI_CONFIG.strokeWidth.xxthick / stageScale}
+        fill={plotFill}
+        closed
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onClick={handleClickTap}
+        onTap={handleClickTap}
+      />
+      {mode !== 'manual_divide_plot' && (
+        <KonvaLabel
+          x={areaCenter.x}
+          y={areaCenter.y}
+          offsetX={areaWidth / 2}
+          offsetY={areaHeight / 2}
+          opacity={0.95}
+        >
+          <Tag
+            fill={color}
+            cornerRadius={(UI_CONFIG.radius.small * AREA_LABEL_RADIUS_FACTOR) / stageScale}
+            shadowColor="rgba(0,0,0,0.25)"
+            shadowBlur={2 / stageScale}
+          />
+          <Text text={areaText} fill="white" padding={areaPadding} fontSize={areaFontSize} fontStyle="bold" />
+        </KonvaLabel>
+      )}
+      {isShowDiagonals && plotData.results.diagonals && plotData.results.diagonals.map((d: { p1Index: number; p2Index: number; lengthFt: number }, dIdx: number) => {
+        const p1x = points[d.p1Index * 2];
+        const p1y = points[d.p1Index * 2 + 1];
+        const p2x = points[d.p2Index * 2];
+        const p2y = points[d.p2Index * 2 + 1];
+        const dx = p2x - p1x;
+        const dy = p2y - p1y;
+        const distPx = Math.hypot(dx, dy);
+
+        if (distPx <= MIN_DIAGONAL_DRAW_PX / stageScale) return null;
+
+        const midX = (p1x + p2x) / 2;
+        const midY = (p1y + p2y) / 2;
+        const labelText = d.lengthFt >= MIN_EDGE_LABEL_FT ? formatFeetInches(d.lengthFt) : '';
+
+        if (labelText) {
+          const fontSize = UI_CONFIG.fontSize.small / stageScale;
+          const padding = UI_CONFIG.padding.small / stageScale;
+          const estWidth = (labelText.length * fontSize * 0.6) + padding * 2;
+          const estHeight = fontSize + padding * 2;
+
+          return (
+            <Group key={`plot-${id}-diag-${dIdx}`}>
+              <Line
+                points={[p1x, p1y, p2x, p2y]}
+                stroke={color}
+                strokeWidth={1 / stageScale}
+                dash={[6 / stageScale, 6 / stageScale]}
+                opacity={0.4}
+              />
+              <KonvaLabel
+                x={midX}
+                y={midY}
+                offsetX={estWidth / 2}
+                offsetY={estHeight / 2}
+                opacity={0.8}
+              >
+                <Tag fill={UI_CONFIG.colors.textWhite} stroke={color} strokeWidth={UI_CONFIG.strokeWidth.thin / stageScale} cornerRadius={UI_CONFIG.padding.small / stageScale} />
+                <Text text={labelText} fontSize={fontSize} fill={color} padding={padding} fontStyle="bold" />
+              </KonvaLabel>
+            </Group>
+          );
+        } else {
+          return (
+            <Line
+              key={`plot-${id}-diag-${dIdx}`}
+              points={[p1x, p1y, p2x, p2y]}
+              stroke={color}
+              strokeWidth={1 / stageScale}
+              dash={[6 / stageScale, 6 / stageScale]}
+              opacity={0.4}
+            />
+          );
+        }
+      })}
+    </Group>
+  );
+});
+SinglePlot.displayName = 'SinglePlot';
 
 export const StagePlots = memo(() => {
   const { plots, stageScale, scale, mode, manualDividePlotId, manualCutLine, setManualDividePlotId, setManualCutLine, isShowDiagonals } = useMapStore(
@@ -99,13 +265,21 @@ export const StagePlots = memo(() => {
     });
   }, [plots, scale]);
 
-  // Memoize labels — placed outside polygon using outward normal from winding order.
-  const allLabels = useMemo(() => {
+  const labelGeometry = useMemo(() => {
     if (plotPolygons.length === 0) return [];
 
-    const drawnLabelCenters: { x: number; y: number }[] = [];
-    const allLabelsMut: PlotsLabelData[] = [];
-
+    const geom: {
+      plotId: string;
+      color: string;
+      i: number;
+      midX: number;
+      midY: number;
+      rotation: number;
+      perpX: number;
+      perpY: number;
+      labelText: string;
+      totalDistPx: number;
+    }[] = [];
     const sortedPlotPolygons = [...plotPolygons].sort((a, b) => {
       const areaA = plots[a.plotIndex]?.results?.shotok || 0;
       const areaB = plots[b.plotIndex]?.results?.shotok || 0;
@@ -121,11 +295,10 @@ export const StagePlots = memo(() => {
       if (sortedPlotPolygons.length > 1 && currentArea === maxArea) return; // Skip largest plot
 
       plot.groups.forEach((group, groupIdx) => {
-        const totalDistPx = group.segments.reduce((sum, seg) => sum + seg.distPx, 0);
-        if (totalDistPx < MIN_EDGE_LABEL_DRAW_PX / stageScale) return;
         if (group.totalLengthFt < MIN_EDGE_LABEL_FT) return;
 
         const labelText = formatFeetInches(group.totalLengthFt);
+        const totalDistPx = group.segments.reduce((sum, seg) => sum + seg.distPx, 0);
         
         // Find the physical midpoint ALONG the boundary path (not the chord)
         const firstPt = group.segments[0].point;
@@ -150,11 +323,6 @@ export const StagePlots = memo(() => {
           walked += d;
         }
 
-        const fontSize = UI_CONFIG.fontSize.small / stageScale;
-        const padding = UI_CONFIG.padding.small / stageScale;
-        const estWidth = (labelText.length * fontSize * 0.6) + padding * 2;
-        const estHeight = fontSize + padding * 2;
-        
         const dx = midDx;
         const dy = midDy;
         const dist = Math.hypot(dx, dy) > 0.001 ? Math.hypot(dx, dy) : 1;
@@ -164,36 +332,63 @@ export const StagePlots = memo(() => {
         // Outward normal — always points away from polygon interior
         const perpX = plot.isClockwise ?  dy / dist : -dy / dist;
         const perpY = plot.isClockwise ? -dx / dist :  dx / dist;
-        const labelOffset = LABEL_OFFSET_DRAWN_PLOT / stageScale;
-        const lx = midX + perpX * labelOffset;
-        const ly = midY + perpY * labelOffset;
 
-        const isDuplicate = drawnLabelCenters.some(
-          c => Math.hypot(c.x - midX, c.y - midY) < 10 / stageScale
-        );
-        if (isDuplicate) return;
-        drawnLabelCenters.push({ x: midX, y: midY });
-
-        allLabelsMut.push({
+        geom.push({
           plotId: plot.id,
           color: plot.color,
           i: groupIdx,
           midX, midY,
           rotation,
+          perpX, perpY,
+          labelText,
+          totalDistPx
+        });
+      });
+    });
+    return geom;
+  }, [plotPolygons, plots]);
+
+  // Memoize labels — placed outside polygon using outward normal from winding order.
+  const allLabels = useMemo(() => {
+    const drawnLabelCenters: { x: number; y: number }[] = [];
+    const allLabelsMut: PlotsLabelData[] = [];
+    
+    labelGeometry.forEach(geom => {
+        if (geom.totalDistPx < MIN_EDGE_LABEL_DRAW_PX / stageScale) return;
+        
+        const fontSize = UI_CONFIG.fontSize.small / stageScale;
+        const padding = UI_CONFIG.padding.small / stageScale;
+        const estWidth = (geom.labelText.length * fontSize * 0.6) + padding * 2;
+        const estHeight = fontSize + padding * 2;
+        const labelOffset = LABEL_OFFSET_DRAWN_PLOT / stageScale;
+        
+        const lx = geom.midX + geom.perpX * labelOffset;
+        const ly = geom.midY + geom.perpY * labelOffset;
+        
+        const isDuplicate = drawnLabelCenters.some(
+          c => Math.hypot(c.x - geom.midX, c.y - geom.midY) < 10 / stageScale
+        );
+        if (isDuplicate) return;
+        drawnLabelCenters.push({ x: geom.midX, y: geom.midY });
+        
+        allLabelsMut.push({
+          plotId: geom.plotId,
+          color: geom.color,
+          i: geom.i,
+          midX: geom.midX, midY: geom.midY,
+          rotation: geom.rotation,
           idealX: lx,
           idealY: ly,
           x: lx,
           y: ly,
           labelDist: labelOffset,
-          perpX, perpY,
+          perpX: geom.perpX, perpY: geom.perpY,
           estWidth, estHeight,
-          labelText, fontSize, padding,
+          labelText: geom.labelText, fontSize, padding,
         });
-      });
     });
-
     return allLabelsMut;
-  }, [plotPolygons, stageScale, plots]);
+  }, [labelGeometry, stageScale]);
 
   if (plotPolygons.length === 0) return null;
 
