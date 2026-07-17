@@ -308,7 +308,7 @@ const TracerCanvas = memo(function TracerCanvas() {
     } else if (hoverPoint) {
       setHoverPoint(null);
     }
-  }, [mode, pendingPoints.length, getImagePos, hoverPoint, resolveSnap, hasDraggedRef]);
+  }, [mode, pendingPoints.length, getImagePos, hoverPoint, resolveSnap, hasDraggedRef, blockTapRef]);
 
   const handleMouseUp = useCallback(() => {
     isPanningRef.current = false;
