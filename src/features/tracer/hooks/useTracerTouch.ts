@@ -21,6 +21,8 @@ export const useTracerTouch = (
   stagePos: { x: number; y: number },
   setStagePos: (p: { x: number; y: number }) => void
 ) => {
+  const hasDraggedRef = useRef<boolean>(false);
+  const dragStartRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const isPinchingRef = useRef<boolean>(false);
   const lastPinchDistRef = useRef<number>(0);
   const pinchStartRef = useRef({
@@ -65,6 +67,14 @@ export const useTracerTouch = (
           scale: stageScaleRef.current,
           mousePointTo,
         };
+      } else if (touches && touches.length === 1) {
+        hasDraggedRef.current = false;
+        dragStartRef.current = {
+          x: touches[0].clientX,
+          y: touches[0].clientY,
+          px: stagePosRef.current.x,
+          py: stagePosRef.current.y,
+        };
       }
     },
     []
@@ -108,6 +118,26 @@ export const useTracerTouch = (
             lastPinchDistRef.current = newDist;
           });
         }
+      } else if (touches && touches.length === 1 && dragStartRef.current && !isPinchingRef.current) {
+        const touch = touches[0];
+        const dx = touch.clientX - dragStartRef.current.x;
+        const dy = touch.clientY - dragStartRef.current.y;
+        
+        if (Math.hypot(dx, dy) > 10) {
+          hasDraggedRef.current = true;
+        }
+
+        if (hasDraggedRef.current) {
+          if (!pinchRafRef.current) {
+            pinchRafRef.current = requestAnimationFrame(() => {
+              pinchRafRef.current = 0;
+              setStagePos({
+                x: dragStartRef.current!.px + dx,
+                y: dragStartRef.current!.py + dy,
+              });
+            });
+          }
+        }
       }
     },
     [setStageScale, setStagePos]
@@ -125,6 +155,10 @@ export const useTracerTouch = (
           mousePointTo: { x: 0, y: 0 },
         };
       }
+      
+      if (!touches || touches.length === 0) {
+        dragStartRef.current = null;
+      }
     },
     []
   );
@@ -133,5 +167,6 @@ export const useTracerTouch = (
     onTouchStart,
     onTouchMove,
     onTouchEnd,
+    hasDraggedRef,
   };
 };

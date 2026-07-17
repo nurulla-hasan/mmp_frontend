@@ -3,138 +3,16 @@
 import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useTheme } from 'next-themes';
-import { Stage, Layer, Group, Image as KonvaImage, Line, Circle, Text } from 'react-konva';
+import { Stage, Layer, Group, Image as KonvaImage } from 'react-konva';
 import type Konva from 'konva';
-import { useTracerStore, centroid, type TracerLayer } from '../store/useTracerStore';
+import { useTracerStore } from '../store/useTracerStore';
 import { getClosestPointOnSegment } from '@/features/map-tool/utils/geometry';
 import { useTracerTouch } from '../hooks/useTracerTouch';
+import { CompletedPolygons } from './CompletedPolygons';
+import { PendingPolygon } from './PendingPolygon';
+import { getTracerSnappedPoint } from '../utils/snapping';
 
-// ── Memoized Completed Polygons ──────────────────────────────────────────────
-const CompletedPolygons = memo(function CompletedPolygons({
-  layers,
-  selectedPolygonId,
-  selectedLayerId,
-  mode,
-  stageScale,
-  selectPolygon,
-  setPolygonLabelPosition,
-}: {
-  layers: TracerLayer[];
-  selectedPolygonId: string | null;
-  selectedLayerId: string | null;
-  mode: string;
-  stageScale: number;
-  selectPolygon: (layerId: string | null, polyId: string | null) => void;
-  setPolygonLabelPosition: (layerId: string, polyId: string, x: number, y: number) => void;
-}) {
-  const labelFontSize = Math.max(8, 14 / stageScale);
 
-  return (
-    <>
-      {layers.map(layer =>
-        layer.visible
-          ? layer.polygons.map(poly => {
-              const flat = poly.points.flatMap(p => [p.x, p.y]);
-              const c = centroid(poly.points);
-              const isSelected = selectedPolygonId === poly.id && selectedLayerId === layer.id;
-              return (
-                <Group key={poly.id}>
-                  <Line
-                    name="polygon"
-                    points={flat}
-                    closed
-                    stroke={isSelected ? '#F59E0B' : layer.color}
-                    strokeWidth={(isSelected ? layer.lineWidth + 0.5 : layer.lineWidth) / stageScale}
-                    fill={isSelected ? `${layer.color}1A` : 'transparent'}
-                    hitStrokeWidth={14 / stageScale}
-                    perfectDrawEnabled={false}
-                    listening={mode === 'select'}
-                    onClick={e => {
-                      if (mode === 'select') {
-                        e.cancelBubble = true;
-                        selectPolygon(layer.id, poly.id);
-                      }
-                    }}
-                  />
-                  {poly.label ? (
-                    <Text
-                      x={poly.labelX ?? c.x}
-                      y={poly.labelY ?? c.y}
-                      text={poly.label}
-                      fontSize={labelFontSize}
-                      fontStyle="bold"
-                      fill={layer.color}
-                      align="center"
-                      width={80 / stageScale}
-                      offsetX={40 / stageScale}
-                      offsetY={labelFontSize / 2}
-                      draggable
-                      onDragEnd={e => {
-                        e.cancelBubble = true;
-                        setPolygonLabelPosition(layer.id, poly.id, e.target.x(), e.target.y());
-                      }}
-                      listening={mode !== 'polygon'}
-                    />
-                  ) : null}
-                </Group>
-              );
-            })
-          : null,
-      )}
-    </>
-  );
-});
-
-// Helper function for Tracer's specific snapping logic
-const getTracerSnappedPoint = (pt: Konva.Vector2d, polygons: Konva.Vector2d[][], thresholdPx: number, ignoreFlatVerticesThreshold = 15): Konva.Vector2d => {
-  let minVertexDist = thresholdPx * 1.5;
-  let minEdgeDist = thresholdPx;
-  let snappedVertex: Konva.Vector2d | null = null;
-  let snappedEdge: Konva.Vector2d | null = null;
-
-  for (const poly of polygons) {
-    for (let i = 0; i < poly.length; i++) {
-      const p1 = poly[i];
-      const p2 = poly[(i + 1) % poly.length];
-
-      // Calculate angle deflection at p1
-      let magnetMultiplier = 1.5;
-      if (poly.length > 2) {
-        const prev = poly[(i - 1 + poly.length) % poly.length];
-        const next = p2;
-        const angle1 = (Math.atan2(p1.y - prev.y, p1.x - prev.x) * 180) / Math.PI;
-        const angle2 = (Math.atan2(next.y - p1.y, next.x - p1.x) * 180) / Math.PI;
-        let deflection = Math.abs(angle1 - angle2);
-        if (deflection > 180) deflection = 360 - deflection;
-        
-        // If it's a flat vertex, use a weak magnet so it doesn't aggressively pull
-        // when trying to place a point nearby on the straight line.
-        if (deflection <= ignoreFlatVerticesThreshold) {
-          magnetMultiplier = 0.5;
-        }
-      }
-
-      const vDist = Math.hypot(p1.x - pt.x, p1.y - pt.y);
-      if (vDist < thresholdPx * magnetMultiplier && vDist < minVertexDist) {
-        minVertexDist = vDist;
-        snappedVertex = p1;
-      }
-
-      // Check edge
-      const closest = getClosestPointOnSegment(pt, p1, p2);
-      const eDist = Math.hypot(closest.x - pt.x, closest.y - pt.y);
-      if (eDist < minEdgeDist) {
-        minEdgeDist = eDist;
-        snappedEdge = closest;
-      }
-    }
-  }
-
-  if (snappedVertex) return snappedVertex;
-  if (snappedEdge) return snappedEdge;
-  
-  return pt;
-};
 
 const TracerCanvas = memo(function TracerCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -148,11 +26,20 @@ const TracerCanvas = memo(function TracerCanvas() {
   const [stagePos, setStagePos] = useState({ x: 32, y: 32 });
   const [stageScale, setStageScale] = useState(0.5);
 
+  // ── Touch controls ─────────────────────────────────────────────────────────
+  const { onTouchStart, onTouchMove, onTouchEnd, hasDraggedRef } = useTracerTouch(
+    stageScale,
+    setStageScale,
+    stagePos,
+    setStagePos
+  );
+
   // ── Pan tracking ────────────────────────────────────────────────────────────
   const isPanningRef = useRef(false);
   const panStart = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const spaceDown = useRef(false);
   const clickTimeRef = useRef(0); // timestamp of last click (for double-click detection)
+  const rafRef = useRef<number>(0);
 
   // ── Snap-to-first-point ────────────────────────────────────────────────────
   const [snapActive, setSnapActive] = useState(false);
@@ -218,7 +105,7 @@ const TracerCanvas = memo(function TracerCanvas() {
       x: (stageSize.width - iw * sc) / 2,
       y: (stageSize.height - ih * sc) / 2,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backgroundImage]);
 
   // ── Keyboard events ─────────────────────────────────────────────────────────
@@ -292,12 +179,13 @@ const TracerCanvas = memo(function TracerCanvas() {
   }, [stageScale, stagePos]);
 
   const handleMouseDown = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (e.evt.button === 1 || e.evt.button === 2 || mode === 'pan' || spaceDown.current) {
+    hasDraggedRef.current = false;
+    if (e.evt.button === 1 || e.evt.button === 2 || spaceDown.current) {
       isPanningRef.current = true;
       panStart.current = { x: e.evt.clientX, y: e.evt.clientY, px: stagePos.x, py: stagePos.y };
       e.evt.preventDefault();
     }
-  }, [mode, stagePos]);
+  }, [stagePos, hasDraggedRef]);
 
   const resolveSnap = useCallback((pos: { x: number, y: number }) => {
     const snapThreshold = SNAP_DIST / stageScale;
@@ -307,14 +195,14 @@ const TracerCanvas = memo(function TracerCanvas() {
     if (pendingPoints.length > 0) {
       const lastPoint = pendingPoints[pendingPoints.length - 1];
       const candidateRays: { dx: number; dy: number; angle: number }[] = [];
-      
+
       for (const poly of allPolyPoints) {
         for (let i = 0; i < poly.length; i++) {
           const p1 = poly[i];
           const p2 = poly[(i + 1) % poly.length];
           const closest = getClosestPointOnSegment(lastPoint, p1, p2);
           const distToSegment = Math.hypot(closest.x - lastPoint.x, closest.y - lastPoint.y);
-          
+
           if (distToSegment < 1) { // lastPoint is on this segment
             const angle1 = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
             const angle2 = Math.atan2(p1.y - p2.y, p1.x - p2.x) * 180 / Math.PI;
@@ -328,7 +216,7 @@ const TracerCanvas = memo(function TracerCanvas() {
         const currentAngle = Math.atan2(pos.y - lastPoint.y, pos.x - lastPoint.x) * 180 / Math.PI;
         let bestRay = null;
         let minDiff = 5; // 5 degrees threshold
-        
+
         for (const ray of candidateRays) {
           let diff = Math.abs(currentAngle - ray.angle);
           if (diff > 180) diff = 360 - diff;
@@ -337,7 +225,7 @@ const TracerCanvas = memo(function TracerCanvas() {
             bestRay = ray;
           }
         }
-        
+
         if (bestRay) {
           const rayLen = Math.hypot(bestRay.dx, bestRay.dy);
           if (rayLen > 0) {
@@ -346,7 +234,7 @@ const TracerCanvas = memo(function TracerCanvas() {
             const vx = pos.x - lastPoint.x;
             const vy = pos.y - lastPoint.y;
             const proj = vx * dirX + vy * dirY;
-            
+
             if (proj > 0) {
               finalPos.x = lastPoint.x + proj * dirX;
               finalPos.y = lastPoint.y + proj * dirY;
@@ -368,32 +256,47 @@ const TracerCanvas = memo(function TracerCanvas() {
     const snapped = getTracerSnappedPoint(finalPos, allPolyPoints, snapThreshold, 15);
     const isPointSnapped = snapped.x !== finalPos.x || snapped.y !== finalPos.y;
 
-    return { 
-      point: snapped, 
-      isSnapFirst: false, 
-      isEdgeSnap: isPointSnapped || isAngleSnapped 
+    return {
+      point: snapped,
+      isSnapFirst: false,
+      isEdgeSnap: isPointSnapped || isAngleSnapped
     };
   }, [allPolyPoints, pendingPoints, stageScale]);
 
   const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
     if (isPanningRef.current && panStart.current) {
-      setStagePos({
-        x: panStart.current.px + e.evt.clientX - panStart.current.x,
-        y: panStart.current.py + e.evt.clientY - panStart.current.y,
-      });
+      const dx = e.evt.clientX - panStart.current.x;
+      const dy = e.evt.clientY - panStart.current.y;
+      if (Math.hypot(dx, dy) > 5) {
+        hasDraggedRef.current = true;
+      }
+      if (!rafRef.current) {
+        rafRef.current = requestAnimationFrame(() => {
+          rafRef.current = 0;
+          setStagePos({
+            x: panStart.current!.px + dx,
+            y: panStart.current!.py + dy,
+          });
+        });
+      }
     }
     if (mode === 'polygon' && pendingPoints.length > 0) {
-      const pos = getImagePos();
-      if (pos) {
-        const resolved = resolveSnap(pos);
-        setSnapActive(resolved.isSnapFirst);
-        setEdgeSnapped(resolved.isEdgeSnap);
-        setHoverPoint(resolved.point);
+      if (!rafRef.current) {
+        rafRef.current = requestAnimationFrame(() => {
+          rafRef.current = 0;
+          const pos = getImagePos();
+          if (pos) {
+            const resolved = resolveSnap(pos);
+            setSnapActive(resolved.isSnapFirst);
+            setEdgeSnapped(resolved.isEdgeSnap);
+            setHoverPoint(resolved.point);
+          }
+        });
       }
     } else if (hoverPoint) {
       setHoverPoint(null);
     }
-  }, [mode, pendingPoints.length, getImagePos, hoverPoint, resolveSnap]);
+  }, [mode, pendingPoints.length, getImagePos, hoverPoint, resolveSnap, hasDraggedRef]);
 
   const handleMouseUp = useCallback(() => {
     isPanningRef.current = false;
@@ -405,22 +308,22 @@ const TracerCanvas = memo(function TracerCanvas() {
     if ('button' in e.evt && e.evt.button !== 0) return;
     if (mode !== 'polygon') return;
     if (isPanningRef.current || spaceDown.current) return;
+    if (hasDraggedRef.current) return;
     // Ignore clicks on existing polygon elements
     if (e.target !== stageRef.current && e.target.hasName('polygon')) return;
 
     // Double-click detection: if two clicks happen within 300ms, treat as double-click
     const now = Date.now();
-    const isDbl = (now - clickTimeRef.current) < 300;
+    const diff = now - clickTimeRef.current;
+    
+    // Ignore synthetic double events (like click immediately following tap on mobile)
+    if (diff < 50) return;
+    
+    const isDbl = diff < 300;
     clickTimeRef.current = now;
+    
     if (isDbl) {
       if (pendingPoints.length >= 3) { setSnapActive(false); commitPolygon(); }
-      return;
-    }
-
-    // Snap-to-first: if cursor is near first point, close polygon
-    if (snapActive && pendingPoints.length >= 3) {
-      setSnapActive(false);
-      commitPolygon();
       return;
     }
 
@@ -429,8 +332,16 @@ const TracerCanvas = memo(function TracerCanvas() {
 
     // Apply edge/angle snap to placed point
     const resolved = resolveSnap(pos);
+
+    // Snap-to-first: if cursor is near first point, close polygon
+    if (resolved.isSnapFirst && pendingPoints.length >= 3) {
+      setSnapActive(false);
+      commitPolygon();
+      return;
+    }
+
     addPendingPoint(resolved.point);
-  }, [mode, getImagePos, addPendingPoint, commitPolygon, pendingPoints.length, snapActive, resolveSnap]);
+  }, [mode, getImagePos, addPendingPoint, commitPolygon, pendingPoints.length, resolveSnap, hasDraggedRef]);
 
   // Double-click is still handled here for browsers that fire native dblclick
   const handleDblClick = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
@@ -439,24 +350,14 @@ const TracerCanvas = memo(function TracerCanvas() {
     if (pendingPoints.length >= 3) { setSnapActive(false); commitPolygon(); }
   }, [mode, pendingPoints.length, commitPolygon]);
 
-  // ── Pending points flat array ────────────────────────────────────────────────
-  const flatPending = pendingPoints.flatMap(p => [p.x, p.y]);
 
-  const cursorStyle = mode === 'pan' || spaceDown.current
+  const cursorStyle = spaceDown.current
     ? 'grab'
     : mode === 'select'
       ? 'default'
       : snapActive
         ? 'pointer'
         : 'crosshair';
-
-  // ── Touch controls ─────────────────────────────────────────────────────────
-  const { onTouchStart, onTouchMove, onTouchEnd } = useTracerTouch(
-    stageScale,
-    setStageScale,
-    stagePos,
-    setStagePos
-  );
 
   return (
     <div
@@ -511,70 +412,16 @@ const TracerCanvas = memo(function TracerCanvas() {
             />
 
             {/* ── Pending polygon being drawn ───────────────────────── */}
-            {pendingPoints.length > 0 && activeLayer && (
-              <Group listening={false}>
-                {/* Completed edges so far */}
-                {flatPending.length >= 4 && (
-                  <Line
-                    points={flatPending}
-                    stroke={activeLayer.color}
-                    strokeWidth={activeLayer.lineWidth / stageScale}
-                    dash={[8 / stageScale, 4 / stageScale]}
-                    perfectDrawEnabled={false}
-                  />
-                )}
-                {/* Edge-snap indicator */}
-                {hoverPoint && edgeSnapped && !snapActive && (
-                  <Circle
-                    x={hoverPoint.x}
-                    y={hoverPoint.y}
-                    radius={10 / stageScale}
-                    stroke="#2563EB"
-                    strokeWidth={2 / stageScale}
-                    dash={[5 / stageScale, 4 / stageScale]}
-                    opacity={0.7}
-                  />
-                )}
-                {/* Rubber-band to cursor */}
-                {hoverPoint && (
-                  <Line
-                    points={[
-                      pendingPoints[pendingPoints.length - 1].x,
-                      pendingPoints[pendingPoints.length - 1].y,
-                      hoverPoint.x,
-                      hoverPoint.y,
-                    ]}
-                    stroke={activeLayer.color}
-                    strokeWidth={activeLayer.lineWidth / stageScale}
-                    dash={[5 / stageScale, 5 / stageScale]}
-                    opacity={0.5}
-                    perfectDrawEnabled={false}
-                  />
-                )}
-                {/* Vertex dots */}
-                {pendingPoints.map((p, i) => (
-                  <Group key={i}>
-                    {i === 0 && snapActive && (
-                      <Circle
-                        x={p.x}
-                        y={p.y}
-                        radius={12 / stageScale}
-                        stroke="#2563EB"
-                        strokeWidth={2.5 / stageScale}
-                        dash={[6 / stageScale, 4 / stageScale]}
-                      />
-                    )}
-                    <Circle
-                      x={p.x}
-                      y={p.y}
-                      radius={(i === 0 ? (snapActive ? 7 : 5) : 3.5) / stageScale}
-                      fill={i === 0 ? (snapActive ? '#2563EB' : activeLayer.color) : '#ffffff'}
-                      stroke={snapActive && i === 0 ? '#2563EB' : activeLayer.color}
-                      strokeWidth={1.5 / stageScale}
-                    />
-                  </Group>
-                ))}
-              </Group>
+            {activeLayer && (
+              <PendingPolygon
+                pendingPoints={pendingPoints}
+                activeLayerColor={activeLayer.color}
+                activeLayerLineWidth={activeLayer.lineWidth}
+                stageScale={stageScale}
+                hoverPoint={hoverPoint}
+                snapActive={snapActive}
+                edgeSnapped={edgeSnapped}
+              />
             )}
           </Group>
         </Layer>

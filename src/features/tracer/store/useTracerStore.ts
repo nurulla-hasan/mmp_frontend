@@ -20,7 +20,7 @@ export type TracerLayer = {
   polygons: TracerPolygon[];
 };
 
-export type TracerMode = 'select' | 'polygon' | 'pan';
+export type TracerMode = 'select' | 'polygon';
 
 // ── Deep clone layers array for undo/redo snapshots ──
 function cloneLayers(layers: TracerLayer[]): TracerLayer[] {
@@ -102,7 +102,7 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
   layers: cloneLayers(DEFAULT_LAYERS),
   activeLayerId: 'cs',
 
-  mode: 'pan',
+  mode: 'select',
   pendingPoints: [],
   pendingRedoPoints: [],
 
@@ -223,9 +223,42 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
   undo: () => {
     const { past, layers, future } = get();
     if (!past.length) return;
+    
+    const previous = past[past.length - 1];
+    const newPast = past.slice(0, -1);
+    
+    // Check if the only difference is exactly one added polygon (i.e. a commit action)
+    let addedPolygon: TracerPolygon | null = null;
+    let addedLayerId: string | null = null;
+    
+    for (const currLayer of layers) {
+      const prevLayer = previous.find(l => l.id === currLayer.id);
+      if (prevLayer && currLayer.polygons.length === prevLayer.polygons.length + 1) {
+        addedPolygon = currLayer.polygons[currLayer.polygons.length - 1];
+        addedLayerId = currLayer.id;
+        break;
+      }
+    }
+    
+    if (addedPolygon) {
+      const points = [...addedPolygon.points];
+      const lastPoint = points.pop();
+      set({
+        past: newPast,
+        future: [], // Clear future as we are branching off history
+        layers: cloneLayers(previous),
+        selectedPolygonId: null,
+        pendingPoints: points,
+        pendingRedoPoints: lastPoint ? [lastPoint] : [],
+        mode: 'polygon',
+        activeLayerId: addedLayerId!
+      });
+      return;
+    }
+
     set({
-      layers: past[past.length - 1],
-      past: past.slice(0, -1),
+      layers: previous, // It's already a clone in past
+      past: newPast,
       future: [cloneLayers(layers), ...future],
       pendingPoints: [],
       pendingRedoPoints: [],
@@ -244,7 +277,7 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
       imageLoading: false,
       layers: cloneLayers(DEFAULT_LAYERS),
       activeLayerId: 'cs',
-      mode: 'pan',
+      mode: 'select',
       pendingPoints: [],
       pendingRedoPoints: [],
       selectedPolygonId: null,
