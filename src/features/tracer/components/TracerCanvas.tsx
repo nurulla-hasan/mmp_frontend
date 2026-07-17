@@ -190,6 +190,29 @@ const TracerCanvas = memo(function TracerCanvas() {
     }
   }, [stagePos, hasDraggedRef]);
 
+  const candidateRays = useMemo(() => {
+    const rays: { dx: number; dy: number; angle: number }[] = [];
+    if (pendingPoints.length === 0) return rays;
+    const lastPoint = pendingPoints[pendingPoints.length - 1];
+
+    for (const poly of allPolyPoints) {
+      for (let i = 0; i < poly.length; i++) {
+        const p1 = poly[i];
+        const p2 = poly[(i + 1) % poly.length];
+        const closest = getClosestPointOnSegment(lastPoint, p1, p2);
+        const distToSegment = Math.hypot(closest.x - lastPoint.x, closest.y - lastPoint.y);
+
+        if (distToSegment < 1) { // lastPoint is on this segment
+          const angle1 = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+          const angle2 = Math.atan2(p1.y - p2.y, p1.x - p2.x) * 180 / Math.PI;
+          rays.push({ dx: p2.x - p1.x, dy: p2.y - p1.y, angle: angle1 });
+          rays.push({ dx: p1.x - p2.x, dy: p1.y - p2.y, angle: angle2 });
+        }
+      }
+    }
+    return rays;
+  }, [allPolyPoints, pendingPoints]);
+
   const resolveSnap = useCallback((pos: { x: number, y: number }) => {
     const snapThreshold = SNAP_DIST / stageScale;
     const finalPos = { ...pos };
@@ -197,23 +220,6 @@ const TracerCanvas = memo(function TracerCanvas() {
 
     if (pendingPoints.length > 0) {
       const lastPoint = pendingPoints[pendingPoints.length - 1];
-      const candidateRays: { dx: number; dy: number; angle: number }[] = [];
-
-      for (const poly of allPolyPoints) {
-        for (let i = 0; i < poly.length; i++) {
-          const p1 = poly[i];
-          const p2 = poly[(i + 1) % poly.length];
-          const closest = getClosestPointOnSegment(lastPoint, p1, p2);
-          const distToSegment = Math.hypot(closest.x - lastPoint.x, closest.y - lastPoint.y);
-
-          if (distToSegment < 1) { // lastPoint is on this segment
-            const angle1 = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-            const angle2 = Math.atan2(p1.y - p2.y, p1.x - p2.x) * 180 / Math.PI;
-            candidateRays.push({ dx: p2.x - p1.x, dy: p2.y - p1.y, angle: angle1 });
-            candidateRays.push({ dx: p1.x - p2.x, dy: p1.y - p2.y, angle: angle2 });
-          }
-        }
-      }
 
       if (candidateRays.length > 0) {
         const currentAngle = Math.atan2(pos.y - lastPoint.y, pos.x - lastPoint.x) * 180 / Math.PI;
@@ -267,7 +273,7 @@ const TracerCanvas = memo(function TracerCanvas() {
       isSnapFirst: false,
       isEdgeSnap: isPointSnapped || isAngleSnapped
     };
-  }, [allPolyPoints, pendingPoints, stageScale]);
+  }, [candidateRays, allPolyPoints, pendingPoints, stageScale]);
 
   const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
     if (isPanningRef.current && panStart.current) {
