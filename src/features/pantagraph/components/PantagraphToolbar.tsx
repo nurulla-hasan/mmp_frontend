@@ -8,12 +8,12 @@ import {
   LockOpen,
   AlignStartVertical,
   Wand2,
-  Maximize,
+  // Maximize,
   Crosshair,
   ArrowLeft,
   ImageDown,
   Settings2,
-  Hand,
+  // Hand,
   FileDown,
   MoreHorizontal,
   RotateCcw,
@@ -94,9 +94,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
     matchPoints,
     formerMap,
     currentMap,
-    isPanning,
     setIsLocked,
-    setIsPanning,
     applyAlignment,
     redoStack,
     removeLastMatchPoint,
@@ -109,9 +107,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
       redoStack: s.redoStack,
       formerMap: s.formerMap,
       currentMap: s.currentMap,
-      isPanning: s.isPanning,
       setIsLocked: s.setIsLocked,
-      setIsPanning: s.setIsPanning,
       applyAlignment: s.applyAlignment,
       removeLastMatchPoint: s.removeLastMatchPoint,
       restoreLastMatchPoint: s.restoreLastMatchPoint,
@@ -162,9 +158,6 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
     settings: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn icon={Settings2} label="ম্যাপ ও সেটিংস" onClick={() => onToggleSidebar?.()} size={size} />
     ),
-    pan: (size: 'md' | 'sm' = 'md') => (
-      <ToolBtn icon={Hand} label={isPanning ? 'প্যান মোড বন্ধ' : 'প্যান (মাউস/আঙুল)'} active={isPanning} onClick={() => setIsPanning(!isPanning)} size={size} />
-    ),
     align: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn icon={Crosshair} label={isAligning ? 'পয়েন্ট মোড বন্ধ' : 'পয়েন্ট মেলাও'} active={isAligning} onClick={handleToggleAligning} size={size} />
     ),
@@ -182,9 +175,6 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
     ),
     pdf: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn icon={FileDown} label="PDF সেভ করুন" disabled={!hasAnyMap} onClick={() => usePantagraphStore.getState().exportMap('pdf')} size={size} />
-    ),
-    fit: (size: 'md' | 'sm' = 'md') => (
-      <ToolBtn icon={Maximize} label="ফিট" onClick={() => { usePantagraphStore.getState().setStageScale(1); usePantagraphStore.getState().setStagePos({ x: 0, y: 0 }); }} size={size} />
     ),
     undo: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn icon={Undo2} label="আনডু" disabled={matchPoints.length === 0} onClick={removeLastMatchPoint} size={size} />
@@ -204,15 +194,12 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
         {tools.back()}
         {tools.settings()}
         <VDivider />
-        {tools.pan()}
         {tools.align()}
         {tools.similarity()}
         {tools.affine()}
         <VDivider />
         {tools.undo()}
         {tools.redo()}
-        <VDivider />
-        {tools.fit()}
         <VDivider />
         {tools.lock()}
         {tools.png()}
@@ -229,15 +216,12 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
         {tools.back('sm')}
         {tools.settings('sm')}
         <HDivider />
-        {tools.pan('sm')}
         {tools.align('sm')}
         {tools.similarity('sm')}
         {tools.affine('sm')}
         <HDivider />
         {tools.undo('sm')}
         {tools.redo('sm')}
-        <HDivider />
-        {tools.lock('sm')}
 
         <HDivider />
         <DropdownMenu>
@@ -248,9 +232,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({ onToggleSideb
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="end" alignOffset={-10} sideOffset={12} className="w-fit p-1">
             <div className="flex flex-row gap-1">
-              <Button variant="ghost" size="icon" onClick={() => { usePantagraphStore.getState().setStageScale(1); usePantagraphStore.getState().setStagePos({ x: 0, y: 0 }); }} title="ফিট" className="text-muted-foreground">
-                <Maximize className="w-4 h-4" />
-              </Button>
+              {tools.lock('sm')}
               <Button variant="ghost" size="icon" onClick={() => usePantagraphStore.getState().exportMap('png')} disabled={!hasAnyMap} title="PNG ডাউনলোড করুন" className="text-muted-foreground">
                 <ImageDown className="w-4 h-4" />
               </Button>
