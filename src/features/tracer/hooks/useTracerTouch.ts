@@ -24,6 +24,7 @@ export const useTracerTouch = (
   const hasDraggedRef = useRef<boolean>(false);
   const dragStartRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const isPinchingRef = useRef<boolean>(false);
+  const blockTapRef = useRef<boolean>(false);
   const lastPinchDistRef = useRef<number>(0);
   const pinchStartRef = useRef({
     distance: 0,
@@ -46,6 +47,7 @@ export const useTracerTouch = (
       const touches = e.evt.touches;
       if (touches && touches.length >= 2) {
         isPinchingRef.current = true;
+        blockTapRef.current = true;
         const d = getDistance(touches[0], touches[1]);
         lastPinchDistRef.current = d;
         const centerClient = getMidpoint(touches[0], touches[1]);
@@ -68,6 +70,8 @@ export const useTracerTouch = (
           mousePointTo,
         };
       } else if (touches && touches.length === 1) {
+        // A fresh single-finger gesture is the only touch gesture allowed to add a point.
+        blockTapRef.current = false;
         hasDraggedRef.current = false;
         dragStartRef.current = {
           x: touches[0].clientX,
@@ -168,5 +172,6 @@ export const useTracerTouch = (
     onTouchMove,
     onTouchEnd,
     hasDraggedRef,
+    blockTapRef,
   };
 };
