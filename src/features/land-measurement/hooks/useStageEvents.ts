@@ -356,6 +356,11 @@ export const useStageEvents = () => {
     (e: Konva.KonvaEventObject<MouseEvent>) => {
       // Only left click, only on stage background (not shapes)
       if (e.evt.button !== 0) return;
+
+      // Konva also emits a click after a touch. Mobile points must only be
+      // added through the dedicated "Add point" button at the crosshair.
+      if (lastDeviceRef.current !== 'mouse') return;
+
       // Allow clicks on stage or on layers (background), but block clicks on named shapes
       const targetName = (e.target as Konva.Node).name?.() || '';
       const isStageOrLayer = e.target === e.currentTarget || targetName === '' || targetName === 'background-layer';
