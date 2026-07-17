@@ -1,12 +1,11 @@
 'use client';
 
 import { memo } from 'react';
-import { Group, Star, Line, Text, Circle } from 'react-konva';
+import { Group, Path, Line, Text } from 'react-konva';
 import { useShallow } from 'zustand/shallow';
 import { usePantagraphStore } from '../store/usePantagraphStore';
 
-const STAR_SIZE = 10;
-const LABEL_OFFSET = 14;
+const PIN_PATH = "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z";
 const LINE_DASH = [4, 4];
 const LINE_COLOR = '#fbbf24'; // amber-400
 const FORMER_COLOR = '#ef4444'; // red-500
@@ -33,7 +32,7 @@ export const MatchPointMarkers = memo(function MatchPointMarkers() {
   if (matchPoints.length === 0) return null;
 
   return (
-    <Group>
+    <Group listening={false}>
       {matchPoints.map((point, index) => {
         const hasCurrent = point.current !== null;
         const isPaired = hasCurrent;
@@ -64,33 +63,29 @@ export const MatchPointMarkers = memo(function MatchPointMarkers() {
               rotation={formerRotation}
             >
               <Group x={point.former.x} y={point.former.y}>
-                <Star
+                <Path
                   x={0}
                   y={0}
-                  numPoints={5}
-                  innerRadius={STAR_SIZE * 0.4}
-                  outerRadius={STAR_SIZE}
+                  data={PIN_PATH}
                   fill={FORMER_COLOR}
                   stroke="#fff"
-                  strokeWidth={1.5}
-                  perfectDrawEnabled={false}
-                />
-                <Circle
-                  x={LABEL_OFFSET}
-                  y={-LABEL_OFFSET}
-                  radius={12}
-                  fill={FORMER_COLOR}
+                  strokeWidth={1}
+                  offsetX={12}
+                  offsetY={22}
+                  scale={{ x: 1.2, y: 1.2 }}
                   perfectDrawEnabled={false}
                 />
                 <Text
-                  x={LABEL_OFFSET - 6}
-                  y={-LABEL_OFFSET - 7.5}
+                  x={-12}
+                  y={-27.6}
+                  width={24}
+                  height={24}
                   text={label}
                   fontSize={14}
                   fill="#fff"
                   fontStyle="bold"
                   align="center"
-                  width={12}
+                  verticalAlign="middle"
                   perfectDrawEnabled={false}
                 />
               </Group>
@@ -104,33 +99,29 @@ export const MatchPointMarkers = memo(function MatchPointMarkers() {
                 rotation={currentRotation}
               >
                 <Group x={point.current!.x} y={point.current!.y}>
-                  <Star
+                  <Path
                     x={0}
                     y={0}
-                    numPoints={5}
-                    innerRadius={STAR_SIZE * 0.4}
-                    outerRadius={STAR_SIZE}
+                    data={PIN_PATH}
                     fill={CURRENT_COLOR}
                     stroke="#fff"
-                    strokeWidth={1.5}
-                    perfectDrawEnabled={false}
-                  />
-                  <Circle
-                    x={LABEL_OFFSET}
-                    y={-LABEL_OFFSET}
-                    radius={12}
-                    fill={CURRENT_COLOR}
+                    strokeWidth={1}
+                    offsetX={12}
+                    offsetY={22}
+                    scale={{ x: 1.2, y: 1.2 }}
                     perfectDrawEnabled={false}
                   />
                   <Text
-                    x={LABEL_OFFSET - 6}
-                    y={-LABEL_OFFSET - 7.5}
+                    x={-12}
+                    y={-27.6}
+                    width={24}
+                    height={24}
                     text={label}
                     fontSize={14}
                     fill="#fff"
                     fontStyle="bold"
                     align="center"
-                    width={12}
+                    verticalAlign="middle"
                     perfectDrawEnabled={false}
                   />
                 </Group>
