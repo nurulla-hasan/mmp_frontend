@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { routeAlongPolygon } from '../utils/routing';
 import { useShallow } from 'zustand/shallow';
 
 export type Point = { x: number; y: number };
@@ -78,7 +79,7 @@ export interface TracerStore {
   setLayerLineWidth(id: string, w: number): void;
   renameLayer(id: string, name: string): void;
 
-  addPendingPoint(p: Point): void;
+  addPendingPoints(points: Point[]): void;
   undoPendingPoint(): void;
   redoPendingPoint(): void;
   commitPolygon(): void;
@@ -143,7 +144,7 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
   renameLayer: (id, name) => set(s => ({ layers: s.layers.map(l => l.id === id ? { ...l, name } : l) })),
 
   // ── Drawing ──────────────────────────────────────────────────────────────────
-  addPendingPoint: (p) => set(s => ({ pendingPoints: [...s.pendingPoints, p], pendingRedoPoints: [] })),
+  addPendingPoints: (points) => set(s => ({ pendingPoints: [...s.pendingPoints, ...points], pendingRedoPoints: [] })),
 
   undoPendingPoint: () => {
     const { pendingPoints } = get();
@@ -169,9 +170,27 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
   commitPolygon: () => {
     const { pendingPoints, activeLayerId, layers, past } = get();
     if (pendingPoints.length < 3) { set({ pendingPoints: [], pendingRedoPoints: [] }); return; }
+
+    const allPolyPoints = layers.flatMap(l => l.polygons.map(p => p.points));
+    const lastPoint = pendingPoints[pendingPoints.length - 1];
+    const firstPoint = pendingPoints[0];
+    
+    let routedPath: Point[] | null = null;
+    for (const poly of allPolyPoints) {
+      const path = routeAlongPolygon(lastPoint, firstPoint, poly);
+      if (path) {
+        routedPath = path;
+        break;
+      }
+    }
+    
+    const finalPoints = routedPath && routedPath.length > 0 
+      ? [...pendingPoints, ...routedPath]
+      : [...pendingPoints];
+
     const id = `poly_${++_polyId}`;
-    const c = centroid(pendingPoints);
-    const polygon: TracerPolygon = { id, points: [...pendingPoints], label: '', labelX: c.x, labelY: c.y };
+    const c = centroid(finalPoints);
+    const polygon: TracerPolygon = { id, points: finalPoints, label: '', labelX: c.x, labelY: c.y };
     set({
       past: [...past, cloneLayers(layers)],
       future: [],

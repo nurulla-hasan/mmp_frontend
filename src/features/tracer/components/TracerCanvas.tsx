@@ -11,6 +11,7 @@ import { useTracerTouch } from '../hooks/useTracerTouch';
 import { CompletedPolygons } from './CompletedPolygons';
 import { PendingPolygon } from './PendingPolygon';
 import { getTracerSnappedPoint } from '../utils/snapping';
+import { routeAlongPolygon } from '../utils/routing';
 
 
 
@@ -56,7 +57,7 @@ const TracerCanvas = memo(function TracerCanvas() {
     mode,
     pendingPoints,
     selectedPolygonId, selectedLayerId,
-    addPendingPoint,
+    addPendingPoints,
     commitPolygon, cancelDrawing,
     selectPolygon, deletePolygon,
     setPolygonLabelPosition,
@@ -69,7 +70,7 @@ const TracerCanvas = memo(function TracerCanvas() {
     pendingPoints: s.pendingPoints,
     selectedPolygonId: s.selectedPolygonId,
     selectedLayerId: s.selectedLayerId,
-    addPendingPoint: s.addPendingPoint,
+    addPendingPoints: s.addPendingPoints,
     commitPolygon: s.commitPolygon,
     cancelDrawing: s.cancelDrawing,
     selectPolygon: s.selectPolygon,
@@ -249,15 +250,18 @@ const TracerCanvas = memo(function TracerCanvas() {
       const first = pendingPoints[0];
       const dist = Math.hypot(finalPos.x - first.x, finalPos.y - first.y);
       if (dist <= snapThreshold) {
-        return { point: first, isSnapFirst: true, isEdgeSnap: false };
+        return { point: first, polyIndex: null, vertexIndex: null, edgeIndex: null, isSnapFirst: true, isEdgeSnap: false };
       }
     }
 
     const snapped = getTracerSnappedPoint(finalPos, allPolyPoints, snapThreshold, 15);
-    const isPointSnapped = snapped.x !== finalPos.x || snapped.y !== finalPos.y;
+    const isPointSnapped = snapped.point.x !== finalPos.x || snapped.point.y !== finalPos.y;
 
     return {
-      point: snapped,
+      point: snapped.point,
+      polyIndex: snapped.polyIndex,
+      vertexIndex: snapped.vertexIndex,
+      edgeIndex: snapped.edgeIndex,
       isSnapFirst: false,
       isEdgeSnap: isPointSnapped || isAngleSnapped
     };
@@ -333,6 +337,19 @@ const TracerCanvas = memo(function TracerCanvas() {
     // Apply edge/angle snap to placed point
     const resolved = resolveSnap(pos);
 
+    let routedPath: Konva.Vector2d[] | null = null;
+    
+    if (pendingPoints.length > 0) {
+      const prevPoint = pendingPoints[pendingPoints.length - 1];
+      for (const poly of allPolyPoints) {
+        const path = routeAlongPolygon(prevPoint, resolved.point, poly);
+        if (path) {
+          routedPath = path;
+          break;
+        }
+      }
+    }
+
     // Snap-to-first: if cursor is near first point, close polygon
     if (resolved.isSnapFirst && pendingPoints.length >= 3) {
       setSnapActive(false);
@@ -340,8 +357,13 @@ const TracerCanvas = memo(function TracerCanvas() {
       return;
     }
 
-    addPendingPoint(resolved.point);
-  }, [mode, getImagePos, addPendingPoint, commitPolygon, pendingPoints.length, resolveSnap, hasDraggedRef]);
+    const newPoints = [resolved.point];
+    if (routedPath) {
+      newPoints.unshift(...routedPath);
+    }
+
+    addPendingPoints(newPoints);
+  }, [mode, getImagePos, addPendingPoints, commitPolygon, pendingPoints, allPolyPoints, resolveSnap, hasDraggedRef]);
 
   // Double-click is still handled here for browsers that fire native dblclick
   const handleDblClick = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {

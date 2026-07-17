@@ -1,18 +1,32 @@
 import type Konva from 'konva';
 import { getClosestPointOnSegment } from '@/features/map-tool/utils/geometry';
 
+export type SnapResult = {
+  point: Konva.Vector2d;
+  polyIndex: number | null;
+  vertexIndex: number | null;
+  edgeIndex: number | null;
+};
+
 export const getTracerSnappedPoint = (
   pt: Konva.Vector2d,
   polygons: Konva.Vector2d[][],
   thresholdPx: number,
   ignoreFlatVerticesThreshold = 15
-): Konva.Vector2d => {
+): SnapResult => {
   let minVertexDist = thresholdPx * 1.5;
   let minEdgeDist = thresholdPx;
   let snappedVertex: Konva.Vector2d | null = null;
   let snappedEdge: Konva.Vector2d | null = null;
+  
+  let bestPolyIndex: number | null = null;
+  let bestVertexIndex: number | null = null;
+  
+  let bestEdgePolyIndex: number | null = null;
+  let bestEdgeIndex: number | null = null;
 
-  for (const poly of polygons) {
+  for (let pIdx = 0; pIdx < polygons.length; pIdx++) {
+    const poly = polygons[pIdx];
     for (let i = 0; i < poly.length; i++) {
       const p1 = poly[i];
       const p2 = poly[(i + 1) % poly.length];
@@ -27,8 +41,6 @@ export const getTracerSnappedPoint = (
         let deflection = Math.abs(angle1 - angle2);
         if (deflection > 180) deflection = 360 - deflection;
 
-        // If it's a flat vertex, use a weak magnet so it doesn't aggressively pull
-        // when trying to place a point nearby on the straight line.
         if (deflection <= ignoreFlatVerticesThreshold) {
           magnetMultiplier = 0.5;
         }
@@ -38,6 +50,8 @@ export const getTracerSnappedPoint = (
       if (vDist < thresholdPx * magnetMultiplier && vDist < minVertexDist) {
         minVertexDist = vDist;
         snappedVertex = p1;
+        bestPolyIndex = pIdx;
+        bestVertexIndex = i;
       }
 
       // Check edge
@@ -46,12 +60,14 @@ export const getTracerSnappedPoint = (
       if (eDist < minEdgeDist) {
         minEdgeDist = eDist;
         snappedEdge = closest;
+        bestEdgePolyIndex = pIdx;
+        bestEdgeIndex = i;
       }
     }
   }
 
-  if (snappedVertex) return snappedVertex;
-  if (snappedEdge) return snappedEdge;
+  if (snappedVertex) return { point: snappedVertex, polyIndex: bestPolyIndex, vertexIndex: bestVertexIndex, edgeIndex: null };
+  if (snappedEdge) return { point: snappedEdge, polyIndex: bestEdgePolyIndex, vertexIndex: null, edgeIndex: bestEdgeIndex };
 
-  return pt;
+  return { point: pt, polyIndex: null, vertexIndex: null, edgeIndex: null };
 };
