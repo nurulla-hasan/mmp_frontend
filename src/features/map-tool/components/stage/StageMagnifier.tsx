@@ -14,7 +14,6 @@ import {
   loadTileImage,
   cleanupTileUrls,
 } from '@/features/map-tool/utils/tiling';
-import type { TilePyramidInfo } from '@/features/map-tool/utils/tiling';
 
 const MAGNIFIER_RADIUS = 55;
 const ZOOM_FACTOR = 2.5;
@@ -59,6 +58,7 @@ export const StageMagnifier = memo(() => {
   }, [screenCenterX, screenCenterY, stagePos.x, stagePos.y, stageScale, stageSize.width]);
 
   const clipFunc = useMemo(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     () => (ctx: any) => {
       ctx.arc(0, 0, MAGNIFIER_RADIUS / stageScale, 0, Math.PI * 2, false);
     },
@@ -177,3 +177,5 @@ export const StageMagnifier = memo(() => {
     </Group>
   );
 });
+
+StageMagnifier.displayName = 'StageMagnifier';

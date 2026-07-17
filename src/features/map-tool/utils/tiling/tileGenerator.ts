@@ -45,7 +45,7 @@ export async function generateTilePyramid(
     for (let row = 0; row < info.rows; row++) {
       for (let col = 0; col < info.cols; col++) {
         const canvas = createTileCanvas();
-        const ctx = (canvas as any).getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
+        const ctx = (canvas as HTMLCanvasElement | OffscreenCanvas).getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
         if (!ctx) continue;
 
         // Source region in original image coordinates
@@ -133,7 +133,7 @@ export async function generateTilePyramidChunked(
           const scaleToSrc = srcW / info.width;
 
           const canvas = createTileCanvas();
-          const ctx = (canvas as any).getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
+          const ctx = (canvas as HTMLCanvasElement | OffscreenCanvas).getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
           if (!ctx) continue;
 
           const srcX = col * TILE_SIZE * scaleToSrc;

@@ -163,3 +163,5 @@ export const PrintLayout = React.forwardRef<HTMLDivElement, unknown>((_, ref) =>
     </div>
   );
 });
+
+PrintLayout.displayName = 'PrintLayout';

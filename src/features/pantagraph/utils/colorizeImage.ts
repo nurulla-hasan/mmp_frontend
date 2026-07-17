@@ -45,7 +45,7 @@ export function colorizeImage(
 
     const finish = (processedData: Uint8ClampedArray) => {
       const newImageData = new ImageData(
-        new Uint8ClampedArray(processedData.buffer as ArrayBuffer),
+        new Uint8ClampedArray(processedData.buffer as ArrayBuffer, processedData.byteOffset, processedData.length),
         canvas.width,
         canvas.height,
       );

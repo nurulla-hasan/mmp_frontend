@@ -138,7 +138,7 @@ export function removeBackground(
 
         // Write processed pixels back to the canvas
         const newImageData = new ImageData(
-          new Uint8ClampedArray(processedData.buffer as ArrayBuffer),
+          new Uint8ClampedArray(processedData.buffer as ArrayBuffer, processedData.byteOffset, processedData.length),
           canvas.width,
           canvas.height,
         );

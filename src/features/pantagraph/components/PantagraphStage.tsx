@@ -18,6 +18,7 @@ const ZOOM_SPEED = 0.001;
 export const PantagraphStage = memo(function PantagraphStage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
+  const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
   const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
 
   const {
@@ -148,6 +149,17 @@ export const PantagraphStage = memo(function PantagraphStage() {
 
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
+
+      // Prevent accidental point placement if user dragged on mobile
+      if (touchStartPosRef.current) {
+        const dx = pointer.x - touchStartPosRef.current.x;
+        const dy = pointer.y - touchStartPosRef.current.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 10) {
+          // It was a drag, ignore this click/tap
+          return;
+        }
+      }
 
       // Convert screen coordinates to stage coordinates using ref values
       const stageX = (pointer.x - stagePosRef.current.x) / stageScaleRef.current;
@@ -349,7 +361,15 @@ export const PantagraphStage = memo(function PantagraphStage() {
         onWheel={handleWheel}
         onClick={handleStageClick}
         onTap={handleStageClick}
-        onTouchStart={onTouchStart}
+        onMouseDown={(e) => {
+          const pos = e.target.getStage()?.getPointerPosition();
+          if (pos) touchStartPosRef.current = pos;
+        }}
+        onTouchStart={(e) => {
+          onTouchStart(e);
+          const pos = e.target.getStage()?.getPointerPosition();
+          if (pos) touchStartPosRef.current = pos;
+        }}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         draggable={isPanning}
