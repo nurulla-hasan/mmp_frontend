@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
+export const CONTAINER_MAX_WIDTH = "max-w-350";
+
 interface PageWrapperProps {
   children: ReactNode;
   pagination?: ReactNode;
@@ -22,7 +24,7 @@ function PageWrapper({
   paddingSize = "default",
 }: PageWrapperProps) {
   return (
-    <div className={cn("container mx-auto max-w-7xl screen-height", paddingMap[paddingSize])}>
+    <div className={cn(`container mx-auto ${CONTAINER_MAX_WIDTH} screen-height`, paddingMap[paddingSize])}>
       <div className={cn("grow lg:mb-0", className)}>{children}</div>
       {pagination}
     </div>

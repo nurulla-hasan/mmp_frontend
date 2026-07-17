@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import { useTheme } from 'next-themes';
+import { cn } from "@/lib/utils";
 import { Button } from '@/components/ui/button';
 
 import nextDynamic from 'next/dynamic';
@@ -13,6 +14,7 @@ import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { useShallow } from 'zustand/shallow';
 import { TutorialGuide } from '@/features/map-tool/components/tutorial-guide';
 import { Upload, HardDrive } from 'lucide-react';
+import { CONTAINER_MAX_WIDTH } from '@/components/shared/page-wrapper';
 
 const KonvaStage = nextDynamic(
   () => import('@/features/map-tool/components/stage/KonvaStage').then((m) => ({ default: m.KonvaStage })),
@@ -143,7 +145,7 @@ export default function MapCalculator() {
                   <Upload className="h-8 w-8 text-primary opacity-80" />
                 </div>
                 <h2 className="text-xl font-bold mb-1">কোনো ম্যাপ আপলোড করা নেই</h2>
-                <p className="text-muted-foreground mb-6 max-w-[280px] text-sm">
+                <p className="text-muted-foreground mb-6 max-w-70 text-sm">
                   কাজ শুরু করতে আপনার জমির নকশা বা ম্যাপ (JPG, PNG, PDF) আপলোড করুন.
                 </p>
                 <div className="flex flex-col gap-3 w-full mt-1">
@@ -174,7 +176,7 @@ export default function MapCalculator() {
         </div>
 
         {/* ── Results below the canvas ── */}
-        <div className="max-w-7xl mx-auto px-4 xl:px-0">
+        <div className={cn(`${CONTAINER_MAX_WIDTH} mx-auto px-4 xl:px-0`)}>
           {(mode === 'none' || (mode === 'drawing_plot' && plotPoints.length === 0)) && (
             <ResultsDisplay onPrint={handlePrint} />
           )}
@@ -184,7 +186,7 @@ export default function MapCalculator() {
 
         {savedPlots.length > 0 && (
           <div className="border-t py-2 print:hidden bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 xl:px-0">
+            <div className={cn(`${CONTAINER_MAX_WIDTH} mx-auto px-4 xl:px-0`)}>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Saved Plots</h3>
               <div className="flex flex-wrap gap-3">
                 {savedPlots.map((plot, index) => (

@@ -2,13 +2,11 @@
 
 import { useState } from "react";
 import {
-  BadgeCheck,
   Compass,
-  FileText,
+  Layers,
   MapPin,
   Ruler,
   Search,
-  Star,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -37,11 +35,11 @@ export function HeroSection() {
   const [district, setDistrict] = useState("");
 
   return (
-    <div className="relative overflow-hidden bg-background">
+    <div className="relative overflow-hidden">
       {/* Ambient Glows */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-0 right-1/4 h-150 w-150 -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" />
-        <div className="absolute bottom-0 left-0 h-125 w-125 translate-y-1/3 -translate-x-1/3 rounded-full bg-blue-500/10 blur-[100px]" />
+        <div className="absolute top-0 right-1/4 h-200 w-200 -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" />
+        <div className="absolute bottom-0 left-0 h-200 w-200 translate-y-1/3 -translate-x-1/3 rounded-full bg-blue-500/10 blur-[100px]" />
       </div>
 
       <SectionWrapper
@@ -51,261 +49,282 @@ export function HeroSection() {
       >
         <div className="grid gap-10 lg:grid-cols-[1.2fr_0.9fr] lg:items-center">
           {/* Left: Text and CTA */}
-        <div>
-          <Badge className="bg-primary/10 text-primary p-3">
-            জমির হিসাব, সার্ভেয়ার ও সেবা—এক প্ল্যাটফর্মে
-          </Badge>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl leading-[1.2] font-heading">
-            জমির হিসাব থেকে{" "}
-            <span className="text-primary">বিশ্বস্ত সার্ভেয়ার</span>
-            <br />
-            <span className="text-primary">সব এক জায়গায়</span>
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-            জমি মাপুন, হিসাব সংরক্ষণ করুন, যাচাইকৃত আমিন/সার্ভেয়ার খুঁজুন, কাজের
-            অনুরোধ পোস্ট করুন এবং একাধিক quotation তুলনা করে সঠিক পেশাজীবী
-            নির্বাচন করুন।
-          </p>
+          <div>
+            <Badge className="bg-primary/10 text-primary p-3">
+              জমির হিসাব নিয়ে আর কোনো দুশ্চিন্তা নয়
+            </Badge>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl leading-[1.2] font-heading">
+              বাপ-দাদার ভিটেমাটি বা জীবনের সঞ্চয়
+              <br />
+              জমির সীমানা নিয়ে থাকুন
+              <br />
+              <span className="text-primary">সম্পূর্ণ নিশ্চিন্ত</span>
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+              জমির মাপে সামান্য ভুল মানেই বড় ক্ষতি। আমাদের আধুনিক ডিজিটাল ম্যাপ টুলস দিয়ে নিজেই জমি মাপুন, আর প্রয়োজনে যাচাইকৃত সৎ আমিন খুঁজে নিন। আপনার কষ্টের সম্পদের অধিকার থাকুক শতভাগ সুরক্ষিত।
+            </p>
 
-          {/* Surveyor Search Form */}
-          <div className="mt-6 rounded-xl border bg-card p-4">
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="flex-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                  প্রয়োজনীয় সেবা
-                </label>
-                <Select
-                  value={service}
-                  onValueChange={(v) => setService(v ?? "")}
-                >
-                  <SelectTrigger className="w-full">
-                    <Search className="size-4 shrink-0 text-muted-foreground" />
-                    <SelectValue placeholder="সেবা নির্বাচন করুন" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {serviceOptions.map((opt) => (
-                      <SelectItem key={opt} value={opt}>
-                        {opt}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {/* Surveyor Search Form */}
+            <div className="mt-6 rounded-xl border bg-card p-4">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="flex-1">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                    প্রয়োজনীয় সেবা
+                  </label>
+                  <Select
+                    value={service}
+                    onValueChange={(v) => setService(v ?? "")}
+                  >
+                    <SelectTrigger className="w-full">
+                      <Search className="size-4 shrink-0 text-muted-foreground" />
+                      <SelectValue placeholder="সেবা নির্বাচন করুন" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {serviceOptions.map((opt) => (
+                        <SelectItem key={opt} value={opt}>
+                          {opt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                    জেলা নির্বাচন
+                  </label>
+                  <Select
+                    value={district}
+                    onValueChange={(v) => setDistrict(v ?? "")}
+                  >
+                    <SelectTrigger className="w-full">
+                      <MapPin className="size-4 shrink-0 text-muted-foreground" />
+                      <SelectValue placeholder="জেলা নির্বাচন করুন" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dinajpur">দিনাজপুর</SelectItem>
+                      <SelectItem value="rangpur">রংপুর</SelectItem>
+                      <SelectItem value="bogura">বগুড়া</SelectItem>
+                      <SelectItem value="rajshahi">রাজশাহী</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    className="w-full sm:w-auto"
+                    nativeButton={false}
+                    render={<Link href="/surveyors" />}
+                  >
+                    <Search className="size-4" />
+                    খুঁজুন
+                  </Button>
+                </div>
               </div>
-              <div className="flex-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                  জেলা নির্বাচন
-                </label>
-                <Select
-                  value={district}
-                  onValueChange={(v) => setDistrict(v ?? "")}
-                >
-                  <SelectTrigger className="w-full">
-                    <MapPin className="size-4 shrink-0 text-muted-foreground" />
-                    <SelectValue placeholder="জেলা নির্বাচন করুন" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dinajpur">দিনাজপুর</SelectItem>
-                    <SelectItem value="rangpur">রংপুর</SelectItem>
-                    <SelectItem value="bogura">বগুড়া</SelectItem>
-                    <SelectItem value="rajshahi">রাজশাহী</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-end">
-                <Button
-                  className="w-full sm:w-auto"
-                  nativeButton={false}
-                  render={<Link href="/surveyors" />}
-                >
-                  <Search className="size-4" />
-                  খুঁজুন
-                </Button>
-              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Button
+                size="lg"
+                className="gap-2"
+                nativeButton={false}
+                render={<Link href="/surveyors" />}
+              >
+                <Compass className="size-4" />
+                সার্ভেয়ার খুঁজুন
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                nativeButton={false}
+                render={<Link href="/tools" />}
+              >
+                <Ruler className="size-4" />
+                জমির টুল ব্যবহার করুন
+              </Button>
+            </div>
+            <div className="mt-3">
+              <Link
+                href="/join-as-surveyor"
+                className="text-sm text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
+              >
+                সার্ভেয়ার হিসেবে যোগ দিন &rarr;
+              </Link>
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Button
-              size="lg"
-              className="gap-2"
-              nativeButton={false}
-              render={<Link href="/surveyors" />}
-            >
-              <Compass className="size-4" />
-              সার্ভেয়ার খুঁজুন
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              nativeButton={false}
-              render={<Link href="/tools" />}
-            >
-              <Ruler className="size-4" />
-              জমির টুল ব্যবহার করুন
-            </Button>
-          </div>
-          <div className="mt-3">
-            <Link
-              href="/join-as-surveyor"
-              className="text-sm text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
-            >
-              সার্ভেয়ার হিসেবে যোগ দিন &rarr;
-            </Link>
-          </div>
-        </div>
-
-        {/* Right: Product ecosystem preview */}
-        <div className="relative">
-          {/* Decorative grid lines */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl opacity-[0.04] dark:opacity-[0.08]">
-            <svg className="h-full w-full" viewBox="0 0 400 500">
-              <defs>
-                <pattern
-                  id="grid"
-                  width="40"
-                  height="40"
-                  patternUnits="userSpaceOnUse"
-                >
-                  <path
-                    d="M 40 0 L 0 0 0 40"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="0.5"
-                  />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#grid)" />
-              <path
-                d="M 0 250 L 400 250 M 200 0 L 200 500"
-                stroke="currentColor"
-                strokeWidth="0.3"
-                opacity="0.5"
-              />
-            </svg>
-          </div>
-
-          <div className="relative grid gap-4">
-            {/* Saved calculation card */}
-            <Card className="rounded-xl ring-1 ring-primary/10 bg-card/60 backdrop-blur-xl shadow-2xl transition-transform hover:-translate-y-1 duration-500">
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-primary">
-                    Calculation Project
-                  </span>
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                    সংরক্ষিত
-                  </span>
-                </div>
-                <p className="mt-2 text-sm font-medium">দিনাজপুর সদর জমি</p>
-                <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>৩টি প্লট</span>
-                  <span className="h-3 w-px bg-border" />
-                  <span>মোট ৪২.৭৫ শতাংশ</span>
-                </div>
-                {/* Mini plot visualization */}
-                <div className="mt-3 flex items-end gap-1">
-                  <div className="flex h-10 w-full flex-col items-center justify-end rounded border-2 border-primary/20 bg-primary/5 pb-1">
-                    <span className="text-[8px] font-medium text-primary/60">
-                      প্লট ১
-                    </span>
-                    <div className="mt-0.5 h-5 w-[70%] rounded border border-primary/15 bg-primary/10" />
-                  </div>
-                  <div className="flex h-12 w-full flex-col items-center justify-end rounded border-2 border-primary/30 bg-primary/10 pb-1">
-                    <span className="text-[8px] font-medium text-primary/70">
-                      প্লট ২
-                    </span>
-                    <div className="mt-0.5 h-7 w-[85%] rounded border border-primary/20 bg-primary/15" />
-                  </div>
-                  <div className="flex h-9 w-full flex-col items-center justify-end rounded border-2 border-primary/20 bg-primary/5 pb-1">
-                    <span className="text-[8px] font-medium text-primary/60">
-                      প্লট ৩
-                    </span>
-                    <div className="mt-0.5 h-4 w-[60%] rounded border border-primary/15 bg-primary/10" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Two cards side by side */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Verified surveyor card */}
-              <Card className="rounded-xl ring-1 ring-primary/10 bg-card/60 backdrop-blur-xl shadow-2xl transition-transform hover:-translate-y-1 duration-500 delay-100">
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                      আ
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1">
-                        <p className="text-xs font-medium">মো. মোশাররফ হোসেন</p>
-                        <BadgeCheck className="size-3 text-primary" />
-                      </div>
-                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                        <Star className="size-3 fill-yellow-500 text-yellow-500" />
-                        <span>৪.৮</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    <span className="rounded-md bg-primary/5 px-1.5 py-0.5 text-[10px] text-primary">
-                      Verified
-                    </span>
-                    <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                      ৮ বছর
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Quotation card */}
-              <Card className="rounded-xl ring-1 ring-primary/10 bg-card/60 backdrop-blur-xl shadow-2xl transition-transform hover:-translate-y-1 duration-500 delay-200">
-                <CardContent>
-                  <div className="flex items-center gap-1 text-xs font-medium text-primary">
-                    <FileText className="size-3.5" />
-                    Quotation Received
-                  </div>
-                  <p className="mt-1 text-lg font-bold">৳৩,৫০০</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    জমি পরিমাপ — দিনাজপুর
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Status badge */}
-            <div className="flex items-center gap-3 rounded-xl border bg-card/60 backdrop-blur-xl shadow-2xl px-4 py-3 transition-transform hover:-translate-y-1 duration-500 delay-300">
-              <div className="flex size-8 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
-                <svg
-                  className="size-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
+          {/* Right: Product ecosystem preview */}
+          <div className="relative">
+            {/* Decorative grid lines */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl opacity-[0.04] dark:opacity-[0.08]">
+              <svg className="h-full w-full" viewBox="0 0 400 500">
+                <defs>
+                  <pattern
+                    id="grid"
+                    width="40"
+                    height="40"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <path
+                      d="M 40 0 L 0 0 0 40"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="0.5"
+                    />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid)" />
+                <path
+                  d="M 0 250 L 400 250 M 200 0 L 200 500"
                   stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Request Status</p>
-                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                    Survey Scheduled
-                  </span>
-                </div>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  সীমানা নির্ধারণ — ১৫ জুলাই, ২০২৬
-                </p>
-              </div>
+                  strokeWidth="0.3"
+                  opacity="0.5"
+                />
+              </svg>
+            </div>
+
+            <div className="relative grid gap-4">
+              {/* Saved calculation card */}
+              <Link href="/tools/land-measurement" className="block group">
+                <Card className="rounded-xl ring-1 ring-primary/10 bg-card/60 backdrop-blur-xl shadow-2xl transition-all hover:-translate-y-1 hover:ring-primary/30 duration-500">
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
+                        <Ruler className="size-3.5" />
+                        Land Area Calculator
+                      </div>
+                      <Badge variant="active" size="sm" className="rounded-md">
+                        Advanced Tool
+                      </Badge>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      যেকোনো চতুর্ভুজ বা বহুভুজ বিশিষ্ট জমির দৈর্ঘ্য দিয়ে নিখুঁত ক্ষেত্রফল ও শতাংশ বের করুন।
+                    </p>
+                    {/* Mini plot visualization */}
+                    <div className="mt-3 relative h-24 w-full rounded border border-border/50 bg-muted/20 flex items-center justify-center overflow-hidden">
+                      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[8px_8px]" />
+                      <svg className="relative w-full h-full" viewBox="0 0 100 60">
+                        <path
+                          d="M 25 15 L 85 10 L 75 50 L 15 45 Z"
+                          fill="var(--color-primary)"
+                          fillOpacity="0.1"
+                          stroke="var(--color-primary)"
+                          strokeWidth="1.5"
+                          strokeLinejoin="round"
+                        />
+                        <text x="55" y="11" fontSize="4.5" fill="currentColor" className="text-muted-foreground" textAnchor="middle">১২০ ফুট</text>
+                        <text x="82" y="32" fontSize="4.5" fill="currentColor" className="text-muted-foreground" textAnchor="middle" transform="rotate(75, 82, 32)">৮০ ফুট</text>
+                        <text x="45" y="53" fontSize="4.5" fill="currentColor" className="text-muted-foreground" textAnchor="middle">১১৫ ফুট</text>
+                        <text x="18" y="30" fontSize="4.5" fill="currentColor" className="text-muted-foreground" textAnchor="middle" transform="rotate(-70, 18, 30)">৭৫ ফুট</text>
+
+                        <text x="50" y="32" fontSize="6.5" fontWeight="bold" fill="var(--color-primary)" textAnchor="middle">৪২.৭৫</text>
+                        <text x="50" y="39" fontSize="4.5" fill="var(--color-primary)" textAnchor="middle">শতাংশ</text>
+                      </svg>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+
+              {/* Pantagraph Tool Card */}
+              <Link href="/tools/pantagraph" className="block group">
+                <Card className="rounded-xl ring-1 ring-primary/10 bg-card/60 backdrop-blur-xl shadow-2xl transition-all hover:-translate-y-1 hover:ring-purple-500/30 duration-500 delay-75">
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
+                        <Layers className="size-3.5" />
+                        Digital Pantagraph
+                      </div>
+                      <Badge variant="admin" size="sm" className="rounded-md">
+                        Advanced Tool
+                      </Badge>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      সি.এস এবং বি.এস ম্যাপ একসাথে সুপারইম্পোজ করে সীমানার পার্থক্য বের করুন।
+                    </p>
+                    {/* Mini Pantagraph Visualization */}
+                    <div className="mt-3 relative h-20 w-full overflow-hidden rounded border border-border/50 bg-muted/20 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[8px_8px]" />
+                      <svg className="relative w-full h-full" viewBox="0 0 100 60">
+                        {/* Map 1 (e.g. C.S Map in Red) */}
+                        <path
+                          d="M 25 20 L 65 15 L 75 45 L 30 50 Z"
+                          fill="none"
+                          stroke="#ef4444"
+                          strokeWidth="1"
+                          strokeDasharray="2 2"
+                          className="opacity-70"
+                        />
+                        <text x="50" y="25" fontSize="4.5" fill="#ef4444" opacity="0.8">সি.এস</text>
+
+                        {/* Map 2 (e.g. B.S Map in Blue/Primary) - slightly offset/rotated to show comparison */}
+                        <path
+                          d="M 28 22 L 68 18 L 72 48 L 32 52 Z"
+                          fill="var(--color-primary)"
+                          fillOpacity="0.1"
+                          stroke="var(--color-primary)"
+                          strokeWidth="1.5"
+                        />
+                        <text x="50" y="45" fontSize="4.5" fill="var(--color-primary)">বি.এস</text>
+
+                        {/* Alignment crosshairs/match points */}
+                        <circle cx="28" cy="22" r="1.5" fill="var(--color-primary)" />
+                        <circle cx="68" cy="18" r="1.5" fill="var(--color-primary)" />
+
+                        {/* Connection lines showing alignment matching */}
+                        <path d="M 25 20 L 28 22" stroke="currentColor" strokeWidth="0.5" className="text-muted-foreground" />
+                        <path d="M 65 15 L 68 18" stroke="currentColor" strokeWidth="0.5" className="text-muted-foreground" />
+                      </svg>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+
+              {/* Map Tracer Tool Card */}
+              <Link href="/tools/tracer" className="block group">
+                <Card className="rounded-xl ring-1 ring-primary/10 bg-card/60 backdrop-blur-xl shadow-2xl transition-all hover:-translate-y-1 hover:ring-blue-500/30 duration-500 delay-150">
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
+                        <Compass className="size-3.5" />
+                        Digital Map Tracer
+                      </div>
+                      <Badge variant="processing" size="sm" className="rounded-md">
+                        Advanced Tool
+                      </Badge>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      মৌজা ম্যাপ আপলোড করে নিখুঁতভাবে জমির সীমানা পয়েন্ট ট্রেস করুন।
+                    </p>
+                    {/* Mini Tracer Visualization */}
+                    <div className="mt-3 relative h-16 w-full overflow-hidden rounded border border-border/50 bg-muted/20">
+                      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[8px_8px]" />
+                      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 60">
+                        <path
+                          d="M 20 15 L 60 10 L 80 40 L 35 50 Z"
+                          fill="var(--color-primary)"
+                          fillOpacity="0.15"
+                          stroke="var(--color-primary)"
+                          strokeWidth="1.5"
+                          strokeLinejoin="round"
+                        />
+                        <circle cx="20" cy="15" r="2" fill="var(--color-primary)" />
+                        <circle cx="60" cy="10" r="2" fill="var(--color-primary)" />
+                        <circle cx="80" cy="40" r="2" fill="var(--color-primary)" />
+                        <circle cx="35" cy="50" r="2" fill="var(--color-primary)" />
+                        <path
+                          d="M 35 50 L 15 40"
+                          stroke="var(--color-primary)"
+                          strokeWidth="1"
+                          strokeDasharray="2 2"
+                        />
+                        <circle cx="15" cy="40" r="1.5" fill="none" stroke="var(--color-primary)" />
+                      </svg>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             </div>
           </div>
         </div>
-      </div>
-    </SectionWrapper>
-  </div>
+      </SectionWrapper>
+    </div>
   );
 }

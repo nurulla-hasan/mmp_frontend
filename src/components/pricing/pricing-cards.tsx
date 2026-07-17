@@ -16,7 +16,7 @@ export function PricingCards({ compact }: PricingCardsProps) {
     : PRICING_FEATURES;
 
   return (
-    <SectionWrapper asSection bg="muted">
+    <SectionWrapper asSection>
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {PRICING_PLANS.map((plan, index) => (
           <Card
