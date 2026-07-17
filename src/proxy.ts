@@ -238,7 +238,7 @@ const getRouteRedirect = (
     return loginUrl;
   }
 
-  if (requiredRole && role !== requiredRole) {
+  if (requiredRole && role && role !== requiredRole) {
     return new URL(ROLE_HOME[role], request.url);
   }
 
