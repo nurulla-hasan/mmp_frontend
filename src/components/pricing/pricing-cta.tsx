@@ -14,7 +14,7 @@ export function PricingCta() {
  <SectionHeading
  as="h2"
  title="আপনার প্রয়োজন অনুযায়ী শুরু করুন"
- description="Basic Land Tools ব্যবহার করে দেখুন অথবা calculation save ও professional report-এর জন্য Pro plan নির্বাচন করুন।"
+ description="বেসিক ল্যান্ড টুলস ব্যবহার করে দেখুন অথবা ক্যালকুলেশন সেভ ও পেশাদার রিপোর্ট-এর জন্য প্রো প্ল্যান নির্বাচন করুন।"
  />
 
  <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -23,7 +23,7 @@ export function PricingCta() {
  nativeButton={false}
  render={<Link href="/register" />}
  >
- Free Account খুলুন
+ ফ্রি অ্যাকাউন্ট খুলুন
  </Button>
  <Button
  size="lg"

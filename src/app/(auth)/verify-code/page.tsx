@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/input-otp";
 
 const formSchema = z.object({
-  code: z.string().length(6, "Code must be exactly 6 digits."),
+  code: z.string().length(6, "কোডটি ৬ সংখ্যার হতে হবে।"),
 });
 
 export default function Page() {
@@ -41,9 +41,9 @@ export default function Page() {
     >
       <FieldSet>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Verify your email</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">আপনার ইমেইল ভেরিফাই করুন</h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Enter the 6-digit code sent to your email address.
+            আপনার ইমেইলে পাঠানো 6-ডিজিটের কোডটি লিখুন।
           </p>
         </div>
 
@@ -53,7 +53,7 @@ export default function Page() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name} className="text-center">Verification code</FieldLabel>
+                <FieldLabel htmlFor={field.name} className="text-center">ভেরিফিকেশন কোড</FieldLabel>
                 <div className="flex justify-center">
                   <InputOTP
                     {...field}
@@ -74,7 +74,7 @@ export default function Page() {
                   </InputOTP>
                 </div>
                 <FieldDescription className="text-center">
-                  Check your email inbox for the code.
+                  আপনার ইমেইল ইনবক্স চেক করুন।
                 </FieldDescription>
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -83,16 +83,16 @@ export default function Page() {
 
           <Field>
             <Button type="submit" size="lg" className="w-full">
-              Verify code
+              কোড ভেরিফাই করুন
             </Button>
           </Field>
 
           <Field orientation="horizontal" className="flex-wrap justify-between">
             <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
-              Back to login
+              লগইনে ফিরে যান
             </Link>
             <button type="button" className="text-sm text-muted-foreground hover:text-foreground">
-              Resend code
+              কোড পুনরায় পাঠান
             </button>
           </Field>
         </FieldGroup>

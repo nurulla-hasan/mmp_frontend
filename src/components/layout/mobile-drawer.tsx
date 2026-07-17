@@ -34,16 +34,16 @@ export function MobileDrawer({
             variant="outline"
             size="icon"
             className="lg:hidden"
-            aria-label="Open navigation"
+            aria-label="নেভিগেশন খুলুন"
           />
         }
       >
         <Menu />
       </DrawerTrigger>
       <DrawerContent>
-        <DrawerTitle className="sr-only">Dashboard navigation</DrawerTitle>
+        <DrawerTitle className="sr-only">ড্যাশবোর্ড নেভিগেশন</DrawerTitle>
         <DrawerDescription className="sr-only">
-          Navigate through the {label.toLowerCase()} dashboard.
+          {label.toLowerCase()} ড্যাশবোর্ডে নেভিগেট করুন।
         </DrawerDescription>
         <DashboardSidebar
           label={label}

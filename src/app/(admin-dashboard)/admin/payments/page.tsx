@@ -3,23 +3,23 @@ import { DashboardPage } from "@/components/shared/dashboard-page";
 export default function Page() {
   return (
     <DashboardPage
-      title="Payments"
-      description="View and manage payment transactions and history."
+      title="পেমেন্ট"
+      description="পেমেন্ট লেনদেন এবং ইতিহাস দেখুন ও পরিচালনা করুন।"
       cards={[
         {
-          label: "Total Transactions",
+          label: "মোট লেনদেন",
           value: "0",
-          description: "All payment transactions processed.",
+          description: "সমস্ত পেমেন্ট লেনদেন প্রক্রিয়াকৃত।",
         },
         {
-          label: "Pending Payments",
+          label: "বিচারাধীন পেমেন্ট",
           value: "0",
-          description: "Payments awaiting confirmation.",
+          description: "নিশ্চিতকরণের অপেক্ষায় থাকা পেমেন্ট।",
         },
         {
-          label: "Total Revenue",
-          value: "$0",
-          description: "Total revenue from all transactions.",
+          label: "মোট আয়",
+          value: "৳০",
+          description: "সমস্ত লেনদেন থেকে মোট আয়।",
         },
       ]}
     />

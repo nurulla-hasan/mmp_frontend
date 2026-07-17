@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const policies = [
   {
-    title: "Device-based Secure Access",
+    title: "ডিভাইস-ভিত্তিক সুরক্ষিত অ্যাক্সেস",
     icon: (
       <svg
         className="size-5 text-primary"
@@ -22,10 +22,10 @@ const policies = [
     ),
     content:
       "Account sharing এবং অননুমোদিত ব্যবহার কমাতে Pro account-এ device-based access policy প্রযোজ্য হতে পারে। Registered device limit অতিক্রম করলে Admin বা Support-এর মাধ্যমে device lock reset করতে হতে পারে।",
-    note: "Exact device limit launch-এর আগে plan policy-তে প্রকাশ করা হবে।",
+    note: "সঠিক ডিভাইস লিমিট লঞ্চ-এর আগে প্ল্যান পলিসি-তে প্রকাশ করা হবে।",
   },
   {
-    title: "Fair Usage Policy",
+    title: "ফেয়ার ইউসেজ পলিসি",
     icon: (
       <svg
         className="size-5 text-primary"
@@ -42,11 +42,11 @@ const policies = [
       </svg>
     ),
     content:
-      "স্বাভাবিক ব্যক্তিগত ও professional land-workflow-এর জন্য calculation project, plot এবং report ব্যবহার করা যাবে। Automated, abusive অথবা অস্বাভাবিক system usage সীমিত করা হতে পারে।",
+      "স্বাভাবিক ব্যক্তিগত ও পেশাদার ল্যান্ড-ওয়ার্কফ্লো-এর জন্য ক্যালকুলেশন প্রজেক্ট, প্লট এবং রিপোর্ট ব্যবহার করা যাবে। অটোমেটেড, অ্যাবিউসিভ অথবা অস্বাভাবিক সিস্টেম ইউসেজ সীমিত করা হতে পারে।",
     note: null,
   },
   {
-    title: "Saved Data",
+    title: "সেভ করা ডাটা",
     icon: (
       <svg
         className="size-5 text-primary"
@@ -63,41 +63,41 @@ const policies = [
       </svg>
     ),
     content:
-      "Plan expire হওয়ার পর saved calculation-এর access, edit এবং export policy launch-এর আগে স্পষ্টভাবে প্রকাশ করা হবে।",
+      "প্ল্যান এক্সপায়ার হওয়ার পর সেভ করা ক্যালকুলেশন-এর অ্যাক্সেস, এডিট এবং এক্সপোর্ট পলিসি লঞ্চ-এর আগে স্পষ্টভাবে প্রকাশ করা হবে।",
     note: null,
   },
 ];
 
 const paymentItems = [
   {
-    title: "Subscription Activation",
+    title: "সাবস্ক্রিপশন অ্যাক্টিভেশন",
     content:
       "Payment সফলভাবে confirm হওয়ার পরে subscription account-এ সক্রিয় হবে।",
   },
   {
-    title: "Subscription Duration",
+    title: "সাবস্ক্রিপশন মেয়াদ",
     content:
-      "Plan activation date থেকে নির্বাচিত মেয়াদ গণনা হবে।",
+      "প্ল্যান অ্যাক্টিভেশন ডেট থেকে নির্বাচিত মেয়াদ গণনা হবে।",
   },
   {
-    title: "Payment Method",
+    title: "পেমেন্ট পদ্ধতি",
     content:
-      "Supported payment provider ও payment method launch-এর আগে প্রকাশ করা হবে।",
+      "সাপোর্টেড পেমেন্ট প্রোভাইডার ও পেমেন্ট মেথড লঞ্চ-এর আগে প্রকাশ করা হবে।",
   },
   {
-    title: "Renewal",
+    title: "রিনিউয়াল",
     content:
-      "Subscription renewal manual নাকি automatic হবে, তা final policy-তে জানানো হবে।",
+      "সাবস্ক্রিপশন রিনিউয়াল ম্যানুয়াল নাকি অটোমেটিক হবে, তা ফাইনাল পলিসি-তে জানানো হবে。",
   },
   {
-    title: "Failed Payment",
+    title: "ব্যর্থ পেমেন্ট",
     content:
-      "Payment সম্পন্ন না হলে subscription active হবে না।",
+      "পেমেন্ট সম্পন্ন না হলে সাবস্ক্রিপশন অ্যাক্টিভ হবে না।",
   },
   {
-    title: "Refund Policy",
+    title: "রিফান্ড নীতি",
     content:
-      "Refund ও cancellation policy launch-এর আগে Terms page-এ প্রকাশ করা হবে।",
+      "রিফান্ড ও ক্যান্সেলেশন পলিসি লঞ্চ-এর আগে টার্মস পেজ-এ প্রকাশ করা হবে।",
   },
 ];
 
@@ -107,7 +107,7 @@ export function PricingPolicies() {
       {/* ─── Usage & Security ─────────────────────────────── */}
       <SectionWrapper id="policies" asSection bg="muted">
         <SectionHeading
-          badge="Usage & Security"
+          badge="ব্যবহার ও নিরাপত্তা"
           title="ব্যবহার ও Account নিরাপত্তা"
           description="Pro plan-এর নিরাপত্তা ও ব্যবহার নীতিমালা সম্পর্কে জানুন।"
         />
@@ -140,7 +140,7 @@ export function PricingPolicies() {
       {/* ─── Payment Information ──────────────────────────── */}
       <SectionWrapper id="payment-info">
         <SectionHeading
-          badge="Payment Information"
+          badge="পেমেন্ট তথ্য"
           title="Payment এবং Subscription সম্পর্কে"
           description="আপনার subscription ও payment সংক্রান্ত যাবতীয় তথ্য।"
         />

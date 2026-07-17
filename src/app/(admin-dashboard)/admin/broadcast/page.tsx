@@ -3,18 +3,18 @@ import { DashboardPage } from "@/components/shared/dashboard-page";
 export default function Page() {
   return (
     <DashboardPage
-      title="Broadcast"
-      description="Send announcements and notifications to users."
+      title="ব্রডকাস্ট"
+      description="ইউজারদের কাছে ঘোষণা এবং নোটিফিকেশন পাঠান।"
       cards={[
         {
-          label: "Total Broadcasts",
+          label: "মোট ব্রডকাস্ট",
           value: "0",
-          description: "Broadcast messages sent.",
+          description: "পাঠানো ব্রডকাস্ট মেসেজ।",
         },
         {
-          label: "Pending",
+          label: "বিচারাধীন",
           value: "0",
-          description: "Scheduled or draft broadcasts.",
+          description: "নির্ধারিত বা খসড়া ব্রডকাস্ট।",
         },
       ]}
     />

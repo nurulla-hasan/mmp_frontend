@@ -17,8 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 
 const formSchema = z.object({
-  email: z.string().email("Please enter a valid email address."),
-  password: z.string().min(1, "Password is required."),
+  email: z.string().email("একটি বৈধ ইমেইল ঠিকানা দিন।"),
+  password: z.string().min(1, "পাসওয়ার্ড প্রয়োজন।"),
 });
 
 export default function Page() {
@@ -41,9 +41,9 @@ export default function Page() {
     >
       <FieldSet>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">স্বাগতম</h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Sign in to continue to Mouza Map Pro.
+            Mouza Map Pro-তে সাইন ইন করুন।
           </p>
         </div>
 
@@ -53,7 +53,7 @@ export default function Page() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Email address</FieldLabel>
+                <FieldLabel htmlFor={field.name}>ইমেইল ঠিকানা</FieldLabel>
                 <Input
                   {...field}
                   id={field.name}
@@ -72,14 +72,14 @@ export default function Page() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                <FieldLabel htmlFor={field.name}>পাসওয়ার্ড</FieldLabel>
                 <Input
                   {...field}
                   id={field.name}
                   type="password"
                   aria-invalid={fieldState.invalid}
                   autoComplete="current-password"
-                  placeholder="Enter your password"
+                  placeholder="আপনার পাসওয়ার্ড দিন"
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -88,11 +88,11 @@ export default function Page() {
 
           <Field>
             <Button type="submit" size="lg" className="w-full">
-              Sign in
+              সাইন ইন
             </Button>
           </Field>
 
-          <FieldSeparator>Or</FieldSeparator>
+          <FieldSeparator>অথবা</FieldSeparator>
 
           <Field>
             <Button type="button" variant="outline" size="lg" className="w-full gap-2">
@@ -102,16 +102,16 @@ export default function Page() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
               </svg>
-              Continue with Google
+              Google দিয়ে চালিয়ে যান
             </Button>
           </Field>
 
           <Field orientation="horizontal" className="flex-wrap justify-between">
             <Link href="/register" className="text-sm text-muted-foreground hover:text-foreground">
-              Create account
+              অ্যাকাউন্ট তৈরি করুন
             </Link>
             <Link href="/forgot-password" className="text-sm text-muted-foreground hover:text-foreground">
-              Forgot password?
+              পাসওয়ার্ড ভুলে গেছেন?
             </Link>
           </Field>
         </FieldGroup>

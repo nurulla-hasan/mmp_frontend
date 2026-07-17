@@ -25,32 +25,32 @@ export interface NavigationItem {
 
 export const userNavigation: NavigationItem[] = [
   {
-    title: "Overview",
+    title: "ওভারভিউ",
     href: "/dashboard",
     icon: House,
   },
   {
-    title: "My Calculations",
+    title: "আমার ক্যালকুলেশন",
     href: "/dashboard/calculations",
     icon: Calculator,
   },
   {
-    title: "Service Requests",
+    title: "সার্ভিস রিকোয়েস্ট",
     href: "/dashboard/service-requests",
     icon: ClipboardList,
   },
   {
-    title: "Quotations",
+    title: "কোটেশন",
     href: "/dashboard/quotations",
     icon: HandCoins,
   },
   {
-    title: "Messages",
+    title: "মেসেজ",
     href: "/dashboard/messages",
     icon: MessageSquare,
   },
   {
-    title: "Profile",
+    title: "প্রোফাইল",
     href: "/dashboard/profile",
     icon: CircleUserRound,
   },
@@ -58,34 +58,34 @@ export const userNavigation: NavigationItem[] = [
 
 export const surveyorNavigation: NavigationItem[] = [
   {
-    title: "Overview",
+    title: "ওভারভিউ",
     href: "/surveyor/dashboard",
     icon: House,
   },
   {
-    title: "My Calculations",
+    title: "আমার ক্যালকুলেশন",
     href: "/surveyor/calculations",
     icon: Calculator,
   },
 
   {
-    title: "Professional Profile",
+    title: "পেশাদার প্রোফাইল",
     href: "/surveyor/profile",
     icon: CircleUserRound,
   },
 
   {
-    title: "Available Requests",
+    title: "উপলব্ধ রিকোয়েস্ট",
     href: "/surveyor/requests",
     icon: ClipboardList,
   },
   {
-    title: "Quotations",
+    title: "কোটেশন",
     href: "/surveyor/quotations",
     icon: HandCoins,
   },
   {
-    title: "Messages",
+    title: "মেসেজ",
     href: "/surveyor/messages",
     icon: MessageSquare,
   },
@@ -93,57 +93,57 @@ export const surveyorNavigation: NavigationItem[] = [
 
 export const adminNavigation: NavigationItem[] = [
   {
-    title: "Overview",
+    title: "ওভারভিউ",
     href: "/admin/dashboard",
     icon: House,
   },
   {
-    title: "Users",
+    title: "ইউজার",
     href: "/admin/users",
     icon: Users,
   },
   {
-    title: "Subscribers",
+    title: "সাবস্ক্রাইবার",
     href: "/admin/subscribers",
     icon: UserRoundCheck,
   },
   {
-    title: "Plans",
+    title: "প্ল্যান",
     href: "/admin/plans",
     icon: Tags,
   },
   {
-    title: "Device Management",
+    title: "ডিভাইস ম্যানেজমেন্ট",
     href: "/admin/device-locks",
     icon: MonitorSmartphone,
   },
   {
-    title: "Calculations",
+    title: "ক্যালকুলেশন",
     href: "/admin/calculations",
     icon: Calculator,
   },
   {
-    title: "Payments",
+    title: "পেমেন্ট",
     href: "/admin/payments",
     icon: CreditCard,
   },
   {
-    title: "Broadcast",
+    title: "ব্রডকাস্ট",
     href: "/admin/broadcast",
     icon: Megaphone,
   },
   {
-    title: "Admin Management",
+    title: "অ্যাডমিন ম্যানেজমেন্ট",
     href: "/admin/admins",
     icon: ShieldUser,
   },
   {
-    title: "Verification Requests",
+    title: "ভেরিফিকেশন রিকোয়েস্ট",
     href: "/admin/verifications",
     icon: ShieldCheck,
   },
   {
-    title: "Service Categories",
+    title: "সার্ভিস ক্যাটাগরি",
     href: "/admin/service-categories",
     icon: Wrench,
   },

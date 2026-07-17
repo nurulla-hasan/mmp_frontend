@@ -26,14 +26,14 @@ export function DashboardHeader({ title, label, navigation, mobileOpen, onMobile
  />
  <div>
  <p className="text-sm font-medium">{title}</p>
- <p className="text-xs text-muted-foreground">Mouza Map Pro</p>
+ <p className="text-xs text-muted-foreground">মৌজা ম্যাপ প্রো</p>
  </div>
  <div className="ml-auto flex items-center gap-1">
- <Button variant="ghost" size="icon" aria-label="Notifications">
+ <Button variant="ghost" size="icon" aria-label="নোটিফিকেশন">
  <Bell />
  </Button>
  <ThemeToggle />
- <Button variant="ghost" size="icon" aria-label="Profile menu">
+ <Button variant="ghost" size="icon" aria-label="প্রোফাইল মেনু">
  <UserRound />
  </Button>
  </div>

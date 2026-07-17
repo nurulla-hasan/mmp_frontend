@@ -11,8 +11,8 @@ export function PublicDynamicPage({ label, value, description }: { label: string
   const formatted = formatRouteValue(value);
   return (
     <PageWrapper>
-      <nav className="mb-6 text-sm text-muted-foreground" aria-label="Breadcrumb">
-        <Link href="/" className="hover:text-foreground">Home</Link>
+      <nav className="mb-6 text-sm text-muted-foreground" aria-label="ব্রেডক্রাম্ব">
+        <Link href="/" className="hover:text-foreground">হোম</Link>
         <span aria-hidden="true"> / </span>
         <span className="text-foreground">{label}</span>
         <span aria-hidden="true"> / </span>
@@ -24,8 +24,8 @@ export function PublicDynamicPage({ label, value, description }: { label: string
         <p className="mt-4 text-base leading-7 text-muted-foreground">{description}</p>
       </section>
       <section className="mt-10 grid gap-4 sm:grid-cols-2">
-        <RouteCard title="Overview" description={`Placeholder overview for ${formatted}.`} href="#" />
-        <RouteCard title="Related information" description="Supporting content will be connected here later." href="#" />
+        <RouteCard title="ওভারভিউ" description={`${formatted}-এর জন্য প্রাথমিক ওভারভিউ।`} href="#" />
+        <RouteCard title="সংশ্লিষ্ট তথ্য" description="সংশ্লিষ্ট কন্টেন্ট পরে এখানে সংযুক্ত হবে।" href="#" />
       </section>
     </PageWrapper>
   );
@@ -38,8 +38,8 @@ export function DashboardDynamicPage({ label, value, description }: { label: str
       description={description}
       showBack
       cards={[
-        { label: "Status", value: "Placeholder", description: "Live status will appear after backend integration." },
-        { label: "Activity", description: "A timeline and related records will appear here." },
+        { label: "স্ট্যাটাস", value: "প্লেসহোল্ডার", description: "বাস্তব স্ট্যাটাস ব্যাকএন্ড সংযুক্ত হলে দেখা যাবে।" },
+        { label: "কার্যক্রম", description: "এখানে একটি টাইমলাইন এবং সম্পর্কিত রেকর্ড দেখানো হবে।" },
       ]}
     />
   );

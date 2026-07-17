@@ -11,9 +11,9 @@ import { CONTAINER_MAX_WIDTH } from "../shared/page-wrapper";
 type DashboardRole = "user" | "surveyor" | "admin";
 
 const roleConfig: Record<DashboardRole, { title: string; label: string; navigation: NavigationItem[] }> = {
-  user: { title: "My Dashboard", label: "General User", navigation: userNavigation },
-  surveyor: { title: "Surveyor Workspace", label: "Surveyor", navigation: surveyorNavigation },
-  admin: { title: "Administration", label: "Admin", navigation: adminNavigation },
+  user: { title: "আমার ড্যাশবোর্ড", label: "সাধারণ ইউজার", navigation: userNavigation },
+  surveyor: { title: "সার্ভেয়ার ওয়ার্কস্পেস", label: "সার্ভেয়ার", navigation: surveyorNavigation },
+  admin: { title: "অ্যাডমিন প্যানেল", label: "অ্যাডমিন", navigation: adminNavigation },
 };
 
 export function DashboardShell({ role, children }: { role: DashboardRole; children: React.ReactNode }) {

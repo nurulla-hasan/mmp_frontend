@@ -42,8 +42,8 @@ export function DashboardPage({ title, description, cards = [] }: DashboardPageP
       </div>
       {cards.length === 0 && (
         <div className="rounded-xl border border-dashed bg-card p-8 text-center">
-          <p className="font-medium">Workspace ready</p>
-          <p className="mt-2 text-sm text-muted-foreground">Feature content and backend data will be connected in a later phase.</p>
+          <p className="font-medium">ওয়ার্কস্পেস প্রস্তুত</p>
+          <p className="mt-2 text-sm text-muted-foreground">ফিচার কন্টেন্ট এবং ব্যাকএন্ড ডেটা পরবর্তী পর্যায়ে সংযুক্ত করা হবে।</p>
         </div>
       )}
     </div>

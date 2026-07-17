@@ -33,11 +33,11 @@ interface ConfirmationModalProps {
 }
 
 export function ConfirmationModal({
-  title = "Are you sure?",
-  description = "This action cannot be undone.",
-  confirmText = "Confirm",
-  loadingText = "Processing...",
-  cancelText = "Cancel",
+  title = "আপনি কি নিশ্চিত?",
+  description = "এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।",
+  confirmText = "নিশ্চিত করুন",
+  loadingText = "প্রক্রিয়াধীন...",
+  cancelText = "বাতিল",
   open,
   onOpenChange,
   onConfirm,

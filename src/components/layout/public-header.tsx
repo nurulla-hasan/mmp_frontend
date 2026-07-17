@@ -12,11 +12,11 @@ import { PublicMobileDrawer } from "./public-mobile-drawer";
 import { CONTAINER_MAX_WIDTH } from "../shared/page-wrapper";
 
 const desktopLinks = [
-    { label: "Home", href: "/" },
-    { label: "Land Tools", href: "/tools" },
-    { label: "Find Surveyor", href: "/surveyors" },
-    { label: "Post a Request", href: "/post-request" },
-    { label: "Pricing", href: "/pricing" },
+    { label: "হোম", href: "/" },
+    { label: "ল্যান্ড টুলস", href: "/tools" },
+    { label: "সার্ভেয়ার খুঁজুন", href: "/surveyors" },
+    { label: "রিকোয়েস্ট পোস্ট করুন", href: "/post-request" },
+    { label: "প্রাইসিং", href: "/pricing" },
 ];
 
 export function PublicHeader() {
@@ -38,7 +38,7 @@ export function PublicHeader() {
                 {/* Center: Nav */}
                 <nav
                     className="hidden items-center gap-5 lg:flex"
-                    aria-label="Primary navigation"
+                    aria-label="প্রধান নেভিগেশন"
                 >
                     {desktopLinks.map((item) => (
                         <Link
@@ -65,14 +65,14 @@ export function PublicHeader() {
                         nativeButton={false}
                         render={<Link href="/login" />}
                     >
-                        Login
+                        লগইন
                     </Button>
                     <Button
                         className="hidden sm:inline-flex"
                         nativeButton={false}
                         render={<Link href="/surveyors" />}
                     >
-                        Find a Surveyor
+                        সার্ভেয়ার খুঁজুন
                     </Button>
                     <PublicMobileDrawer />
                 </div>

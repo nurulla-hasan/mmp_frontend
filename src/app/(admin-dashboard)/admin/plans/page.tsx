@@ -3,18 +3,18 @@ import { DashboardPage } from "@/components/shared/dashboard-page";
 export default function Page() {
   return (
     <DashboardPage
-      title="Plans"
-      description="Configure subscription plans and pricing tiers."
+      title="প্ল্যান"
+      description="সাবস্ক্রিপশন প্ল্যান এবং প্রাইসিং টিয়ার কনফিগার করুন।"
       cards={[
         {
-          label: "Active Plans",
+          label: "সক্রিয় প্ল্যান",
           value: "0",
-          description: "Currently available subscription plans.",
+          description: "বর্তমানে উপলব্ধ সাবস্ক্রিপশন প্ল্যান।",
         },
         {
-          label: "Total Revenue",
-          value: "$0",
-          description: "Revenue generated from all plans.",
+          label: "মোট আয়",
+          value: "৳০",
+          description: "সমস্ত প্ল্যান থেকে আয়।",
         },
       ]}
     />

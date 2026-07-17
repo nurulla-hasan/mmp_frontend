@@ -1,6 +1,16 @@
 import { PublicDynamicPage } from "@/components/shared/dynamic-page";
 
-export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
-  return <PublicDynamicPage label="Community Question" value={slug} description="Question details, verified surveyor answers, voting, and moderation placeholders belong here." />;
+  return (
+    <PublicDynamicPage
+      label="কমিউনিটি প্রশ্ন"
+      value={slug}
+      description="প্রশ্নের বিবরণ, ভেরিফাইড সার্ভেয়ার উত্তর, ভোটিং এবং মডারেশন প্লেসহোল্ডার এখানে থাকবে।"
+    />
+  );
 }

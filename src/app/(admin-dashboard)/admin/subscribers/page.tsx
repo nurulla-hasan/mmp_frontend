@@ -3,18 +3,18 @@ import { DashboardPage } from "@/components/shared/dashboard-page";
 export default function Page() {
   return (
     <DashboardPage
-      title="Subscribers"
-      description="Manage platform subscribers and their subscription status."
+      title="সাবস্ক্রাইবার"
+      description="প্ল্যাটফর্ম সাবস্ক্রাইবার এবং তাদের সাবস্ক্রিপশন স্ট্যাটাস পরিচালনা করুন।"
       cards={[
         {
-          label: "Total Subscribers",
+          label: "মোট সাবস্ক্রাইবার",
           value: "0",
-          description: "Active subscribed users.",
+          description: "সক্রিয় সাবস্ক্রাইবার।",
         },
         {
-          label: "New This Month",
+          label: "এই মাসে নতুন",
           value: "0",
-          description: "Subscribers joined this month.",
+          description: "এই মাসে যোগ দেওয়া সাবস্ক্রাইবার।",
         },
       ]}
     />

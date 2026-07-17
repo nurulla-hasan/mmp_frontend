@@ -10,24 +10,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 const landownerBenefits = [
-  "Land tools ব্যবহার",
-  "Calculation save",
-  "Surveyor search",
-  "Service request posting",
-  "Quotation comparison",
-  "Direct messaging",
-  "Request status tracking",
+  "ল্যান্ড টুলস ব্যবহার",
+  "ক্যালকুলেশন সংরক্ষণ",
+  "সার্ভেয়ার খোঁজা",
+  "সার্ভিস রিকোয়েস্ট পোস্টিং",
+  "কোটেশন তুলনা",
+  "সরাসরি মেসেজিং",
+  "রিকোয়েস্ট স্ট্যাটাস ট্র্যাকিং",
 ];
 
 const surveyorBenefits = [
-  "Professional public profile",
-  "Verification badge",
-  "Service এবং service area",
-  "Available request discovery",
-  "Quotation submission",
-  "Client calculation management",
-  "Direct messaging",
-];
+  "প্রফেশনাল পাবলিক প্রোফাইল",
+  "ভেরিফিকেশন ব্যাজ",
+  "সার্ভিস ও সার্ভিস এরিয়া",
+  "উপলব্ধ রিকোয়েস্ট দেখা",
+  "কোটেশন জমা দেওয়া",
+  "ক্লায়েন্ট ক্যালকুলেশন ম্যানেজমেন্ট",
+  "সরাসরি মেসেজিং",
+]
 
 export function RoleBenefitsSection() {
   return (

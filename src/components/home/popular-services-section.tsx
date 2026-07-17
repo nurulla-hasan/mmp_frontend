@@ -58,7 +58,7 @@ export function PopularServicesSection() {
       <SectionHeading
         badge="জনপ্রিয় সেবা"
         title="জমির কাজে যে সেবাগুলো সবচেয়ে বেশি প্রয়োজন"
-        description="আপনার প্রয়োজনীয় সেবা নির্বাচন করে সংশ্লিষ্ট সার্ভেয়ার খুঁজুন অথবা সরাসরি request পোস্ট করুন।"
+        description="আপনার প্রয়োজনীয় সেবা নির্বাচন করে সংশ্লিষ্ট সার্ভেয়ার খুঁজুন অথবা সরাসরি রিকোয়েস্ট পোস্ট করুন。"
       />
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service) => {

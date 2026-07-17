@@ -187,18 +187,18 @@ export default function MapCalculator() {
         {savedPlots.length > 0 && (
           <div className="border-t py-2 print:hidden bg-gray-50">
             <div className={cn(`${CONTAINER_MAX_WIDTH} mx-auto px-4 xl:px-0`)}>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Saved Plots</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">সংরক্ষিত প্লট</h3>
               <div className="flex flex-wrap gap-3">
                 {savedPlots.map((plot, index) => (
                   <div key={plot.id} className="flex items-center gap-2 bg-white border rounded px-3 py-1.5 shadow-sm text-sm">
-                    <span className="font-medium text-gray-800">{plot.name || `Plot ${index + 1}`}</span>
+                    <span className="font-medium text-gray-800">{plot.name || `প্লট ${index + 1}`}</span>
                     <span className="text-gray-500">
-                      {plot.results.shotok.toFixed(4)} shotok
+                      {plot.results.shotok.toFixed(4)} শতক
                     </span>
                     <button
                       onClick={() => deleteSavedPlot(plot.id)}
                       className="text-red-500 hover:text-red-700 ml-1"
-                      aria-label={`Delete ${plot.name || `Plot ${index + 1}`}`}
+                      aria-label={`মুছুন ${plot.name || `প্লট ${index + 1}`}`}
                     >
                       ✕
                     </button>

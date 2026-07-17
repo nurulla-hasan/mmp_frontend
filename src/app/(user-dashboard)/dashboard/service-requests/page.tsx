@@ -1,3 +1,3 @@
 import { DashboardPage } from "@/components/shared/dashboard-page";
-export default function Page() { return <DashboardPage title="Service Requests" description="Track requirements, quotations, and service progress." cards={[{ label: "Open requests", value: "0", description: "Active service requests will appear here." },
-        { label: "Post request", href: "/dashboard/service-requests/new", description: "Prepare a new land-service requirement." }]} />; }
+export default function Page() { return <DashboardPage title="সার্ভিস রিকোয়েস্ট" description="রিকোয়েস্ট, কোটেশন এবং সার্ভিস অগ্রগতি ট্র্যাক করুন।" cards={[{ label: "খোলা রিকোয়েস্ট", value: "0", description: "সক্রিয় সার্ভিস রিকোয়েস্ট এখানে দেখাবে।" },
+        { label: "রিকোয়েস্ট পোস্ট করুন", href: "/dashboard/service-requests/new", description: "নতুন জমি-সেবা রিকোয়েস্ট তৈরি করুন।" }]} />; }

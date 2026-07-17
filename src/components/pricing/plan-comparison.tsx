@@ -7,35 +7,35 @@ import { PRICING_PLANS } from "./pricing-data";
 
 const COMPARISON_ROWS: { label: string; values: string[] }[] = [
   {
-    label: "Plan duration",
+    label: "প্ল্যান মেয়াদ",
     values: PRICING_PLANS.map((p) => p.duration),
   },
   {
-    label: "Calculation project",
+    label: "ক্যালকুলেশন প্রজেক্ট",
     values: ["✓", "✓", "✓"],
   },
   {
-    label: "Multiple plot support",
+    label: "একাধিক প্লট সাপোর্ট",
     values: ["✓", "✓", "✓"],
   },
   {
-    label: "Project save",
+    label: "প্রজেক্ট সেভ",
     values: ["✓", "✓", "✓"],
   },
   {
-    label: "Continue editing",
+    label: "পরে সম্পাদনা",
     values: ["✓", "✓", "✓"],
   },
   {
-    label: "PDF/Print report",
+    label: "PDF/Print রিপোর্ট",
     values: ["✓", "✓", "✓"],
   },
   {
-    label: "Device-based access",
+    label: "Device-ভিত্তিক অ্যাক্সেস",
     values: ["Plan policy অনুযায়ী", "Plan policy অনুযায়ী", "Plan policy অনুযায়ী"],
   },
   {
-    label: "Priority updates",
+    label: "প্রথমিক আপডেট",
     values: ["✓", "✓", "✓"],
   },
 ];
@@ -44,7 +44,7 @@ export function PlanComparison() {
   return (
     <SectionWrapper id="plan-comparison">
       <SectionHeading
-        badge="Plan Comparison"
+        badge="প্ল্যান তুলনা"
         title="Planগুলোর পার্থক্য এক নজরে"
         description="সব Pro plan একই মূল সুবিধা দেয়; প্রধান পার্থক্য হলো plan-এর মেয়াদ ও মূল্য।"
       />

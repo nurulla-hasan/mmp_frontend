@@ -18,7 +18,7 @@ export function FinalCtaSection() {
       <SectionWrapper id="get-started">
       <SectionHeading
         title="জমির কাজ শুরু করতে প্রস্তুত?"
-        description="হিসাব করুন, প্রয়োজন পোস্ট করুন অথবা professional surveyor হিসেবে আপনার profile তৈরি করুন।"
+        description="হিসাব করুন, প্রয়োজন পোস্ট করুন অথবা পেশাদার সার্ভেয়ার হিসেবে আপনার প্রোফাইল তৈরি করুন。"
       />
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         {/* Landowner CTA */}
@@ -29,7 +29,7 @@ export function FinalCtaSection() {
             </div>
             <h3 className="mt-4 text-lg font-medium">জমির কাজ আছে?</h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              আপনার প্রয়োজন পোস্ট করুন এবং এলাকার সার্ভেয়ারদের quotation গ্রহণ
+              আপনার প্রয়োজন পোস্ট করুন এবং এলাকার সার্ভেয়ারদের কোটেশন গ্রহণ
               করুন।
             </p>
             <Button
@@ -52,7 +52,7 @@ export function FinalCtaSection() {
             </div>
             <h3 className="mt-4 text-lg font-medium">আপনি একজন সার্ভেয়ার?</h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Professional profile তৈরি করে নতুন client এবং available request-এর
+              পেশাদার প্রোফাইল তৈরি করে নতুন ক্লায়েন্ট এবং উপলব্ধ রিকোয়েস্ট-এর
               সঙ্গে যুক্ত হন।
             </p>
             <Button
@@ -62,7 +62,7 @@ export function FinalCtaSection() {
               nativeButton={false}
               render={<Link href="/join-as-surveyor" />}
             >
-              Surveyor হিসেবে যোগ দিন
+              সার্ভেয়ার হিসেবে যোগ দিন
               <ArrowRight className="size-4" />
             </Button>
           </CardContent>
@@ -73,7 +73,7 @@ export function FinalCtaSection() {
           href="/tools"
           className="text-sm text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
         >
-          আগে Land Tools ব্যবহার করে দেখুন &rarr;
+          আগে ল্যান্ড টুলস ব্যবহার করে দেখুন &rarr;
         </Link>
       </div>
       </SectionWrapper>

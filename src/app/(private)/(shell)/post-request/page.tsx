@@ -76,7 +76,7 @@ export default function Page() {
     <PageWrapper paddingSize="small" className="space-y-6">
       <SectionHeading
         title="Service Request পোস্ট করুন"
-        description="আপনার প্রয়োজনীয় কাজের তথ্য দিন। সার্ভেয়াররা বিস্তারিত দেখে কাজের Quotation পাঠাবেন।"
+        description="আপনার প্রয়োজনীয় কাজের তথ্য দিন। সার্ভেয়াররা বিস্তারিত দেখে কাজের কোটেশন পাঠাবেন।"
         as="h2"
         alignment="left"
       />
@@ -313,13 +313,13 @@ export default function Page() {
                 },
                 {
                   step: "২",
-                  title: "Quotation পান",
+                  title: "কোটেশন পান",
                   desc: "আপনার এলাকার সার্ভেয়াররা বিস্তারিত দেখে মূল্য ও সময় জানাবেন।",
                 },
                 {
                   step: "৩",
                   title: "সেরাটি বেছে নিন",
-                  desc: "একাধিক Quotation তুলনা করে আপনার পছন্দের সার্ভেয়ার নির্বাচন করুন।",
+                  desc: "একাধিক কোটেশন তুলনা করে আপনার পছন্দের সার্ভেয়ার নির্বাচন করুন।",
                 },
               ].map((item) => (
                 <li key={item.step} className="flex gap-3">

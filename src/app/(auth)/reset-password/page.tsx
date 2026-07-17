@@ -17,11 +17,11 @@ import { Input } from "@/components/ui/input";
 
 const formSchema = z
   .object({
-    password: z.string().min(8, "Password must be at least 8 characters."),
-    confirmPassword: z.string().min(1, "Please confirm your password."),
+    password: z.string().min(8, "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।"),
+    confirmPassword: z.string().min(1, "অনুগ্রহ করে পাসওয়ার্ড নিশ্চিত করুন।"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match.",
+    message: "পাসওয়ার্ড মিলছে না।",
     path: ["confirmPassword"],
   });
 
@@ -45,9 +45,9 @@ export default function Page() {
     >
       <FieldSet>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Set new password</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">নতুন পাসওয়ার্ড সেট করুন</h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Enter your new password below.
+            নিচে আপনার নতুন পাসওয়ার্ড দিন।
           </p>
         </div>
 
@@ -57,14 +57,14 @@ export default function Page() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                <FieldLabel htmlFor={field.name}>পাসওয়ার্ড</FieldLabel>
                 <Input
                   {...field}
                   id={field.name}
                   type="password"
                   aria-invalid={fieldState.invalid}
                   autoComplete="new-password"
-                  placeholder="Enter your password"
+                  placeholder="আপনার পাসওয়ার্ড দিন"
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -76,14 +76,14 @@ export default function Page() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Confirm password</FieldLabel>
+                <FieldLabel htmlFor={field.name}>পাসওয়ার্ড নিশ্চিত করুন</FieldLabel>
                 <Input
                   {...field}
                   id={field.name}
                   type="password"
                   aria-invalid={fieldState.invalid}
                   autoComplete="new-password"
-                  placeholder="Confirm your password"
+                  placeholder="আপনার পাসওয়ার্ড নিশ্চিত করুন"
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -92,13 +92,13 @@ export default function Page() {
 
           <Field>
             <Button type="submit" size="lg" className="w-full">
-              Reset password
+              পাসওয়ার্ড রিসেট করুন
             </Button>
           </Field>
 
           <Field orientation="horizontal" className="flex-wrap justify-between">
             <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
-              Back to login
+              লগইনে ফিরে যান
             </Link>
           </Field>
         </FieldGroup>

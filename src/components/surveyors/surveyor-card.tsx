@@ -105,7 +105,7 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
           <p className="text-sm font-semibold text-primary">
             {surveyor.startingPrice != null
               ? `৳${surveyor.startingPrice.toLocaleString("bn")} থেকে`
-              : "Quotation অনুযায়ী মূল্য"}
+              : "কোটেশন অনুযায়ী মূল্য"}
           </p>
         </div>
 
@@ -126,7 +126,7 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
             nativeButton={false}
             render={<Link href={`/post-request?surveyor=${surveyor.slug}`} />}
           >
-            Quotation চান
+            কোটেশন চান
           </Button>
         </div>
       </div>

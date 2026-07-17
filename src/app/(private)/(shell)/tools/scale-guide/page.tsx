@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 export const metadata = {
   title: "Scale Guide | Mouza Map Pro",
-  description: "Learn how to accurately set map scale for precise land calculations.",
+  description: "কীভাবে নির্ভুল জমি পরিমাপের জন্য ম্যাপ স্কেল সেট করতে হয় তা শিখুন।",
 };
 
 const steps = [

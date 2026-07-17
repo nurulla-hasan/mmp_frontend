@@ -20,35 +20,35 @@ const faqs = [
   },
   {
     q: "সব Pro plan-এ কি একই feature থাকবে?",
-    a: "বর্তমান পরিকল্পনা অনুযায়ী মূল Pro featureগুলো একই থাকবে। Planগুলোর প্রধান পার্থক্য হবে মেয়াদ ও মূল্য। Final feature list launch-এর আগে প্রকাশ করা হবে।",
+    a: "বর্তমান পরিকল্পনা অনুযায়ী মূল প্রো ফিচারগুলো একই থাকবে। প্ল্যানগুলোর প্রধান পার্থক্য হবে মেয়াদ ও মূল্য। চূড়ান্ত ফিচার তালিকা লঞ্চ-এর আগে প্রকাশ করা হবে।",
   },
   {
     q: "Plan শেষ হলে saved calculation কি মুছে যাবে?",
-    a: "Saved data retention এবং expired plan access policy এখনো final হয়নি। Launch-এর আগে এই policy পরিষ্কারভাবে প্রকাশ করা হবে।",
+    a: "সেভ করা ডাটা রিটেনশন এবং মেয়াদোত্তীর্ণ প্ল্যান অ্যাক্সেস পলিসি এখনো ফাইনাল হয়নি। লঞ্চ-এর আগে এই পলিসি পরিষ্কারভাবে প্রকাশ করা হবে।",
   },
   {
     q: "একাধিক device-এ account ব্যবহার করা যাবে?",
-    a: "Device-based access policy প্রযোজ্য হবে। Exact device limit plan এবং launch policy অনুযায়ী প্রকাশ করা হবে।",
+    a: "ডিভাইস-ভিত্তিক অ্যাক্সেস পলিসি প্রযোজ্য হবে। সঠিক ডিভাইস লিমিট প্ল্যান এবং লঞ্চ পলিসি অনুযায়ী প্রকাশ করা হবে।",
   },
   {
     q: "Subscription কি auto-renew হবে?",
-    a: "Auto-renewal policy এখনো final হয়নি। Payment-এর আগে user-কে renewal method পরিষ্কারভাবে জানানো হবে।",
+    a: "অটো-রিনিউয়াল পলিসি এখনো ফাইনাল হয়নি। পেমেন্ট-এর আগে ব্যবহারকারীকে রিনিউয়াল মেথড পরিষ্কারভাবে জানানো হবে。",
   },
   {
     q: "Payment ব্যর্থ হলে কী হবে?",
-    a: "Payment confirm না হলে subscription active হবে না। পুনরায় payment করার সুযোগ থাকবে।",
+    a: "পেমেন্ট কনফার্ম না হলে সাবস্ক্রিপশন অ্যাক্টিভ হবে না। পুনরায় পেমেন্ট করার সুযোগ থাকবে。",
   },
   {
     q: "Plan upgrade বা পরিবর্তন করা যাবে?",
-    a: "Upgrade, downgrade এবং remaining-duration adjustment policy launch-এর আগে final করা হবে।",
+    a: "আপগ্রেড, ডাউনগ্রেড এবং অবশিষ্ট সময় অ্যাডজাস্টমেন্ট পলিসি লঞ্চ-এর আগে ফাইনাল করা হবে。",
   },
   {
     q: "Refund পাওয়া যাবে?",
-    a: "Refund eligibility ও cancellation terms launch-এর আগে Terms and Conditions-এ প্রকাশ করা হবে।",
+    a: "রিফান্ড এলিজিবিলিটি ও ক্যান্সেলেশন টার্মস লঞ্চ-এর আগে টার্মস অ্যান্ড কন্ডিশনস-এ প্রকাশ করা হবে。",
   },
   {
     q: "Mouza Map Pro কি সরকারি সেবা?",
-    a: "না। Mouza Map Pro একটি independent digital land tools এবং professional service platform।",
+    a: "না। Mouza Map Pro একটি ইন্ডিপেন্ডেন্ট ডিজিটাল ল্যান্ড টুলস এবং পেশাদার সার্ভিস প্ল্যাটফর্ম।",
   },
 ];
 
@@ -58,7 +58,7 @@ export function PricingFaq() {
   return (
     <SectionWrapper id="pricing-faq" asSection>
       <SectionHeading
-        badge="Pricing FAQ"
+        badge="প্রাইসিং FAQ"
         title="Plan নিয়ে সচরাচর জিজ্ঞাসা"
         description="আপনার subscription ও plan সংক্রান্ত যেকোনো প্রশ্নের উত্তর।"
       />

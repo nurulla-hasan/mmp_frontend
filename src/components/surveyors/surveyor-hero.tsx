@@ -47,7 +47,7 @@ export function SurveyorHero({
                 {surveyor.fullName}
               </h1>
               {surveyor.isVerified && (
-                <span title="Mouza Map Pro verified profile">
+                <span title="Mouza Map Pro ভেরিফাইড প্রোফাইল">
                   <BadgeCheck className="size-6 shrink-0 text-primary" />
                 </span>
               )}

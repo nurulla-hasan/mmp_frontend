@@ -35,20 +35,20 @@ export function SavedCalculationsSection() {
         {/* Left: Content */}
         <div>
           <SectionHeading
-            badge="Calculation Workspace"
+            badge="ক্যালকুলেশন ওয়ার্কস্পেস"
             title="হিসাব শুধু করবেন না—সংরক্ষণ করে পরে আবার শুরু করুন"
-            description="একটি calculation project-এর মধ্যে একাধিক plot যোগ করুন, scale ও মোট ক্ষেত্রফল সংরক্ষণ করুন এবং পরে যেকোনো সময় কাজ চালিয়ে যান।"
+            description="একটি ক্যালকুলেশন প্রজেক্ট-এর মধ্যে একাধিক প্লট যোগ করুন, স্কেল ও মোট ক্ষেত্রফল সংরক্ষণ করুন এবং পরে যেকোনো সময় কাজ চালিয়ে যান。"
             alignment="left"
             constrain={false}
           />
           <ul className="mt-6 space-y-3">
             {[
-              "একটি project-এ একাধিক plot",
-              "Scale ও measurement সংরক্ষণ",
-              "Auto calculation",
-              "Rename এবং duplicate",
-              "PDF/Print export",
-              "Request-এর সঙ্গে calculation যুক্ত করার সুযোগ",
+              "একটি প্রজেক্ট-এ একাধিক প্লট",
+              "স্কেল ও মেজারমেন্ট সংরক্ষণ",
+              "অটো ক্যালকুলেশন",
+              "নাম পরিবর্তন ও ডুপ্লিকেট",
+              "PDF/Print এক্সপোর্ট",
+              "রিকোয়েস্ট-এর সঙ্গে ক্যালকুলেশন যুক্ত করার সুযোগ",
             ].map((item) => (
               <li key={item} className="flex items-start gap-2 text-sm">
                 <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -64,7 +64,7 @@ export function SavedCalculationsSection() {
             render={<Link href="/dashboard/calculations" />}
           >
             <Table2 className="size-4" />
-            আমার Calculation দেখুন
+            আমার ক্যালকুলেশন দেখুন
           </Button>
         </div>
 
@@ -74,16 +74,16 @@ export function SavedCalculationsSection() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Save className="size-4 text-primary" />
-                <span className="text-sm font-medium">My Calculations</span>
+                <span className="text-sm font-medium">আমার ক্যালকুলেশন</span>
               </div>
-              <span className="text-xs text-muted-foreground">৩টি project</span>
+              <span className="text-xs text-muted-foreground">৩টি প্রজেক্ট</span>
             </div>
             <Separator className="my-3" />
             <div className="space-y-2">
               {/* Header row */}
               <div className="hidden grid-cols-[3fr_1fr_1fr_1.5fr_auto] gap-2 px-2 text-xs font-medium text-muted-foreground sm:grid">
                 <span>নাম</span>
-                <span>Scale</span>
+                <span>স্কেল</span>
                 <span>প্লট</span>
                 <span>ক্ষেত্রফল</span>
                 <span />

@@ -15,11 +15,11 @@ import {
 import { cn } from "@/lib/utils";
 
 const mobileLinks = [
-  { label: "Home", href: "/", icon: Home },
-  { label: "Land Tools", href: "/tools", icon: Ruler },
-  { label: "Find Surveyor", href: "/surveyors", icon: MapPin },
-  { label: "Post a Request", href: "/post-request", icon: FileText },
-  { label: "Pricing", href: "/pricing", icon: Tag },
+  { label: "হোম", href: "/", icon: Home },
+  { label: "ল্যান্ড টুলস", href: "/tools", icon: Ruler },
+  { label: "সার্ভেয়ার খুঁজুন", href: "/surveyors", icon: MapPin },
+  { label: "রিকোয়েস্ট পোস্ট করুন", href: "/post-request", icon: FileText },
+  { label: "প্রাইসিং", href: "/pricing", icon: Tag },
 ];
 
 export function PublicMobileDrawer() {
@@ -33,7 +33,7 @@ export function PublicMobileDrawer() {
             variant="outline"
             size="icon"
             className="lg:hidden"
-            aria-label="Open menu"
+            aria-label="মেনু খুলুন"
           />
         }
       >
@@ -48,7 +48,7 @@ export function PublicMobileDrawer() {
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Close menu"
+                aria-label="মেনু বন্ধ করুন"
               />
             }
           >
@@ -59,10 +59,10 @@ export function PublicMobileDrawer() {
         {/* Navigation Links */}
         <nav
           className="flex-1 space-y-1 overflow-y-auto px-3 py-4"
-          aria-label="Mobile navigation"
+          aria-label="মোবাইল নেভিগেশন"
         >
           <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
-            Menu
+            মেনু
           </p>
           {mobileLinks.map((item) => {
             const Icon = item.icon;

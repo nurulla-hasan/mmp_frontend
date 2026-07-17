@@ -17,7 +17,7 @@ export function SurveyorPricing({
         {surveyor.pricingType === "QUOTATION_BASED" ? (
           <>
             <p className="text-base font-semibold text-primary">
-              Quotation অনুযায়ী মূল্য
+              কোটেশন অনুযায়ী মূল্য
             </p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               কাজের জটিলতা ও ভিন্নতা অনুসারে মূল্য নির্ধারণ করা হয়। সরাসরি
@@ -43,7 +43,7 @@ export function SurveyorPricing({
             <Link href={`/post-request?surveyor=${surveyor.slug}`} />
           }
         >
-          Quotation চান
+          কোটেশন চান
         </Button>
       </div>
     </section>

@@ -10,10 +10,10 @@ const checklist = [
   "মৌজা, খতিয়ান, দাগ ও জে.এল. নম্বর",
   "মোট জমির পরিমাণ",
   "প্রতিটি plot-এর আলাদা হিসাব",
-  "Plot drawing",
-  "Surveyor ও client information",
-  "Signature area",
-  "PDF download এবং print",
+  "প্লট ড্রইং",
+  "সার্ভেয়ার ও ক্লায়েন্ট তথ্য",
+  "স্বাক্ষর বিভাগ",
+  "PDF ডাউনলোড ও প্রিন্ট",
 ];
 
 export function ProfessionalReportSection() {
@@ -23,7 +23,7 @@ export function ProfessionalReportSection() {
         {/* Left: Content */}
         <div>
           <SectionHeading
-            badge="PDF & Print Report"
+            badge="PDF ও Print রিপোর্ট"
             title="হিসাব থেকে তৈরি করুন পরিষ্কার Professional Report"
             description="জমির plot, মোট পরিমাণ ও প্রয়োজনীয় তথ্যসহ client-ready report তৈরি ও print করুন।"
             alignment="left"
@@ -60,10 +60,10 @@ export function ProfessionalReportSection() {
             <div className="flex items-center justify-between border-b pb-3">
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-foreground">
-                  Land Survey Report
+                  ল্যান্ড সার্ভে রিপোর্ট
                 </h3>
                 <p className="text-[10px] text-gray-500 dark:text-muted-foreground">
-                  Report ID: MMP-2026-0042
+                  রিপোর্ট আইডি: MMP-2026-0042
                 </p>
               </div>
               <div className="flex gap-1 text-gray-400">
@@ -74,9 +74,9 @@ export function ProfessionalReportSection() {
 
             {/* Owner info */}
             <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
-              <span className="text-gray-500 dark:text-muted-foreground">Owner:</span>
+              <span className="text-gray-500 dark:text-muted-foreground">মালিক:</span>
               <span className="font-medium text-gray-900 dark:text-foreground">মো. আব্দুর রহিম</span>
-              <span className="text-gray-500 dark:text-muted-foreground">Mouza:</span>
+              <span className="text-gray-500 dark:text-muted-foreground">মৌজা:</span>
               <span className="font-medium text-gray-900 dark:text-foreground">ছোট বাজার, দিনাজপুর</span>
               <span className="text-gray-500 dark:text-muted-foreground">Khatian:</span>
               <span className="font-medium text-gray-900 dark:text-foreground">খতিয়ান নং ১২৩</span>
@@ -88,7 +88,7 @@ export function ProfessionalReportSection() {
 
             {/* Plot shapes */}
             <div>
-              <p className="text-[10px] font-medium text-gray-700 dark:text-muted-foreground">Plot Layout</p>
+              <p className="text-[10px] font-medium text-gray-700 dark:text-muted-foreground">প্লট লেআউট</p>
               <div className="mt-2 grid grid-cols-3 gap-2">
                 <div className="flex aspect-3/2 items-center justify-center rounded border-2 border-emerald-500/40 bg-emerald-50 text-[9px] font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
                   প্লট ১
@@ -127,10 +127,10 @@ export function ProfessionalReportSection() {
             {/* Signature area */}
             <div className="grid grid-cols-2 gap-4 text-[9px] text-gray-500 dark:text-muted-foreground">
               <div>
-                <p className="border-t pt-1">Surveyor Signature</p>
+                <p className="border-t pt-1">সার্ভেয়ার স্বাক্ষর</p>
               </div>
               <div>
-                <p className="border-t pt-1">Client Signature</p>
+                <p className="border-t pt-1">ক্লায়েন্ট স্বাক্ষর</p>
               </div>
             </div>
           </div>

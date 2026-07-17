@@ -4,8 +4,8 @@ import { SectionWrapper } from "@/components/shared/section-wrapper";
 
 const perks = [
     { label: "পরিষ্কার plan duration", icon: CheckIcon },
-    { label: "Device-based secure access", icon: CheckIcon },
-    { label: "Flexible pricing", icon: CheckIcon },
+    { label: "Device-ভিত্তিক সুরক্ষিত অ্যাক্সেস", icon: CheckIcon },
+    { label: "নমনীয় মূল্য", icon: CheckIcon },
 ];
 
 export function PricingHero() {

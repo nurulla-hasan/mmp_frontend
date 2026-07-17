@@ -1,2 +1,2 @@
 import { DashboardPage } from "@/components/shared/dashboard-page";
-export default function Page() { return <DashboardPage title="Users" description="Review general user accounts and platform activity." cards={[{ label: "Registered users", value: "0", description: "User records will appear here." },{ label: "Account status", description: "Block and status controls will be connected later." }]} />; }
+export default function Page() { return <DashboardPage title="ইউজার" description="সাধারণ ইউজার অ্যাকাউন্ট এবং প্ল্যাটফর্ম কার্যক্রম পর্যালোচনা করুন।" cards={[{ label: "নিবন্ধিত ইউজার", value: "0", description: "ইউজার রেকর্ড এখানে দেখাবে।" },{ label: "অ্যাকাউন্ট স্ট্যাটাস", description: "ব্লক এবং স্ট্যাটাস কন্ট্রোল পরবর্তীতে সংযুক্ত হবে।" }]} />; }

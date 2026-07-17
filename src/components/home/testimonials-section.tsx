@@ -7,14 +7,14 @@ import { Card, CardContent } from "@/components/ui/card";
 const testimonials = [
   {
     content:
-      "এক জায়গায় হিসাব save করা, এলাকার সার্ভেয়ার দেখা এবং quotation তুলনা করার workflow-টি অনেক পরিষ্কার।",
-    role: "জমির মালিক — Sample feedback",
+      "এক জায়গায় হিসাব সেভ করা, এলাকার সার্ভেয়ার দেখা এবং কোটেশন তুলনা করার ওয়ার্কফ্লো-টি অনেক পরিষ্কার।",
+    role: "জমির মালিক — নমুনা প্রতিক্রিয়া",
     rating: 5,
   },
   {
     content:
-      "Professional profile, available request এবং calculation workspace একই dashboard-এ থাকায় client-এর কাজ পরিচালনা সহজ হবে।",
-    role: "Professional Surveyor — Sample feedback",
+      "পেশাদার প্রোফাইল, উপলব্ধ রিকোয়েস্ট এবং ক্যালকুলেশন ওয়ার্কস্পেস একই ড্যাশবোর্ড-এ থাকায় ক্লায়েন্ট-এর কাজ পরিচালনা সহজ হবে।",
+    role: "পেশাদার সার্ভেয়ার — নমুনা প্রতিক্রিয়া",
     rating: 5,
   },
 ];

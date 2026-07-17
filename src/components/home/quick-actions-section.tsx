@@ -21,13 +21,13 @@ const actions = [
   {
     icon: ClipboardCheck,
     title: "কাজ পোস্ট করুন",
-    description: "আপনার প্রয়োজন লিখে একাধিক quotation গ্রহণ করুন।",
+    description: "আপনার প্রয়োজন লিখে একাধিক কোটেশন গ্রহণ করুন。",
     href: "/post-request",
   },
   {
     icon: Calculator,
     title: "সার্ভেয়ার হিসেবে যোগ দিন",
-    description: "Professional profile তৈরি করে নতুন client-এর সঙ্গে যুক্ত হন।",
+    description: "পেশাদার প্রোফাইল তৈরি করে নতুন ক্লায়েন্ট-এর সঙ্গে যুক্ত হন।",
     href: "/join-as-surveyor",
   },
 ];

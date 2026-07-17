@@ -29,7 +29,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 export const metadata: Metadata = {
   title: { default: "Mouza Map Pro", template: "%s | Mouza Map Pro" },
-  description: "Land tools, verified surveyor marketplace and digital land service platform.",
+  description: "ল্যান্ড টুলস, ভেরিফাইড সার্ভেয়ার মার্কেটপ্লেস এবং ডিজিটাল ল্যান্ড সার্ভিস প্ল্যাটফর্ম।",
 };
 
 import { TooltipProvider } from "@/components/ui/tooltip";

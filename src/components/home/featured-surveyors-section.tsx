@@ -117,7 +117,7 @@ export function FeaturedSurveyorsSection() {
                   nativeButton={false}
                   render={<Link href={`/post-request?surveyor=${s.slug}`} />}
                 >
-                  Quotation চান
+                  কোটেশন চান
                 </Button>
               </div>
             </CardContent>

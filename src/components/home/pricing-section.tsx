@@ -13,9 +13,9 @@ export function PricingSection() {
 
       <SectionWrapper id="pricing">
         <SectionHeading
-          badge="Subscription Plans"
+          badge="সাবস্ক্রিপশন প্লান"
           title="কাজের প্রয়োজন অনুযায়ী সহজ Plan"
-          description="Calculation save, professional report এবং Pro সুবিধার জন্য আপনার উপযুক্ত plan নির্বাচন করুন।"
+          description="ক্যালকুলেশন সেভ, পেশাদার রিপোর্ট এবং প্রো সুবিধার জন্য আপনার উপযুক্ত প্ল্যান নির্বাচন করুন।"
         />
         <PricingCards compact />
       </SectionWrapper>

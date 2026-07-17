@@ -5,29 +5,29 @@ import { SectionWrapper } from "@/components/shared/section-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 
 const FREE_FEATURES = [
-  "Basic Land Tools",
-  "Surveyor listing দেখা",
-  "Surveyor public profile দেখা",
-  "Service Request তৈরি",
-  "Quotation দেখা",
-  "Basic account access",
+  "বেসিক ল্যান্ড টুলস",
+  "সার্ভেয়ার লিস্টিং দেখা",
+  "সার্ভেয়ার পাবলিক প্রোফাইল দেখা",
+  "সার্ভিস রিকোয়েস্ট তৈরি",
+  "কোটেশন দেখা",
+  "বেসিক অ্যাকাউন্ট অ্যাক্সেস",
 ];
 
 const PRO_FEATURES = [
-  "Calculation project save",
-  "Multiple plot management",
-  "Continue editing later",
-  "PDF/Print report",
-  "Advanced calculation workspace",
-  "Device-based secure access",
-  "Priority product updates",
+  "ক্যালকুলেশন প্রজেক্ট সেভ",
+  "একাধিক প্লট ম্যানেজমেন্ট",
+  "পরে সম্পাদনা চালিয়ে যান",
+  "PDF/Print রিপোর্ট",
+  "অ্যাডভান্সড ক্যালকুলেশন ওয়ার্কস্পেস",
+  "Device-ভিত্তিক সুরক্ষিত অ্যাক্সেস",
+  "প্রথমিক প্রোডাক্ট আপডেট",
 ];
 
 export function FreeVsPro() {
   return (
     <SectionWrapper id="free-vs-pro" asSection>
       <SectionHeading
-        badge="Access Levels"
+        badge="অ্যাক্সেস স্তর"
         title="Free Access এবং Pro Access-এর পার্থক্য"
         description="আপনার প্রয়োজন অনুযায়ী Free অথবা Pro - যেকোনো একটি বেছে নিন।"
       />
@@ -39,7 +39,7 @@ export function FreeVsPro() {
             <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-muted-foreground/5 text-muted-foreground">
               <Lock className="size-6" />
             </div>
-            <h3 className="text-lg font-semibold font-heading">Free Access</h3>
+            <h3 className="text-lg font-semibold font-heading">ফ্রি অ্যাক্সেস</h3>
             <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
               Platform ও basic land-service workflow পরিচিত হওয়ার জন্য।
             </p>
@@ -77,7 +77,7 @@ export function FreeVsPro() {
             <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
               <Star className="size-6" />
             </div>
-            <h3 className="text-lg font-semibold font-heading">Pro Access</h3>
+            <h3 className="text-lg font-semibold font-heading">প্রো অ্যাক্সেস</h3>
             <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
               Calculation workspace ও professional report-এর advanced সুবিধার জন্য।
             </p>

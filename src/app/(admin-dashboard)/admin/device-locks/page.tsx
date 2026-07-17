@@ -3,18 +3,18 @@ import { DashboardPage } from "@/components/shared/dashboard-page";
 export default function Page() {
   return (
     <DashboardPage
-      title="Device Locks"
-      description="Monitor and manage device-based access restrictions."
+      title="ডিভাইস লক"
+      description="Device-ভিত্তিক অ্যাক্সেস বিধিনিষেধ মনিটর এবং পরিচালনা করুন।"
       cards={[
         {
-          label: "Total Locks",
+          label: "মোট লক",
           value: "0",
-          description: "Active device locks across all users.",
+          description: "সকল ইউজারের সক্রিয় ডিভাইস লক।",
         },
         {
-          label: "Locked Devices",
+          label: "লক করা ডিভাইস",
           value: "0",
-          description: "Devices currently restricted.",
+          description: "বর্তমানে সীমাবদ্ধ ডিভাইস।",
         },
       ]}
     />

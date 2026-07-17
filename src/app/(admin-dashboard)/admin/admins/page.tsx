@@ -3,17 +3,17 @@ import { DashboardPage } from "@/components/shared/dashboard-page";
 export default function Page() {
   return (
     <DashboardPage
-      title="Admin Management"
-      description="Manage platform administrators, their roles and access permissions."
+      title="অ্যাডমিন ম্যানেজমেন্ট"
+      description="প্ল্যাটফর্ম অ্যাডমিন, তাদের ভূমিকা এবং অ্যাক্সেস অনুমতি পরিচালনা করুন।"
       cards={[
         {
-          label: "Active admins",
+          label: "সক্রিয় অ্যাডমিন",
           value: "0",
-          description: "Admin accounts and role assignments will appear here.",
+          description: "অ্যাডমিন অ্যাকাউন্ট এবং রোল অ্যাসাইনমেন্ট এখানে দেখাবে।",
         },
         {
-          label: "Role management",
-          description: "Create and manage admin roles and permissions.",
+          label: "রোল ম্যানেজমেন্ট",
+          description: "অ্যাডমিন রোল এবং অনুমতি তৈরি ও পরিচালনা করুন।",
         },
       ]}
     />

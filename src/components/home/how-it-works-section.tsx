@@ -10,25 +10,25 @@ const steps = [
     icon: FileEdit,
     step: "১",
     title: "প্রয়োজন জানান",
-    description: "সেবা, জমির অবস্থান ও প্রয়োজনীয় তথ্য দিয়ে request তৈরি করুন।",
+    description: "সেবা, জমির অবস্থান ও প্রয়োজনীয় তথ্য দিয়ে রিকোয়েস্ট তৈরি করুন।",
   },
   {
     icon: ClipboardCheck,
     step: "২",
-    title: "Quotation গ্রহণ করুন",
+    title: "কোটেশন গ্রহণ করুন",
     description: "আপনার এলাকার সার্ভেয়ারদের প্রস্তাব ও আনুমানিক খরচ দেখুন।",
   },
   {
     icon: UserCheck,
     step: "৩",
     title: "সার্ভেয়ার নির্বাচন করুন",
-    description: "অভিজ্ঞতা, verification এবং quotation তুলনা করুন।",
+    description: "অভিজ্ঞতা, ভেরিফিকেশন এবং কোটেশন তুলনা করুন।",
   },
   {
     icon: MessageCircle,
     step: "৪",
-    title: "কাজ Track করুন",
-    description: "Message ও request status ব্যবহার করে কাজের অগ্রগতি দেখুন।",
+    title: "কাজ ট্র্যাক করুন",
+    description: "মেসেজ ও রিকোয়েস্ট স্ট্যাটাস ব্যবহার করে কাজের অগ্রগতি দেখুন।",
   },
 ];
 
@@ -38,7 +38,7 @@ export function HowItWorksSection() {
       <SectionHeading
         badge="কীভাবে কাজ করে"
         title="চার ধাপে জমির কাজ এগিয়ে নিন"
-        description="Request পোস্ট করা থেকে কাজ শেষ হওয়া পর্যন্ত পুরো workflow এক জায়গায় পরিচালনা করুন।"
+        description="রিকোয়েস্ট পোস্ট করা থেকে কাজ শেষ হওয়া পর্যন্ত পুরো ওয়ার্কফ্লো এক জায়গায় পরিচালনা করুন。"
       />
       <div className="mt-12 grid gap-8 md:grid-cols-4">
         {steps.map((item, i) => {

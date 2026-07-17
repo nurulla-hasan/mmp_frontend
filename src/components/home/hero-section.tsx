@@ -145,7 +145,7 @@ export function HeroSection() {
             <div className="mt-8 flex flex-wrap gap-3 sm:grid sm:grid-cols-3 sm:gap-4">
               {[
                 { title: "এলাকাভিত্তিক সার্ভেয়ার খুঁজুন", icon: MapPin },
-                { title: "একাধিক quotation তুলনা করুন", icon: Layers },
+                { title: "একাধিক কোটেশন তুলনা করুন", icon: Layers },
                 { title: "নিরাপদে কাজের অনুরোধ পোস্ট করুন", icon: ShieldCheck },
               ].map((item, i) => (
                 <div key={i} className="flex items-start sm:items-center gap-2 rounded-lg border bg-card/50 p-2.5 sm:px-3 sm:py-2 text-sm text-muted-foreground shadow-sm">
@@ -203,10 +203,10 @@ export function HeroSection() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
                         <Ruler className="size-3.5" />
-                        Digital Land Measurement
+                        ডিজিটাল ল্যান্ড মেজারমেন্ট
                       </div>
                       <Badge variant="active" size="sm" className="rounded-md">
-                        Advanced Tool
+                        অ্যাডভান্সড টুল
                       </Badge>
                     </div>
                     <p className="mt-2 text-xs text-muted-foreground">

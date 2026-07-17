@@ -7,17 +7,17 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { label: "Home", icon: Home, href: "/" },
-  { label: "Post", icon: PlusCircle, href: "/post-request" },
-  { label: "Tools", icon: Calculator, href: "/tools", center: true },
-  { label: "Surveyors", icon: MapPin, href: "/surveyors" },
-  { label: "Profile", icon: User, href: "/dashboard/profile" },
+  { label: "হোম", icon: Home, href: "/" },
+  { label: "পোস্ট", icon: PlusCircle, href: "/post-request" },
+  { label: "টুলস", icon: Calculator, href: "/tools", center: true },
+  { label: "সার্ভেয়ার", icon: MapPin, href: "/surveyors" },
+  { label: "প্রোফাইল", icon: User, href: "/dashboard/profile" },
 ];
 
 export function MobileBottomNav() {
   const pathname = usePathname();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 flex h-14 items-center justify-between border-t bg-background px-4 md:hidden" aria-label="Mobile quick navigation">
+    <nav className="fixed inset-x-0 bottom-0 z-50 flex h-14 items-center justify-between border-t bg-background px-4 md:hidden" aria-label="দ্রুত নেভিগেশন">
       {items.map(({ label, icon: Icon, href, center }) => {
         const active = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
         return (

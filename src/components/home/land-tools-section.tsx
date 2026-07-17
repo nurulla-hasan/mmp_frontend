@@ -41,11 +41,11 @@ const tools = [
 ];
 
 const benefits = [
-  "Multiple plots",
-  "Scale support",
-  "Calculation save",
-  "PDF/Print report",
-  "Online & offline-friendly",
+  "একাধিক প্লট",
+  "স্কেল সাপোর্ট",
+  "ক্যালকুলেশন সেভ",
+  "PDF/Print রিপোর্ট",
+  "অনলাইন ও অফলাইন-বান্ধব",
 ];
 
 export function LandToolsSection() {
@@ -59,7 +59,7 @@ export function LandToolsSection() {
 
       <SectionWrapper id="tools">
         <SectionHeading
-          badge="Land Tools"
+          badge="ল্যান্ড টুলস"
           title="জমির প্রয়োজনীয় হিসাব করুন সহজে"
           description="বাংলাদেশে ব্যবহৃত জমির একক ও পরিমাপ অনুযায়ী তৈরি দরকারি tools ব্যবহার করুন।"
         />
