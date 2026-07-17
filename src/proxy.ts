@@ -17,6 +17,9 @@ type AuthTokens = {
 const REFRESH_BUFFER_SECONDS = 30;
 const REMEMBER_ME_MAX_AGE = 30 * 24 * 60 * 60;
 
+// Temporary: keep route protection off while the authenticated flow is being built.
+const ROUTE_PROTECTION_ENABLED = false;
+
 const AUTH_ROUTES = [
   "/login",
   "/register",
@@ -294,7 +297,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     request.cookies.delete("refreshToken");
   }
 
-  const redirectUrl = getRouteRedirect(request, role);
+  const redirectUrl = ROUTE_PROTECTION_ENABLED
+    ? getRouteRedirect(request, role)
+    : null;
   const response = redirectUrl
     ? NextResponse.redirect(redirectUrl)
     : refreshedTokens || shouldClearAuth
