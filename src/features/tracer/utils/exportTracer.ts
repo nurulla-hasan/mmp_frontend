@@ -160,7 +160,7 @@ export async function exportAsPDF(
   const blob = await canvasToBlob(canvas, 'image/jpeg', 0.98);
   const imgData = await blobToBase64(blob);
 
-  // A4: 210 × 297 mm. Reserve 15mm margins = 180 × 267 mm usable area.
+  // Always use Portrait A4 (210 × 297 mm) as expected by users
   const A4_W = 210;
   const A4_H = 297;
   const margin = 15;
@@ -175,12 +175,12 @@ export async function exportAsPDF(
   const offsetY = (A4_H - imgH) / 2;
 
   const pdf = new jsPDF({
-    orientation: A4_W > A4_H ? 'landscape' : 'portrait',
+    orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
   });
   pdf.addImage(imgData, 'JPEG', offsetX, offsetY, imgW, imgH);
-  pdf.save('tracer-map.pdf');
+  pdf.save(`tracer-map${which !== 'all' ? `-${which}` : ''}.pdf`);
 }
 
 export async function exportAsPNG(
@@ -188,9 +188,37 @@ export async function exportAsPNG(
   bgImage: HTMLImageElement | null,
   which: 'all' | string = 'all',
 ): Promise<void> {
-  const canvas = buildCanvas(layers, bgImage, which);
-  if (!canvas) return; // nothing to export
-  const blob = await canvasToBlob(canvas, 'image/png');
+  const sourceCanvas = buildCanvas(layers, bgImage, which);
+  if (!sourceCanvas) return; // nothing to export
+  const cw = sourceCanvas.width;
+  const ch = sourceCanvas.height;
+
+  // Always use Portrait A4 size at 300 DPI (2480 x 3508)
+  const A4_W = 2480;
+  const A4_H = 3508;
+  const margin = 177; // ~15mm at 300 DPI
+
+  const a4Canvas = document.createElement('canvas');
+  a4Canvas.width = A4_W;
+  a4Canvas.height = A4_H;
+  const ctx = a4Canvas.getContext('2d')!;
+
+  // Fill white background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, A4_W, A4_H);
+
+  const maxW = A4_W - margin * 2;
+  const maxH = A4_H - margin * 2;
+  const scale = Math.min(maxW / cw, maxH / ch);
+  
+  const imgW = cw * scale;
+  const imgH = ch * scale;
+  const offsetX = (A4_W - imgW) / 2;
+  const offsetY = (A4_H - imgH) / 2;
+
+  ctx.drawImage(sourceCanvas, offsetX, offsetY, imgW, imgH);
+
+  const blob = await canvasToBlob(a4Canvas, 'image/png');
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

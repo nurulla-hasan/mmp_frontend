@@ -305,23 +305,36 @@ const ExportSection = memo(function ExportSection() {
   );
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
         এক্সপোর্ট
       </h3>
-      <div className="flex flex-col items-start space-y-1">
+      <div className="space-y-3">
         {layers.map(l => (
-          <Button key={`pdf-${l.id}`} variant="ghost" className="justify-start" onClick={() => exportAsPDF(layers, backgroundImage, l.id)}>
-            <div className="w-2.5 h-2.5 rounded-full mr-1.5 shrink-0" style={{ backgroundColor: l.color }} />
-            PDF — {l.name}
-          </Button>
-        ))}
-        <div className="h-2 w-full border-b border-border/50 mb-2" />
-        {layers.map(l => (
-          <Button key={`png-${l.id}`} variant="ghost" className="justify-start" onClick={() => exportAsPNG(layers, backgroundImage, l.id)}>
-            <div className="w-2.5 h-2.5 rounded-full mr-1.5 shrink-0" style={{ backgroundColor: l.color }} />
-            PNG — {l.name}
-          </Button>
+          <div key={`export-${l.id}`} className="space-y-2.5 p-3 rounded-lg border border-border/60 bg-muted/30">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: l.color }} />
+              <span className="text-sm font-medium">{l.name}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full text-xs h-8 hover:bg-primary/10 hover:text-primary transition-colors border-border/80" 
+                onClick={() => exportAsPDF(layers, backgroundImage, l.id)}
+              >
+                PDF সেভ করুন
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full text-xs h-8 hover:bg-primary/10 hover:text-primary transition-colors border-border/80" 
+                onClick={() => exportAsPNG(layers, backgroundImage, l.id)}
+              >
+                PNG সেভ করুন
+              </Button>
+            </div>
+          </div>
         ))}
       </div>
     </div>
