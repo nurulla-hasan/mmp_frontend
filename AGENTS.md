@@ -75,7 +75,8 @@ npm run lint -- --fix  # Auto-fix lint issues
 | Group | Path | Layout | Notes |
 |---|---|---|---|
 | `(public)` | `/`, `/about`, `/contact`, `/pricing`, `/surveyors` | `PublicHeader` + `PublicFooter` + `MobileBottomNav` | Public pages |
-| `(private)` | `/tools`, `/community`, `/join-as-surveyor`, `/post-request` | Same as `(public)` | **NOT auth-guarded!** |
+| `(private)/(shell)` | `/tools`, `/community`, `/join-as-surveyor`, `/post-request` | `PrivateLayout` (PublicHeader + PublicFooter + MobileBottomNav) | **NOT auth-guarded!** Standard pages |
+| `(private)/(bare)` | `/tools/tracer`, `/tools/pantagraph`, `/tools/land-measurement` | `BareLayout` (empty wrapper, no shell) | Canvas-based tools — no header/footer wrapper |
 | `(auth)` | `/login`, `/register`, `/forgot-password`, etc. | Centered layout with Logo | Auth flows |
 | `(user-dashboard)` | `/dashboard/**` | `DashboardShell` role="user" | User dashboard |
 | `(surveyor-dashboard)` | `/surveyor/**` | `DashboardShell` role="surveyor" | Surveyor dashboard |
@@ -96,7 +97,8 @@ npm run lint -- --fix  # Auto-fix lint issues
 - **Utility helpers** from `@/lib/utils`: `getInitials(name)` → "JD", `formatDate(dateString)` → "dd MMM yyyy", `timeAgo(createdAt)` → "5m ago", `generateSlug(title)`.
 - **`Spinner`** (`src/components/ui/spinner.tsx`) — renders `Loader2Icon` with `animate-spin`, `size-4`, `role="status"`.
 - **`nextDynamic`** — `next/dynamic` aliased as `nextDynamic` for SSR-disabled imports (used for Konva stage, PrintLayout).
-- **`useShallow` from `zustand/shallow`** — used extensively in map tool for selective store subscriptions.
+- **`useShallow` from `zustand/shallow`** — used extensively in map tool and tracer for selective store subscriptions.
+- **`clamp(value, min, max)`** from `@/lib/utils` — numeric clamping utility used in canvas tools (tracer, map tool).
 
 ## Component Architecture
 
@@ -140,7 +142,7 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token stored in `httpOnly` `accessToke
 ## UI Components Library
 
 **shadcn base-nova components** (`src/components/ui/`):
-`alert-dialog`, `button`, `calendar`, `collapsible`, `dialog`, `drawer`, `dropdown-menu`, `field`, `input-otp`, `input`, `label`, `pagination`, `scroll-area`, `separator`, `sonner`, `spinner`, `table`.
+`alert-dialog`, `button`, `calendar`, `collapsible`, `dialog`, `drawer`, `dropdown-menu`, `field`, `input-otp`, `input`, `label`, `pagination`, `scroll-area`, `separator`, `sonner`, `spinner`, `table`, `tooltip`.
 
 **Custom components** (`src/components/ui/custom/`):
 `back-button`, `confirmation-modal`, `custom-breadcrumb`, `custom-calender` (note: filename typo — "calender" vs "calendar"), `custom-pagination`, `dashboard-page-header`, `data-table-pagination`, `data-table`, `mobile-bottom-nav`, `modal-wrapper`, `search-input`, `star-rating`, `theme-toggle`.
@@ -168,6 +170,20 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token stored in `httpOnly` `accessToke
 - **Zustand store** (`usePantagraphStore`) with: two image layers (opacity, scale, rotation, position), match points, background removal, alignment computation.
 - **Types**: `MatchPoint`, `Point2D`, `SimilarityResult`.
 - **Utils**: `bgRemover.ts`, `getPixelColor.ts`, `similarity.ts`.
+
+## Tracer Tool (`src/features/tracer/`)
+
+- Polygon tracing tool for marking land boundaries on map images. Renders on a Konva canvas stage (imported via `nextDynamic`).
+- **Zustand store** (`useTracerStore`) — multi-layer polygon drawing with:
+  - Default layers: `'cs'` (C.S ম্যাপ, red `#DC2626`) and `'bs'` (B.S ম্যাপ, green `#16A34A`)
+  - Up to 5 additional custom layers with auto-assigned colors
+  - **Modes**: `'select'` (interact with existing polygons) | `'polygon'` (draw new polygon)
+  - **Undo/redo**: full history stack via `past`/`future` snapshots (`cloneLayers` deep clone)
+  - **Pending point undo/redo**: per-polygon drawing with `undoPendingPoint()`/`redoPendingPoint()`
+  - Polygon auto-routing: when committing a polygon that starts/ends on an existing polygon edge, `routeAlongPolygon()` snaps the closing edge to follow the existing polygon boundary
+- **Components**: `TracerCanvas` (Konva stage), `TracerLayout` (page shell), `TracerSidebar` (layer list & controls), `TracerToolbar` (mode toggle, undo/redo/clear), `PendingPolygon` (in-progress drawing overlay), `CompletedPolygons` (renders all committed polygons)
+- **Hooks**: `useTracerTouch` — touch/pan/zoom handler (pinch zoom, drag) for the Konva stage
+- **Utils**: `snapping.ts` — `getTracerSnappedPoint()` for vertex/edge snap with angle-based magnet falloff; `routing.ts` — `routeAlongPolygon()` finds path along existing polygon edges between two points; `exportTracer.ts` — SVG/PDF export via `jsPDF` with proportional font sizing and CS-on-top layer sorting
 
 ## Hooks
 

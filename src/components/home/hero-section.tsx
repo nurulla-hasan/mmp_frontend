@@ -7,6 +7,7 @@ import {
   MapPin,
   Ruler,
   Search,
+  ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -50,18 +51,16 @@ export function HeroSection() {
         <div className="grid gap-10 lg:grid-cols-[1.2fr_0.9fr] lg:items-center">
           {/* Left: Text and CTA */}
           <div>
-            <Badge className="bg-primary/10 text-primary p-3">
+            <Badge className="bg-primary/10 text-primary p-3 rounded-sm">
               জমির হিসাব নিয়ে আর কোনো দুশ্চিন্তা নয়
             </Badge>
             <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl leading-[1.2] font-heading">
-              বাপ-দাদার ভিটেমাটি বা জীবনের সঞ্চয়
+              জমির সীমানা ও পরিমাপ নিয়ে
               <br />
-              জমির সীমানা নিয়ে থাকুন
-              <br />
-              <span className="text-primary">সম্পূর্ণ নিশ্চিন্ত</span>
+              <span className="text-primary">থাকুন সম্পূর্ণ নিশ্চিন্ত</span>
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-              জমির মাপে সামান্য ভুল মানেই বড় ক্ষতি। আমাদের আধুনিক ডিজিটাল ম্যাপ টুলস দিয়ে নিজেই জমি মাপুন, আর প্রয়োজনে যাচাইকৃত সৎ আমিন খুঁজে নিন। আপনার কষ্টের সম্পদের অধিকার থাকুক শতভাগ সুরক্ষিত।
+              অভিজ্ঞ সার্ভেয়ার খুঁজুন, কাজের অনুরোধ পোস্ট করুন এবং আধুনিক ডিজিটাল টুল দিয়ে জমি পরিমাপ, ম্যাপ তুলনা ও ট্রেস করুন।
             </p>
 
             {/* Surveyor Search Form */}
@@ -141,6 +140,21 @@ export function HeroSection() {
                 জমির টুল ব্যবহার করুন
               </Button>
             </div>
+
+            {/* Benefit Items */}
+            <div className="mt-8 flex flex-wrap gap-3 sm:grid sm:grid-cols-3 sm:gap-4">
+              {[
+                { title: "এলাকাভিত্তিক সার্ভেয়ার খুঁজুন", icon: MapPin },
+                { title: "একাধিক quotation তুলনা করুন", icon: Layers },
+                { title: "নিরাপদে কাজের অনুরোধ পোস্ট করুন", icon: ShieldCheck },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start sm:items-center gap-2 rounded-lg border bg-card/50 p-2.5 sm:px-3 sm:py-2 text-sm text-muted-foreground shadow-sm">
+                  <item.icon className="size-4 text-primary shrink-0 mt-0.5 sm:mt-0" />
+                  <span className="leading-snug">{item.title}</span>
+                </div>
+              ))}
+            </div>
+
             <div className="mt-3">
               <Link
                 href="/join-as-surveyor"
@@ -189,14 +203,14 @@ export function HeroSection() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
                         <Ruler className="size-3.5" />
-                        Land Area Calculator
+                        Digital Land Measurement
                       </div>
                       <Badge variant="active" size="sm" className="rounded-md">
                         Advanced Tool
                       </Badge>
                     </div>
                     <p className="mt-2 text-xs text-muted-foreground">
-                      যেকোনো চতুর্ভুজ বা বহুভুজ বিশিষ্ট জমির দৈর্ঘ্য দিয়ে নিখুঁত ক্ষেত্রফল ও শতাংশ বের করুন।
+                      মৌজা ম্যাপ আপলোড করে স্কেল নির্ধারণ, জমির সীমানা আঁকা, ভাগ করা এবং নির্ভুল ক্ষেত্রফল হিসাব করুন।
                     </p>
                     {/* Mini plot visualization */}
                     <div className="mt-3 relative h-24 w-full rounded border border-border/50 bg-muted/20 flex items-center justify-center overflow-hidden">
@@ -237,7 +251,7 @@ export function HeroSection() {
                       </Badge>
                     </div>
                     <p className="mt-2 text-xs text-muted-foreground">
-                      সি.এস এবং বি.এস ম্যাপ একসাথে সুপারইম্পোজ করে সীমানার পার্থক্য বের করুন।
+                      সাবেক ও হাল ম্যাপের মিলযুক্ত পয়েন্ট নির্বাচন করে দুটি ম্যাপ নির্ভুলভাবে align ও তুলনা করুন।
                     </p>
                     {/* Mini Pantagraph Visualization */}
                     <div className="mt-3 relative h-20 w-full overflow-hidden rounded border border-border/50 bg-muted/20 flex items-center justify-center">
@@ -291,7 +305,7 @@ export function HeroSection() {
                       </Badge>
                     </div>
                     <p className="mt-2 text-xs text-muted-foreground">
-                      মৌজা ম্যাপ আপলোড করে নিখুঁতভাবে জমির সীমানা পয়েন্ট ট্রেস করুন।
+                      পুরোনো মৌজা ম্যাপের C.S, S.A ও B.S দাগ আলাদা layer-এ trace করে পরিষ্কার ডিজিটাল ম্যাপ তৈরি করুন।
                     </p>
                     {/* Mini Tracer Visualization */}
                     <div className="mt-3 relative h-16 w-full overflow-hidden rounded border border-border/50 bg-muted/20">

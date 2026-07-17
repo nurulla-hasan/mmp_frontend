@@ -28,7 +28,7 @@ export function PublicHeader() {
     }
 
     return (
-        <header className="sticky top-0 z-40 bg-background/95 ">
+        <header className="sticky top-0 z-40 bg-background/95 shadow-sm">
             <div className={cn(`mx-auto flex h-16 w-full ${CONTAINER_MAX_WIDTH} items-center px-4 sm:px-6`)}>
                 {/* Left: Logo */}
                 <div className="flex-1">
