@@ -16,11 +16,10 @@ export const CompletedPolygons = memo(function CompletedPolygons({
   selectedLayerId: string | null;
   mode: string;
   stageScale: number;
+  imageWidth?: number;
   selectPolygon: (layerId: string | null, polyId: string | null) => void;
   setPolygonLabelPosition: (layerId: string, polyId: string, x: number, y: number) => void;
 }) {
-  const labelFontSize = Math.max(8, 14 / stageScale);
-
   return (
     <>
       {layers.map(layer =>
@@ -29,6 +28,24 @@ export const CompletedPolygons = memo(function CompletedPolygons({
             const flat = poly.points.flatMap(p => [p.x, p.y]);
             const c = centroid(poly.points);
             const isSelected = selectedPolygonId === poly.id && selectedLayerId === layer.id;
+            
+            // Calculate polygon bounding box dimensions
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            for (const pt of poly.points) {
+              if (pt.x < minX) minX = pt.x;
+              if (pt.x > maxX) maxX = pt.x;
+              if (pt.y < minY) minY = pt.y;
+              if (pt.y > maxY) maxY = pt.y;
+            }
+            const polyWidth = maxX - minX;
+            const polyHeight = maxY - minY;
+            
+            // Text should be 14px on screen, but never larger than 40% of the polygon's smallest dimension
+            // to prevent it from overflowing the polygon when zoomed out.
+            const idealWorldFontSize = 14 / stageScale;
+            const maxWorldFontSize = Math.min(polyWidth, polyHeight) * 0.4;
+            const labelFontSize = Math.min(idealWorldFontSize, maxWorldFontSize);
+
             return (
               <Group key={poly.id}>
                 <Line

@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/shallow';
 import { useTheme } from 'next-themes';
 import { Stage, Layer, Group, Image as KonvaImage } from 'react-konva';
 import type Konva from 'konva';
-import { useTracerStore } from '../store/useTracerStore';
+import { useTracerStore, centroid } from '../store/useTracerStore';
 import { getClosestPointOnSegment } from '@/features/map-tool/utils/geometry';
 import { useTracerTouch } from '../hooks/useTracerTouch';
 import { CompletedPolygons } from './CompletedPolygons';
@@ -61,6 +61,7 @@ const TracerCanvas = memo(function TracerCanvas() {
     commitPolygon, cancelDrawing,
     selectPolygon, deletePolygon,
     setPolygonLabelPosition,
+    setPolygonLabel,
   } = useTracerStore(useShallow(s => ({
     backgroundImage: s.backgroundImage,
     imageLoading: s.imageLoading,
@@ -76,6 +77,7 @@ const TracerCanvas = memo(function TracerCanvas() {
     selectPolygon: s.selectPolygon,
     deletePolygon: s.deletePolygon,
     setPolygonLabelPosition: s.setPolygonLabelPosition,
+    setPolygonLabel: s.setPolygonLabel,
   })));
 
   const activeLayer = layers.find(l => l.id === activeLayerId);
@@ -381,6 +383,19 @@ const TracerCanvas = memo(function TracerCanvas() {
         ? 'pointer'
         : 'crosshair';
 
+  const selectedLayer = layers.find(l => l.id === selectedLayerId);
+  const selectedPolygon = selectedLayer?.polygons.find(p => p.id === selectedPolygonId);
+  const showLabelInput = mode === 'select' && selectedPolygon;
+  let labelScreenPos = { x: 0, y: 0 };
+  if (showLabelInput && selectedPolygon) {
+    const cx = selectedPolygon.labelX ?? centroid(selectedPolygon.points).x;
+    const cy = selectedPolygon.labelY ?? centroid(selectedPolygon.points).y;
+    labelScreenPos = {
+      x: cx * stageScale + stagePos.x,
+      y: cy * stageScale + stagePos.y,
+    };
+  }
+
   return (
     <div
       ref={containerRef}
@@ -394,7 +409,6 @@ const TracerCanvas = memo(function TracerCanvas() {
         backgroundSize: '20px 20px',
       }}
     >
-
 
       <Stage
         ref={stageRef}
@@ -429,6 +443,7 @@ const TracerCanvas = memo(function TracerCanvas() {
               selectedLayerId={selectedLayerId}
               mode={mode}
               stageScale={stageScale}
+              imageWidth={backgroundImage?.naturalWidth}
               selectPolygon={selectPolygon}
               setPolygonLabelPosition={setPolygonLabelPosition}
             />
@@ -448,6 +463,36 @@ const TracerCanvas = memo(function TracerCanvas() {
           </Group>
         </Layer>
       </Stage>
+
+      {/* ── Floating Label Input ─────────────────────────────────── */}
+      {showLabelInput && selectedPolygon && (
+        <div
+          className="absolute z-50 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-auto"
+          style={{
+            left: labelScreenPos.x,
+            top: labelScreenPos.y,
+          }}
+        >
+          <input
+            autoFocus
+            type="text"
+            value={selectedPolygon.label}
+            onChange={(e) => selectedLayer && setPolygonLabel(selectedLayer.id, selectedPolygon.id, e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === 'Escape') {
+                e.currentTarget.blur();
+              }
+            }}
+            placeholder="নম্বর"
+            className="w-16 h-8 text-center text-sm font-bold bg-background/90 border border-primary/50 text-foreground rounded shadow-lg outline-none focus:ring-2 focus:ring-primary/50"
+            style={{ borderColor: selectedLayer?.color, color: selectedLayer?.color }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onWheel={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       {/* ── Drawing status bar ────────────────────────────────────────────── */}
       {pendingPoints.length > 0 && (
