@@ -1,6 +1,6 @@
 import { SectionHeading } from "@/components/home/section-heading";
 import { PricingCards } from "@/components/pricing/pricing-cards";
-import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
 
 export function PricingSection() {
   return (

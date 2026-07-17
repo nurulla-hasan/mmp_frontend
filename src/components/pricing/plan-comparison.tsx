@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 
 import { SectionHeading } from "@/components/home/section-heading";
-import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
 import { Badge } from "@/components/ui/badge";
 import { PRICING_PLANS } from "./pricing-data";
 

@@ -1,6 +1,6 @@
 import { CheckIcon } from "lucide-react";
 
-import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
 
 const perks = [
     { label: "পরিষ্কার plan duration", icon: CheckIcon },

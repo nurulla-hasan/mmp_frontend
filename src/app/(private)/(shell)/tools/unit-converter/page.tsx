@@ -5,7 +5,7 @@ import { ArrowLeftRight, Calculator, Ruler, Square } from "lucide-react";
 import Link from "next/link";
 
 import { Input } from "@/components/ui/input";
-import { PageWrapper } from "@/components/shared/page-wrapper";
+import { PageWrapper } from "@/components/ui/custom/page-wrapper";
 import {
   Select,
   SelectContent,

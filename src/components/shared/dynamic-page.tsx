@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PageWrapper } from "@/components/shared/page-wrapper";
+import { PageWrapper } from "@/components/ui/custom/page-wrapper";
 import { RouteCard } from "@/components/shared/route-card";
 import { DashboardPage } from "@/components/shared/dashboard-page";
 

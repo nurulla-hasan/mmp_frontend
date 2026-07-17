@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Field, FieldError, FieldLabel, FieldDescription } from "@/components/ui/field";
-import { ImageCropDialog } from "@/components/shared/image-crop-dialog";
+import { ImageCropDialog } from "@/components/ui/custom/image-crop-dialog";
 import { DISTRICT_OPTIONS, type FormValues } from "./schema";
 
 export function PersonalInfoSection() {

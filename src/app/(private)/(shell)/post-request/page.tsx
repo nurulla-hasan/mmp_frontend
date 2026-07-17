@@ -6,7 +6,7 @@ import * as z from "zod";
 import { startOfDay } from "date-fns";
 import { bn } from "date-fns/locale";
 
-import { PageWrapper } from "@/components/shared/page-wrapper";
+import { PageWrapper } from "@/components/ui/custom/page-wrapper";
 import { SectionHeading } from "@/components/home/section-heading";
 import { Button } from "@/components/ui/button";
 import { CalendarDays } from "lucide-react";

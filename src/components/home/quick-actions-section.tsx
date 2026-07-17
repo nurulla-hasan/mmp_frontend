@@ -2,7 +2,7 @@ import { ArrowRight, Calculator, ClipboardCheck, Compass, PencilRuler } from "lu
 import Link from "next/link";
 
 import { SectionHeading } from "@/components/home/section-heading";
-import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 
 const actions = [

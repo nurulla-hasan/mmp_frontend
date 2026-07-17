@@ -6,7 +6,7 @@ import { adminNavigation, surveyorNavigation, userNavigation, type NavigationIte
 import { DashboardHeader } from "./dashboard-header";
 import { DashboardSidebar } from "./dashboard-sidebar";
 import { cn } from "@/lib/utils";
-import { CONTAINER_MAX_WIDTH } from "../shared/page-wrapper";
+import { CONTAINER_MAX_WIDTH } from "../ui/custom/page-wrapper";
 
 type DashboardRole = "user" | "surveyor" | "admin";
 

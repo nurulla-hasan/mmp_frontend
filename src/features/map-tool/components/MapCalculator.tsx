@@ -14,7 +14,7 @@ import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { useShallow } from 'zustand/shallow';
 import { TutorialGuide } from '@/features/map-tool/components/tutorial-guide';
 import { Upload, HardDrive } from 'lucide-react';
-import { CONTAINER_MAX_WIDTH } from '@/components/shared/page-wrapper';
+import { CONTAINER_MAX_WIDTH } from '@/components/ui/custom/page-wrapper';
 
 const KonvaStage = nextDynamic(
   () => import('@/features/map-tool/components/stage/KonvaStage').then((m) => ({ default: m.KonvaStage })),

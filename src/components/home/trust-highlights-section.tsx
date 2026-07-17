@@ -1,6 +1,6 @@
 import { BadgeCheck, FileCheck, Lock, Save } from "lucide-react";
 
-import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
 
 const highlights = [
   {

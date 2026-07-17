@@ -9,7 +9,7 @@ import { ThemeToggle } from "@/components/ui/custom/theme-toggle";
 import { cn } from "@/lib/utils";
 
 import { PublicMobileDrawer } from "./public-mobile-drawer";
-import { CONTAINER_MAX_WIDTH } from "../shared/page-wrapper";
+import { CONTAINER_MAX_WIDTH } from "../ui/custom/page-wrapper";
 
 const desktopLinks = [
     { label: "হোম", href: "/" },

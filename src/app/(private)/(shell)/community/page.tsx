@@ -9,7 +9,7 @@ import {
 import { AskQuestionModal } from "@/components/community/ask-question-modal";
 import { FaqAccordion } from "@/components/community/faq-accordion";
 import { SectionHeading } from "@/components/home/section-heading";
-import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

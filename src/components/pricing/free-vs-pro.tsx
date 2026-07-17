@@ -1,7 +1,7 @@
 import { Check, Lock, Star } from "lucide-react";
 
 import { SectionHeading } from "@/components/home/section-heading";
-import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 
 const FREE_FEATURES = [

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { PageWrapper } from "@/components/shared/page-wrapper";
+import { PageWrapper } from "@/components/ui/custom/page-wrapper";
 import type { TSurveyorProfile } from "@/types/surveyor-profile.type";
 import { SurveyorHero } from "@/components/surveyors/surveyor-hero";
 import { SurveyorStatsPanel } from "@/components/surveyors/surveyor-stats-panel";

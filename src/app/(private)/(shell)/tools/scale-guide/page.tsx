@@ -1,8 +1,8 @@
 import { Scale, Map, Ruler, CheckCircle2, AlertTriangle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-import { PageWrapper } from "@/components/shared/page-wrapper";
-import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { PageWrapper } from "@/components/ui/custom/page-wrapper";
+import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 

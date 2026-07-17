@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PRICING_PLANS, PRICING_FEATURES } from "./pricing-data";
-import { SectionWrapper } from "../shared/section-wrapper";
+import { SectionWrapper } from "../ui/custom/section-wrapper";
 
 interface PricingCardsProps {
   compact?: boolean;

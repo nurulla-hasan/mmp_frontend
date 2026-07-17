@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { SectionHeading } from "@/components/home/section-heading";
-import { SectionWrapper } from "@/components/shared/section-wrapper";
+import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
 import { Button } from "@/components/ui/button";
 
 export function PricingCta() {

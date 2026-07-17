@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { PageWrapper } from "@/components/shared/page-wrapper";
+import { PageWrapper } from "@/components/ui/custom/page-wrapper";
 import { SectionHeading } from "@/components/home/section-heading";
 import { SearchInput } from "@/components/ui/custom/search-input";
 import {
