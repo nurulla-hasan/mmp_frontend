@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from 'react';
-import { clampNumber } from '@/features/map-tool/utils/geometry';
+﻿import { useState, useRef, useCallback } from 'react';
+import { clampNumber } from '@/features/land-measurement/utils/geometry';
 
 export const usePanZoom = (minZoom = 0.45, maxZoom = 20) => {
   const [pagePan, setPagePan] = useState({ x: 0, y: 0 });
@@ -77,3 +77,4 @@ export const usePanZoom = (minZoom = 0.45, maxZoom = 20) => {
     stopPagePinch,
   };
 };
+

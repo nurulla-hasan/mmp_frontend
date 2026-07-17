@@ -3,7 +3,7 @@
 import nextDynamic from 'next/dynamic';
 
 const MapCalculator = nextDynamic(
-  () => import('@/features/map-tool/components/MapCalculator'),
+  () => import('@/features/land-measurement/components/MapCalculator'),
   { ssr: false }
 );
 

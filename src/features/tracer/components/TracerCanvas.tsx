@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
@@ -6,7 +6,7 @@ import { useTheme } from 'next-themes';
 import { Stage, Layer, Group, Image as KonvaImage } from 'react-konva';
 import type Konva from 'konva';
 import { useTracerStore, centroid } from '../store/useTracerStore';
-import { getClosestPointOnSegment } from '@/features/map-tool/utils/geometry';
+import { getClosestPointOnSegment } from '@/features/land-measurement/utils/geometry';
 import { useTracerTouch } from '../hooks/useTracerTouch';
 import { CompletedPolygons } from './CompletedPolygons';
 import { PendingPolygon } from './PendingPolygon';
@@ -538,3 +538,4 @@ const TracerCanvas = memo(function TracerCanvas() {
 });
 
 export default TracerCanvas;
+

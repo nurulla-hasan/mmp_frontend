@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { memo, useRef, useState, useCallback } from 'react';
 import { useShallow } from 'zustand/shallow';
@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/drawer';
 import { useTracerStore } from '../store/useTracerStore';
 import { exportAsPDF, exportAsPNG } from '../utils/exportTracer';
-import { extractImageFromPDF } from '@/features/map-tool/utils/pdfHelper';
+import { extractImageFromPDF } from '@/features/land-measurement/utils/pdfHelper';
 import { useMediaQuery } from '@/hooks/useUtilityHooks';
 
 // ─── Color presets ────────────────────────────────────────────────────────────
@@ -403,3 +403,4 @@ export const TracerSidebar = memo(function TracerSidebar({
     </>
   );
 });
+

@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import { memo, useCallback, useRef, useState } from 'react';
 import { PantagraphCropDialog } from './PantagraphCropDialog';
 import { useShallow } from 'zustand/shallow';
 import { usePantagraphStore } from '../store/usePantagraphStore';
-import { extractImageFromPDF } from '@/features/map-tool/utils/pdfHelper';
+import { extractImageFromPDF } from '@/features/land-measurement/utils/pdfHelper';
 import { useMediaQuery } from '@/hooks/useUtilityHooks';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -735,3 +735,4 @@ export const PantagraphSidebar = memo(function PantagraphSidebar({ isOpen = fals
     </>
   );
 });
+

@@ -1,5 +1,5 @@
-import type Konva from 'konva';
-import { getClosestPointOnSegment } from '@/features/map-tool/utils/geometry';
+﻿import type Konva from 'konva';
+import { getClosestPointOnSegment } from '@/features/land-measurement/utils/geometry';
 
 export type SnapResult = {
   point: Konva.Vector2d;
@@ -71,3 +71,4 @@ export const getTracerSnappedPoint = (
 
   return { point: pt, polyIndex: null, vertexIndex: null, edgeIndex: null };
 };
+
