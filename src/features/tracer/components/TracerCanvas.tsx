@@ -28,7 +28,7 @@ const TracerCanvas = memo(function TracerCanvas() {
   const [stageScale, setStageScale] = useState(0.5);
 
   // ── Touch controls ─────────────────────────────────────────────────────────
-  const { onTouchStart, onTouchMove, onTouchEnd, hasDraggedRef } = useTracerTouch(
+  const { onTouchStart, onTouchMove, onTouchEnd, hasDraggedRef, blockTapRef } = useTracerTouch(
     stageScale,
     setStageScale,
     stagePos,
@@ -316,8 +316,9 @@ const TracerCanvas = memo(function TracerCanvas() {
   }, []);
 
   const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
-    // Only allow left click or touch
+    // Only allow left click or a clean single-finger tap.
     if ('button' in e.evt && e.evt.button !== 0) return;
+    if (blockTapRef.current) return;
     if (mode !== 'polygon') return;
     if (isPanningRef.current || spaceDown.current) return;
     if (hasDraggedRef.current) return;
