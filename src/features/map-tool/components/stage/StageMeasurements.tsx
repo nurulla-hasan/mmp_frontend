@@ -26,6 +26,8 @@ export const StageMeasurements = memo(() => {
       stageSize: s.stageSize,
       scale: s.scale,
       plots: s.plots,
+      pointerPos: s.pointerPos,
+      deviceType: s.deviceType,
       stagePos: s.mode === 'measuring' && s.measurementDraft.length === 2 ? s.stagePos : null
     }))
   );
@@ -72,11 +74,15 @@ export const StageMeasurements = memo(() => {
         );
       })}
 
-      {mode === 'measuring' && measurementDraft.length === 2 && stagePos && (() => {
+      {mode === 'measuring' && measurementDraft.length === 2 && (() => {
+        const store = useMapStore.getState();
         let endPt = { 
-          x: (stageSize.width / 2 - stagePos.x) / stageScale, 
-          y: (stageSize.height / 2 - stagePos.y) / stageScale 
+          x: (stageSize.width / 2 - (stagePos?.x || 0)) / stageScale, 
+          y: (stageSize.height / 2 - (stagePos?.y || 0)) / stageScale 
         };
+        if (store.deviceType === 'mouse' && store.pointerPos) {
+          endPt = store.pointerPos;
+        }
         const [x1, y1] = measurementDraft;
         const startPt = { x: x1, y: y1 };
 

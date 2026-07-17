@@ -17,10 +17,10 @@ import { StageActivePlot } from './StageActivePlot';
 import { StageMeasurements } from './StageMeasurements';
 import { StageMagnifier } from './StageMagnifier';
 import { StageManualCut } from './StageManualCut';
-import { clamp } from "@/lib/utils";
+import { clamp, cn } from "@/lib/utils";
 
 export const KonvaStage = memo((props: KonvaStageProps) => {
-    const { containerRef, stageRef } = props;
+    const { stageRef } = props;
 
     const { stageSize, mode, isPlotFinished, stageScale, stagePos, isPinching, plotPoints, isProcessingFile, isGeneratingTiles, tileProgress, image, addCenterPoint, finishPlot } =
         useMapStore(
@@ -95,7 +95,10 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
     );
 
     return (
-        <div id="step-map-stage" className="relative border rounded-lg shadow-sm overflow-hidden cursor-grab touch-none select-none" ref={containerRef}>
+        <div id="step-map-stage" className={cn(
+            "absolute inset-0 touch-none select-none",
+            (mode === 'drawing_plot' || mode === 'calibrating' || mode === 'measuring') ? "cursor-crosshair" : "cursor-grab"
+        )}>
             <Stage
                 ref={stageRef}
                 width={stageSize.width}
@@ -144,27 +147,21 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                 </div>
             )}
 
-            {/* Tile generation loading — large images that must wait for tiles */}
+            {/* Tile generation loading — non-blocking floating indicator */}
             {!isProcessingFile && isGeneratingTiles && image && (image.naturalWidth * image.naturalHeight > 2_000_000) && (
-                <div className="absolute inset-0 z-60 flex items-center justify-center bg-background/75">
-                    <div className="flex min-w-60 flex-col items-center gap-4 rounded-lg border border-border bg-card px-6 py-5 text-center shadow-lg">
-                        <Loader2 className="h-7 w-7 animate-spin text-primary" />
-                        <div>
-                            <p className="text-sm font-semibold text-foreground">ম্যাপ প্রস্তুত হচ্ছে</p>
-                            <p className="mt-1 text-xs text-muted-foreground">টাইল জেনারেট হচ্ছে — একটু অপেক্ষা করুন</p>
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-60 pointer-events-none">
+                    <div className="flex w-60 flex-col gap-2 rounded-xl border border-border bg-card/95 backdrop-blur-md px-4 py-3 shadow-xl pointer-events-auto">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-foreground">
+                                টাইল জেনারেট হচ্ছে...
+                            </span>
+                            <span className="ml-auto text-xs font-semibold text-primary">{tileProgress}%</span>
                         </div>
-                        {/* Progress bar */}
-                        <div className="w-full space-y-1">
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <span>অগ্রগতি</span>
-                                <span>{tileProgress}%</span>
-                            </div>
-                            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                                <div
-                                    className="h-full rounded-full bg-primary transition-all duration-300 ease-out"
-                                    style={{ width: `${tileProgress}%` }}
-                                />
-                            </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                            <div
+                                className="h-full rounded-full bg-primary transition-all duration-300 ease-out"
+                                style={{ width: `${tileProgress}%` }}
+                            />
                         </div>
                     </div>
                 </div>

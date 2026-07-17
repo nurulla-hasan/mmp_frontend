@@ -63,7 +63,7 @@ StaticLines.displayName = 'StaticLines';
 // ----- Sub-component: dashed preview line from last point to crosshair -----
 // Re-renders on stagePos/stageSize changes (expected — this IS position-dependent)
 const LiveDashedLine = memo(() => {
-  const { plotPoints, snapHint, stageScale, stagePos, stageSize, scale, isPlotFinished, plots } = useMapStore(
+  const { plotPoints, snapHint, stageScale, stagePos, stageSize, scale, isPlotFinished, plots, pointerPos, deviceType } = useMapStore(
     useShallow(s => ({
       plotPoints: s.plotPoints,
       snapHint: s.snapHint,
@@ -73,16 +73,21 @@ const LiveDashedLine = memo(() => {
       scale: s.scale,
       isPlotFinished: s.isPlotFinished,
       plots: s.plots,
+      pointerPos: s.pointerPos,
+      deviceType: s.deviceType,
     }))
   );
 
   const derived = useMemo(() => {
     if (isPlotFinished) return null;
 
-    const rawCenter = {
+    let rawCenter = {
       x: (stageSize.width / 2 - stagePos.x) / stageScale,
       y: (stageSize.height / 2 - stagePos.y) / stageScale,
     };
+    if (deviceType === 'mouse' && pointerPos) {
+      rawCenter = pointerPos;
+    }
     const snapThreshold = 10 / stageScale;
     const center = getSnappedPoint(rawCenter, plots.map(p => p.points), snapThreshold);
     const isEdgeSnapped = center.x !== rawCenter.x || center.y !== rawCenter.y;
@@ -139,7 +144,7 @@ const LiveDashedLine = memo(() => {
       isEdgeSnapped, centerX: center.x, centerY: center.y,
       fontSize, padding, rotation
     };
-  }, [isPlotFinished, plotPoints, stageSize, stagePos, stageScale, snapHint, scale, plots]);
+  }, [isPlotFinished, plotPoints, stageSize, stagePos, stageScale, snapHint, scale, plots, pointerPos, deviceType]);
 
   if (!derived) return null;
 

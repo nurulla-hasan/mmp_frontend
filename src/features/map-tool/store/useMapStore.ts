@@ -4,7 +4,7 @@ import {
   getSnappedPoint,
   isPointInPolygon,
 } from '../utils/geometry';
-import type { PlotRecord } from '../types/map';
+import type { PlotRecord, Point } from '../types/map';
 
 // Import all slices
 import { createImageSlice, type ImageSlice } from './slices/imageSlice';
@@ -31,6 +31,7 @@ export type MapStore = ImageSlice &
     confirmClearMap: (callback?: () => void) => void;
     confirmClearPlot: (callback?: () => void) => void;
     executePendingAction: () => void;
+    addPointAt: (pt: Point) => void;
     addCenterPoint: () => void;
 
     // Wrapper methods for component compatibility (overriding slice methods)
@@ -131,9 +132,8 @@ export const useMapStore = create<MapStore>((set, get, store) => {
       set({ pendingAction: null });
     },
 
-    addCenterPoint: () => {
+    addPointAt: (rawPt: Point) => {
       const state = get();
-      const rawPt = state.getStageCenterPoint();
       const snapThreshold = 10 / state.stageScale;
       let pt = getSnappedPoint(rawPt, state.plots.map((p) => p.points), snapThreshold);
 
@@ -178,6 +178,10 @@ export const useMapStore = create<MapStore>((set, get, store) => {
       } else if (state.mode === 'measuring') {
         get().addMeasurementPoint(pt, state.scale, state.plots);
       }
+    },
+
+    addCenterPoint: () => {
+      get().addPointAt(get().getStageCenterPoint());
     },
 
     // Wrapper methods for backward compatibility

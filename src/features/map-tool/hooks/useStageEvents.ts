@@ -51,6 +51,9 @@ export const useStageEvents = () => {
   const mouseDownPosRef = useRef<{ x: number; y: number } | null>(null);
   const CLICK_MOVE_THRESHOLD = 5;
 
+  const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
+  const lastDeviceRef = useRef<'mouse' | 'touch'>('touch');
+
   const TAP_GRACE_MS = 200;
   const TAP_MIN_MS = 50;
 
@@ -64,7 +67,6 @@ export const useStageEvents = () => {
     stageScale,
     stagePos,
     setStagePos,
-    getStageCenterPoint,
     setStageScale,
   } = useMapStore(useShallow((s) => ({
     mode: s.mode,
@@ -111,7 +113,8 @@ export const useStageEvents = () => {
       const SNAP_DISTANCE = 20 / stageScaleRef.current;
 
       if (curMode === "drawing_plot" && !curFinished && curPoints.length >= 3) {
-        const pos = getStageCenterPoint();
+        const store = useMapStore.getState();
+        const pos = store.getStageTargetPoint();
         const first = curPoints[0];
         const near = Math.hypot(pos.x - first.x, pos.y - first.y) <= SNAP_DISTANCE;
         if (near !== curSnapHint) setSnapHint(near);
@@ -119,15 +122,34 @@ export const useStageEvents = () => {
         setSnapHint(false);
       }
     });
-  }, [getStageCenterPoint, setSnapHint]);
+  }, [setSnapHint]);
 
   // onMouseMove — stable reference, no plotPoints in deps
-  const onMouseMove = useCallback(() => {
+  const onMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+    lastDeviceRef.current = 'mouse';
+    const store = useMapStore.getState();
+    if (store.deviceType !== 'mouse') store.setDeviceType('mouse');
+    
+    const stage = e.target.getStage();
+    if (stage) {
+      const pointer = stage.getPointerPosition();
+      if (pointer) {
+        const pos = {
+          x: (pointer.x - store.stagePos.x) / store.stageScale,
+          y: (pointer.y - store.stagePos.y) / store.stageScale,
+        };
+        lastPointerPosRef.current = pos;
+        store.setPointerPos(pos);
+      }
+    }
     checkSnapThrottled();
   }, [checkSnapThrottled]);
 
   const onTouchStart = useCallback(
     (e: Konva.KonvaEventObject<TouchEvent>) => {
+      lastDeviceRef.current = 'touch';
+      const store = useMapStore.getState();
+      if (store.deviceType !== 'touch') store.setDeviceType('touch');
       const touches = e.evt.touches;
       if (touches && touches.length >= 2) {
         isPinchingRef.current = true;
@@ -332,7 +354,10 @@ export const useStageEvents = () => {
     (e: Konva.KonvaEventObject<MouseEvent>) => {
       // Only left click, only on stage background (not shapes)
       if (e.evt.button !== 0) return;
-      if (e.target !== e.currentTarget) return;
+      // Allow clicks on stage or on layers (background), but block clicks on named shapes
+      const targetName = (e.target as Konva.Node).name?.() || '';
+      const isStageOrLayer = e.target === e.currentTarget || targetName === '' || targetName === 'background-layer';
+      if (!isStageOrLayer) return;
 
       // Ignore if user dragged (panned)
       if (mouseDownPosRef.current) {
@@ -351,15 +376,41 @@ export const useStageEvents = () => {
 
       if (curMode === 'drawing_plot' && !curFinished) {
         const SNAP_DISTANCE = 20 / stageScaleRef.current;
-        const pos = store.getStageCenterPoint();
+        let pos = store.getStageCenterPoint();
+        
+        // If clicking with a mouse, use the exact click position
+        if (lastDeviceRef.current === 'mouse') {
+           const pointer = stage.getPointerPosition();
+           if (pointer) {
+             pos = {
+               x: (pointer.x - store.stagePos.x) / store.stageScale,
+               y: (pointer.y - store.stagePos.y) / store.stageScale,
+             };
+           }
+        }
+
         const first = curPoints[0];
-        if (first && Math.hypot(pos.x - first.x, pos.y - first.y) <= SNAP_DISTANCE && curPoints.length >= 3) {
+        // Use snapHint (already computed in checkSnapThrottled) OR distance check for safety
+        const isNearFirst = (snapHintRef.current && curPoints.length >= 3) ||
+          (first && Math.hypot(pos.x - first.x, pos.y - first.y) <= SNAP_DISTANCE && curPoints.length >= 3);
+
+        if (isNearFirst) {
           store.finishPlot();
         } else {
-          store.addCenterPoint();
+          store.addPointAt(pos);
         }
       } else if (curMode === 'calibrating') {
-        store.addCenterPoint();
+        let pos = store.getStageCenterPoint();
+        if (lastDeviceRef.current === 'mouse') {
+           const pointer = stage.getPointerPosition();
+           if (pointer) {
+             pos = {
+               x: (pointer.x - store.stagePos.x) / store.stageScale,
+               y: (pointer.y - store.stagePos.y) / store.stageScale,
+             };
+           }
+        }
+        store.addPointAt(pos);
       }
     },
     [CLICK_MOVE_THRESHOLD],

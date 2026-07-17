@@ -41,6 +41,7 @@ export default function MapCalculator() {
     mode,
     plotPoints,
     image,
+    isProcessingFile,
   } = useMapStore(useShallow((s) => ({
     savedPlots: s.savedPlots,
     deleteSavedPlot: s.deleteSavedPlot,
@@ -49,6 +50,7 @@ export default function MapCalculator() {
     mode: s.mode,
     plotPoints: s.plotPoints,
     image: s.image,
+    isProcessingFile: s.isProcessingFile,
   })));
 
   useEffect(() => {
@@ -116,8 +118,8 @@ export default function MapCalculator() {
       <DistanceModal />
       <div className="print:hidden">
         {/* ── Canvas + Floating toolbar ── */}
-        <div 
-          className="relative w-full rounded-lg overflow-hidden border border-border" 
+        <div
+          className="relative w-full rounded-lg overflow-hidden border border-border"
           ref={containerRef}
           style={{
             backgroundColor: isDark ? '#121212' : '#ffffff',
@@ -125,7 +127,8 @@ export default function MapCalculator() {
               ? `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`
               : `linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)`,
             backgroundSize: '20px 20px',
-            minHeight: '600px'
+            height: 'calc(100vh - 64px)',
+            minHeight: '400px'
           }}
         >
           <KonvaStage
@@ -133,21 +136,20 @@ export default function MapCalculator() {
             stageRef={stageRef}
           />
 
-          {!image && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
-              <div className="flex flex-col items-center p-6 text-center animate-in fade-in zoom-in duration-500">
-                <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
-                  <Upload className="h-10 w-10 text-primary opacity-80" />
+          {!image && !isProcessingFile && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
+              <div className="flex flex-col items-center p-6 text-center bg-background/80 backdrop-blur-sm rounded-2xl border shadow-xl max-w-sm pointer-events-auto">
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Upload className="h-8 w-8 text-primary opacity-80" />
                 </div>
-                <h2 className="text-2xl font-bold mb-2">কোনো ম্যাপ আপলোড করা নেই</h2>
-                <p className="text-muted-foreground mb-8 max-w-[320px] text-sm">
-                  কাজ শুরু করতে আপনার জমির নকশা বা ম্যাপ (JPG, PNG) আপলোড করুন।
+                <h2 className="text-xl font-bold mb-1">কোনো ম্যাপ আপলোড করা নেই</h2>
+                <p className="text-muted-foreground mb-6 max-w-[280px] text-sm">
+                  কাজ শুরু করতে আপনার জমির নকশা বা ম্যাপ (JPG, PNG, PDF) আপলোড করুন.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 mt-2">
+                <div className="flex flex-col gap-3 w-full mt-1">
                   <Button
                     onClick={() => document.getElementById('step-image-upload')?.click()}
-                    size="lg"
-                    className="gap-2 shadow-lg rounded-full"
+                    className="gap-2 shadow-sm w-full"
                   >
                     <Upload className="h-4 w-4" />
                     ডিভাইস থেকে আপলোড করুন
@@ -156,8 +158,7 @@ export default function MapCalculator() {
                     nativeButton={false}
                     render={<a href="https://drive.google.com/drive/folders/1r0ryb1SyCeYV-41CM1WweokGDKT5t9RB" target="_blank" rel="noopener noreferrer" />}
                     variant="outline"
-                    size="lg"
-                    className="gap-2 shadow-lg rounded-full bg-background/50 backdrop-blur-sm"
+                    className="gap-2 shadow-sm w-full bg-background/50 backdrop-blur-sm"
                   >
                     <HardDrive className="h-4 w-4 text-primary" />
                     ড্রাইভ থেকে ডাউনলোড করুন

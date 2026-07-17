@@ -15,6 +15,8 @@ export interface UIState {
   reportInfo: { mouza: string; jlNo: string; dagNo: string; khatianNo: string; date: string; surveyorName: string };
   reportImage: string | null;
   currentProjectId: string | null;
+  pointerPos: { x: number; y: number } | null;
+  deviceType: 'mouse' | 'touch';
 }
 
 export interface UIActions {
@@ -31,7 +33,10 @@ export interface UIActions {
   setReportInfo: (info: { mouza: string; jlNo: string; dagNo: string; khatianNo: string; date: string; surveyorName: string } | ((prev: { mouza: string; jlNo: string; dagNo: string; khatianNo: string; date: string; surveyorName: string }) => { mouza: string; jlNo: string; dagNo: string; khatianNo: string; date: string; surveyorName: string })) => void;
   setReportImage: (image: string | null) => void;
   setCurrentProjectId: (id: string | null) => void;
+  setPointerPos: (pos: { x: number; y: number } | null) => void;
+  setDeviceType: (type: 'mouse' | 'touch') => void;
   getStageCenterPoint: () => { x: number; y: number };
+  getStageTargetPoint: () => { x: number; y: number };
 }
 
 export type UISlice = UIState & UIActions;
@@ -52,6 +57,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set, get, 
   reportInfo: { mouza: '', jlNo: '', dagNo: '', khatianNo: '', date: new Date().toLocaleDateString('en-GB'), surveyorName: '' },
   reportImage: null,
   currentProjectId: null,
+  pointerPos: null,
+  deviceType: 'touch',
 
   // Actions
   setMode: (mode) => set({ mode }),
@@ -76,6 +83,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set, get, 
     })),
   setReportImage: (reportImage) => set({ reportImage }),
   setCurrentProjectId: (id) => set({ currentProjectId: id }),
+  setPointerPos: (pos) => set({ pointerPos: pos }),
+  setDeviceType: (type) => set({ deviceType: type }),
 
   getStageCenterPoint: () => {
     const state = get();
@@ -85,5 +94,13 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set, get, 
       x: (cx - state.stagePos.x) / state.stageScale,
       y: (cy - state.stagePos.y) / state.stageScale,
     };
+  },
+  
+  getStageTargetPoint: () => {
+    const state = get();
+    if (state.deviceType === 'mouse' && state.pointerPos) {
+      return state.pointerPos;
+    }
+    return state.getStageCenterPoint();
   },
 });

@@ -7,10 +7,9 @@ import { useMapStore } from '@/features/map-tool/store/useMapStore';
 import { TiledBackground } from './TiledBackground';
 
 /** Images below this pixel area won't crash even low-end GPUs. */
-const SAFE_FALLBACK_PIXELS = 2_000_000; // ~2 MP (e.g. 1920×1080)
 
 export const StageBackground = memo(function StageBackground() {
-  const { image, tilePyramidInfo, isGeneratingTiles } = useMapStore(useShallow((s) => ({
+  const { image, tilePyramidInfo } = useMapStore(useShallow((s) => ({
     image: s.image,
     tilePyramidInfo: s.tilePyramidInfo,
     isGeneratingTiles: s.isGeneratingTiles,
@@ -23,11 +22,11 @@ export const StageBackground = memo(function StageBackground() {
     return <TiledBackground />;
   }
 
-  // While tiles are generating, only show the image if it's GPU-safe
-  const totalPixels = image.naturalWidth * image.naturalHeight;
-  if (isGeneratingTiles && totalPixels > SAFE_FALLBACK_PIXELS) {
-    return null; // Wait for tiles — don't risk GPU crash
-  }
+  // The user requested to see the map while tiles are generating, 
+  // so we won't return null here even if totalPixels > SAFE_FALLBACK_PIXELS.
+  // if (isGeneratingTiles && totalPixels > SAFE_FALLBACK_PIXELS) {
+  //   return null; 
+  // }
 
   // Fall back to single KonvaImage for small images
   return <KonvaImage image={image} imageSmoothingEnabled={false} perfectDrawEnabled={false} />;

@@ -3,7 +3,7 @@
 import { useRef, useMemo, useCallback, memo } from 'react';
 import {
     Upload, Ruler, PenTool, Scissors, Eye, EyeOff, Search, HelpCircle,
-    Moon, Sun, MoreHorizontal, HardDrive, ArrowLeft
+    Moon, Sun, MoreHorizontal, HardDrive, ArrowLeft, RotateCcw
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
@@ -52,7 +52,7 @@ const ToolBtn = memo(function ToolBtn({
 }) {
     const actualVariant = active ? "default" : (variant === 'danger' ? 'destructive' : 'ghost');
     const sizeClass = size === 'md' ? "icon-lg" : "icon";
-    
+
     const btn = (
         <Button
             id={id}
@@ -233,6 +233,16 @@ export function FloatingToolbar() {
                 id="step-home"
             />
         ),
+        reset: (size: 'md' | 'sm' = 'md') => (
+            <ToolBtn
+                icon={RotateCcw}
+                label="সব মুছুন"
+                onClick={() => confirmClearMap()}
+                disabled={!image}
+                size={size}
+                id="step-reset"
+            />
+        ),
         themeToggle: (size: 'md' | 'sm' = 'md') => {
             const isDark = theme === 'dark';
             return (
@@ -259,7 +269,7 @@ export function FloatingToolbar() {
         selectedFile, isProcessingFile, handleUploadClick,
         scale, mode, image, plots.length, isDrawing, handleCalibrateClick, startPlotDrawing,
         startManualDivide, isShowDiagonals, setIsShowDiagonals,
-        isMagnifierEnabled, setIsMagnifierEnabled, router, theme, setTheme,
+        isMagnifierEnabled, setIsMagnifierEnabled, router, theme, setTheme, confirmClearMap
     ]);
 
     return (
@@ -293,8 +303,9 @@ export function FloatingToolbar() {
 
                 <VDivider />
                 <span id="step-save"><SaveProjectDialog iconOnly /></span>
-                {commonTools.themeToggle()}
                 {commonTools.help()}
+                <VDivider />
+                {commonTools.reset()}
             </div>
 
             {/* ── Mobile: Scale Indicator ───────────────────────────────────────── */}
@@ -331,8 +342,8 @@ export function FloatingToolbar() {
                         <div>
                             {commonTools.magnifier('sm')}
                             {commonTools.diagonals('sm')}
-                            {commonTools.themeToggle('sm')}
                             {commonTools.help('sm')}
+                            {commonTools.reset('sm')}
                         </div>
                     </DropdownMenuContent>
                 </DropdownMenu>
