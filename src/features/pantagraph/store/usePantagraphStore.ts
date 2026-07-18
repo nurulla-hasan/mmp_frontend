@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import type Konva from 'konva';
 import type { MatchPoint } from '../types';
-import { removeBackground, parseHex } from '../utils/bgRemover';
+import { keepBlackOnly } from '../utils/bgRemover';
 import { colorizeImage } from '../utils/colorizeImage';
 import { SuccessToast, ErrorToast } from '@/lib/utils';
 
@@ -175,8 +175,8 @@ const initialState: PantagraphState = {
   formerMapClean: null,
   currentMapClean: null,
 
-  formerLineColor: '#000000',
-  currentLineColor: '#000000',
+  formerLineColor: '#DC2626',
+  currentLineColor: '#16A34A',
   lineColorizeThreshold: 200,
 
   lineSmoothing: 2,
@@ -307,29 +307,20 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => {
         const bgRemoved = target === 'former'
           ? state.formerBgRemoved
           : state.currentBgRemoved;
-        const bgColor = target === 'former' ? state.formerBgColor : state.currentBgColor;
-        const tolerance = target === 'former'
-          ? state.formerBgTolerance
-          : state.currentBgTolerance;
-        const lineColor = target === 'former'
-          ? state.formerLineColor
-          : state.currentLineColor;
+        const lineColor = target === 'former' ? '#DC2626' : '#16A34A';
 
         setProcessingState(target, true);
         try {
           const cleanMap = bgRemoved
-            ? await removeBackground(
-                original,
-                [parseHex(bgColor)],
-                tolerance,
-                state.lineSmoothing,
+            ? await keepBlackOnly(original, state.lineSmoothing)
+            : original;
+          const finalMap = bgRemoved
+            ? await applyLineToCleanMap(
+                cleanMap,
+                lineColor,
+                state.lineColorizeThreshold,
               )
             : original;
-          const finalMap = await applyLineToCleanMap(
-            cleanMap,
-            lineColor,
-            state.lineColorizeThreshold,
-          );
 
           if (requestedVersion !== controller.version) continue;
           set(target === 'former'
@@ -510,14 +501,20 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => {
   toggleFormerBgRemoval: async () => {
     const { formerMapOriginal, formerBgRemoved } = get();
     if (!formerMapOriginal) return;
-    set({ formerBgRemoved: !formerBgRemoved });
+    set({
+      formerBgRemoved: !formerBgRemoved,
+      formerLineColor: '#DC2626',
+    });
     scheduleMapProcessing('former', 0);
   },
 
   toggleCurrentBgRemoval: async () => {
     const { currentMapOriginal, currentBgRemoved } = get();
     if (!currentMapOriginal) return;
-    set({ currentBgRemoved: !currentBgRemoved });
+    set({
+      currentBgRemoved: !currentBgRemoved,
+      currentLineColor: '#16A34A',
+    });
     scheduleMapProcessing('current', 0);
   },
 

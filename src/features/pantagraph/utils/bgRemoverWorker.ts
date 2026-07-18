@@ -1,93 +1,106 @@
 /**
- * Shared Web Worker for background removal, line colorization and alpha cleanup.
- * Every response echoes its request id so concurrent jobs cannot consume each
- * other's buffers.
+ * Web Worker — pixel-processing background thread.
+ * Handles both background removal and line colorization so the main
+ * thread is never blocked by heavy ImageData loops.
+ *
+ * Protocol (all messages use Transferable ArrayBuffers for zero-copy):
+ *
+ *  → { type: 'removeBg',  buffer, colors: [{r,g,b}], tolerance }
+ *  ← { buffer }
+ *
+ *  → { type: 'colorize',  buffer, targetR, targetG, targetB, threshold }
+ *  ← { buffer }
+ *
+ *  → { type: 'keepBlack', buffer, luminanceThreshold, chromaThreshold }
+ *  ← { buffer }
  */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const workerScope = self as any;
+const ctx = self as any;
 
-type WorkerMessage =
-  | {
-      id: number;
-      type: 'removeBg';
-      buffer: ArrayBuffer;
-      colors: { r: number; g: number; b: number }[];
-      tolerance: number;
-    }
-  | {
-      id: number;
-      type: 'colorize';
-      buffer: ArrayBuffer;
-      targetR: number;
-      targetG: number;
-      targetB: number;
-      threshold: number;
-    }
-  | {
-      id: number;
-      type: 'smoothAlpha';
-      buffer: ArrayBuffer;
-      edge0: number;
-      edge1: number;
-    };
+ctx.onmessage = (e: MessageEvent) => {
+  const msg = e.data as
+    | { type: 'removeBg'; buffer: ArrayBuffer; colors: { r: number; g: number; b: number }[]; tolerance: number }
+    | { type: 'colorize'; buffer: ArrayBuffer; targetR: number; targetG: number; targetB: number; threshold: number }
+    | { type: 'keepBlack'; buffer: ArrayBuffer; luminanceThreshold: number; chromaThreshold: number };
 
-workerScope.onmessage = (event: MessageEvent<WorkerMessage>) => {
-  const message = event.data;
+  if (msg.type === 'removeBg') {
+    const data = new Uint8ClampedArray(msg.buffer);
+    const { colors, tolerance } = msg;
 
-  try {
-    const data = new Uint8ClampedArray(message.buffer);
+    const feather = 20;
 
-    if (message.type === 'removeBg') {
-      const feather = 20;
+    for (let i = 0; i < data.length; i += 4) {
+      let minAlpha = 255;
+      for (const c of colors) {
+        const dist = Math.max(
+          Math.abs(data[i]     - c.r),
+          Math.abs(data[i + 1] - c.g),
+          Math.abs(data[i + 2] - c.b)
+        );
 
-      for (let i = 0; i < data.length; i += 4) {
-        let minAlpha = 255;
-        for (const color of message.colors) {
-          const distance = Math.max(
-            Math.abs(data[i] - color.r),
-            Math.abs(data[i + 1] - color.g),
-            Math.abs(data[i + 2] - color.b),
-          );
-
-          if (distance <= message.tolerance) {
-            minAlpha = 0;
-            break;
-          }
-          if (distance < message.tolerance + feather) {
-            minAlpha = Math.min(
-              minAlpha,
-              Math.round(((distance - message.tolerance) / feather) * 255),
-            );
-          }
-        }
-        if (minAlpha < 255) data[i + 3] = minAlpha;
-      }
-    } else if (message.type === 'colorize') {
-      for (let i = 0; i < data.length; i += 4) {
-        if (data[i + 3] === 0) continue;
-
-        const luminance = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-        if (luminance < message.threshold) {
-          data[i] = message.targetR;
-          data[i + 1] = message.targetG;
-          data[i + 2] = message.targetB;
+        if (dist <= tolerance) {
+          minAlpha = 0;
+          break;
+        } else if (dist < tolerance + feather) {
+          const alpha = Math.round(((dist - tolerance) / feather) * 255);
+          if (alpha < minAlpha) minAlpha = alpha;
         }
       }
-    } else {
-      const range = Math.max(message.edge1 - message.edge0, 0.01);
-      for (let i = 3; i < data.length; i += 4) {
-        const alpha = data[i] / 255;
-        const t = Math.max(0, Math.min(1, (alpha - message.edge0) / range));
-        data[i] = Math.round(t * t * (3 - 2 * t) * 255);
+      if (minAlpha < 255) {
+        data[i + 3] = minAlpha;
       }
     }
 
-    workerScope.postMessage({ id: message.id, buffer: data.buffer }, [data.buffer]);
-  } catch (error) {
-    workerScope.postMessage({
-      id: message.id,
-      error: error instanceof Error ? error.message : 'Pixel processing failed',
-    });
+    ctx.postMessage({ buffer: data.buffer }, [data.buffer]);
+
+  } else if (msg.type === 'keepBlack') {
+    const data = new Uint8ClampedArray(msg.buffer);
+    const { luminanceThreshold, chromaThreshold } = msg;
+    const softStart = Math.max(0, luminanceThreshold - 100);
+
+    for (let i = 0; i < data.length; i += 4) {
+      const red = data[i];
+      const green = data[i + 1];
+      const blue = data[i + 2];
+      const luminance = 0.299 * red + 0.587 * green + 0.114 * blue;
+      const chroma = Math.max(red, green, blue) - Math.min(red, green, blue);
+      const isNeutralDark =
+        luminance < luminanceThreshold && chroma <= chromaThreshold;
+
+      if (!isNeutralDark) {
+        data[i + 3] = 0;
+        continue;
+      }
+
+      const darkness = Math.max(
+        0,
+        Math.min(1, (luminanceThreshold - luminance) / Math.max(1, luminanceThreshold - softStart)),
+      );
+      const smoothedDarkness = darkness * darkness * (3 - 2 * darkness);
+      data[i] = 0;
+      data[i + 1] = 0;
+      data[i + 2] = 0;
+      data[i + 3] = Math.round(data[i + 3] * smoothedDarkness);
+    }
+
+    ctx.postMessage({ buffer: data.buffer }, [data.buffer]);
+
+  } else if (msg.type === 'colorize') {
+    const data = new Uint8ClampedArray(msg.buffer);
+    const { targetR, targetG, targetB, threshold } = msg;
+
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] === 0) continue; // skip fully transparent only
+      
+      const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      if (lum < threshold) {
+        data[i]     = targetR;
+        data[i + 1] = targetG;
+        data[i + 2] = targetB;
+      }
+    }
+
+    ctx.postMessage({ buffer: data.buffer }, [data.buffer]);
   }
 };

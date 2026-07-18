@@ -1,88 +1,64 @@
-type RGBColor = { r: number; g: number; b: number };
+/**
+ * Lazy singleton for the shared pixel-processing Web Worker.
+ * Both bgRemover and colorizeImage share this single instance
+ * (safe because the worker processes messages in FIFO order and
+ * each caller attaches a `once` listener, so responses never mix).
+ */
+let _instance: Worker | null = null;
+let _failed = false;
+let _queue: Promise<void> = Promise.resolve();
 
-export type PixelWorkerTask =
-  | { type: 'removeBg'; colors: RGBColor[]; tolerance: number }
-  | { type: 'colorize'; targetR: number; targetG: number; targetB: number; threshold: number }
-  | { type: 'smoothAlpha'; edge0: number; edge1: number };
-
-type WorkerResponse = {
-  id: number;
-  buffer?: ArrayBuffer;
-  error?: string;
-};
-
-type PendingRequest = {
-  resolve: (data: Uint8ClampedArray) => void;
-  reject: (error: Error) => void;
-};
-
-let instance: Worker | null = null;
-let failed = false;
-let nextRequestId = 0;
-const pendingRequests = new Map<number, PendingRequest>();
-
-function rejectAllPending(error: Error): void {
-  for (const request of pendingRequests.values()) request.reject(error);
-  pendingRequests.clear();
-}
-
-function getPixelWorker(): Worker | null {
-  if (typeof window === 'undefined' || failed) return null;
-  if (instance) return instance;
+export function getPixelWorker(): Worker | null {
+  if (typeof window === 'undefined' || _failed) return null;
+  if (_instance) return _instance;
 
   try {
-    const worker = new Worker(new URL('./bgRemoverWorker', import.meta.url));
-
-    worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
-      const { id, buffer, error } = event.data;
-      const request = pendingRequests.get(id);
-      if (!request) return;
-
-      pendingRequests.delete(id);
-      if (error || !buffer) {
-        request.reject(new Error(error || 'Pixel worker returned no data'));
-        return;
-      }
-      request.resolve(new Uint8ClampedArray(buffer));
+    _instance = new Worker(new URL('./bgRemoverWorker', import.meta.url));
+    _instance.onerror = () => {
+      console.warn('[PixelWorker] Worker error — disabling, falling back to sync');
+      _failed = true;
+      _instance = null;
     };
-
-    worker.onerror = (event) => {
-      console.warn('[PixelWorker] Worker error — falling back to sync processing');
-      failed = true;
-      worker.terminate();
-      instance = null;
-      rejectAllPending(new Error(event.message || 'Pixel worker failed'));
-    };
-
-    instance = worker;
-    return worker;
+    return _instance;
   } catch {
-    failed = true;
+    _failed = true;
     return null;
   }
 }
 
 /**
- * Sends one pixel task to the shared worker and matches the response by id.
- * Returns null when workers are unavailable so callers can use a sync fallback.
+ * Serialize jobs sent to the shared worker. A Worker broadcasts every response
+ * to every message listener, so overlapping one-shot listeners can otherwise
+ * consume another map's pixel buffer.
  */
-export function runPixelTask(
-  data: Uint8ClampedArray,
-  task: PixelWorkerTask,
+export function runPixelWorkerTask(
+  message: Record<string, unknown> & { buffer: ArrayBuffer },
 ): Promise<Uint8ClampedArray> | null {
   const worker = getPixelWorker();
   if (!worker) return null;
 
-  const id = ++nextRequestId;
-  const buffer = new Uint8ClampedArray(data).buffer as ArrayBuffer;
+  const task = _queue.then(
+    () =>
+      new Promise<Uint8ClampedArray>((resolve, reject) => {
+        const handleMessage = (event: MessageEvent<{ buffer: ArrayBuffer }>) => {
+          worker.removeEventListener('error', handleError);
+          resolve(new Uint8ClampedArray(event.data.buffer));
+        };
+        const handleError = () => {
+          worker.removeEventListener('message', handleMessage);
+          reject(new Error('Pixel worker failed'));
+        };
 
-  return new Promise((resolve, reject) => {
-    pendingRequests.set(id, { resolve, reject });
-    try {
-      worker.postMessage({ id, ...task, buffer }, [buffer]);
-    } catch (error) {
-      pendingRequests.delete(id);
-      reject(error instanceof Error ? error : new Error('Failed to contact pixel worker'));
-    }
-  });
+        worker.addEventListener('message', handleMessage, { once: true });
+        worker.addEventListener('error', handleError, { once: true });
+        worker.postMessage(message, [message.buffer]);
+      }),
+  );
+
+  _queue = task.then(
+    () => undefined,
+    () => undefined,
+  );
+
+  return task;
 }
