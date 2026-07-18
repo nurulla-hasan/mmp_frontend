@@ -1,78 +1,28 @@
 'use client';
 
 import {
-  type ReactNode,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import { Group, Image as KonvaImage, Layer, Line, Stage, Text } from 'react-konva';
 import type Konva from 'konva';
-import {
-  Crop,
-  Eraser,
-  Eye,
-  EyeOff,
-  Hand,
-  Pencil,
-  Redo2,
-  RotateCcw,
-  Type,
-  Undo2,
-} from 'lucide-react';
 import { useShallow } from 'zustand/shallow';
 
-import { Button } from '@/components/ui/button';
 import { ConfirmationModal } from '@/components/ui/custom/confirmation-modal';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import {
-  type StudioEditorTool,
   useMouzaMapStudioStore,
 } from '../store/useMouzaMapStudioStore';
+import StudioEditorToolbar from './StudioEditorToolbar';
+import StudioEditorControls from './StudioEditorControls';
+import StudioEditorTextInput from './StudioEditorTextInput';
 
 const MIN_SCALE = 0.03;
 const MAX_SCALE = 16;
 let strokeId = 0;
 let textId = 0;
-
-const toolDefinitions: Array<{
-  id: StudioEditorTool;
-  label: string;
-  icon: typeof Hand;
-}> = [
-  { id: 'pan', label: 'সরান / Zoom', icon: Hand },
-  { id: 'cleanup', label: 'Cleanup brush', icon: Eraser },
-  { id: 'text', label: 'লেখা বসান', icon: Type },
-  { id: 'mark', label: 'Mark আঁকুন', icon: Pencil },
-];
-
-function EditorTooltip({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={<div className="inline-flex" />}
-        className="focus:outline-none focus-visible:outline-none"
-      >
-        {children}
-      </TooltipTrigger>
-      <TooltipContent side="left" sideOffset={8}>
-        {label}
-      </TooltipContent>
-    </Tooltip>
-  );
-}
 
 export default function StudioEditorLayout({
   onOpenCrop,
@@ -134,6 +84,25 @@ export default function StudioEditorLayout({
     clearEditor: state.clearEditor,
   })));
 
+  // Reset stage position/scale when the editor image changes (render-time update)
+  const [prevImageSrc, setPrevImageSrc] = useState<string | null>(null);
+
+  if (editorImage && editorImage.src !== prevImageSrc && stageSize.width > 0 && stageSize.height > 0) {
+    setPrevImageSrc(editorImage.src);
+    const imageWidth = editorImage.naturalWidth || editorImage.width;
+    const imageHeight = editorImage.naturalHeight || editorImage.height;
+    const scale = Math.min(
+      (stageSize.width - 80) / imageWidth,
+      (stageSize.height - 96) / imageHeight,
+      1,
+    );
+    setStageScale(scale);
+    setStagePosition({
+      x: (stageSize.width - imageWidth * scale) / 2,
+      y: (stageSize.height - imageHeight * scale) / 2,
+    });
+  }
+
   useEffect(() => {
     const element = containerRef.current;
     if (!element) return;
@@ -149,24 +118,6 @@ export default function StudioEditorLayout({
     setStageSize({ width: element.clientWidth, height: element.clientHeight });
     return () => observer.disconnect();
   }, []);
-
-  useEffect(() => {
-    if (!editorImage || stageSize.width === 0 || stageSize.height === 0) return;
-
-    const imageWidth = editorImage.naturalWidth || editorImage.width;
-    const imageHeight = editorImage.naturalHeight || editorImage.height;
-    const scale = Math.min(
-      (stageSize.width - 80) / imageWidth,
-      (stageSize.height - 96) / imageHeight,
-      1,
-    );
-
-    setStageScale(scale);
-    setStagePosition({
-      x: (stageSize.width - imageWidth * scale) / 2,
-      y: (stageSize.height - imageHeight * scale) / 2,
-    });
-  }, [editorImage, stageSize]);
 
   const getImagePoint = useCallback(() => {
     const pointer = stageRef.current?.getPointerPosition();
@@ -356,20 +307,16 @@ export default function StudioEditorLayout({
   );
 
   const selectedText = editorTexts.find((item) => item.id === editingTextId);
-  const textEditorPosition = selectedText
-    ? {
-        x: selectedText.x * stageScale + stagePosition.x,
-        y: selectedText.y * stageScale + stagePosition.y,
-      }
-    : null;
-
-  const controlLabel = editorTool === 'cleanup'
-    ? 'Brush size'
-    : editorTool === 'mark'
-      ? 'Line size'
-      : editorTool === 'text'
-        ? 'Text size'
-        : null;
+  const textEditorPosition = useMemo(
+    () =>
+      selectedText
+        ? {
+            x: selectedText.x * stageScale + stagePosition.x,
+            y: selectedText.y * stageScale + stagePosition.y,
+          }
+        : null,
+    [selectedText, stageScale, stagePosition],
+  );
 
   return (
     <div
@@ -473,174 +420,44 @@ export default function StudioEditorLayout({
         </Layer>
       </Stage>
 
-      <div className="absolute right-3 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-1 rounded-2xl border border-border bg-background/95 p-1.5 shadow-xl">
-        <EditorTooltip label="দুই ম্যাপ একসাথে crop করুন">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="দুই ম্যাপ একসাথে crop করুন"
-            onClick={onOpenCrop}
-          >
-            <Crop className="size-4" />
-          </Button>
-        </EditorTooltip>
+      <StudioEditorToolbar
+        editorTool={editorTool}
+        showEdits={showEdits}
+        canUndo={editorPast.length > 0}
+        canRedo={editorFuture.length > 0}
+        hasContent={editorStrokes.length > 0 || editorTexts.length > 0}
+        onSelectTool={setEditorTool}
+        onToggleShowEdits={() => setShowEdits((value) => !value)}
+        onUndo={undoEditor}
+        onRedo={redoEditor}
+        onClear={() => setShowClearConfirmation(true)}
+        onOpenCrop={onOpenCrop}
+      />
 
-        <div className="mx-auto h-px w-7 bg-border" />
-
-        {toolDefinitions.map(({ id, label, icon: Icon }) => (
-          <EditorTooltip key={id} label={label}>
-            <Button
-              type="button"
-              variant={editorTool === id ? 'default' : 'ghost'}
-              size="icon"
-              aria-label={label}
-              onClick={() => setEditorTool(id)}
-            >
-              <Icon className="size-4" />
-            </Button>
-          </EditorTooltip>
-        ))}
-
-        <div className="mx-auto h-px w-7 bg-border" />
-
-        <EditorTooltip label={showEdits ? 'Original map দেখুন' : 'Edited map দেখুন'}>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={showEdits ? 'Original map দেখুন' : 'Edited map দেখুন'}
-            onClick={() => setShowEdits((value) => !value)}
-          >
-            {showEdits ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-          </Button>
-        </EditorTooltip>
-        <EditorTooltip label="শেষ edit ফিরিয়ে নিন">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="শেষ edit ফিরিয়ে নিন"
-            disabled={editorPast.length === 0}
-            onClick={undoEditor}
-          >
-            <Undo2 className="size-4" />
-          </Button>
-        </EditorTooltip>
-        <EditorTooltip label="ফিরিয়ে নেওয়া edit আবার দিন">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="ফিরিয়ে নেওয়া edit আবার দিন"
-            disabled={editorFuture.length === 0}
-            onClick={redoEditor}
-          >
-            <Redo2 className="size-4" />
-          </Button>
-        </EditorTooltip>
-        <EditorTooltip label="সব edit মুছুন">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="সব edit মুছুন"
-            disabled={editorStrokes.length === 0 && editorTexts.length === 0}
-            onClick={() => setShowClearConfirmation(true)}
-            className="text-muted-foreground hover:text-destructive"
-          >
-            <RotateCcw className="size-4" />
-          </Button>
-        </EditorTooltip>
-      </div>
-
-      {controlLabel && (
-        <div className="absolute bottom-4 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-xl border border-border bg-background/95 px-4 py-2 text-xs shadow-xl">
-          <span className="whitespace-nowrap font-medium">{controlLabel}</span>
-
-          {editorTool === 'cleanup' && (
-            <input
-              type="range"
-              min={8}
-              max={100}
-              value={cleanupWidth}
-              onChange={(event) => setCleanupWidth(Number(event.target.value))}
-            />
-          )}
-
-          {editorTool === 'mark' && (
-            <input
-              type="range"
-              min={1}
-              max={16}
-              value={markWidth}
-              onChange={(event) => setMarkWidth(Number(event.target.value))}
-            />
-          )}
-
-          {editorTool === 'text' && (
-            <input
-              type="range"
-              min={14}
-              max={72}
-              value={fontSize}
-              onChange={(event) => setFontSize(Number(event.target.value))}
-            />
-          )}
-
-          {editorTool !== 'cleanup' && (
-            <input
-              type="color"
-              value={annotationColor}
-              onChange={(event) => setAnnotationColor(event.target.value)}
-              title="রং"
-              className="size-7 cursor-pointer rounded border-0 bg-transparent p-0"
-            />
-          )}
-
-          <span className="tabular-nums text-muted-foreground">
-            {editorTool === 'cleanup'
-              ? cleanupWidth
-              : editorTool === 'mark'
-                ? markWidth
-                : fontSize}
-            px
-          </span>
-        </div>
-      )}
+      <StudioEditorControls
+        editorTool={editorTool}
+        cleanupWidth={cleanupWidth}
+        markWidth={markWidth}
+        fontSize={fontSize}
+        annotationColor={annotationColor}
+        onChangeCleanupWidth={setCleanupWidth}
+        onChangeMarkWidth={setMarkWidth}
+        onChangeFontSize={setFontSize}
+        onChangeAnnotationColor={setAnnotationColor}
+      />
 
       {selectedText && textEditorPosition && (
-        <div
-          className="absolute z-40 -translate-x-1/2 -translate-y-full pb-3"
-          style={{ left: textEditorPosition.x, top: textEditorPosition.y }}
-        >
-          <input
-            autoFocus
-            value={selectedText.text}
-            placeholder="দাগ নম্বর / লেখা"
-            onChange={(event) =>
-              updateEditorText(selectedText.id, event.target.value)
-            }
-            onBlur={() => {
-              if (!selectedText.text.trim()) deleteEditorText(selectedText.id);
-              setEditingTextId(null);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === 'Escape') {
-                event.currentTarget.blur();
-              }
-            }}
-            onPointerDown={(event) => event.stopPropagation()}
-            className={cn(
-              'h-9 w-44 rounded-lg border bg-background/95 px-3 text-center text-sm font-semibold shadow-xl outline-none',
-              'focus:ring-2 focus:ring-primary/40',
-            )}
-            style={{
-              color: selectedText.color,
-              borderColor: selectedText.color,
-            }}
-          />
-        </div>
+        <StudioEditorTextInput
+          selectedText={selectedText}
+          x={textEditorPosition.x}
+          y={textEditorPosition.y}
+          onChange={(id, text) => updateEditorText(id, text)}
+          onBlur={(id) => {
+            const text = editorTexts.find((item) => item.id === id);
+            if (text && !text.text.trim()) deleteEditorText(id);
+            setEditingTextId(null);
+          }}
+        />
       )}
 
       {!editorImage && (
