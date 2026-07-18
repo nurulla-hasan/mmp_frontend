@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Download, FileText, ImageDown, Loader2 } from 'lucide-react';
 
 import { centroid, useTracerStore } from '@/features/tracer/store/useTracerStore';
@@ -15,6 +15,30 @@ import { formatArea, formatDistance, getPolygonBounds, pointDistance, polygonPix
 
 type ExportFormat = 'png' | 'pdf';
 
+const EXPORT_WIDTH = 1120;
+const EXPORT_HEIGHT = 792;
+
+const escapeXml = (value: string | number) => String(value)
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;')
+  .replaceAll("'", '&apos;');
+
+const loadSvgImage = (svg: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+  const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+  const image = new window.Image();
+  image.onload = () => {
+    URL.revokeObjectURL(url);
+    resolve(image);
+  };
+  image.onerror = () => {
+    URL.revokeObjectURL(url);
+    reject(new Error('Export sheet render করা যায়নি'));
+  };
+  image.src = url;
+});
+
 const sheetModes: Array<{ id: StudioSheetMode; label: string }> = [
   { id: 'all', label: 'C.S + B.S' },
   { id: 'cs', label: 'শুধু C.S' },
@@ -22,7 +46,6 @@ const sheetModes: Array<{ id: StudioSheetMode; label: string }> = [
 ];
 
 export default function StudioSheetLayout() {
-  const sheetRef = useRef<HTMLDivElement>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
   const backgroundImage = useTracerStore((state) => state.backgroundImage);
@@ -36,9 +59,17 @@ export default function StudioSheetLayout() {
     updateSheetDetails,
   } = useMouzaMapStudioStore();
 
-  const targetLayers = useMemo(() => layers.filter((layer) =>
-    layer.visible && (sheetMode === 'all' || layer.id === sheetMode),
-  ), [layers, sheetMode]);
+  const targetLayers = useMemo(() => {
+    const visibleLayers = layers.filter((layer) =>
+      layer.visible && (sheetMode === 'all' || layer.id === sheetMode),
+    );
+    if (sheetMode !== 'all') return visibleLayers;
+
+    // Draw C.S last so its thicker red line remains visible above B.S.
+    return [...visibleLayers].sort(
+      (first, second) => Number(first.id === 'cs') - Number(second.id === 'cs'),
+    );
+  }, [layers, sheetMode]);
 
   const polygons = useMemo(() => targetLayers.flatMap((layer) => layer.polygons), [targetLayers]);
 
@@ -104,20 +135,74 @@ export default function StudioSheetLayout() {
   };
 
   const exportSheet = async (format: ExportFormat) => {
-    if (!sheetRef.current || polygons.length === 0) {
+    if (polygons.length === 0) {
       ErrorToast('Sheet export করার আগে plot trace করুন');
       return;
     }
 
     setExporting(format);
     try {
-      const { default: html2canvas } = await import('html2canvas');
-      const canvas = await html2canvas(sheetRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
+      const layerMarkup = targetLayers.flatMap((layer) => layer.polygons.map((polygon) => {
+        const center = polygon.labelX != null && polygon.labelY != null
+          ? { x: polygon.labelX, y: polygon.labelY }
+          : centroid(polygon.points);
+        const label = polygon.label
+          ? `<text x="${center.x}" y="${center.y}" fill="${escapeXml(layer.color)}" font-size="${mapFontSize}" font-weight="700" text-anchor="middle" dominant-baseline="middle">${escapeXml(polygon.label)}</text>`
+          : '';
+        return `<g><polygon points="${polygon.points.map((point) => `${point.x},${point.y}`).join(' ')}" fill="none" stroke="${escapeXml(layer.color)}" stroke-width="${layer.lineWidth}" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>${label}</g>`;
+      })).join('');
+
+      const details: Array<[string, string]> = [
+        ['LAND OWNER', sheetDetails.ownerName],
+        ['NAME OF MOUZA', sheetDetails.mouzaName],
+        ['SHEET NO', sheetDetails.sheetNo],
+        ['KHATIAN NO', sheetDetails.khatianNo],
+        ['SURVEYED BY', sheetDetails.surveyorName],
+        ['PREPARED BY', sheetDetails.preparedBy],
+        ['DATE', sheetDetails.date],
+      ];
+      const detailsMarkup = details.map(([label, value], index) => {
+        const y = 270 + index * 30;
+        return `<text x="858" y="${y}" font-size="11"><tspan font-weight="700">${escapeXml(label)}: </tspan>${escapeXml(value || '—')}</text><line x1="858" y1="${y + 8}" x2="1080" y2="${y + 8}" stroke="#000" stroke-width="1"/>`;
+      }).join('');
+      const subtitle = sheetMode === 'all'
+        ? 'RED LINE — C.S MAP  |  GREEN LINE — B.S MAP'
+        : sheetMode === 'cs' ? 'ORIGINAL C.S MAP' : 'ORIGINAL B.S MAP';
+      const thumbnailMarkup = thumbnailUrl
+        ? `<rect x="42" y="636" width="208" height="126" fill="#fff" stroke="#000"/><image href="${escapeXml(thumbnailUrl)}" x="46" y="640" width="200" height="118" preserveAspectRatio="xMidYMid meet"/>`
+        : '';
+      const legend = `${sheetMode === 'all' || sheetMode === 'cs' ? '<text x="760" y="48" fill="#dc2626" font-size="11" font-weight="700">● C.S</text>' : ''}${sheetMode === 'all' || sheetMode === 'bs' ? '<text x="805" y="48" fill="#16a34a" font-size="11" font-weight="700">● B.S</text>' : ''}`;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${EXPORT_WIDTH}" height="${EXPORT_HEIGHT}" viewBox="0 0 ${EXPORT_WIDTH} ${EXPORT_HEIGHT}">
+        <rect width="1120" height="792" fill="#fff"/>
+        <rect x="20" y="20" width="1080" height="752" fill="none" stroke="#10b981"/>
+        <line x1="842" y1="28" x2="842" y2="764" stroke="#000"/>
+        <g font-family="Arial, 'Noto Sans Bengali', sans-serif" fill="#000">
+          <text x="42" y="52" font-size="20" font-weight="700">${escapeXml(sheetDetails.title || 'MOUZA MAP')}</text>
+          <text x="42" y="74" font-size="11" fill="#4b5563">${escapeXml(subtitle)}</text>
+          ${legend}
+          <svg x="38" y="92" width="790" height="650" viewBox="${mapBounds.minX} ${mapBounds.minY} ${viewWidth} ${viewHeight}" preserveAspectRatio="xMidYMid meet">${layerMarkup}</svg>
+          ${thumbnailMarkup}
+          <circle cx="965" cy="125" r="45" fill="none" stroke="#d946ef" stroke-width="2"/>
+          <text x="965" y="68" fill="#dc2626" font-size="16" font-weight="700" text-anchor="middle">N</text>
+          <text x="965" y="188" fill="#2563eb" font-size="16" font-weight="700" text-anchor="middle">S</text>
+          <text x="908" y="131" fill="#c026d3" font-size="16" font-weight="700" text-anchor="middle">W</text>
+          <text x="1022" y="131" fill="#16a34a" font-size="16" font-weight="700" text-anchor="middle">E</text>
+          <text x="965" y="137" fill="#2563eb" font-size="38" text-anchor="middle">✥</text>
+          <line x1="858" y1="205" x2="1080" y2="205" stroke="#000"/>
+          ${detailsMarkup}
+          <text x="969" y="744" fill="#4b5563" font-size="9" text-anchor="middle">Generated with Mouza Map Studio</text>
+        </g>
+      </svg>`;
+
+      const image = await loadSvgImage(svg);
+      const canvas = document.createElement('canvas');
+      canvas.width = EXPORT_WIDTH * 2;
+      canvas.height = EXPORT_HEIGHT * 2;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Export canvas তৈরি করা যায়নি');
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
       if (format === 'png') {
         const blob = await new Promise<Blob>((resolve, reject) => {
@@ -127,7 +212,9 @@ export default function StudioSheetLayout() {
         const anchor = document.createElement('a');
         anchor.href = url;
         anchor.download = `mouza-map-${sheetMode}.png`;
+        document.body.appendChild(anchor);
         anchor.click();
+        anchor.remove();
         window.setTimeout(() => URL.revokeObjectURL(url), 0);
       } else {
         const { default: jsPDF } = await import('jspdf');
@@ -173,10 +260,10 @@ export default function StudioSheetLayout() {
         <div className="mt-5 space-y-3">
           {([
             ['title', 'শিটের শিরোনাম'],
+            ['ownerName', 'Land Owner / জমির মালিক'],
             ['mouzaName', 'মৌজার নাম'],
             ['sheetNo', 'শিট নম্বর'],
             ['khatianNo', 'খতিয়ান নম্বর'],
-            ['ownerName', 'জমির মালিক'],
             ['surveyorName', 'Surveyed by'],
             ['preparedBy', 'CAD/Prepared by'],
             ['date', 'তারিখ'],
@@ -218,7 +305,6 @@ export default function StudioSheetLayout() {
       <main className="min-w-0 flex-1 overflow-auto p-6">
         <div className="mx-auto w-max shadow-2xl">
           <div
-            ref={sheetRef}
             className="relative grid h-[792px] w-[1120px] grid-cols-[1fr_250px] overflow-hidden bg-white p-7 text-black"
           >
             <div className="absolute inset-5 border border-emerald-500" />
@@ -253,7 +339,7 @@ export default function StudioSheetLayout() {
                           points={polygon.points.map((point) => `${point.x},${point.y}`).join(' ')}
                           fill="none"
                           stroke={layer.color}
-                          strokeWidth={Math.max(1.5, viewWidth / 900)}
+                          strokeWidth={layer.lineWidth}
                           strokeLinejoin="round"
                           vectorEffect="non-scaling-stroke"
                         />

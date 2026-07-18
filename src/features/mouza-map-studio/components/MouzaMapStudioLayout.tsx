@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Check, Layers3, Loader2, Lock, Map, PenLine, Ruler, Sheet } from 'lucide-react';
+import { ArrowLeft, Check, Layers3, Loader2, Lock, Map, PenLine, Sheet } from 'lucide-react';
 
 import PantagraphLayout from '@/features/pantagraph/components/PantagraphLayout';
 import TracerLayout from '@/features/tracer/components/TracerLayout';
@@ -15,7 +15,6 @@ import {
   type StudioStep,
 } from '../store/useMouzaMapStudioStore';
 import { createStudioComposite } from '../utils/createStudioComposite';
-import StudioMeasurementLayout from './StudioMeasurementLayout';
 import StudioSheetLayout from './StudioSheetLayout';
 
 const steps: Array<{
@@ -26,7 +25,6 @@ const steps: Array<{
 }> = [
   { id: 'align', label: 'ম্যাপ মিলান', icon: Map, available: true },
   { id: 'trace', label: 'ট্রেস করুন', icon: PenLine, available: true },
-  { id: 'measure', label: 'পরিমাপ', icon: Ruler, available: true },
   { id: 'layout', label: 'শিট তৈরি', icon: Sheet, available: true },
 ];
 
@@ -117,7 +115,6 @@ export default function MouzaMapStudioLayout() {
     <div className="relative h-dvh w-full overflow-hidden bg-background">
       {step === 'align' && <PantagraphLayout />}
       {step === 'trace' && <TracerLayout />}
-      {step === 'measure' && <StudioMeasurementLayout />}
       {step === 'layout' && <StudioSheetLayout />}
 
       <div className="pointer-events-none fixed inset-x-0 top-3 z-[100] flex justify-center px-3">
