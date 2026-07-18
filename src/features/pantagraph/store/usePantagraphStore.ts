@@ -66,6 +66,10 @@ export interface PantagraphState {
   // Line smoothing after BG removal (0 = none, 5 = max)
   lineSmoothing: number;
 
+  // Automatic black-line detection sensitivity (0 = darkest only, 100 = faint lines)
+  formerBlackSensitivity: number;
+  currentBlackSensitivity: number;
+
   // BG removal tolerance (0-255, how wide a color range to remove)
   formerBgTolerance: number;
   currentBgTolerance: number;
@@ -116,6 +120,8 @@ export interface PantagraphActions {
   setFormerBgTolerance: (tolerance: number) => void;
   setCurrentBgTolerance: (tolerance: number) => void;
   setLineSmoothing: (smoothing: number) => void;
+  setFormerBlackSensitivity: (sensitivity: number) => void;
+  setCurrentBlackSensitivity: (sensitivity: number) => void;
   setFormerOpacity: (opacity: number) => void;
   setCurrentOpacity: (opacity: number) => void;
 
@@ -180,6 +186,9 @@ const initialState: PantagraphState = {
   lineColorizeThreshold: 200,
 
   lineSmoothing: 2,
+
+  formerBlackSensitivity: 75,
+  currentBlackSensitivity: 75,
 
   formerBgTolerance: 60,
   currentBgTolerance: 60,
@@ -308,11 +317,18 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => {
           ? state.formerBgRemoved
           : state.currentBgRemoved;
         const lineColor = target === 'former' ? '#DC2626' : '#16A34A';
+        const blackSensitivity = target === 'former'
+          ? state.formerBlackSensitivity
+          : state.currentBlackSensitivity;
 
         setProcessingState(target, true);
         try {
           const cleanMap = bgRemoved
-            ? await keepBlackOnly(original, state.lineSmoothing)
+            ? await keepBlackOnly(
+                original,
+                state.lineSmoothing,
+                blackSensitivity,
+              )
             : original;
           const finalMap = bgRemoved
             ? await applyLineToCleanMap(
@@ -492,6 +508,17 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => {
   setLineSmoothing: (lineSmoothing) => {
     set({ lineSmoothing });
     if (get().formerBgRemoved) scheduleMapProcessing('former');
+    if (get().currentBgRemoved) scheduleMapProcessing('current');
+  },
+
+  setFormerBlackSensitivity: (sensitivity) => {
+    const formerBlackSensitivity = Math.max(0, Math.min(100, sensitivity));
+    set({ formerBlackSensitivity });
+    if (get().formerBgRemoved) scheduleMapProcessing('former');
+  },
+  setCurrentBlackSensitivity: (sensitivity) => {
+    const currentBlackSensitivity = Math.max(0, Math.min(100, sensitivity));
+    set({ currentBlackSensitivity });
     if (get().currentBgRemoved) scheduleMapProcessing('current');
   },
 

@@ -86,15 +86,29 @@ function processPixelsAsync(
   });
 }
 
-const KEEP_BLACK_LUMINANCE_THRESHOLD = 205;
-const KEEP_BLACK_CHROMA_THRESHOLD = 38;
+const DEFAULT_BLACK_SENSITIVITY = 75;
+
+function getKeepBlackThresholds(sensitivity: number): {
+  luminanceThreshold: number;
+  chromaThreshold: number;
+} {
+  const normalized = Math.max(0, Math.min(100, sensitivity)) / 100;
+
+  return {
+    // Higher sensitivity keeps lighter ink from faded/old scans.
+    luminanceThreshold: Math.round(110 + normalized * 135),
+    // Aged black ink is often slightly brown, so allow more chroma as the
+    // sensitivity rises without treating every colour as black by default.
+    chromaThreshold: Math.round(18 + normalized * 82),
+  };
+}
 
 function keepBlackPixelsSync(
   data: Uint8ClampedArray,
-  luminanceThreshold = KEEP_BLACK_LUMINANCE_THRESHOLD,
-  chromaThreshold = KEEP_BLACK_CHROMA_THRESHOLD,
+  luminanceThreshold: number,
+  chromaThreshold: number,
 ): void {
-  const softStart = Math.max(0, luminanceThreshold - 100);
+  const softStart = Math.max(0, luminanceThreshold - 70);
 
   for (let i = 0; i < data.length; i += 4) {
     const red = data[i];
@@ -129,22 +143,25 @@ function keepBlackPixelsSync(
 
 function keepBlackPixelsAsync(
   data: Uint8ClampedArray,
+  sensitivity: number,
 ): Promise<Uint8ClampedArray> {
+  const { luminanceThreshold, chromaThreshold } =
+    getKeepBlackThresholds(sensitivity);
   const copy = new Uint8ClampedArray(data).buffer as ArrayBuffer;
   const task = runPixelWorkerTask({
     type: 'keepBlack',
     buffer: copy,
-    luminanceThreshold: KEEP_BLACK_LUMINANCE_THRESHOLD,
-    chromaThreshold: KEEP_BLACK_CHROMA_THRESHOLD,
+    luminanceThreshold,
+    chromaThreshold,
   });
 
   if (!task) {
-    keepBlackPixelsSync(data);
+    keepBlackPixelsSync(data, luminanceThreshold, chromaThreshold);
     return Promise.resolve(data);
   }
 
   return task.catch(() => {
-    keepBlackPixelsSync(data);
+    keepBlackPixelsSync(data, luminanceThreshold, chromaThreshold);
     return data;
   });
 }
@@ -157,6 +174,7 @@ function keepBlackPixelsAsync(
 export function keepBlackOnly(
   img: HTMLImageElement,
   lineSmoothing = 2,
+  sensitivity = DEFAULT_BLACK_SENSITIVITY,
   onProgress?: (pct: number) => void,
 ): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -173,7 +191,7 @@ export function keepBlackOnly(
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     onProgress?.(0.1);
 
-    keepBlackPixelsAsync(imageData.data)
+    keepBlackPixelsAsync(imageData.data, sensitivity)
       .then((processedData) => {
         onProgress?.(0.8);
         context.putImageData(

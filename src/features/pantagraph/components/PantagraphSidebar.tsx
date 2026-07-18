@@ -186,12 +186,16 @@ const FormerBgSection = memo(function FormerBgSection() {
   const {
     formerBgRemoved,
     isRemovingFormerBg,
+    formerBlackSensitivity,
     toggleFormerBgRemoval,
+    setFormerBlackSensitivity,
   } = usePantagraphStore(
     useShallow((state) => ({
       formerBgRemoved: state.formerBgRemoved,
       isRemovingFormerBg: state.isRemovingFormerBg,
+      formerBlackSensitivity: state.formerBlackSensitivity,
       toggleFormerBgRemoval: state.toggleFormerBgRemoval,
+      setFormerBlackSensitivity: state.setFormerBlackSensitivity,
     })),
   );
 
@@ -227,10 +231,32 @@ const FormerBgSection = memo(function FormerBgSection() {
       </div>
 
       {formerBgRemoved && (
-        <p className="text-[10px] leading-4 text-muted-foreground">
-          কালো/ধূসর line স্বয়ংক্রিয়ভাবে রেখে অন্য সব রং সরানো হয়েছে।
-          C.S line লাল দেখাবে।
-        </p>
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center justify-between">
+            <Label className="text-[10px] text-muted-foreground">
+              লাইন ধরার মাত্রা
+            </Label>
+            <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+              {formerBlackSensitivity}%
+            </span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={formerBlackSensitivity}
+            onChange={(event) =>
+              setFormerBlackSensitivity(Number(event.target.value))
+            }
+            aria-label="সাবেক ম্যাপের লাইন ধরার মাত্রা"
+            className={sliderCls('destructive')}
+          />
+          <p className="text-[10px] leading-4 text-muted-foreground">
+            কমালে শুধু গাঢ় কালো, বাড়ালে ফিকে ও পুরোনো line-ও থাকবে।
+            C.S line লাল দেখাবে।
+          </p>
+        </div>
       )}
     </div>
   );
@@ -241,12 +267,16 @@ const CurrentBgSection = memo(function CurrentBgSection() {
   const {
     currentBgRemoved,
     isRemovingCurrentBg,
+    currentBlackSensitivity,
     toggleCurrentBgRemoval,
+    setCurrentBlackSensitivity,
   } = usePantagraphStore(
     useShallow((state) => ({
       currentBgRemoved: state.currentBgRemoved,
       isRemovingCurrentBg: state.isRemovingCurrentBg,
+      currentBlackSensitivity: state.currentBlackSensitivity,
       toggleCurrentBgRemoval: state.toggleCurrentBgRemoval,
+      setCurrentBlackSensitivity: state.setCurrentBlackSensitivity,
     })),
   );
 
@@ -282,10 +312,32 @@ const CurrentBgSection = memo(function CurrentBgSection() {
       </div>
 
       {currentBgRemoved && (
-        <p className="text-[10px] leading-4 text-muted-foreground">
-          কালো/ধূসর line স্বয়ংক্রিয়ভাবে রেখে অন্য সব রং সরানো হয়েছে।
-          B.S line সবুজ দেখাবে।
-        </p>
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center justify-between">
+            <Label className="text-[10px] text-muted-foreground">
+              লাইন ধরার মাত্রা
+            </Label>
+            <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+              {currentBlackSensitivity}%
+            </span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={currentBlackSensitivity}
+            onChange={(event) =>
+              setCurrentBlackSensitivity(Number(event.target.value))
+            }
+            aria-label="হাল ম্যাপের লাইন ধরার মাত্রা"
+            className={sliderCls('primary')}
+          />
+          <p className="text-[10px] leading-4 text-muted-foreground">
+            কমালে শুধু গাঢ় কালো, বাড়ালে ফিকে ও পুরোনো line-ও থাকবে।
+            B.S line সবুজ দেখাবে।
+          </p>
+        </div>
       )}
     </div>
   );
@@ -654,4 +706,3 @@ export const PantagraphSidebar = memo(function PantagraphSidebar({ isOpen = fals
     </>
   );
 });
-

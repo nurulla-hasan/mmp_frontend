@@ -57,7 +57,7 @@ ctx.onmessage = (e: MessageEvent) => {
   } else if (msg.type === 'keepBlack') {
     const data = new Uint8ClampedArray(msg.buffer);
     const { luminanceThreshold, chromaThreshold } = msg;
-    const softStart = Math.max(0, luminanceThreshold - 100);
+    const softStart = Math.max(0, luminanceThreshold - 70);
 
     for (let i = 0; i < data.length; i += 4) {
       const red = data[i];
