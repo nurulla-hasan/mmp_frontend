@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -84,25 +85,6 @@ export default function StudioEditorLayout({
     clearEditor: state.clearEditor,
   })));
 
-  // Reset stage position/scale when the editor image changes (render-time update)
-  const [prevImageSrc, setPrevImageSrc] = useState<string | null>(null);
-
-  if (editorImage && editorImage.src !== prevImageSrc && stageSize.width > 0 && stageSize.height > 0) {
-    setPrevImageSrc(editorImage.src);
-    const imageWidth = editorImage.naturalWidth || editorImage.width;
-    const imageHeight = editorImage.naturalHeight || editorImage.height;
-    const scale = Math.min(
-      (stageSize.width - 80) / imageWidth,
-      (stageSize.height - 96) / imageHeight,
-      1,
-    );
-    setStageScale(scale);
-    setStagePosition({
-      x: (stageSize.width - imageWidth * scale) / 2,
-      y: (stageSize.height - imageHeight * scale) / 2,
-    });
-  }
-
   useEffect(() => {
     const element = containerRef.current;
     if (!element) return;
@@ -118,6 +100,24 @@ export default function StudioEditorLayout({
     setStageSize({ width: element.clientWidth, height: element.clientHeight });
     return () => observer.disconnect();
   }, []);
+
+  useLayoutEffect(() => {
+    if (!editorImage || stageSize.width === 0 || stageSize.height === 0) return;
+
+    const imageWidth = editorImage.naturalWidth || editorImage.width;
+    const imageHeight = editorImage.naturalHeight || editorImage.height;
+    const scale = Math.min(
+      (stageSize.width - 80) / imageWidth,
+      (stageSize.height - 96) / imageHeight,
+      1,
+    );
+
+    setStageScale(scale);
+    setStagePosition({
+      x: (stageSize.width - imageWidth * scale) / 2,
+      y: (stageSize.height - imageHeight * scale) / 2,
+    });
+  }, [editorImage, stageSize.width, stageSize.height]);
 
   const getImagePoint = useCallback(() => {
     const pointer = stageRef.current?.getPointerPosition();
