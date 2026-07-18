@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { memo, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
@@ -10,10 +10,11 @@ import { getClosestPointOnSegment } from '@/features/land-measurement/utils/geom
 import { useTracerTouch } from '../hooks/useTracerTouch';
 import { CompletedPolygons } from './CompletedPolygons';
 import { PendingPolygon } from './PendingPolygon';
-import { getTracerSnappedPoint } from '../utils/snapping';
+import { buildTracerSnapIndex, getTracerSnappedPoint } from '../utils/snapping';
 import { routeAlongPolygon } from '../utils/routing';
+import { configureInteractiveKonva } from '@/lib/konvaPerformance';
 
-
+configureInteractiveKonva();
 
 const TracerCanvas = memo(function TracerCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -29,6 +30,7 @@ const TracerCanvas = memo(function TracerCanvas() {
 
   // ── Touch controls ─────────────────────────────────────────────────────────
   const { onTouchStart, onTouchMove, onTouchEnd, hasDraggedRef, blockTapRef } = useTracerTouch(
+    stageRef,
     stageScale,
     setStageScale,
     stagePos,
@@ -40,7 +42,9 @@ const TracerCanvas = memo(function TracerCanvas() {
   const panStart = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const spaceDown = useRef(false);
   const clickTimeRef = useRef(0); // timestamp of last click (for double-click detection)
-  const rafRef = useRef<number>(0);
+  const panRafRef = useRef<number>(0);
+  const hoverRafRef = useRef<number>(0);
+  const pendingPanRef = useRef<{ x: number; y: number } | null>(null);
 
   // ── Snap-to-first-point ────────────────────────────────────────────────────
   const [snapActive, setSnapActive] = useState(false);
@@ -49,6 +53,7 @@ const TracerCanvas = memo(function TracerCanvas() {
 
   // ── Local state for drawing ────────────────────────────────────────────────
   const [hoverPoint, setHoverPoint] = useState<{ x: number; y: number } | null>(null);
+  const [editingLabel, setEditingLabel] = useState<{ layerId: string; polygonId: string } | null>(null);
 
   // ── Store ───────────────────────────────────────────────────────────────────
   const {
@@ -82,8 +87,32 @@ const TracerCanvas = memo(function TracerCanvas() {
 
   const activeLayer = layers.find(l => l.id === activeLayerId);
 
+  // Konva draws later nodes on top. Keep the store order unchanged, but render
+  // the active layer last so the layer selected in the sidebar stays visible.
+  const renderLayers = useMemo(() => {
+    const activeIndex = layers.findIndex(layer => layer.id === activeLayerId);
+    if (activeIndex < 0 || activeIndex === layers.length - 1) return layers;
+
+    return [
+      ...layers.slice(0, activeIndex),
+      ...layers.slice(activeIndex + 1),
+      layers[activeIndex],
+    ];
+  }, [layers, activeLayerId]);
+
   // Memoize all polygon points for fast snapping during mouse move
   const allPolyPoints = useMemo(() => layers.flatMap(l => l.polygons.map(p => p.points)), [layers]);
+  const snapIndex = useMemo(() => buildTracerSnapIndex(allPolyPoints), [allPolyPoints]);
+
+  const handleSelectPolygon = useCallback((layerId: string | null, polygonId: string | null) => {
+    setEditingLabel(null);
+    selectPolygon(layerId, polygonId);
+  }, [selectPolygon]);
+
+  const handleEditPolygonLabel = useCallback((layerId: string, polygonId: string) => {
+    selectPolygon(layerId, polygonId);
+    setEditingLabel({ layerId, polygonId });
+  }, [selectPolygon]);
 
   // ── Resize observer ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -96,6 +125,11 @@ const TracerCanvas = memo(function TracerCanvas() {
     ro.observe(el);
     setStageSize({ width: el.clientWidth, height: el.clientHeight });
     return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => () => {
+    if (panRafRef.current) cancelAnimationFrame(panRafRef.current);
+    if (hoverRafRef.current) cancelAnimationFrame(hoverRafRef.current);
   }, []);
 
   // ── Auto-fit background image when loaded ───────────────────────────────────
@@ -262,7 +296,7 @@ const TracerCanvas = memo(function TracerCanvas() {
       }
     }
 
-    const snapped = getTracerSnappedPoint(finalPos, allPolyPoints, snapThreshold, 15);
+    const snapped = getTracerSnappedPoint(finalPos, snapIndex, snapThreshold);
     const isPointSnapped = snapped.point.x !== finalPos.x || snapped.point.y !== finalPos.y;
 
     return {
@@ -273,7 +307,7 @@ const TracerCanvas = memo(function TracerCanvas() {
       isSnapFirst: false,
       isEdgeSnap: isPointSnapped || isAngleSnapped
     };
-  }, [candidateRays, allPolyPoints, pendingPoints, stageScale]);
+  }, [candidateRays, pendingPoints, snapIndex, stageScale]);
 
   const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
     if (isPanningRef.current && panStart.current) {
@@ -282,20 +316,22 @@ const TracerCanvas = memo(function TracerCanvas() {
       if (Math.hypot(dx, dy) > 5) {
         hasDraggedRef.current = true;
       }
-      if (!rafRef.current) {
-        rafRef.current = requestAnimationFrame(() => {
-          rafRef.current = 0;
-          setStagePos({
-            x: panStart.current!.px + dx,
-            y: panStart.current!.py + dy,
-          });
+      pendingPanRef.current = {
+        x: panStart.current.px + dx,
+        y: panStart.current.py + dy,
+      };
+      if (!panRafRef.current) {
+        panRafRef.current = requestAnimationFrame(() => {
+          panRafRef.current = 0;
+          const nextPosition = pendingPanRef.current;
+          if (nextPosition) setStagePos(nextPosition);
         });
       }
     }
-    if (mode === 'polygon' && pendingPoints.length > 0) {
-      if (!rafRef.current) {
-        rafRef.current = requestAnimationFrame(() => {
-          rafRef.current = 0;
+    if (!isPanningRef.current && mode === 'polygon' && pendingPoints.length > 0) {
+      if (!hoverRafRef.current) {
+        hoverRafRef.current = requestAnimationFrame(() => {
+          hoverRafRef.current = 0;
           const pos = getImagePos();
           if (pos) {
             const resolved = resolveSnap(pos);
@@ -306,13 +342,18 @@ const TracerCanvas = memo(function TracerCanvas() {
         });
       }
     } else if (hoverPoint) {
+      if (hoverRafRef.current) {
+        cancelAnimationFrame(hoverRafRef.current);
+        hoverRafRef.current = 0;
+      }
       setHoverPoint(null);
     }
-  }, [mode, pendingPoints.length, getImagePos, hoverPoint, resolveSnap, hasDraggedRef, blockTapRef]);
+  }, [mode, pendingPoints.length, getImagePos, hoverPoint, resolveSnap, hasDraggedRef]);
 
   const handleMouseUp = useCallback(() => {
     isPanningRef.current = false;
     panStart.current = null;
+    pendingPanRef.current = null;
   }, []);
 
   const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
@@ -372,7 +413,7 @@ const TracerCanvas = memo(function TracerCanvas() {
     }
 
     addPendingPoints(newPoints);
-  }, [mode, getImagePos, addPendingPoints, commitPolygon, pendingPoints, allPolyPoints, resolveSnap, hasDraggedRef]);
+  }, [mode, getImagePos, addPendingPoints, commitPolygon, pendingPoints, allPolyPoints, resolveSnap, hasDraggedRef, blockTapRef]);
 
   // Double-click is still handled here for browsers that fire native dblclick
   const handleDblClick = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
@@ -392,7 +433,10 @@ const TracerCanvas = memo(function TracerCanvas() {
 
   const selectedLayer = layers.find(l => l.id === selectedLayerId);
   const selectedPolygon = selectedLayer?.polygons.find(p => p.id === selectedPolygonId);
-  const showLabelInput = mode === 'select' && selectedPolygon;
+  const showLabelInput = mode === 'select'
+    && selectedPolygon
+    && editingLabel?.layerId === selectedLayerId
+    && editingLabel.polygonId === selectedPolygonId;
   let labelScreenPos = { x: 0, y: 0 };
   if (showLabelInput && selectedPolygon) {
     const cx = selectedPolygon.labelX ?? centroid(selectedPolygon.points).x;
@@ -402,6 +446,9 @@ const TracerCanvas = memo(function TracerCanvas() {
       y: cy * stageScale + stagePos.y,
     };
   }
+  const labelEditorTop = labelScreenPos.y > 52
+    ? labelScreenPos.y - 40
+    : labelScreenPos.y + 40;
 
   return (
     <div
@@ -445,13 +492,14 @@ const TracerCanvas = memo(function TracerCanvas() {
 
             {/* ── Completed polygon layers ──────────────────────────── */}
             <CompletedPolygons
-              layers={layers}
+              layers={renderLayers}
               selectedPolygonId={selectedPolygonId}
               selectedLayerId={selectedLayerId}
               mode={mode}
               stageScale={stageScale}
               imageWidth={backgroundImage?.naturalWidth}
-              selectPolygon={selectPolygon}
+              selectPolygon={handleSelectPolygon}
+              editPolygonLabel={handleEditPolygonLabel}
               setPolygonLabelPosition={setPolygonLabelPosition}
             />
 
@@ -477,7 +525,7 @@ const TracerCanvas = memo(function TracerCanvas() {
           className="absolute z-50 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-auto"
           style={{
             left: labelScreenPos.x,
-            top: labelScreenPos.y,
+            top: labelEditorTop,
           }}
         >
           <input
@@ -485,6 +533,7 @@ const TracerCanvas = memo(function TracerCanvas() {
             type="text"
             value={selectedPolygon.label}
             onChange={(e) => selectedLayer && setPolygonLabel(selectedLayer.id, selectedPolygon.id, e.target.value)}
+            onBlur={() => setEditingLabel(null)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === 'Escape') {
                 e.currentTarget.blur();
@@ -539,4 +588,3 @@ const TracerCanvas = memo(function TracerCanvas() {
 });
 
 export default TracerCanvas;
-

@@ -15,6 +15,7 @@ import { useTracerStore } from '../store/useTracerStore';
 import { exportAsPDF, exportAsPNG } from '../utils/exportTracer';
 import { extractImageFromPDF } from '@/features/land-measurement/utils/pdfHelper';
 import { useMediaQuery } from '@/hooks/useUtilityHooks';
+import { resizeImageForCanvas } from '@/lib/canvasImage';
 
 // ─── Color presets ────────────────────────────────────────────────────────────
 const COLOR_PRESETS = [
@@ -43,7 +44,7 @@ const BackgroundSection = memo(function BackgroundSection() {
     if (file.type === 'application/pdf') {
       try {
         const img = await extractImageFromPDF(file);
-        setBackground(img);
+        setBackground(await resizeImageForCanvas(img));
       } catch (err) {
         console.error('PDF load error:', err);
       } finally {
@@ -54,7 +55,16 @@ const BackgroundSection = memo(function BackgroundSection() {
 
     const url = URL.createObjectURL(file);
     const img = new window.Image();
-    img.onload = () => { URL.revokeObjectURL(url); setBackground(img); setImageLoading(false); };
+    img.onload = async () => {
+      try {
+        setBackground(await resizeImageForCanvas(img));
+      } catch (error: unknown) {
+        console.error('Image load error:', error instanceof Error ? error.message : 'Unknown error');
+      } finally {
+        URL.revokeObjectURL(url);
+        setImageLoading(false);
+      }
+    };
     img.onerror = () => { URL.revokeObjectURL(url); setImageLoading(false); };
     img.src = url;
   }, [setBackground, setImageLoading]);
@@ -403,4 +413,3 @@ export const TracerSidebar = memo(function TracerSidebar({
     </>
   );
 });
-

@@ -41,6 +41,28 @@ export function getTilePosition(
 
 const tileUrlCache = new Map<string, string>();
 const imageElementCache = new Map<string, HTMLImageElement>();
+const pendingImageUrls = new Set<string>();
+const MAX_TILE_CACHE_ENTRIES = 128;
+
+function trimTileCache(): void {
+  while (tileUrlCache.size > MAX_TILE_CACHE_ENTRIES) {
+    let removed = false;
+
+    for (const [key, url] of tileUrlCache) {
+      if (pendingImageUrls.has(url)) continue;
+
+      URL.revokeObjectURL(url);
+      tileUrlCache.delete(key);
+      imageElementCache.delete(url);
+      pendingImageUrls.delete(url);
+      removed = true;
+      break;
+    }
+
+    // All excess entries are still decoding; trim them after loading finishes.
+    if (!removed) return;
+  }
+}
 
 /**
  * Get or create an object URL for a tile. Caches URLs to avoid duplicates.
@@ -53,7 +75,12 @@ export async function getOrCreateTileUrl(
 ): Promise<string> {
   const key = tileKey(hash, level, row, col);
   const existing = tileUrlCache.get(key);
-  if (existing) return existing;
+  if (existing) {
+    // Refresh insertion order so the Map also acts as a small LRU cache.
+    tileUrlCache.delete(key);
+    tileUrlCache.set(key, existing);
+    return existing;
+  }
 
   const blob = await getTile(hash, level, row, col);
   if (!blob) throw new Error(`Tile not cached: ${key}`);
@@ -86,6 +113,7 @@ export function clearTileUrlCache(hash: string): void {
       URL.revokeObjectURL(url);
       tileUrlCache.delete(key);
       imageElementCache.delete(url);
+      pendingImageUrls.delete(url);
     }
   }
 }
@@ -97,6 +125,7 @@ export function clearAllTileCaches(): void {
   }
   tileUrlCache.clear();
   imageElementCache.clear();
+  pendingImageUrls.clear();
 }
 
 /**
@@ -107,13 +136,22 @@ export async function loadTileImage(url: string): Promise<HTMLImageElement> {
   const cached = imageElementCache.get(url);
   if (cached) return cached;
 
+  pendingImageUrls.add(url);
+
   return new Promise((resolve, reject) => {
     const img = new window.Image();
     img.onload = () => {
-      imageElementCache.set(url, img);
+      pendingImageUrls.delete(url);
+      const isStillCached = Array.from(tileUrlCache.values()).includes(url);
+      if (isStillCached) imageElementCache.set(url, img);
+      trimTileCache();
       resolve(img);
     };
-    img.onerror = () => reject(new Error(`Failed to load tile image: ${url}`));
+    img.onerror = () => {
+      pendingImageUrls.delete(url);
+      trimTileCache();
+      reject(new Error(`Failed to load tile image: ${url}`));
+    };
     img.src = url;
   });
 }

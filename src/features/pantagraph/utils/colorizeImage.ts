@@ -1,94 +1,94 @@
-import { getPixelWorker } from './pixelWorker';
+import { blobToImage } from '@/lib/canvasImage';
+import { runPixelTask } from './pixelWorker';
 
-/**
- * Canvas-based utility that replaces dark pixels (map lines) with a chosen colour.
- *
- * Uses a shared Web Worker for non-blocking pixel processing.
- * Falls back to synchronous processing if the worker is unavailable.
- *
- * @param img       Source HTMLImageElement (e.g. a bg-removed map)
- * @param color     Target hex colour (e.g. '#DC2626'). When '#000000', returns the original.
- * @param threshold Luminance threshold 0-255 (default 200). Higher = more pixels changed.
- */
-export function colorizeImage(
+function colorizeSync(
+  data: Uint8ClampedArray,
+  targetR: number,
+  targetG: number,
+  targetB: number,
+  threshold: number,
+): void {
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] === 0) continue;
+    const luminance = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    if (luminance < threshold) {
+      data[i] = targetR;
+      data[i + 1] = targetG;
+      data[i + 2] = targetB;
+    }
+  }
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error('Failed to encode colorized image'));
+    }, 'image/png');
+  });
+}
+
+function createImageData(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+): ImageData {
+  const view = new Uint8ClampedArray(
+    data.buffer as ArrayBuffer,
+    data.byteOffset,
+    data.length,
+  );
+  return new ImageData(view, width, height);
+}
+
+/** Replace dark map pixels with a chosen color in the shared worker. */
+export async function colorizeImage(
   img: HTMLImageElement,
   color: string,
   threshold = 200,
 ): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    // Black = original colour → return as-is
-    if (color === '#000000' || color === '#000') {
-      resolve(img);
-      return;
-    }
+  if (color === '#000000' || color === '#000') return img;
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) {
-      reject(new Error('Canvas 2D context not available'));
-      return;
-    }
+  const canvas = document.createElement('canvas');
+  const width = img.naturalWidth || img.width;
+  const height = img.naturalHeight || img.height;
+  canvas.width = width;
+  canvas.height = height;
 
-    canvas.width  = img.naturalWidth  || img.width;
-    canvas.height = img.naturalHeight || img.height;
-    ctx.drawImage(img, 0, 0);
+  try {
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) throw new Error('Canvas 2D context not available');
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    // Parse target colour
-    const hex    = color.replace(/^#/, '');
+    context.drawImage(img, 0, 0, width, height);
+    const imageData = context.getImageData(0, 0, width, height);
+    const hex = color.replace(/^#/, '');
     const targetR = parseInt(hex.slice(0, 2), 16);
     const targetG = parseInt(hex.slice(2, 4), 16);
     const targetB = parseInt(hex.slice(4, 6), 16);
 
-    const worker = getPixelWorker();
+    const task = runPixelTask(imageData.data, {
+      type: 'colorize',
+      targetR,
+      targetG,
+      targetB,
+      threshold,
+    });
 
-    const finish = (processedData: Uint8ClampedArray) => {
-      const newImageData = new ImageData(
-        new Uint8ClampedArray(processedData.buffer as ArrayBuffer, processedData.byteOffset, processedData.length),
-        canvas.width,
-        canvas.height,
-      );
-      ctx.putImageData(newImageData, 0, 0);
-
-      canvas.toBlob((blob) => {
-        if (!blob) { reject(new Error('Failed to create blob')); return; }
-        const url = URL.createObjectURL(blob);
-        const outImg = new window.Image();
-        outImg.onload = () => { URL.revokeObjectURL(url); resolve(outImg); };
-        outImg.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image decode failed')); };
-        outImg.src = url;
-      }, 'image/png');
-    };
-
-    if (!worker) {
-      // Sync fallback — blocks main thread
-      const data = imageData.data;
-      for (let i = 0; i < data.length; i += 4) {
-        if (data[i + 3] === 0) continue; // skip fully transparent only
-        const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-        if (lum < threshold) {
-          data[i]     = targetR;
-          data[i + 1] = targetG;
-          data[i + 2] = targetB;
-        }
+    let processedData: Uint8ClampedArray = imageData.data;
+    if (task) {
+      try {
+        processedData = await task;
+      } catch {
+        colorizeSync(processedData, targetR, targetG, targetB, threshold);
       }
-      finish(data);
-      return;
+    } else {
+      colorizeSync(processedData, targetR, targetG, targetB, threshold);
     }
 
-    // Transfer a copy to the worker (zero-copy transfer to worker thread)
-    // Copy exact elements to avoid buffer padding issues
-    const copy = new Uint8ClampedArray(imageData.data).buffer as ArrayBuffer;
-
-    worker.addEventListener(
-      'message',
-      (e: MessageEvent<{ buffer: ArrayBuffer }>) => {
-        finish(new Uint8ClampedArray(e.data.buffer));
-      },
-      { once: true },
-    );
-
-    worker.postMessage({ type: 'colorize', buffer: copy, targetR, targetG, targetB, threshold }, [copy]);
-  });
+    context.putImageData(createImageData(processedData, width, height), 0, 0);
+    return await blobToImage(await canvasToBlob(canvas));
+  } finally {
+    canvas.width = 1;
+    canvas.height = 1;
+  }
 }

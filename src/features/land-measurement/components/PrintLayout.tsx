@@ -1,10 +1,18 @@
 import React from 'react';
+import { useShallow } from 'zustand/shallow';
 import { AREA_LABEL_FONT_SCALE, AREA_LABEL_PADDING_FACTOR } from '@/features/land-measurement/utils/canvas';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import { PrintMapSVG } from './print/PrintMapSVG';
 
 export const PrintLayout = React.forwardRef<HTMLDivElement, unknown>((_, ref) => {
-  const { results, plots, isShowDiagonals, reportInfo } = useMapStore();
+  const { results, plots, isShowDiagonals, reportInfo } = useMapStore(
+    useShallow((s) => ({
+      results: s.results,
+      plots: s.plots,
+      isShowDiagonals: s.isShowDiagonals,
+      reportInfo: s.reportInfo,
+    })),
+  );
 
   if (plots.length === 0) return null;
 

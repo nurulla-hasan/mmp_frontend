@@ -1,11 +1,28 @@
 import React, { useState, useCallback } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import { SCALE_PRESETS, validateCalibration } from '@/features/land-measurement/utils/mouzaScale';
 
 export const DistanceModal = () => {
-  const { isModalOpen, setCalibrationLine, setIsDrawing, setIsModalOpen, _handleModalSubmit, calibrationLine } = useMapStore();
+  const {
+    isModalOpen,
+    setCalibrationLine,
+    setIsDrawing,
+    setIsModalOpen,
+    _handleModalSubmit,
+    calibrationLine,
+  } = useMapStore(
+    useShallow((s) => ({
+      isModalOpen: s.isModalOpen,
+      setCalibrationLine: s.setCalibrationLine,
+      setIsDrawing: s.setIsDrawing,
+      setIsModalOpen: s.setIsModalOpen,
+      _handleModalSubmit: s._handleModalSubmit,
+      calibrationLine: s.calibrationLine,
+    })),
+  );
   const [distance, setDistance] = useState('');
   const [error, setError] = useState('');
 

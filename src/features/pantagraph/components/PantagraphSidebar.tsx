@@ -1,10 +1,11 @@
 ﻿'use client';
 
-import { memo, useCallback, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { PantagraphCropDialog } from './PantagraphCropDialog';
 import { useShallow } from 'zustand/shallow';
 import { usePantagraphStore } from '../store/usePantagraphStore';
 import { extractImageFromPDF } from '@/features/land-measurement/utils/pdfHelper';
+import { imageToObjectUrl } from '@/lib/canvasImage';
 import { useMediaQuery } from '@/hooks/useUtilityHooks';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -43,6 +44,7 @@ const MapUploadSection = memo(function MapUploadSection() {
   // Crop dialog state
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [cropTarget, setCropTarget] = useState<'former' | 'current' | null>(null);
+  const cropSrcRef = useRef<string | null>(null);
 
   const { formerMap, currentMap, setFormerMap, setCurrentMap, imageLoading, setImageLoading } = usePantagraphStore(
     useShallow((s) => ({
@@ -55,7 +57,18 @@ const MapUploadSection = memo(function MapUploadSection() {
     })),
   );
 
-  // ── Load file → data URL → open crop dialog ─────────────────────────────────
+  const openCropDialog = useCallback((src: string, target: 'former' | 'current') => {
+    if (cropSrcRef.current) URL.revokeObjectURL(cropSrcRef.current);
+    cropSrcRef.current = src;
+    setCropSrc(src);
+    setCropTarget(target);
+  }, []);
+
+  useEffect(() => () => {
+    if (cropSrcRef.current) URL.revokeObjectURL(cropSrcRef.current);
+  }, []);
+
+  // ── Load file → object URL → open crop dialog ────────────────────────────────
   const loadFileForCrop = useCallback(async (
     file: File,
     target: 'former' | 'current',
@@ -68,15 +81,7 @@ const MapUploadSection = memo(function MapUploadSection() {
           setImageLoading(false);
           return;
         }
-        // Convert the HTMLImageElement src to a stable data URL for the cropper
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d')!;
-        ctx.drawImage(img, 0, 0);
-        const dataUrl = canvas.toDataURL('image/png');
-        setCropSrc(dataUrl);
-        setCropTarget(target);
+        openCropDialog(await imageToObjectUrl(img), target);
       } catch (error) {
         console.error('PDF load error:', error);
       } finally {
@@ -84,18 +89,9 @@ const MapUploadSection = memo(function MapUploadSection() {
       }
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      if (dataUrl) {
-        setCropSrc(dataUrl);
-        setCropTarget(target);
-      }
-      setImageLoading(false);
-    };
-    reader.onerror = () => setImageLoading(false);
-    reader.readAsDataURL(file);
-  }, [setImageLoading]);
+    openCropDialog(URL.createObjectURL(file), target);
+    setImageLoading(false);
+  }, [openCropDialog, setImageLoading]);
 
   const handleFormerUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -118,6 +114,8 @@ const MapUploadSection = memo(function MapUploadSection() {
   }, [cropTarget, setFormerMap, setCurrentMap]);
 
   const handleCropClose = useCallback(() => {
+    if (cropSrcRef.current) URL.revokeObjectURL(cropSrcRef.current);
+    cropSrcRef.current = null;
     setCropSrc(null);
     setCropTarget(null);
   }, []);
@@ -735,4 +733,3 @@ export const PantagraphSidebar = memo(function PantagraphSidebar({ isOpen = fals
     </>
   );
 });
-

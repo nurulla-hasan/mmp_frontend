@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from 'react';
+﻿import React, { useDeferredValue, useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Group, Line, Circle, Label as KonvaLabel, Tag, Text, Shape } from 'react-konva';
 import type Konva from 'konva';
@@ -27,12 +27,11 @@ const getCornerSnapPoint = (point: Point, polygon: Point[], thresholdPx: number)
 
 
 export const StageManualCut = React.memo(() => {
-  const { mode, manualDividePlotId, manualCutLine, setManualCutLine, plots, scale, stageScale } = useMapStore(
+  const { mode, manualDividePlotId, manualCutLine, plots, scale, stageScale } = useMapStore(
     useShallow(s => ({
       mode: s.mode,
       manualDividePlotId: s.manualDividePlotId,
       manualCutLine: s.manualCutLine,
-      setManualCutLine: s.setManualCutLine,
       plots: s.plots,
       scale: s.scale,
       stageScale: s.stageScale,
@@ -40,12 +39,21 @@ export const StageManualCut = React.memo(() => {
   );
 
   const plot = plots.find(p => p.id === manualDividePlotId);
+  const deferredManualCutLine = useDeferredValue(manualCutLine);
+  const dragRafRef = useRef(0);
+  const pendingDragRef = useRef<{ index: number; point: Point } | null>(null);
 
-  // Calculate live splits unconditionally to obey rules of hooks
+  useEffect(() => {
+    return () => {
+      if (dragRafRef.current) cancelAnimationFrame(dragRafRef.current);
+    };
+  }, []);
+
+  // Defer the expensive split preview so rapid anchor movement stays responsive.
   const splits = useMemo(() => {
-    if (!plot || !manualCutLine || manualCutLine.length < 2 || !scale) return null;
+    if (!plot || !deferredManualCutLine || deferredManualCutLine.length < 2 || !scale) return null;
     
-    const polySplits = splitPolygonByPolyline(plot.points, manualCutLine);
+    const polySplits = splitPolygonByPolyline(plot.points, deferredManualCutLine);
     if (!polySplits) return null;
     
     const { poly1: splitA, poly2: splitB } = polySplits;
@@ -58,7 +66,7 @@ export const StageManualCut = React.memo(() => {
     if (!resA || !resB) return null;
 
     return { splitA, splitB, resA, resB, centerA: getVisualCenter(splitA), centerB: getVisualCenter(splitB) };
-  }, [plot, manualCutLine, scale]);
+  }, [plot, deferredManualCutLine, scale]);
 
   if (mode !== 'manual_divide_plot' || !manualDividePlotId || !manualCutLine || manualCutLine.length < 2 || !plot || !scale) return null;
   
@@ -68,29 +76,76 @@ export const StageManualCut = React.memo(() => {
   const areaRadius = (UI_CONFIG.radius.small * AREA_LABEL_RADIUS_FACTOR) / stageScale;
 
 
-  // During drag: snap to edge only (no corner pull), so preview stays smooth
+  // During drag: commit at most once per animation frame.
   const handleDragMove = (idx: number) => (e: Konva.KonvaEventObject<DragEvent>) => {
     e.cancelBubble = true;
-    const newLines = [...manualCutLine];
-    const rawPoint = { x: e.target.x(), y: e.target.y() };
-    const isBoundaryAnchor = idx === 0 || idx === manualCutLine.length - 1;
-    const snapThreshold = isBoundaryAnchor ? Number.POSITIVE_INFINITY : 14 / stageScale;
-    newLines[idx] = getSnappedPoint(rawPoint, [plot.points], snapThreshold);
-    setManualCutLine(newLines);
+    pendingDragRef.current = {
+      index: idx,
+      point: { x: e.target.x(), y: e.target.y() },
+    };
+    if (dragRafRef.current) return;
+
+    dragRafRef.current = requestAnimationFrame(() => {
+      dragRafRef.current = 0;
+      const pending = pendingDragRef.current;
+      pendingDragRef.current = null;
+      if (!pending) return;
+
+      const state = useMapStore.getState();
+      const currentLine = state.manualCutLine;
+      const currentPlot = state.plots.find(
+        (item) => item.id === state.manualDividePlotId,
+      );
+      if (!currentLine || !currentPlot) return;
+
+      const newLines = [...currentLine];
+      const isBoundaryAnchor =
+        pending.index === 0 || pending.index === currentLine.length - 1;
+      const snapThreshold = isBoundaryAnchor
+        ? Number.POSITIVE_INFINITY
+        : 14 / state.stageScale;
+      newLines[pending.index] = getSnappedPoint(
+        pending.point,
+        [currentPlot.points],
+        snapThreshold,
+      );
+      state.setManualCutLine(newLines);
+    });
   };
 
-  // On release: also apply corner snap so the point locks exactly to a corner vertex
+  // On release: also apply corner snap so the point locks exactly to a corner vertex.
   const handleDragEnd = (idx: number) => (e: Konva.KonvaEventObject<DragEvent>) => {
     e.cancelBubble = true;
-    const newLines = [...manualCutLine];
+    if (dragRafRef.current) {
+      cancelAnimationFrame(dragRafRef.current);
+      dragRafRef.current = 0;
+    }
+    pendingDragRef.current = null;
+
+    const state = useMapStore.getState();
+    const currentLine = state.manualCutLine;
+    const currentPlot = state.plots.find(
+      (item) => item.id === state.manualDividePlotId,
+    );
+    if (!currentLine || !currentPlot) return;
+
+    const newLines = [...currentLine];
     const rawPoint = { x: e.target.x(), y: e.target.y() };
-    const isBoundaryAnchor = idx === 0 || idx === manualCutLine.length - 1;
-    const snapThreshold = isBoundaryAnchor ? Number.POSITIVE_INFINITY : 14 / stageScale;
+    const isBoundaryAnchor = idx === 0 || idx === currentLine.length - 1;
+    const snapThreshold = isBoundaryAnchor
+      ? Number.POSITIVE_INFINITY
+      : 14 / state.stageScale;
     const cornerSnap = isBoundaryAnchor
-      ? getCornerSnapPoint(rawPoint, getLogicalCorners(plot.points), MANUAL_DIVIDE_CORNER_SNAP_PX / stageScale)
+      ? getCornerSnapPoint(
+          rawPoint,
+          getLogicalCorners(currentPlot.points),
+          MANUAL_DIVIDE_CORNER_SNAP_PX / state.stageScale,
+        )
       : null;
-    newLines[idx] = cornerSnap || getSnappedPoint(rawPoint, [plot.points], snapThreshold);
-    setManualCutLine(newLines);
+    newLines[idx] =
+      cornerSnap ||
+      getSnappedPoint(rawPoint, [currentPlot.points], snapThreshold);
+    state.setManualCutLine(newLines);
   };
 
   const drawPolygon = (context: Konva.Context, shape: Konva.Shape, points: {x: number, y: number}[]) => {

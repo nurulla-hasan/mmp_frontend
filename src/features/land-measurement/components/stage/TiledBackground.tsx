@@ -8,7 +8,6 @@ import {
   getVisibleTiles,
   getTilePosition,
   getOrCreateTileUrl,
-  cleanupTileUrls,
   loadTileImage,
 } from '@/features/land-measurement/utils/tiling/visibleTiles';
 
@@ -67,17 +66,11 @@ export const TiledBackground = memo(() => {
 
     const coords = getVisibleTiles(viewport, debouncedScale, tilePyramidInfo);
     const ticket = ++pendingRef.current;
-    const newKeys = new Set<string>();
-
-    // Clean up stale tile URLs immediately — free GPU memory before loading new tiles
-    cleanupTileUrls(hash, newKeys);
-
     (async () => {
       try {
         const results = await Promise.all(
           coords.map(async (coord: TileCoord) => {
             const key = `${hash}:${coord.level}:${coord.row}:${coord.col}`;
-            newKeys.add(key);
             const pos = getTilePosition(coord, tilePyramidInfo);
             const url = await getOrCreateTileUrl(hash, coord.level, coord.row, coord.col);
             const element = await loadTileImage(url);

@@ -1,4 +1,4 @@
-import { useRef, useCallback, useLayoutEffect } from 'react';
+import { useRef, useCallback, useEffect, useLayoutEffect, type RefObject } from 'react';
 import type Konva from 'konva';
 import { clamp } from '@/lib/utils';
 
@@ -16,6 +16,7 @@ const STAGE_MIN_ZOOM = 0.01;
 const STAGE_MAX_ZOOM = 10;
 
 export const useTracerTouch = (
+  stageRef: RefObject<Konva.Stage | null>,
   stageScale: number,
   setStageScale: (s: number) => void,
   stagePos: { x: number; y: number },
@@ -26,6 +27,9 @@ export const useTracerTouch = (
   const isPinchingRef = useRef<boolean>(false);
   const blockTapRef = useRef<boolean>(false);
   const lastPinchDistRef = useRef<number>(0);
+  const containerRectRef = useRef<DOMRect | null>(null);
+  const pendingPinchRef = useRef<{ distance: number; centerX: number; centerY: number } | null>(null);
+  const pendingPanRef = useRef<{ dx: number; dy: number } | null>(null);
   const pinchStartRef = useRef({
     distance: 0,
     scale: 1,
@@ -51,11 +55,12 @@ export const useTracerTouch = (
         const d = getDistance(touches[0], touches[1]);
         lastPinchDistRef.current = d;
         const centerClient = getMidpoint(touches[0], touches[1]);
-        const stage = document.querySelector('.konvajs-content')?.parentElement;
+        const stage = stageRef.current;
+        const rect = stage?.container().getBoundingClientRect() ?? null;
+        containerRectRef.current = rect;
         let mousePointTo = { x: 0, y: 0 };
         
-        if (stage) {
-          const rect = stage.getBoundingClientRect();
+        if (rect) {
           const pointerX = centerClient.x - rect.left;
           const pointerY = centerClient.y - rect.top;
           mousePointTo = {
@@ -81,10 +86,14 @@ export const useTracerTouch = (
         };
       }
     },
-    []
+    [stageRef]
   );
 
   const pinchRafRef = useRef<number>(0);
+
+  useEffect(() => () => {
+    if (pinchRafRef.current) cancelAnimationFrame(pinchRafRef.current);
+  }, []);
 
   const onTouchMove = useCallback(
     (e: Konva.KonvaEventObject<TouchEvent>) => {
@@ -95,31 +104,34 @@ export const useTracerTouch = (
       
       if (isPinchingRef.current && touches && touches.length >= 2) {
         const newDist = getDistance(touches[0], touches[1]);
-        const start = pinchStartRef.current;
         const delta = Math.abs(newDist - (lastPinchDistRef.current || 0));
         if (delta < 0.5) return;
+        const centerClient = getMidpoint(touches[0], touches[1]);
+        pendingPinchRef.current = {
+          distance: newDist,
+          centerX: centerClient.x,
+          centerY: centerClient.y,
+        };
+        lastPinchDistRef.current = newDist;
         
         if (!pinchRafRef.current) {
           pinchRafRef.current = window.requestAnimationFrame(() => {
             pinchRafRef.current = 0;
-            if (start && start.distance > 0) {
-              const rawScale = start.scale * (newDist / start.distance);
+            const pending = pendingPinchRef.current;
+            const start = pinchStartRef.current;
+            const rect = containerRectRef.current;
+            if (pending && rect && start.distance > 0) {
+              const rawScale = start.scale * (pending.distance / start.distance);
               const clamped = clamp(rawScale, STAGE_MIN_ZOOM, STAGE_MAX_ZOOM);
-              const centerClient = getMidpoint(touches[0], touches[1]);
-              const stage = document.querySelector('.konvajs-content')?.parentElement;
-              if (stage) {
-                const rect = stage.getBoundingClientRect();
-                const pointerX = centerClient.x - rect.left;
-                const pointerY = centerClient.y - rect.top;
-                
-                setStageScale(clamped);
-                setStagePos({
-                  x: pointerX - start.mousePointTo.x * clamped,
-                  y: pointerY - start.mousePointTo.y * clamped,
-                });
-              }
+              const pointerX = pending.centerX - rect.left;
+              const pointerY = pending.centerY - rect.top;
+
+              setStageScale(clamped);
+              setStagePos({
+                x: pointerX - start.mousePointTo.x * clamped,
+                y: pointerY - start.mousePointTo.y * clamped,
+              });
             }
-            lastPinchDistRef.current = newDist;
           });
         }
       } else if (touches && touches.length === 1 && dragStartRef.current && !isPinchingRef.current) {
@@ -132,12 +144,16 @@ export const useTracerTouch = (
         }
 
         if (hasDraggedRef.current) {
+          pendingPanRef.current = { dx, dy };
           if (!pinchRafRef.current) {
             pinchRafRef.current = requestAnimationFrame(() => {
               pinchRafRef.current = 0;
+              const pending = pendingPanRef.current;
+              const start = dragStartRef.current;
+              if (!pending || !start) return;
               setStagePos({
-                x: dragStartRef.current!.px + dx,
-                y: dragStartRef.current!.py + dy,
+                x: start.px + pending.dx,
+                y: start.py + pending.dy,
               });
             });
           }
@@ -162,6 +178,7 @@ export const useTracerTouch = (
       
       if (!touches || touches.length === 0) {
         dragStartRef.current = null;
+        pendingPanRef.current = null;
       }
     },
     []

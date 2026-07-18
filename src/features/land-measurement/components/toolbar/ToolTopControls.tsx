@@ -1,4 +1,5 @@
 ﻿import { Button } from '@/components/ui/button';
+import { useShallow } from 'zustand/shallow';
 import { Eye, EyeOff, Search, FileText, HelpCircle } from 'lucide-react';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import { SaveProjectDialog } from '@/features/land-measurement/components/SaveProjectDialog';
@@ -14,7 +15,14 @@ export const ToolTopControls = ({ showScratchSheet, setShowScratchSheet }: ToolT
     setIsShowDiagonals,
     isMagnifierEnabled,
     setIsMagnifierEnabled,
-  } = useMapStore();
+  } = useMapStore(
+    useShallow((s) => ({
+      isShowDiagonals: s.isShowDiagonals,
+      setIsShowDiagonals: s.setIsShowDiagonals,
+      isMagnifierEnabled: s.isMagnifierEnabled,
+      setIsMagnifierEnabled: s.setIsMagnifierEnabled,
+    })),
+  );
 
   return (
     <>

@@ -11,6 +11,12 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import {
+  blobToImage,
+  getCanvasSafeScale,
+  loadImageSource,
+  resizeImageForCanvas,
+} from '@/lib/canvasImage';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type HandleType = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'body';
@@ -266,34 +272,31 @@ export function PantagraphCropDialog({
       const pw = Math.round(s.w / scale);
       const ph = Math.round(s.h / scale);
 
-      const src = await new Promise<HTMLImageElement>((res, rej) => {
-        const i = new window.Image();
-        i.onload = () => res(i);
-        i.onerror = rej;
-        i.src = imageSrc;
-      });
+      const src = await loadImageSource(imageSrc);
+      const outputScale = getCanvasSafeScale(pw, ph);
 
       const canvas = document.createElement('canvas');
-      canvas.width  = pw;
-      canvas.height = ph;
-      const ctx = canvas.getContext('2d')!;
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(src, px, py, pw, ph, 0, 0, pw, ph);
+      canvas.width = Math.max(1, Math.round(pw * outputScale));
+      canvas.height = Math.max(1, Math.round(ph * outputScale));
 
-      const out = await new Promise<HTMLImageElement>((res, rej) => {
-        canvas.toBlob((blob) => {
-          if (!blob) { rej(new Error('toBlob failed')); return; }
-          const url = URL.createObjectURL(blob);
-          const img = new window.Image();
-          img.onload = () => res(img);
-          img.onerror = rej;
-          img.src = url;
-        }, 'image/png');
-      });
+      try {
+        const ctx = canvas.getContext('2d')!;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(src, px, py, pw, ph, 0, 0, canvas.width, canvas.height);
 
-      onDone(out);
-      onClose();
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob((result) => {
+            if (result) resolve(result);
+            else reject(new Error('toBlob failed'));
+          }, 'image/png');
+        });
+        onDone(await blobToImage(blob));
+        onClose();
+      } finally {
+        canvas.width = 1;
+        canvas.height = 1;
+      }
     } catch (e) {
       console.error('Crop failed:', e);
     } finally {
@@ -305,12 +308,7 @@ export function PantagraphCropDialog({
   const handleSkip = useCallback(async () => {
     setIsBusy(true);
     try {
-      const img = await new Promise<HTMLImageElement>((res, rej) => {
-        const i = new window.Image();
-        i.onload = () => res(i);
-        i.onerror = rej;
-        i.src = imageSrc;
-      });
+      const img = await resizeImageForCanvas(await loadImageSource(imageSrc));
       onDone(img);
       onClose();
     } catch (e) {

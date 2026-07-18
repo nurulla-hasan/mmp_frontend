@@ -1,4 +1,5 @@
 ﻿import { useState } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { Button } from '@/components/ui/button';
 import { Loader2, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -9,7 +10,15 @@ import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import { toast } from 'sonner';
 
 export const SaveProjectDialog = ({ iconOnly = false, size = 'md' }: { iconOnly?: boolean; size?: 'sm' | 'md' }) => {
-  const { image, imageName, scale, plots, currentProjectId } = useMapStore();
+  const { image, imageName, scale, plots, currentProjectId } = useMapStore(
+    useShallow((s) => ({
+      image: s.image,
+      imageName: s.imageName,
+      scale: s.scale,
+      plots: s.plots,
+      currentProjectId: s.currentProjectId,
+    })),
+  );
 
   const [open, setOpen] = useState(false);
   const [projectName, setProjectName] = useState('');

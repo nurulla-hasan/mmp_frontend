@@ -23,12 +23,26 @@ export type TracerLayer = {
 
 export type TracerMode = 'select' | 'polygon';
 
-// ── Deep clone layers array for undo/redo snapshots ──
+// ── Initial-state cloning ──
 function cloneLayers(layers: TracerLayer[]): TracerLayer[] {
   return layers.map(l => ({
     ...l,
     polygons: l.polygons.map(p => ({ ...p, points: p.points.map(pt => ({ ...pt })) })),
   }));
+}
+
+const MAX_HISTORY_ENTRIES = 100;
+
+/**
+ * Store immutable layer snapshots with structural sharing. Every editing
+ * action below replaces changed arrays/objects instead of mutating them, so a
+ * deep clone per history entry only wastes CPU and multiplies point memory.
+ */
+function appendHistory(
+  history: TracerLayer[][],
+  layers: TracerLayer[],
+): TracerLayer[][] {
+  return [...history.slice(-(MAX_HISTORY_ENTRIES - 1)), layers];
 }
 
 /** Compute the centroid (center) of a polygon */
@@ -192,7 +206,7 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
     const c = centroid(finalPoints);
     const polygon: TracerPolygon = { id, points: finalPoints, label: '', labelX: c.x, labelY: c.y };
     set({
-      past: [...past, cloneLayers(layers)],
+      past: appendHistory(past, layers),
       future: [],
       layers: layers.map(l => l.id === activeLayerId ? { ...l, polygons: [...l.polygons, polygon] } : l),
       pendingPoints: [],
@@ -207,7 +221,7 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
   deletePolygon: (layerId, polygonId) => {
     const { layers, past } = get();
     set({
-      past: [...past, cloneLayers(layers)],
+      past: appendHistory(past, layers),
       future: [],
       layers: layers.map(l => l.id === layerId ? { ...l, polygons: l.polygons.filter(p => p.id !== polygonId) } : l),
       selectedPolygonId: null,
@@ -265,7 +279,7 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
       set({
         past: newPast,
         future: [], // Clear future as we are branching off history
-        layers: cloneLayers(previous),
+        layers: previous,
         selectedPolygonId: null,
         pendingPoints: points,
         pendingRedoPoints: lastPoint ? [lastPoint] : [],
@@ -278,7 +292,7 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
     set({
       layers: previous, // It's already a clone in past
       past: newPast,
-      future: [cloneLayers(layers), ...future],
+      future: [layers, ...future].slice(0, MAX_HISTORY_ENTRIES),
       pendingPoints: [],
       pendingRedoPoints: [],
     });
@@ -287,7 +301,13 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
   redo: () => {
     const { past, layers, future } = get();
     if (!future.length) return;
-    set({ layers: future[0], past: [...past, cloneLayers(layers)], future: future.slice(1), pendingPoints: [], pendingRedoPoints: [] });
+    set({
+      layers: future[0],
+      past: appendHistory(past, layers),
+      future: future.slice(1),
+      pendingPoints: [],
+      pendingRedoPoints: [],
+    });
   },
 
   reset: () => {

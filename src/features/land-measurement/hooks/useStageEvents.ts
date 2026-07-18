@@ -45,8 +45,9 @@ export const useStageEvents = () => {
     startTime: 0,
   });
   const pinchRafRef = useRef<number>(0);
-  // rAF ref for snapHint throttle
+  // rAF refs keep high-frequency pointer work to at most once per frame.
   const snapRafRef = useRef<number>(0);
+  const pointerRafRef = useRef<number>(0);
   // Track if mouse dragged to avoid click-after-drag
   const mouseDownPosRef = useRef<{ x: number; y: number } | null>(null);
   const CLICK_MOVE_THRESHOLD = 5;
@@ -101,6 +102,13 @@ export const useStageEvents = () => {
     stagePosRef.current = stagePos;
   });
 
+  useLayoutEffect(() => {
+    return () => {
+      if (pointerRafRef.current) cancelAnimationFrame(pointerRafRef.current);
+      if (snapRafRef.current) cancelAnimationFrame(snapRafRef.current);
+    };
+  }, []);
+
 
 
   // Helper: check snap and update only if changed (throttled via rAF)
@@ -141,7 +149,21 @@ export const useStageEvents = () => {
           y: (pointer.y - store.stagePos.y) / store.stageScale,
         };
         lastPointerPosRef.current = pos;
-        store.setPointerPos(pos);
+
+        if (
+          (modeRef.current === 'drawing_plot' ||
+            modeRef.current === 'measuring' ||
+            modeRef.current === 'calibrating') &&
+          !pointerRafRef.current
+        ) {
+          pointerRafRef.current = requestAnimationFrame(() => {
+            pointerRafRef.current = 0;
+            const latestPointer = lastPointerPosRef.current;
+            if (latestPointer) {
+              useMapStore.getState().setPointerPos(latestPointer);
+            }
+          });
+        }
       }
     }
     checkSnapThrottled();
@@ -417,6 +439,9 @@ export const useStageEvents = () => {
              };
            }
         }
+        // Anchor the preview to the exact first click immediately. The rAF
+        // pointer update may not have committed yet when the click fires.
+        store.setPointerPos(pos);
         store.addPointAt(pos);
       }
     },

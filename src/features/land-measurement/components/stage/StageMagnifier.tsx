@@ -3,6 +3,7 @@ import { memo, useMemo, useState, useEffect, useRef } from 'react';
 import { Group, Image as KonvaImage, Circle, Line } from 'react-konva';
 import { useShallow } from 'zustand/shallow';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
+import { useDebounce } from '@/features/land-measurement/hooks/use-debounce';
 import { StageCalibration } from './StageCalibration';
 import { StagePlots } from './StagePlots';
 import { StageActivePlot } from './StageActivePlot';
@@ -12,11 +13,12 @@ import {
   getTilePosition,
   getOrCreateTileUrl,
   loadTileImage,
-  cleanupTileUrls,
 } from '@/features/land-measurement/utils/tiling';
 
 const MAGNIFIER_RADIUS = 55;
 const ZOOM_FACTOR = 2.5;
+const DISABLED_STAGE_POS = { x: 0, y: 0 };
+const DISABLED_STAGE_SIZE = { width: 0, height: 0 };
 
 /** A single tile rendered inside the magnifier. */
 interface MagTile {
@@ -31,12 +33,12 @@ export const StageMagnifier = memo(() => {
   const { image, isMagnifierEnabled, stagePos, stageScale, stageSize, tilePyramidInfo } =
     useMapStore(
       useShallow((s) => ({
-        image: s.image,
+        image: s.isMagnifierEnabled ? s.image : null,
         isMagnifierEnabled: s.isMagnifierEnabled,
-        stagePos: s.stagePos,
-        stageScale: s.stageScale,
-        stageSize: s.stageSize,
-        tilePyramidInfo: s.tilePyramidInfo,
+        stagePos: s.isMagnifierEnabled ? s.stagePos : DISABLED_STAGE_POS,
+        stageScale: s.isMagnifierEnabled ? s.stageScale : 1,
+        stageSize: s.isMagnifierEnabled ? s.stageSize : DISABLED_STAGE_SIZE,
+        tilePyramidInfo: s.isMagnifierEnabled ? s.tilePyramidInfo : null,
       }))
     );
 
@@ -68,6 +70,9 @@ export const StageMagnifier = memo(() => {
   const crosshairPoints = useMemo(() => [-10 / stageScale, 0, 10 / stageScale, 0], [stageScale]);
   const crosshairStrokeWidth = useMemo(() => 2 / stageScale, [stageScale]);
   const borderStrokeWidth = useMemo(() => 3 / stageScale, [stageScale]);
+  const debouncedCenterX = useDebounce(localCenterX, 60);
+  const debouncedCenterY = useDebounce(localCenterY, 60);
+  const debouncedStageScale = useDebounce(stageScale, 60);
 
   // ── Tile-aware magnifier content ──
   const [magTiles, setMagTiles] = useState<MagTile[]>([]);
@@ -80,31 +85,32 @@ export const StageMagnifier = memo(() => {
   }, []);
 
   useEffect(() => {
-    if (!tilePyramidInfo || !image) return;
+    if (!isMagnifierEnabled || !tilePyramidInfo || !image) {
+      setMagTiles((current) => (current.length > 0 ? [] : current));
+      return;
+    }
 
     const hash = tilePyramidInfo.imageHash;
     // Magnifier viewport: a small area around the center at 2.5x zoom
     // The magnifier shows (MAGNIFIER_RADIUS*2 / stageScale) image-px diameter
-    const magViewDiameter = (MAGNIFIER_RADIUS * 2) / stageScale;
+    const magViewDiameter = (MAGNIFIER_RADIUS * 2) / debouncedStageScale;
     const magViewport = {
-      x: localCenterX - magViewDiameter / 2,
-      y: localCenterY - magViewDiameter / 2,
+      x: debouncedCenterX - magViewDiameter / 2,
+      y: debouncedCenterY - magViewDiameter / 2,
       width: magViewDiameter,
       height: magViewDiameter,
     };
 
     // At 2.5x zoom inside magnifier, effective scale for tile selection is higher
-    const magScale = stageScale * ZOOM_FACTOR;
+    const magScale = debouncedStageScale * ZOOM_FACTOR;
     const coords = getVisibleTiles(magViewport, magScale, tilePyramidInfo, 0);
     const ticket = ++magTicketRef.current;
 
     (async () => {
       try {
-        const newKeys = new Set<string>();
         const results = await Promise.all(
           coords.map(async (coord) => {
             const key = `${hash}:${coord.level}:${coord.row}:${coord.col}`;
-            newKeys.add(key);
             const pos = getTilePosition(coord, tilePyramidInfo);
             const url = await getOrCreateTileUrl(hash, coord.level, coord.row, coord.col);
             const element = await loadTileImage(url);
@@ -114,13 +120,19 @@ export const StageMagnifier = memo(() => {
 
         if (ticket === magTicketRef.current && magMountedRef.current) {
           setMagTiles(results);
-          cleanupTileUrls(hash, newKeys);
         }
       } catch {
         // Tiles not ready yet — keep previous
       }
     })();
-  }, [tilePyramidInfo, image, localCenterX, localCenterY, stageScale]);
+  }, [
+    isMagnifierEnabled,
+    tilePyramidInfo,
+    image,
+    debouncedCenterX,
+    debouncedCenterY,
+    debouncedStageScale,
+  ]);
 
   const useTiling = tilePyramidInfo !== null && magTiles.length > 0;
 

@@ -1,4 +1,5 @@
 ﻿import { memo, useMemo, useState, useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Trash2, Undo2, Redo2 } from 'lucide-react';
@@ -47,7 +48,39 @@ export const SidebarControls = memo(function SidebarControls() {
     manualScale,
     setManualScale,
     handleManualScaleSubmit,
-  } = useMapStore();
+  } = useMapStore(
+    useShallow((s) => ({
+      mode: s.mode,
+      setMode: s.setMode,
+      calibrationLine: s.calibrationLine,
+      setCalibrationLine: s.setCalibrationLine,
+      plotPoints: s.plotPoints,
+      plotPointsFuture: s.plotPointsFuture,
+      plots: s.plots,
+      plotsHistory: s.plotsHistory,
+      plotsFuture: s.plotsFuture,
+      setIsDrawing: s.setIsDrawing,
+      setIsModalOpen: s.setIsModalOpen,
+      setSnapHint: s.setSnapHint,
+      undoPlotAction: s.undoPlotAction,
+      redoPlotAction: s.redoPlotAction,
+      pendingAction: s.pendingAction,
+      setPendingAction: s.setPendingAction,
+      executePendingAction: s.executePendingAction,
+      confirmClearPlot: s.confirmClearPlot,
+      manualDividePlotId: s.manualDividePlotId,
+      manualCutLine: s.manualCutLine,
+      scale: s.scale,
+      setManualCutLine: s.setManualCutLine,
+      executeManualDivide: s.executeManualDivide,
+      cancelManualDivide: s.cancelManualDivide,
+      showManualScale: s.showManualScale,
+      setShowManualScale: s.setShowManualScale,
+      manualScale: s.manualScale,
+      setManualScale: s.setManualScale,
+      handleManualScaleSubmit: s.handleManualScaleSubmit,
+    })),
+  );
 
   const [calibrationUndoStack, setCalibrationUndoStack] = useState<number[][]>([]);
   const [calibrationRedoStack, setCalibrationRedoStack] = useState<number[][]>([]);

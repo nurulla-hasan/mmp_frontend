@@ -41,7 +41,7 @@ function getSafeMaxDimension(): number {
  * WebP at quality 0.8 is ~5-10× smaller than PNG.
  */
 function downscaleImage(img: HTMLImageElement, maxPx: number): Promise<HTMLImageElement> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const w = img.naturalWidth;
     const h = img.naturalHeight;
     const scale = Math.min(maxPx / w, maxPx / h, 1);
@@ -57,10 +57,25 @@ function downscaleImage(img: HTMLImageElement, maxPx: number): Promise<HTMLImage
     ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
 
     const result = new window.Image();
-    result.onload = () => resolve(result);
+    let objectUrl: string | null = null;
+    result.onload = () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      cvs.width = 1;
+      cvs.height = 1;
+      resolve(result);
+    };
+    result.onerror = (error) => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      reject(error);
+    };
     // WebP at 0.8 is much smaller than PNG — great for memory-constrained devices
     cvs.toBlob((blob) => {
-      result.src = blob ? URL.createObjectURL(blob) : cvs.toDataURL('image/png');
+      if (blob) {
+        objectUrl = URL.createObjectURL(blob);
+        result.src = objectUrl;
+      } else {
+        result.src = cvs.toDataURL('image/png');
+      }
     }, 'image/webp', 0.8);
   });
 }
@@ -83,6 +98,8 @@ export interface ImageState {
   tileProgress: number;
   /** Monotonic counter to discard stale tile generation completions. */
   _generationId: number;
+  /** Hash currently being generated, so partial IndexedDB tiles can be cleared. */
+  _activeTileHash: string | null;
 }
 
 export interface ImageActions {
@@ -113,6 +130,7 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
   isGeneratingTiles: false,
   tileProgress: 0,
   _generationId: 0,
+  _activeTileHash: null,
 
   // Actions
   setImage: (image) => set({ image }),
@@ -140,15 +158,37 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
       return false;
     }
 
-    set({ isProcessingFile: true, image: null });
+    const previousState = get();
+    const generationId = previousState._generationId + 1;
+    const previousHash =
+      previousState.tilePyramidInfo?.imageHash ??
+      previousState._activeTileHash;
+
+    if (previousHash) {
+      clearTileUrlCache(previousHash);
+      void clearTiles(previousHash).catch((error: unknown) => {
+        console.error('Failed to clear previous map tiles:', error);
+      });
+    }
+
+    set({
+      _generationId: generationId,
+      isProcessingFile: true,
+      image: null,
+      _originalImage: null,
+      tilePyramidInfo: null,
+      isGeneratingTiles: false,
+      tileProgress: 0,
+      _activeTileHash: null,
+    });
 
     if (file.type === 'application/pdf') {
       set({ imageName: file.name || 'document.pdf' });
       try {
-        const [img, dpiInfo] = await Promise.all([
-          extractImageFromPDF(file),
-          detectPdfDpi(file),
-        ]);
+        // Read once, then process sequentially to avoid two full PDF parses in memory.
+        const pdfBuffer = await file.arrayBuffer();
+        const dpiInfo = await detectPdfDpi(pdfBuffer);
+        const img = await extractImageFromPDF(pdfBuffer);
         // ── Downscale for GPU safety on low-end devices ──
         const safeMax = getSafeMaxDimension();
         let displayImg = img;
@@ -156,6 +196,8 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
           displayImg = await downscaleImage(img, safeMax);
           console.info(`📐 PDF image downscaled for GPU safety: ${img.naturalWidth}×${img.naturalHeight} → ${displayImg.naturalWidth}×${displayImg.naturalHeight} (max: ${safeMax})`);
         }
+        if (get()._generationId !== generationId) return false;
+
         set({ 
           selectedFile: file, 
           image: displayImg, 
@@ -172,8 +214,10 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
         get().buildTilePyramid();
         return true;
       } catch {
-        set({ selectedFile: null, imageName: '', isProcessingFile: false });
-        toast.error('PDF লোড করা যায়নি (ফাইলটি ক্ষতিগ্রস্ত বা অবৈধ হতে পারে)');
+        if (get()._generationId === generationId) {
+          set({ selectedFile: null, imageName: '', isProcessingFile: false });
+          toast.error('PDF লোড করা যায়নি (ফাইলটি ক্ষতিগ্রস্ত বা অবৈধ হতে পারে)');
+        }
         return false;
       }
     } else {
@@ -184,30 +228,45 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
       return new Promise<boolean>((resolve) => {
         img.onload = async () => {
           URL.revokeObjectURL(objectUrl);
-          // ── Downscale for GPU safety on low-end devices ──
-          const safeMax = getSafeMaxDimension();
-          let displayImg: HTMLImageElement = img;
-          if (img.naturalWidth > safeMax || img.naturalHeight > safeMax) {
-            displayImg = await downscaleImage(img, safeMax);
-            console.info(`📐 Image downscaled for GPU safety: ${img.naturalWidth}×${img.naturalHeight} → ${displayImg.naturalWidth}×${displayImg.naturalHeight} (max: ${safeMax})`);
+          try {
+            // ── Downscale for GPU safety on low-end devices ──
+            const safeMax = getSafeMaxDimension();
+            let displayImg: HTMLImageElement = img;
+            if (img.naturalWidth > safeMax || img.naturalHeight > safeMax) {
+              displayImg = await downscaleImage(img, safeMax);
+              console.info(`📐 Image downscaled for GPU safety: ${img.naturalWidth}×${img.naturalHeight} → ${displayImg.naturalWidth}×${displayImg.naturalHeight} (max: ${safeMax})`);
+            }
+            if (get()._generationId !== generationId) {
+              resolve(false);
+              return;
+            }
+
+            set({ 
+              selectedFile: file, 
+              imageName: file.name || 'image', 
+              image: displayImg, 
+              _originalImage: img, 
+              originalWidth: img.naturalWidth,
+              originalHeight: img.naturalHeight,
+              isProcessingFile: false 
+            });
+            // Start tile building in the background (uses original image for accuracy)
+            get().buildTilePyramid();
+            resolve(true);
+          } catch {
+            if (get()._generationId === generationId) {
+              set({ selectedFile: null, imageName: '', isProcessingFile: false });
+              toast.error('ম্যাপের ছবি প্রস্তুত করা যায়নি');
+            }
+            resolve(false);
           }
-          set({ 
-            selectedFile: file, 
-            imageName: file.name || 'image', 
-            image: displayImg, 
-            _originalImage: img, 
-            originalWidth: img.naturalWidth,
-            originalHeight: img.naturalHeight,
-            isProcessingFile: false 
-          });
-          // Start tile building in the background (uses original image for accuracy)
-          get().buildTilePyramid();
-          resolve(true);
         };
         img.onerror = () => {
           URL.revokeObjectURL(objectUrl);
-          set({ selectedFile: null, imageName: '', isProcessingFile: false });
-          toast.error('ম্যাপের ছবি ডিকোড করা যায়নি');
+          if (get()._generationId === generationId) {
+            set({ selectedFile: null, imageName: '', isProcessingFile: false });
+            toast.error('ম্যাপের ছবি ডিকোড করা যায়নি');
+          }
           resolve(false);
         };
       });
@@ -219,8 +278,10 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
     set((s) => ({ _generationId: s._generationId + 1 }));
     // Clear tile caches and IndexedDB tiles if we had a pyramid
     const state = get();
-    if (state.tilePyramidInfo) {
-      const hash = state.tilePyramidInfo.imageHash;
+    const hash =
+      state.tilePyramidInfo?.imageHash ??
+      state._activeTileHash;
+    if (hash) {
       clearTileUrlCache(hash);
       try {
         await clearTiles(hash);
@@ -239,7 +300,8 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
       isProcessingFile: false, 
       tilePyramidInfo: null, 
       isGeneratingTiles: false, 
-      tileProgress: 0 
+      tileProgress: 0,
+      _activeTileHash: null,
     });
     const fileInput = document.getElementById('map-upload') as HTMLInputElement | null;
     if (fileInput) fileInput.value = '';
@@ -255,32 +317,56 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
     const totalPixels = img.naturalWidth * img.naturalHeight;
     if (totalPixels < TILING_MIN_PIXEL_COUNT) return;
 
-    const hash = await computeImageHash(img, state.imageName);
     const generationId = state._generationId;
+    const hash = await computeImageHash(img, state.imageName);
 
-    set({ isGeneratingTiles: true, tileProgress: 0 });
+    if (get()._generationId !== generationId) return;
+
+    set({
+      isGeneratingTiles: true,
+      tileProgress: 0,
+      _activeTileHash: hash,
+    });
+    let lastReportedProgress = -1;
 
     try {
       const info = await generateTilePyramidChunked(
         img,
         hash,
         (percent) => {
-          // Only update progress if still the active generation
-          if (get()._generationId === generationId) {
+          // Avoid a global store update for every tile when the percentage is unchanged.
+          if (
+            get()._generationId === generationId &&
+            percent !== lastReportedProgress
+          ) {
+            lastReportedProgress = percent;
             set({ tileProgress: percent });
           }
         },
         8, // Smaller chunk size = less main-thread blocking
+        () => get()._generationId !== generationId,
       );
       // Only commit result if still the active generation
       if (get()._generationId === generationId) {
-        set({ tilePyramidInfo: info, isGeneratingTiles: false, tileProgress: 100, _originalImage: null });
+        set({
+          tilePyramidInfo: info,
+          isGeneratingTiles: false,
+          tileProgress: 100,
+          _originalImage: null,
+          _activeTileHash: null,
+        });
       }
-    } catch (err) {
-      console.error('Tile pyramid generation failed:', err);
+    } catch (err: unknown) {
+      if (!(err instanceof Error && err.name === 'AbortError')) {
+        console.error('Tile pyramid generation failed:', err);
+      }
       // Only reset state if still the active generation
       if (get()._generationId === generationId) {
-        set({ isGeneratingTiles: false, tileProgress: 0 });
+        set({
+          isGeneratingTiles: false,
+          tileProgress: 0,
+          _activeTileHash: null,
+        });
       }
     }
   },

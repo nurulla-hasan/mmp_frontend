@@ -211,7 +211,7 @@ export default function MapCalculator() {
       </div>
 
       <PrintLayout ref={printRef} />
-      <DistanceModal />
+
       <TutorialGuide />
     </>
   );

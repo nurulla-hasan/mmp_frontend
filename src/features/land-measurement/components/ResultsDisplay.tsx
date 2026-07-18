@@ -78,12 +78,20 @@ export const SideLengthsList = memo(function SideLengthsList({ lengths, perimete
 });
 
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
+import { useShallow } from 'zustand/shallow';
 
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 
 export const ResultsDisplay = memo(function ResultsDisplay({ onPrint }: { onPrint: () => void }) {
-  const { results, plots, reportInfo, setReportInfo } = useMapStore();
+  const { results, plots, reportInfo, setReportInfo } = useMapStore(
+    useShallow((s) => ({
+      results: s.results,
+      plots: s.plots,
+      reportInfo: s.reportInfo,
+      setReportInfo: s.setReportInfo,
+    })),
+  );
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
   if (!results || plots.length === 0) {

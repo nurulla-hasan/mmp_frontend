@@ -1,5 +1,9 @@
-import jsPDF from 'jspdf';
-import { TracerLayer, centroid } from '../store/useTracerStore';
+import { centroid, type TracerLayer } from '../store/useTracerStore';
+
+const TARGET_EXPORT_DIMENSION = 3000;
+const MAX_EXPORT_DIMENSION = 4000;
+const MAX_EXPORT_PIXELS = 10_000_000;
+let exportInProgress = false;
 
 // ── Shared drawing helper ─────────────────────────────────────────────────────
 
@@ -103,15 +107,13 @@ function buildCanvas(
   let drawScale = 1;
   
   const maxDimension = Math.max(canvasW, canvasH);
-  const TARGET_DIM = 3000; // Ensure high resolution for crisp PDF/PNG
-  const MAX_DIM = 4000;    // Prevent out-of-memory on massive exports
-  
   if (maxDimension > 0) {
-    if (maxDimension < TARGET_DIM) {
-      drawScale = TARGET_DIM / maxDimension;
-    } else if (maxDimension > MAX_DIM) {
-      drawScale = MAX_DIM / maxDimension;
-    }
+    const desiredScale = maxDimension < TARGET_EXPORT_DIMENSION
+      ? TARGET_EXPORT_DIMENSION / maxDimension
+      : 1;
+    const dimensionScale = MAX_EXPORT_DIMENSION / maxDimension;
+    const pixelScale = Math.sqrt(MAX_EXPORT_PIXELS / Math.max(1, canvasW * canvasH));
+    drawScale = Math.min(desiredScale, dimensionScale, pixelScale);
   }
   
   canvasW = Math.round(canvasW * drawScale);
@@ -130,19 +132,19 @@ function buildCanvas(
   return canvas;
 }
 
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
 function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Blob> {
   return new Promise((resolve, reject) =>
     canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob failed')), type, quality),
   );
+}
+
+function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 // ── Public exports ────────────────────────────────────────────────────────────
@@ -152,35 +154,42 @@ export async function exportAsPDF(
   bgImage: HTMLImageElement | null,
   which: 'all' | string = 'all',
 ): Promise<void> {
-  const canvas = buildCanvas(layers, bgImage, which);
-  if (!canvas) return; // nothing to export
-  const cw = canvas.width;
-  const ch = canvas.height;
+  if (exportInProgress) return;
+  exportInProgress = true;
+  let canvas: HTMLCanvasElement | null = null;
 
-  const blob = await canvasToBlob(canvas, 'image/jpeg', 0.98);
-  const imgData = await blobToBase64(blob);
+  try {
+    canvas = buildCanvas(layers, bgImage, which);
+    if (!canvas) return;
 
-  // Always use Portrait A4 (210 × 297 mm) as expected by users
-  const A4_W = 210;
-  const A4_H = 297;
-  const margin = 15;
-  const maxW = A4_W - margin * 2;
-  const maxH = A4_H - margin * 2;
+    const cw = canvas.width;
+    const ch = canvas.height;
+    const blob = await canvasToBlob(canvas, 'image/jpeg', 0.95);
+    const imageBytes = new Uint8Array(await blob.arrayBuffer());
+    const { default: jsPDF } = await import('jspdf');
 
-  // Scale to fit while maintaining aspect ratio
-  const scale = Math.min(maxW / cw, maxH / ch);
-  const imgW = cw * scale;
-  const imgH = ch * scale;
-  const offsetX = (A4_W - imgW) / 2;
-  const offsetY = (A4_H - imgH) / 2;
+    // Always use Portrait A4 (210 × 297 mm) as expected by users
+    const A4_W = 210;
+    const A4_H = 297;
+    const margin = 15;
+    const maxW = A4_W - margin * 2;
+    const maxH = A4_H - margin * 2;
+    const scale = Math.min(maxW / cw, maxH / ch);
+    const imgW = cw * scale;
+    const imgH = ch * scale;
+    const offsetX = (A4_W - imgW) / 2;
+    const offsetY = (A4_H - imgH) / 2;
 
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-  });
-  pdf.addImage(imgData, 'JPEG', offsetX, offsetY, imgW, imgH);
-  pdf.save(`tracer-map${which !== 'all' ? `-${which}` : ''}.pdf`);
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    pdf.addImage(imageBytes, 'JPEG', offsetX, offsetY, imgW, imgH);
+    pdf.save(`tracer-map${which !== 'all' ? `-${which}` : ''}.pdf`);
+  } finally {
+    if (canvas) {
+      canvas.width = 1;
+      canvas.height = 1;
+    }
+    exportInProgress = false;
+  }
 }
 
 export async function exportAsPNG(
@@ -188,41 +197,53 @@ export async function exportAsPNG(
   bgImage: HTMLImageElement | null,
   which: 'all' | string = 'all',
 ): Promise<void> {
-  const sourceCanvas = buildCanvas(layers, bgImage, which);
-  if (!sourceCanvas) return; // nothing to export
-  const cw = sourceCanvas.width;
-  const ch = sourceCanvas.height;
+  if (exportInProgress) return;
+  exportInProgress = true;
+  let sourceCanvas: HTMLCanvasElement | null = null;
+  let a4Canvas: HTMLCanvasElement | null = null;
 
-  // Always use Portrait A4 size at 300 DPI (2480 x 3508)
-  const A4_W = 2480;
-  const A4_H = 3508;
-  const margin = 177; // ~15mm at 300 DPI
+  try {
+    sourceCanvas = buildCanvas(layers, bgImage, which);
+    if (!sourceCanvas) return;
 
-  const a4Canvas = document.createElement('canvas');
-  a4Canvas.width = A4_W;
-  a4Canvas.height = A4_H;
-  const ctx = a4Canvas.getContext('2d')!;
+    const cw = sourceCanvas.width;
+    const ch = sourceCanvas.height;
 
-  // Fill white background
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, A4_W, A4_H);
+    // Always use Portrait A4 size at 300 DPI (2480 x 3508)
+    const A4_W = 2480;
+    const A4_H = 3508;
+    const margin = 177; // ~15mm at 300 DPI
 
-  const maxW = A4_W - margin * 2;
-  const maxH = A4_H - margin * 2;
-  const scale = Math.min(maxW / cw, maxH / ch);
-  
-  const imgW = cw * scale;
-  const imgH = ch * scale;
-  const offsetX = (A4_W - imgW) / 2;
-  const offsetY = (A4_H - imgH) / 2;
+    a4Canvas = document.createElement('canvas');
+    a4Canvas.width = A4_W;
+    a4Canvas.height = A4_H;
+    const ctx = a4Canvas.getContext('2d')!;
 
-  ctx.drawImage(sourceCanvas, offsetX, offsetY, imgW, imgH);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, A4_W, A4_H);
 
-  const blob = await canvasToBlob(a4Canvas, 'image/png');
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `tracer-map${which !== 'all' ? `-${which}` : ''}.png`;
-  a.click();
-  URL.revokeObjectURL(url);
+    const maxW = A4_W - margin * 2;
+    const maxH = A4_H - margin * 2;
+    const scale = Math.min(maxW / cw, maxH / ch);
+    const imgW = cw * scale;
+    const imgH = ch * scale;
+    const offsetX = (A4_W - imgW) / 2;
+    const offsetY = (A4_H - imgH) / 2;
+
+    ctx.drawImage(sourceCanvas, offsetX, offsetY, imgW, imgH);
+    sourceCanvas.width = 1;
+    sourceCanvas.height = 1;
+    const blob = await canvasToBlob(a4Canvas, 'image/png');
+    downloadBlob(blob, `tracer-map${which !== 'all' ? `-${which}` : ''}.png`);
+  } finally {
+    if (sourceCanvas) {
+      sourceCanvas.width = 1;
+      sourceCanvas.height = 1;
+    }
+    if (a4Canvas) {
+      a4Canvas.width = 1;
+      a4Canvas.height = 1;
+    }
+    exportInProgress = false;
+  }
 }

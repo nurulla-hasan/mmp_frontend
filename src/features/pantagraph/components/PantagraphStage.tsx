@@ -9,7 +9,10 @@ import { usePantagraphStore } from '../store/usePantagraphStore';
 import { MatchPointMarkers } from './MatchPointMarkers';
 import { getPixelColor } from '../utils/getPixelColor';
 import { clamp } from '@/lib/utils';
+import { configureInteractiveKonva } from '@/lib/konvaPerformance';
 import { usePantagraphTouch } from '../hooks/usePantagraphTouch';
+
+configureInteractiveKonva();
 
 const STAGE_MIN_ZOOM = 0.01;
 const STAGE_MAX_ZOOM = 10;
@@ -44,8 +47,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
     formerSkewY,
     isLocked,
     imageLoading,
-    setStageScale,
-    setStagePos,
+    setStageViewport,
   } = usePantagraphStore(
     useShallow((s) => ({
       formerMap: s.formerMap,
@@ -70,8 +72,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
       formerSkewY: s.formerSkewY,
       isLocked: s.isLocked,
       imageLoading: s.imageLoading,
-      setStageScale: s.setStageScale,
-      setStagePos: s.setStagePos,
+      setStageViewport: s.setStageViewport,
     }))
   );
 
@@ -80,7 +81,43 @@ export const PantagraphStage = memo(function PantagraphStage() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   
-  const { onTouchStart, onTouchMove, onTouchEnd } = usePantagraphTouch();
+  const { onTouchStart, onTouchMove, onTouchEnd, blockTapRef } =
+    usePantagraphTouch(stageRef);
+
+  const dragRafRef = useRef(0);
+  const pendingDragRef = useRef<{
+    target: 'former' | 'current';
+    position: { x: number; y: number };
+  } | null>(null);
+
+  const commitMapPosition = useCallback((
+    target: 'former' | 'current',
+    position: { x: number; y: number },
+    immediate = false,
+  ) => {
+    pendingDragRef.current = { target, position };
+
+    const flush = () => {
+      dragRafRef.current = 0;
+      const pending = pendingDragRef.current;
+      pendingDragRef.current = null;
+      if (!pending) return;
+      const store = usePantagraphStore.getState();
+      if (pending.target === 'former') store.setFormerPosition(pending.position);
+      else store.setCurrentPosition(pending.position);
+    };
+
+    if (immediate) {
+      if (dragRafRef.current) cancelAnimationFrame(dragRafRef.current);
+      flush();
+    } else if (!dragRafRef.current) {
+      dragRafRef.current = requestAnimationFrame(flush);
+    }
+  }, []);
+
+  useEffect(() => () => {
+    if (dragRafRef.current) cancelAnimationFrame(dragRafRef.current);
+  }, []);
 
   // Keep latest stagePos/stageScale in refs so handleStageClick can read
   // fresh values without being recreated on every pan/zoom.
@@ -101,8 +138,13 @@ export const PantagraphStage = memo(function PantagraphStage() {
 
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        setStageSize({ width, height });
+        const width = Math.round(entry.contentRect.width);
+        const height = Math.round(entry.contentRect.height);
+        setStageSize((current) =>
+          current.width === width && current.height === height
+            ? current
+            : { width, height },
+        );
       }
     });
     observer.observe(container);
@@ -133,10 +175,9 @@ export const PantagraphStage = memo(function PantagraphStage() {
         y: pointer.y - mousePointTo.y * newScale,
       };
 
-      setStageScale(newScale);
-      setStagePos(newPos);
+      setStageViewport(newScale, newPos);
     },
-    [setStageScale, setStagePos]
+    [setStageViewport]
   );
 
   // Stage click — handles alignment point placement and color picking
@@ -144,6 +185,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
     async (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
       const stage = e.target.getStage();
       if (!stage) return;
+      if (blockTapRef.current) return;
 
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
@@ -233,15 +275,15 @@ export const PantagraphStage = memo(function PantagraphStage() {
         }
       }
     },
-    [isAligning]
+    [blockTapRef, isAligning]
   );
 
   const hasBothMaps = formerMap || currentMap;
 
   const renderCurrentMap = () =>
     currentMap && (
-      <Layer key="current-map-layer">
-        <KonvaImage
+      <KonvaImage
+          key="current-map"
           image={currentMap}
           x={currentPosition.x}
           y={currentPosition.y}
@@ -262,19 +304,18 @@ export const PantagraphStage = memo(function PantagraphStage() {
               e.target.stopDrag();
               return;
             }
-            usePantagraphStore.getState().setCurrentPosition({ x: e.target.x(), y: e.target.y() });
+            commitMapPosition('current', { x: e.target.x(), y: e.target.y() });
           }}
           onDragEnd={(e) => {
-            usePantagraphStore.getState().setCurrentPosition({ x: e.target.x(), y: e.target.y() });
+            commitMapPosition('current', { x: e.target.x(), y: e.target.y() }, true);
           }}
         />
-      </Layer>
     );
 
   const renderFormerMap = () =>
     formerMap && (
-      <Layer key="former-map-layer">
-        <KonvaImage
+      <KonvaImage
+          key="former-map"
           image={formerMap}
           x={formerPosition.x}
           y={formerPosition.y}
@@ -299,13 +340,12 @@ export const PantagraphStage = memo(function PantagraphStage() {
               e.target.stopDrag();
               return;
             }
-            usePantagraphStore.getState().setFormerPosition({ x: e.target.x(), y: e.target.y() });
+            commitMapPosition('former', { x: e.target.x(), y: e.target.y() });
           }}
           onDragEnd={(e) => {
-            usePantagraphStore.getState().setFormerPosition({ x: e.target.x(), y: e.target.y() });
+            commitMapPosition('former', { x: e.target.x(), y: e.target.y() }, true);
           }}
         />
-      </Layer>
     );
 
   return (
@@ -371,27 +411,18 @@ export const PantagraphStage = memo(function PantagraphStage() {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         draggable={false}
-        onDragStart={(e) => {
-          if (e.target !== stageRef.current) return;
-        }}
-        onDragEnd={(e) => {
-          if (e.target === stageRef.current) {
-            setStagePos({ x: e.target.x(), y: e.target.y() });
-          }
-        }}
       >
-        {/* Render inactive map first (so it stays underneath) */}
-        {activeMap === 'former' ? renderCurrentMap() : renderFormerMap()}
+        <Layer>
+          {/* Render inactive map first (so it stays underneath) */}
+          {activeMap === 'former' ? renderCurrentMap() : renderFormerMap()}
 
-        {/* Render active map last (so it stays on top) */}
-        {activeMap === 'former' ? renderFormerMap() : renderCurrentMap()}
+          {/* Render active map last (so it stays on top) */}
+          {activeMap === 'former' ? renderFormerMap() : renderCurrentMap()}
 
-        {/* Match point markers layer */}
-        {matchPoints.length > 0 && (
-          <Layer>
+          {matchPoints.length > 0 && (
             <MatchPointMarkers />
-          </Layer>
-        )}
+          )}
+        </Layer>
       </Stage>
 
       {/* ── Zoom indicator ─────────────────────────────────────────────────── */}

@@ -6,6 +6,14 @@ import {
 } from './types';
 import { putTile } from './tileStore';
 
+function assertGenerationActive(shouldCancel?: () => boolean): void {
+  if (!shouldCancel?.()) return;
+
+  const error = new Error('Tile generation cancelled');
+  error.name = 'AbortError';
+  throw error;
+}
+
 /**
  * Generate a complete tile pyramid from a source image.
  * Stores tiles into IndexedDB via tileStore.
@@ -17,6 +25,7 @@ export async function generateTilePyramid(
   image: HTMLImageElement,
   imageHash: string,
   onProgress?: TileProgressCallback,
+  shouldCancel?: () => boolean,
 ): Promise<TilePyramidInfo> {
   const srcW = image.width;
   const srcH = image.height;
@@ -44,6 +53,7 @@ export async function generateTilePyramid(
 
     for (let row = 0; row < info.rows; row++) {
       for (let col = 0; col < info.cols; col++) {
+        assertGenerationActive(shouldCancel);
         const canvas = createTileCanvas();
         const ctx = (canvas as HTMLCanvasElement | OffscreenCanvas).getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
         if (!ctx) continue;
@@ -87,6 +97,7 @@ export async function generateTilePyramidChunked(
   imageHash: string,
   onProgress?: TileProgressCallback,
   chunkSize: number = 20,
+  shouldCancel?: () => boolean,
 ): Promise<TilePyramidInfo> {
   const srcW = image.width;
   const srcH = image.height;
@@ -120,15 +131,17 @@ export async function generateTilePyramidChunked(
 
   if (totalTiles < 200) {
     // Small pyramid — generate synchronously
-    return generateTilePyramid(image, imageHash, onProgress);
+    return generateTilePyramid(image, imageHash, onProgress, shouldCancel);
   }
 
   // Large pyramid — chunked
   return new Promise((resolve, reject) => {
     const processChunk = async () => {
       try {
+        assertGenerationActive(shouldCancel);
         const end = Math.min(index + chunkSize, totalTiles);
         for (; index < end; index++) {
+          assertGenerationActive(shouldCancel);
           const { level, row, col, info } = tileCoords[index];
           const scaleToSrc = srcW / info.width;
 
@@ -184,18 +197,15 @@ function levelDimensions(
   return { w, h, cols, rows };
 }
 
-/** Determine appropriate pyramid level for a given zoom scale.
- *
- * Always returns `maxLevel` — the viewport must show the full-resolution
- * tile pyramid so the image is pixel-sharp regardless of zoom level.
- * At `maxLevel`, one tile == one full image; tiles scale down cleanly
- * from there.
+/**
+ * Select the pyramid level whose source pixels most closely match screen pixels.
+ * Zoomed-out views use lower-resolution tiles; zoom >= 100% uses full resolution.
  */
 export function getLevelForScale(stageScale: number, maxLevel: number): number {
+  if (!Number.isFinite(stageScale) || stageScale <= 0) return 0;
+
   const level = Math.floor(maxLevel + Math.log2(stageScale));
-  // Always render at max level so the viewport is never blurry
-  const minLevel = Math.max(0, maxLevel);
-  return Math.max(minLevel, Math.min(level, maxLevel));
+  return Math.max(0, Math.min(level, maxLevel));
 }
 
 // ── Canvas Utilities (OffscreenCanvas with fallback) ──

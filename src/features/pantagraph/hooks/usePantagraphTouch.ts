@@ -1,43 +1,44 @@
-import { useRef, useCallback, useLayoutEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, type RefObject } from 'react';
 import type Konva from 'konva';
 import { useShallow } from 'zustand/shallow';
 import { usePantagraphStore } from '../store/usePantagraphStore';
 import { clamp } from '@/lib/utils';
 
-type ClientXY = { clientX: number; clientY: number };
-
-const getDistance = (p1: ClientXY, p2: ClientXY) =>
-  Math.hypot(p2.clientX - p1.clientX, p2.clientY - p1.clientY);
-
-const getMidpoint = (p1: ClientXY, p2: ClientXY) => ({
-  x: (p1.clientX + p2.clientX) / 2,
-  y: (p1.clientY + p2.clientY) / 2,
-});
+type ClientPoint = { x: number; y: number };
+type TouchPoint = { clientX: number; clientY: number };
 
 const STAGE_MIN_ZOOM = 0.01;
 const STAGE_MAX_ZOOM = 10;
 
-export const usePantagraphTouch = () => {
-  const isPinchingRef = useRef<boolean>(false);
-  const lastPinchDistRef = useRef<number>(0);
+const getDistance = (first: TouchPoint, second: TouchPoint) =>
+  Math.hypot(second.clientX - first.clientX, second.clientY - first.clientY);
+
+const getMidpoint = (first: TouchPoint, second: TouchPoint): ClientPoint => ({
+  x: (first.clientX + second.clientX) / 2,
+  y: (first.clientY + second.clientY) / 2,
+});
+
+export const usePantagraphTouch = (
+  stageRef: RefObject<Konva.Stage | null>,
+) => {
+  const isPinchingRef = useRef(false);
+  const blockTapRef = useRef(false);
+  const resetTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pinchRafRef = useRef(0);
+  const latestPinchRef = useRef<{ distance: number; center: ClientPoint } | null>(null);
   const pinchStartRef = useRef({
     distance: 0,
     scale: 1,
     mousePointTo: { x: 0, y: 0 },
+    stageRect: null as DOMRect | null,
   });
 
-  const {
-    stageScale,
-    stagePos,
-    setStageScale,
-    setStagePos,
-  } = usePantagraphStore(
-    useShallow((s) => ({
-      stageScale: s.stageScale,
-      stagePos: s.stagePos,
-      setStageScale: s.setStageScale,
-      setStagePos: s.setStagePos,
-    }))
+  const { stageScale, stagePos, setStageViewport } = usePantagraphStore(
+    useShallow((state) => ({
+      stageScale: state.stageScale,
+      stagePos: state.stagePos,
+      setStageViewport: state.setStageViewport,
+    })),
   );
 
   const stageScaleRef = useRef(stageScale);
@@ -46,104 +47,101 @@ export const usePantagraphTouch = () => {
   useLayoutEffect(() => {
     stageScaleRef.current = stageScale;
     stagePosRef.current = stagePos;
-  });
+  }, [stageScale, stagePos]);
 
-
+  useEffect(() => () => {
+    if (pinchRafRef.current) cancelAnimationFrame(pinchRafRef.current);
+    if (resetTapTimerRef.current) clearTimeout(resetTapTimerRef.current);
+  }, []);
 
   const onTouchStart = useCallback(
-    (e: Konva.KonvaEventObject<TouchEvent>) => {
-      const touches = e.evt.touches;
-      if (touches && touches.length >= 2) {
-        isPinchingRef.current = true;
-        const d = getDistance(touches[0], touches[1]);
-        lastPinchDistRef.current = d;
-        const centerClient = getMidpoint(touches[0], touches[1]);
-        const stage = document.querySelector('.konvajs-content')?.parentElement;
-        let mousePointTo = { x: 0, y: 0 };
-        
-        if (stage) {
-          const rect = stage.getBoundingClientRect();
-          const pointerX = centerClient.x - rect.left;
-          const pointerY = centerClient.y - rect.top;
-          mousePointTo = {
-            x: (pointerX - stagePosRef.current.x) / stageScaleRef.current,
-            y: (pointerY - stagePosRef.current.y) / stageScaleRef.current,
-          };
-        }
-
-        pinchStartRef.current = {
-          distance: d,
-          scale: stageScaleRef.current,
-          mousePointTo,
-        };
+    (event: Konva.KonvaEventObject<TouchEvent>) => {
+      const touches = event.evt.touches;
+      if (touches.length < 2) {
+        if (!isPinchingRef.current) blockTapRef.current = false;
+        return;
       }
-    },
-    []
-  );
 
-  const pinchRafRef = useRef<number>(0);
+      event.evt.preventDefault();
+      isPinchingRef.current = true;
+      blockTapRef.current = true;
+      if (resetTapTimerRef.current) clearTimeout(resetTapTimerRef.current);
+
+      const distance = getDistance(touches[0], touches[1]);
+      const center = getMidpoint(touches[0], touches[1]);
+      const stageRect = stageRef.current?.container().getBoundingClientRect() ?? null;
+      const pointerX = stageRect ? center.x - stageRect.left : 0;
+      const pointerY = stageRect ? center.y - stageRect.top : 0;
+
+      pinchStartRef.current = {
+        distance,
+        scale: stageScaleRef.current,
+        mousePointTo: {
+          x: (pointerX - stagePosRef.current.x) / stageScaleRef.current,
+          y: (pointerY - stagePosRef.current.y) / stageScaleRef.current,
+        },
+        stageRect,
+      };
+      latestPinchRef.current = { distance, center };
+    },
+    [stageRef],
+  );
 
   const onTouchMove = useCallback(
-    (e: Konva.KonvaEventObject<TouchEvent>) => {
-      const touches = e.evt.touches;
-      // Prevent default to stop pull-to-refresh on mobile if possible, but Konva handles it mostly
-      if (e.evt.cancelable) {
-        e.evt.preventDefault();
-      }
-      
-      if (isPinchingRef.current && touches && touches.length >= 2) {
-        const newDist = getDistance(touches[0], touches[1]);
+    (event: Konva.KonvaEventObject<TouchEvent>) => {
+      if (event.evt.cancelable) event.evt.preventDefault();
+      const touches = event.evt.touches;
+      if (!isPinchingRef.current || touches.length < 2) return;
+
+      latestPinchRef.current = {
+        distance: getDistance(touches[0], touches[1]),
+        center: getMidpoint(touches[0], touches[1]),
+      };
+      if (pinchRafRef.current) return;
+
+      pinchRafRef.current = requestAnimationFrame(() => {
+        pinchRafRef.current = 0;
+        const latest = latestPinchRef.current;
         const start = pinchStartRef.current;
-        const delta = Math.abs(newDist - (lastPinchDistRef.current || 0));
-        if (delta < 0.5) return;
-        
-        if (!pinchRafRef.current) {
-          pinchRafRef.current = requestAnimationFrame(() => {
-            pinchRafRef.current = 0;
-            if (start && start.distance > 0) {
-              const rawScale = start.scale * (newDist / start.distance);
-              const clamped = clamp(rawScale, STAGE_MIN_ZOOM, STAGE_MAX_ZOOM);
-              const centerClient = getMidpoint(touches[0], touches[1]);
-              const stage = document.querySelector('.konvajs-content')?.parentElement;
-              if (stage) {
-                const rect = stage.getBoundingClientRect();
-                const pointerX = centerClient.x - rect.left;
-                const pointerY = centerClient.y - rect.top;
-                
-                setStageScale(clamped);
-                setStagePos({
-                  x: pointerX - start.mousePointTo.x * clamped,
-                  y: pointerY - start.mousePointTo.y * clamped,
-                });
-              }
-            }
-            lastPinchDistRef.current = newDist;
-          });
-        }
-      }
+        if (!latest || start.distance <= 0 || !start.stageRect) return;
+
+        const scale = clamp(
+          start.scale * (latest.distance / start.distance),
+          STAGE_MIN_ZOOM,
+          STAGE_MAX_ZOOM,
+        );
+        const pointerX = latest.center.x - start.stageRect.left;
+        const pointerY = latest.center.y - start.stageRect.top;
+        setStageViewport(scale, {
+          x: pointerX - start.mousePointTo.x * scale,
+          y: pointerY - start.mousePointTo.y * scale,
+        });
+      });
     },
-    [setStageScale, setStagePos]
+    [setStageViewport],
   );
 
-  const onTouchEnd = useCallback(
-    (e: Konva.KonvaEventObject<TouchEvent>) => {
-      const touches = e.evt.touches;
-      if (!touches || touches.length < 2) {
-        isPinchingRef.current = false;
-        lastPinchDistRef.current = 0;
-        pinchStartRef.current = {
-          distance: 0,
-          scale: stageScaleRef.current,
-          mousePointTo: { x: 0, y: 0 },
-        };
-      }
-    },
-    []
-  );
+  const onTouchEnd = useCallback((event: Konva.KonvaEventObject<TouchEvent>) => {
+    if (event.evt.touches.length >= 2) return;
 
-  return {
-    onTouchStart,
-    onTouchMove,
-    onTouchEnd,
-  };
+    const wasPinching = isPinchingRef.current;
+    isPinchingRef.current = false;
+    latestPinchRef.current = null;
+    pinchStartRef.current = {
+      distance: 0,
+      scale: stageScaleRef.current,
+      mousePointTo: { x: 0, y: 0 },
+      stageRect: null,
+    };
+
+    if (wasPinching) {
+      if (resetTapTimerRef.current) clearTimeout(resetTapTimerRef.current);
+      resetTapTimerRef.current = setTimeout(() => {
+        blockTapRef.current = false;
+        resetTapTimerRef.current = null;
+      }, 250);
+    }
+  }, []);
+
+  return { onTouchStart, onTouchMove, onTouchEnd, blockTapRef };
 };
