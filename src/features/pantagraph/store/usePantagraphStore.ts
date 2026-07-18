@@ -96,6 +96,11 @@ export interface PantagraphActions {
   // Image actions
   setFormerMap: (img: HTMLImageElement | null) => void;
   setCurrentMap: (img: HTMLImageElement | null) => void;
+  applyCroppedMap: (
+    target: 'former' | 'current',
+    img: HTMLImageElement,
+    crop: { x: number; y: number; width: number; height: number },
+  ) => void;
   setActiveMap: (map: 'former' | 'current') => void;
   setCanvasBg: (bg: CanvasBg) => void;
   toggleFormerBgRemoval: () => Promise<void>;
@@ -391,6 +396,70 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => {
       currentMapClean: currentMap,
       currentBgRemoved: false,
       isRemovingCurrentBg: false,
+    });
+  },
+  applyCroppedMap: (target, img, crop) => {
+    invalidateMapProcessing(target);
+    set((state) => {
+      const rad = ((target === 'former' ? state.formerRotation : state.currentRotation) * Math.PI) / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      const scaleX = target === 'former' ? state.formerScaleX : 1;
+      const scaleY = target === 'former' ? state.formerScaleY : 1;
+      const skewX = target === 'former' ? state.formerSkewX : 0;
+      const skewY = target === 'former' ? state.formerSkewY : 0;
+      const transformedX = scaleX * crop.x + skewX * crop.y;
+      const transformedY = skewY * crop.x + scaleY * crop.y;
+      const offset = {
+        x: transformedX * cos - transformedY * sin,
+        y: transformedX * sin + transformedY * cos,
+      };
+      const adjustPoint = (point: { x: number; y: number } | null) => {
+        if (!point) return null;
+        if (
+          point.x < crop.x || point.y < crop.y ||
+          point.x > crop.x + crop.width || point.y > crop.y + crop.height
+        ) return null;
+        return { x: point.x - crop.x, y: point.y - crop.y };
+      };
+      const matchPoints = state.matchPoints.flatMap((point) => {
+        if (target === 'former') {
+          const former = adjustPoint(point.former);
+          return former ? [{ ...point, former }] : [];
+        }
+        const current = adjustPoint(point.current);
+        return current ? [{ ...point, current }] : [];
+      });
+
+      if (target === 'former') {
+        return {
+          formerMap: img,
+          formerMapOriginal: img,
+          formerMapClean: img,
+          formerBgRemoved: false,
+          isRemovingFormerBg: false,
+          formerPosition: {
+            x: state.formerPosition.x + offset.x,
+            y: state.formerPosition.y + offset.y,
+          },
+          matchPoints,
+          redoStack: [],
+        };
+      }
+
+      return {
+        currentMap: img,
+        currentMapOriginal: img,
+        currentMapClean: img,
+        currentBgRemoved: false,
+        isRemovingCurrentBg: false,
+        currentPosition: {
+          x: state.currentPosition.x + offset.x,
+          y: state.currentPosition.y + offset.y,
+        },
+        matchPoints,
+        redoStack: [],
+      };
     });
   },
   setActiveMap: (activeMap) => set({ activeMap }),

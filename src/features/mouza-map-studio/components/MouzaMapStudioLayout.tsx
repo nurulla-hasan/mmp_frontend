@@ -9,7 +9,11 @@ import TracerLayout from '@/features/tracer/components/TracerLayout';
 import { usePantagraphStore } from '@/features/pantagraph/store/usePantagraphStore';
 import { useTracerStore } from '@/features/tracer/store/useTracerStore';
 import { cn, ErrorToast, SuccessToast } from '@/lib/utils';
-import { useMouzaMapStudioStore, type StudioStep } from '../store/useMouzaMapStudioStore';
+import {
+  useMouzaMapStudioStore,
+  type StudioCompositeMeta,
+  type StudioStep,
+} from '../store/useMouzaMapStudioStore';
 import { createStudioComposite } from '../utils/createStudioComposite';
 import StudioMeasurementLayout from './StudioMeasurementLayout';
 import StudioSheetLayout from './StudioSheetLayout';
@@ -25,6 +29,20 @@ const steps: Array<{
   { id: 'measure', label: 'পরিমাপ', icon: Ruler, available: true },
   { id: 'layout', label: 'শিট তৈরি', icon: Sheet, available: true },
 ];
+
+const hasSameCompositeGeometry = (
+  previous: StudioCompositeMeta | null,
+  next: StudioCompositeMeta,
+) => Boolean(
+  previous &&
+  previous.width === next.width &&
+  previous.height === next.height &&
+  previous.outputScale === next.outputScale &&
+  previous.bounds.minX === next.bounds.minX &&
+  previous.bounds.minY === next.bounds.minY &&
+  previous.bounds.maxX === next.bounds.maxX &&
+  previous.bounds.maxY === next.bounds.maxY
+);
 
 export default function MouzaMapStudioLayout() {
   const [isPreparing, setIsPreparing] = useState(false);
@@ -55,20 +73,24 @@ export default function MouzaMapStudioLayout() {
       ErrorToast('Alignment ঠিক করে map দুটিকে আগে lock করুন');
       return;
     }
-    if (polygonCount > 0) {
-      const shouldReplace = window.confirm(
-        'Alignment আবার তৈরি করলে বর্তমান tracing মুছে যাবে। চালিয়ে যাবেন?',
-      );
-      if (!shouldReplace) return;
-    }
-
     setIsPreparing(true);
     try {
       const composite = await createStudioComposite(usePantagraphStore.getState());
-      if (polygonCount > 0) useTracerStore.getState().reset();
+      const geometryChanged = !hasSameCompositeGeometry(compositeMeta, composite.meta);
+
+      if (polygonCount > 0 && geometryChanged) {
+        const shouldReplace = window.confirm(
+          'Crop বা alignment বদলেছে। নতুন map বসালে বর্তমান tracing মুছে যাবে। চালিয়ে যাবেন?',
+        );
+        if (!shouldReplace) return;
+        useTracerStore.getState().reset();
+      }
+
       useTracerStore.getState().setBackground(composite.image);
-      setCalibration(null);
-      clearDimensions();
+      if (geometryChanged) {
+        setCalibration(null);
+        clearDimensions();
+      }
       setCompositeMeta(composite.meta);
       setStep(targetStep);
       SuccessToast('Aligned map tracing-এর জন্য প্রস্তুত');
@@ -84,7 +106,7 @@ export default function MouzaMapStudioLayout() {
       ErrorToast('শিট তৈরি করার আগে অন্তত একটি plot trace করুন');
       return;
     }
-    if (nextStep !== 'align' && (!compositeMeta || !tracerBackground)) {
+    if (nextStep !== 'align' && (step === 'align' || !compositeMeta || !tracerBackground)) {
       void prepareTracing(nextStep);
       return;
     }
