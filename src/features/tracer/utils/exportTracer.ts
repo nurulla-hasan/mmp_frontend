@@ -1,4 +1,4 @@
-import { centroid, type TracerLayer } from '../store/useTracerStore';
+import type { TracerLayer } from '../store/useTracerStore';
 
 const TARGET_EXPORT_DIMENSION = 3000;
 const MAX_EXPORT_DIMENSION = 4000;
@@ -42,21 +42,20 @@ function drawLayersOnCanvas(
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    for (const poly of layer.polygons) {
-      if (poly.points.length < 2) continue;
+    for (const path of layer.polygons) {
+      if (path.points.length < 2) continue;
 
       ctx.beginPath();
-      ctx.moveTo(poly.points[0].x, poly.points[0].y);
-      for (let i = 1; i < poly.points.length; i++) ctx.lineTo(poly.points[i].x, poly.points[i].y);
-      ctx.closePath();
-      ctx.stroke();
-
-      if (poly.label) {
-        const c = poly.labelX != null && poly.labelY != null
-          ? { x: poly.labelX, y: poly.labelY }
-          : centroid(poly.points);
-        ctx.fillText(poly.label, c.x, c.y);
+      ctx.moveTo(path.points[0].x, path.points[0].y);
+      for (let i = 1; i < path.points.length; i++) {
+        ctx.lineTo(path.points[i].x, path.points[i].y);
       }
+      ctx.stroke();
+    }
+
+    for (const label of layer.labels) {
+      if (!label.text.trim()) continue;
+      ctx.fillText(label.text, label.x, label.y);
     }
   }
 
@@ -70,15 +69,15 @@ function buildCanvas(
 ): HTMLCanvasElement | null {
   const targetLayers = which === 'all' ? layers : layers.filter(l => l.id === which);
 
-  // 1. Find bounding box of all polygons
+  // 1. Find the bounding box of all paths and free labels
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  let hasPolygons = false;
+  let hasDrawing = false;
 
   for (const layer of targetLayers) {
     if (!layer.visible) continue;
     for (const poly of layer.polygons) {
       if (poly.points.length < 2) continue;
-      hasPolygons = true;
+      hasDrawing = true;
       for (const pt of poly.points) {
         if (pt.x < minX) minX = pt.x;
         if (pt.x > maxX) maxX = pt.x;
@@ -86,9 +85,17 @@ function buildCanvas(
         if (pt.y > maxY) maxY = pt.y;
       }
     }
+    for (const label of layer.labels) {
+      if (!label.text.trim()) continue;
+      hasDrawing = true;
+      if (label.x < minX) minX = label.x;
+      if (label.x > maxX) maxX = label.x;
+      if (label.y < minY) minY = label.y;
+      if (label.y > maxY) maxY = label.y;
+    }
   }
 
-  if (!hasPolygons) return null;
+  if (!hasDrawing) return null;
 
   // 2. Add padding around the drawing
   const padding = 60;

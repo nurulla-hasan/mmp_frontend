@@ -251,12 +251,14 @@ export default function StudioMeasurementLayout() {
           <CompletedPolygons
             layers={renderLayers}
             selectedPolygonId={null}
+            selectedLabelId={null}
             selectedLayerId={null}
             mode="polygon"
             stageScale={stageScale}
             selectPolygon={ignoreSelection}
-            editPolygonLabel={ignoreLabelEdit}
-            setPolygonLabelPosition={ignoreLabelMove}
+            selectLabel={ignoreSelection}
+            editLabel={ignoreLabelEdit}
+            setLabelPosition={ignoreLabelMove}
           />
 
           {dimensions.map((dimension) => {

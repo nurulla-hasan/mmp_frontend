@@ -4,14 +4,14 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { Download, FileText, ImageDown, Loader2 } from 'lucide-react';
 
-import { centroid, useTracerStore } from '@/features/tracer/store/useTracerStore';
+import { useTracerStore } from '@/features/tracer/store/useTracerStore';
 import { ErrorToast, SuccessToast } from '@/lib/utils';
 import {
   useMouzaMapStudioStore,
   type StudioSheetDetails,
   type StudioSheetMode,
 } from '../store/useMouzaMapStudioStore';
-import { formatArea, formatDistance, getPolygonBounds, pointDistance, polygonPixelArea } from '../utils/measurement';
+import { getPolygonBounds } from '../utils/measurement';
 
 type ExportFormat = 'png' | 'pdf';
 
@@ -51,8 +51,6 @@ export default function StudioSheetLayout() {
   const backgroundImage = useTracerStore((state) => state.backgroundImage);
   const layers = useTracerStore((state) => state.layers);
   const {
-    calibration,
-    dimensions,
     sheetMode,
     sheetDetails,
     setSheetMode,
@@ -77,14 +75,20 @@ export default function StudioSheetLayout() {
     const polygonBounds = getPolygonBounds(polygons);
     const width = backgroundImage?.naturalWidth || backgroundImage?.width || 1200;
     const height = backgroundImage?.naturalHeight || backgroundImage?.height || 800;
-    if (!polygonBounds) return { minX: 0, minY: 0, maxX: width, maxY: height };
+    const labels = targetLayers.flatMap((layer) => layer.labels);
+    if (!polygonBounds && labels.length === 0) {
+      return { minX: 0, minY: 0, maxX: width, maxY: height };
+    }
 
-    let { minX, minY, maxX, maxY } = polygonBounds;
-    for (const dimension of dimensions) {
-      minX = Math.min(minX, dimension.start.x, dimension.end.x);
-      minY = Math.min(minY, dimension.start.y, dimension.end.y);
-      maxX = Math.max(maxX, dimension.start.x, dimension.end.x);
-      maxY = Math.max(maxY, dimension.start.y, dimension.end.y);
+    let minX = polygonBounds?.minX ?? labels[0].x;
+    let minY = polygonBounds?.minY ?? labels[0].y;
+    let maxX = polygonBounds?.maxX ?? labels[0].x;
+    let maxY = polygonBounds?.maxY ?? labels[0].y;
+    for (const label of labels) {
+      minX = Math.min(minX, label.x);
+      minY = Math.min(minY, label.y);
+      maxX = Math.max(maxX, label.x);
+      maxY = Math.max(maxY, label.y);
     }
     const padding = Math.max(40, Math.max(maxX - minX, maxY - minY) * 0.05);
     return {
@@ -93,21 +97,20 @@ export default function StudioSheetLayout() {
       maxX: maxX + padding,
       maxY: maxY + padding,
     };
-  }, [polygons, dimensions, backgroundImage]);
+  }, [polygons, targetLayers, backgroundImage]);
 
   const viewWidth = Math.max(1, mapBounds.maxX - mapBounds.minX);
   const viewHeight = Math.max(1, mapBounds.maxY - mapBounds.minY);
   const mapFontSize = Math.max(7, Math.max(viewWidth, viewHeight) / 90);
 
-  const plotAreas = useMemo(() => {
-    if (!calibration) return [];
-    return targetLayers.flatMap((layer) => layer.polygons.map((polygon, index) => ({
-      id: polygon.id,
-      label: polygon.label || `Plot ${index + 1}`,
-      color: layer.color,
-      area: polygonPixelArea(polygon.points) * calibration.unitsPerPixel ** 2,
-    })));
-  }, [targetLayers, calibration]);
+  const dagLabels = useMemo(
+    () => targetLayers.flatMap((layer) =>
+      layer.labels
+        .filter((label) => label.text.trim())
+        .map((label) => ({ ...label, color: layer.color })),
+    ),
+    [targetLayers],
+  );
 
   useEffect(() => {
     if (!backgroundImage) return;
@@ -135,22 +138,23 @@ export default function StudioSheetLayout() {
   };
 
   const exportSheet = async (format: ExportFormat) => {
-    if (polygons.length === 0) {
-      ErrorToast('Sheet export করার আগে plot trace করুন');
+    if (polygons.length === 0 && dagLabels.length === 0) {
+      ErrorToast('Sheet export করার আগে boundary trace করুন');
       return;
     }
 
     setExporting(format);
     try {
-      const layerMarkup = targetLayers.flatMap((layer) => layer.polygons.map((polygon) => {
-        const center = polygon.labelX != null && polygon.labelY != null
-          ? { x: polygon.labelX, y: polygon.labelY }
-          : centroid(polygon.points);
-        const label = polygon.label
-          ? `<text x="${center.x}" y="${center.y}" fill="${escapeXml(layer.color)}" font-size="${mapFontSize}" font-weight="700" text-anchor="middle" dominant-baseline="middle">${escapeXml(polygon.label)}</text>`
-          : '';
-        return `<g><polygon points="${polygon.points.map((point) => `${point.x},${point.y}`).join(' ')}" fill="none" stroke="${escapeXml(layer.color)}" stroke-width="${layer.lineWidth}" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>${label}</g>`;
-      })).join('');
+      const layerMarkup = targetLayers.flatMap((layer) => [
+        ...layer.polygons.map((path) =>
+          `<polyline points="${path.points.map((point) => `${point.x},${point.y}`).join(' ')}" fill="none" stroke="${escapeXml(layer.color)}" stroke-width="${layer.lineWidth}" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`,
+        ),
+        ...layer.labels
+          .filter((label) => label.text.trim())
+          .map((label) =>
+            `<text x="${label.x}" y="${label.y}" fill="${escapeXml(layer.color)}" font-size="${mapFontSize}" font-weight="700" text-anchor="middle" dominant-baseline="middle">${escapeXml(label.text)}</text>`,
+          ),
+      ]).join('');
 
       const details: Array<[string, string]> = [
         ['LAND OWNER', sheetDetails.ownerName],
@@ -329,71 +333,36 @@ export default function StudioSheetLayout() {
                   className="h-full w-full"
                   preserveAspectRatio="xMidYMin meet"
                 >
-                  {targetLayers.map((layer) => layer.polygons.map((polygon) => {
-                    const center = polygon.labelX != null && polygon.labelY != null
-                      ? { x: polygon.labelX, y: polygon.labelY }
-                      : centroid(polygon.points);
-                    return (
-                      <g key={polygon.id}>
-                        <polygon
-                          points={polygon.points.map((point) => `${point.x},${point.y}`).join(' ')}
+                  {targetLayers.map((layer) => (
+                    <g key={layer.id}>
+                      {layer.polygons.map((path) => (
+                        <polyline
+                          key={path.id}
+                          points={path.points.map((point) => `${point.x},${point.y}`).join(' ')}
                           fill="none"
                           stroke={layer.color}
                           strokeWidth={layer.lineWidth}
+                          strokeLinecap="round"
                           strokeLinejoin="round"
                           vectorEffect="non-scaling-stroke"
                         />
-                        {polygon.label && (
-                          <text
-                            x={center.x}
-                            y={center.y}
+                      ))}
+                      {layer.labels.filter((label) => label.text.trim()).map((label) => (
+                        <text
+                            key={label.id}
+                            x={label.x}
+                            y={label.y}
                             fill={layer.color}
                             fontSize={mapFontSize}
                             fontWeight="700"
                             textAnchor="middle"
                             dominantBaseline="middle"
                           >
-                            {polygon.label}
+                            {label.text}
                           </text>
-                        )}
-                      </g>
-                    );
-                  }))}
-
-                  {dimensions.map((dimension) => {
-                    const center = {
-                      x: (dimension.start.x + dimension.end.x) / 2,
-                      y: (dimension.start.y + dimension.end.y) / 2,
-                    };
-                    return (
-                      <g key={dimension.id}>
-                        <line
-                          x1={dimension.start.x}
-                          y1={dimension.start.y}
-                          x2={dimension.end.x}
-                          y2={dimension.end.y}
-                          stroke="#0284C7"
-                          strokeWidth={Math.max(1.2, viewWidth / 1100)}
-                          strokeDasharray={`${viewWidth / 180} ${viewWidth / 260}`}
-                          vectorEffect="non-scaling-stroke"
-                        />
-                        {calibration && (
-                          <text
-                            x={center.x}
-                            y={center.y}
-                            fill="#0369A1"
-                            fontSize={mapFontSize * 0.8}
-                            fontWeight="700"
-                            textAnchor="middle"
-                            dominantBaseline="auto"
-                            style={{ paintOrder: 'stroke', stroke: '#ffffff', strokeWidth: mapFontSize * 0.18 }}
-                          >
-                            {formatDistance(pointDistance(dimension.start, dimension.end) * calibration.unitsPerPixel, calibration.unit)}
-                          </text>
-                        )}
-                      </g>
-                    );
-                  })}
+                      ))}
+                    </g>
+                  ))}
                 </svg>
               </div>
 
@@ -432,15 +401,16 @@ export default function StudioSheetLayout() {
               </div>
 
               <div className="mt-4 min-h-0 flex-1 overflow-hidden">
-                <h3 className="border-b border-black pb-1 text-[11px] font-bold">DAG / PLOT AREA</h3>
+                <h3 className="border-b border-black pb-1 text-[11px] font-bold">DAG NO</h3>
                 <div className="mt-1 space-y-0.5 text-[10px]">
-                  {plotAreas.slice(0, 14).map((plot) => (
-                    <div key={plot.id} className="flex justify-between gap-2">
-                      <span style={{ color: plot.color }}>{plot.label}</span>
-                      <span>{calibration && formatArea(plot.area, calibration.unit)}</span>
+                  {dagLabels.slice(0, 24).map((label) => (
+                    <div key={label.id} style={{ color: label.color }}>
+                      {label.text}
                     </div>
                   ))}
-                  {!calibration && <p className="text-gray-500">Scale সেট করলে area দেখা যাবে</p>}
+                  {dagLabels.length === 0 && (
+                    <p className="text-gray-500">Tracer থেকে দাগ নম্বর বসান</p>
+                  )}
                 </div>
               </div>
 

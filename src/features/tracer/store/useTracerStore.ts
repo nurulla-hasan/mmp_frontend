@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { routeAlongPolygon } from '../utils/routing';
 import { useShallow } from 'zustand/shallow';
 
 export type Point = { x: number; y: number };
@@ -7,9 +6,17 @@ export type Point = { x: number; y: number };
 export type TracerPolygon = {
   id: string;
   points: Point[];
-  label: string;
+  /** Legacy fields kept optional so existing in-memory drawings remain readable. */
+  label?: string;
   labelX?: number;
   labelY?: number;
+};
+
+export type TracerLabel = {
+  id: string;
+  text: string;
+  x: number;
+  y: number;
 };
 
 export type TracerLayer = {
@@ -18,26 +25,26 @@ export type TracerLayer = {
   color: string;
   lineWidth: number;
   visible: boolean;
+  /** Open boundary paths. The field name is retained for backwards compatibility. */
   polygons: TracerPolygon[];
+  labels: TracerLabel[];
 };
 
-export type TracerMode = 'select' | 'polygon';
+export type TracerMode = 'select' | 'polygon' | 'label';
 
-// ── Initial-state cloning ──
 function cloneLayers(layers: TracerLayer[]): TracerLayer[] {
-  return layers.map(l => ({
-    ...l,
-    polygons: l.polygons.map(p => ({ ...p, points: p.points.map(pt => ({ ...pt })) })),
+  return layers.map(layer => ({
+    ...layer,
+    polygons: layer.polygons.map(path => ({
+      ...path,
+      points: path.points.map(point => ({ ...point })),
+    })),
+    labels: layer.labels.map(label => ({ ...label })),
   }));
 }
 
 const MAX_HISTORY_ENTRIES = 100;
 
-/**
- * Store immutable layer snapshots with structural sharing. Every editing
- * action below replaces changed arrays/objects instead of mutating them, so a
- * deep clone per history entry only wastes CPU and multiplies point memory.
- */
 function appendHistory(
   history: TracerLayer[][],
   layers: TracerLayer[],
@@ -45,52 +52,73 @@ function appendHistory(
   return [...history.slice(-(MAX_HISTORY_ENTRIES - 1)), layers];
 }
 
-/** Compute the centroid (center) of a polygon */
+/** Average point, retained for consumers that still need a path center. */
 export function centroid(points: Point[]): Point {
   if (!points.length) return { x: 0, y: 0 };
-  const s = points.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 });
-  return { x: s.x / points.length, y: s.y / points.length };
+
+  const sum = points.reduce(
+    (result, point) => ({
+      x: result.x + point.x,
+      y: result.y + point.y,
+    }),
+    { x: 0, y: 0 },
+  );
+
+  return { x: sum.x / points.length, y: sum.y / points.length };
 }
 
 const DEFAULT_LAYERS: TracerLayer[] = [
-  { id: 'cs', name: 'C.S ম্যাপ', color: '#DC2626', lineWidth: 3, visible: true, polygons: [] },
-  { id: 'bs', name: 'B.S ম্যাপ', color: '#16A34A', lineWidth: 3, visible: true, polygons: [] },
+  {
+    id: 'cs',
+    name: 'C.S ম্যাপ',
+    color: '#DC2626',
+    lineWidth: 3,
+    visible: true,
+    polygons: [],
+    labels: [],
+  },
+  {
+    id: 'bs',
+    name: 'B.S ম্যাপ',
+    color: '#16A34A',
+    lineWidth: 3,
+    visible: true,
+    polygons: [],
+    labels: [],
+  },
 ];
 
 const EXTRA_COLORS = ['#2563EB', '#D97706', '#7C3AED', '#0891B2', '#BE185D'];
-let _polyId = 0;
-let _layerCount = 0;
+let pathId = 0;
+let labelId = 0;
+let layerCount = 0;
 
 export interface TracerStore {
-  // Background
   backgroundImage: HTMLImageElement | null;
   imageLoading: boolean;
 
-  // Layers & drawing
   layers: TracerLayer[];
   activeLayerId: string;
   mode: TracerMode;
   pendingPoints: Point[];
   pendingRedoPoints: Point[];
 
-  // Selection
   selectedPolygonId: string | null;
+  selectedLabelId: string | null;
   selectedLayerId: string | null;
 
-  // Undo / redo
   past: TracerLayer[][];
   future: TracerLayer[][];
 
-  // ── Actions ──
   setBackground(img: HTMLImageElement | null): void;
-  setImageLoading(v: boolean): void;
+  setImageLoading(value: boolean): void;
 
   addLayer(): void;
   removeLayer(id: string): void;
   setActiveLayer(id: string): void;
   toggleLayerVisibility(id: string): void;
   setLayerColor(id: string, color: string): void;
-  setLayerLineWidth(id: string, w: number): void;
+  setLayerLineWidth(id: string, width: number): void;
   renameLayer(id: string, name: string): void;
 
   addPendingPoints(points: Point[]): void;
@@ -101,8 +129,12 @@ export interface TracerStore {
 
   deletePolygon(layerId: string, polygonId: string): void;
   selectPolygon(layerId: string | null, polygonId: string | null): void;
-  setPolygonLabel(layerId: string, polygonId: string, label: string): void;
-  setPolygonLabelPosition(layerId: string, polygonId: string, x: number, y: number): void;
+
+  addLabel(x: number, y: number): string;
+  deleteLabel(layerId: string, labelId: string): void;
+  selectLabel(layerId: string | null, labelId: string | null): void;
+  setLabelText(layerId: string, labelId: string, text: string): void;
+  setLabelPosition(layerId: string, labelId: string, x: number, y: number): void;
 
   setMode(mode: TracerMode): void;
   undo(): void;
@@ -116,197 +148,324 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
 
   layers: cloneLayers(DEFAULT_LAYERS),
   activeLayerId: 'cs',
-
   mode: 'select',
   pendingPoints: [],
   pendingRedoPoints: [],
 
   selectedPolygonId: null,
+  selectedLabelId: null,
   selectedLayerId: null,
 
   past: [],
   future: [],
 
-  // ── Background ──────────────────────────────────────────────────────────────
-  setBackground: (backgroundImage) => set({ backgroundImage }),
-  setImageLoading: (imageLoading) => set({ imageLoading }),
+  setBackground: backgroundImage => set({ backgroundImage }),
+  setImageLoading: imageLoading => set({ imageLoading }),
 
-  // ── Layer management ─────────────────────────────────────────────────────────
   addLayer: () => {
-    _layerCount++;
+    layerCount += 1;
     const newLayer: TracerLayer = {
       id: `layer_${Date.now()}`,
-      name: `Layer ${_layerCount}`,
-      color: EXTRA_COLORS[(_layerCount - 1) % EXTRA_COLORS.length],
+      name: `Layer ${layerCount}`,
+      color: EXTRA_COLORS[(layerCount - 1) % EXTRA_COLORS.length],
       lineWidth: 3,
       visible: true,
       polygons: [],
+      labels: [],
     };
-    set(s => ({ layers: [...s.layers, newLayer], activeLayerId: newLayer.id }));
+
+    set(state => ({
+      layers: [...state.layers, newLayer],
+      activeLayerId: newLayer.id,
+      pendingPoints: [],
+      pendingRedoPoints: [],
+    }));
   },
 
-  removeLayer: (id) =>
-    set(s => {
-      const layers = s.layers.filter(l => l.id !== id);
-      return { layers, activeLayerId: s.activeLayerId === id ? (layers[0]?.id ?? 'cs') : s.activeLayerId };
+  removeLayer: id =>
+    set(state => {
+      const layers = state.layers.filter(layer => layer.id !== id);
+      return {
+        layers,
+        activeLayerId:
+          state.activeLayerId === id ? (layers[0]?.id ?? 'cs') : state.activeLayerId,
+        selectedLayerId: state.selectedLayerId === id ? null : state.selectedLayerId,
+        selectedPolygonId: state.selectedLayerId === id ? null : state.selectedPolygonId,
+        selectedLabelId: state.selectedLayerId === id ? null : state.selectedLabelId,
+      };
     }),
 
-  setActiveLayer: (id) => set({ activeLayerId: id, pendingPoints: [], pendingRedoPoints: [] }),
-  toggleLayerVisibility: (id) => set(s => ({ layers: s.layers.map(l => l.id === id ? { ...l, visible: !l.visible } : l) })),
-  setLayerColor: (id, color) => set(s => ({ layers: s.layers.map(l => l.id === id ? { ...l, color } : l) })),
-  setLayerLineWidth: (id, lineWidth) => set(s => ({ layers: s.layers.map(l => l.id === id ? { ...l, lineWidth } : l) })),
-  renameLayer: (id, name) => set(s => ({ layers: s.layers.map(l => l.id === id ? { ...l, name } : l) })),
+  setActiveLayer: id =>
+    set({
+      activeLayerId: id,
+      pendingPoints: [],
+      pendingRedoPoints: [],
+      selectedLayerId: null,
+      selectedPolygonId: null,
+      selectedLabelId: null,
+    }),
 
-  // ── Drawing ──────────────────────────────────────────────────────────────────
-  addPendingPoints: (points) => set(s => ({ pendingPoints: [...s.pendingPoints, ...points], pendingRedoPoints: [] })),
+  toggleLayerVisibility: id =>
+    set(state => ({
+      layers: state.layers.map(layer =>
+        layer.id === id ? { ...layer, visible: !layer.visible } : layer,
+      ),
+    })),
+
+  setLayerColor: (id, color) =>
+    set(state => ({
+      layers: state.layers.map(layer =>
+        layer.id === id ? { ...layer, color } : layer,
+      ),
+    })),
+
+  setLayerLineWidth: (id, lineWidth) =>
+    set(state => ({
+      layers: state.layers.map(layer =>
+        layer.id === id ? { ...layer, lineWidth } : layer,
+      ),
+    })),
+
+  renameLayer: (id, name) =>
+    set(state => ({
+      layers: state.layers.map(layer =>
+        layer.id === id ? { ...layer, name } : layer,
+      ),
+    })),
+
+  addPendingPoints: points =>
+    set(state => ({
+      pendingPoints: [...state.pendingPoints, ...points],
+      pendingRedoPoints: [],
+    })),
 
   undoPendingPoint: () => {
     const { pendingPoints } = get();
     if (!pendingPoints.length) return;
-    const last = pendingPoints[pendingPoints.length - 1];
-    set(s => ({
-      pendingPoints: s.pendingPoints.slice(0, -1),
-      pendingRedoPoints: [...s.pendingRedoPoints, last],
+
+    const lastPoint = pendingPoints[pendingPoints.length - 1];
+    set(state => ({
+      pendingPoints: state.pendingPoints.slice(0, -1),
+      pendingRedoPoints: [...state.pendingRedoPoints, lastPoint],
     }));
   },
 
   redoPendingPoint: () => {
     const { pendingRedoPoints } = get();
     if (!pendingRedoPoints.length) return;
-    const last = pendingRedoPoints[pendingRedoPoints.length - 1];
-    set(s => ({
-      pendingRedoPoints: s.pendingRedoPoints.slice(0, -1),
-      pendingPoints: [...s.pendingPoints, last],
+
+    const lastPoint = pendingRedoPoints[pendingRedoPoints.length - 1];
+    set(state => ({
+      pendingRedoPoints: state.pendingRedoPoints.slice(0, -1),
+      pendingPoints: [...state.pendingPoints, lastPoint],
     }));
   },
 
-
   commitPolygon: () => {
     const { pendingPoints, activeLayerId, layers, past } = get();
-    if (pendingPoints.length < 3) { set({ pendingPoints: [], pendingRedoPoints: [] }); return; }
 
-    const allPolyPoints = layers.flatMap(l => l.polygons.map(p => p.points));
-    const lastPoint = pendingPoints[pendingPoints.length - 1];
-    const firstPoint = pendingPoints[0];
-    
-    let routedPath: Point[] | null = null;
-    for (const poly of allPolyPoints) {
-      const path = routeAlongPolygon(lastPoint, firstPoint, poly);
-      if (path) {
-        routedPath = path;
-        break;
-      }
-    }
-    
-    const finalPoints = routedPath && routedPath.length > 0 
-      ? [...pendingPoints, ...routedPath]
-      : [...pendingPoints];
+    if (pendingPoints.length < 2) return;
 
-    const id = `poly_${++_polyId}`;
-    const c = centroid(finalPoints);
-    const polygon: TracerPolygon = { id, points: finalPoints, label: '', labelX: c.x, labelY: c.y };
+    const boundaryPath: TracerPolygon = {
+      id: `path_${++pathId}`,
+      points: pendingPoints.map(point => ({ ...point })),
+    };
+
     set({
       past: appendHistory(past, layers),
       future: [],
-      layers: layers.map(l => l.id === activeLayerId ? { ...l, polygons: [...l.polygons, polygon] } : l),
+      layers: layers.map(layer =>
+        layer.id === activeLayerId
+          ? { ...layer, polygons: [...layer.polygons, boundaryPath] }
+          : layer,
+      ),
       pendingPoints: [],
       pendingRedoPoints: [],
+      selectedLayerId: activeLayerId,
+      selectedPolygonId: boundaryPath.id,
+      selectedLabelId: null,
     });
   },
 
   cancelDrawing: () => set({ pendingPoints: [], pendingRedoPoints: [] }),
 
-  // ── Polygons ──────────────────────────────────────────────────────────────────
-
   deletePolygon: (layerId, polygonId) => {
     const { layers, past } = get();
+
     set({
       past: appendHistory(past, layers),
       future: [],
-      layers: layers.map(l => l.id === layerId ? { ...l, polygons: l.polygons.filter(p => p.id !== polygonId) } : l),
+      layers: layers.map(layer =>
+        layer.id === layerId
+          ? {
+              ...layer,
+              polygons: layer.polygons.filter(path => path.id !== polygonId),
+            }
+          : layer,
+      ),
       selectedPolygonId: null,
+      selectedLabelId: null,
       selectedLayerId: null,
     });
   },
 
-  selectPolygon: (selectedLayerId, selectedPolygonId) => set({ selectedLayerId, selectedPolygonId }),
+  selectPolygon: (selectedLayerId, selectedPolygonId) =>
+    set({
+      selectedLayerId,
+      selectedPolygonId,
+      selectedLabelId: null,
+    }),
 
-  setPolygonLabel: (layerId, polygonId, label) =>
-    set(s => ({
-      layers: s.layers.map(l =>
-        l.id === layerId
-          ? { ...l, polygons: l.polygons.map(p => (p.id === polygonId ? { ...p, label } : p)) }
-          : l,
+  addLabel: (x, y) => {
+    const { activeLayerId, layers, past } = get();
+    const id = `label_${++labelId}`;
+    const label: TracerLabel = { id, text: '', x, y };
+
+    set({
+      past: appendHistory(past, layers),
+      future: [],
+      layers: layers.map(layer =>
+        layer.id === activeLayerId
+          ? { ...layer, labels: [...layer.labels, label] }
+          : layer,
+      ),
+      selectedLayerId: activeLayerId,
+      selectedPolygonId: null,
+      selectedLabelId: id,
+    });
+
+    return id;
+  },
+
+  deleteLabel: (layerId, id) => {
+    const { layers, past } = get();
+
+    set({
+      past: appendHistory(past, layers),
+      future: [],
+      layers: layers.map(layer =>
+        layer.id === layerId
+          ? { ...layer, labels: layer.labels.filter(label => label.id !== id) }
+          : layer,
+      ),
+      selectedPolygonId: null,
+      selectedLabelId: null,
+      selectedLayerId: null,
+    });
+  },
+
+  selectLabel: (selectedLayerId, selectedLabelId) =>
+    set({
+      selectedLayerId,
+      selectedLabelId,
+      selectedPolygonId: null,
+    }),
+
+  setLabelText: (layerId, id, text) =>
+    set(state => ({
+      layers: state.layers.map(layer =>
+        layer.id === layerId
+          ? {
+              ...layer,
+              labels: layer.labels.map(label =>
+                label.id === id ? { ...label, text } : label,
+              ),
+            }
+          : layer,
       ),
     })),
 
-  setPolygonLabelPosition: (layerId, polygonId, x, y) =>
-    set(s => ({
-      layers: s.layers.map(l =>
-        l.id === layerId
-          ? { ...l, polygons: l.polygons.map(p => (p.id === polygonId ? { ...p, labelX: x, labelY: y } : p)) }
-          : l,
+  setLabelPosition: (layerId, id, x, y) =>
+    set(state => ({
+      layers: state.layers.map(layer =>
+        layer.id === layerId
+          ? {
+              ...layer,
+              labels: layer.labels.map(label =>
+                label.id === id ? { ...label, x, y } : label,
+              ),
+            }
+          : layer,
       ),
     })),
 
-  // ── Mode / History ───────────────────────────────────────────────────────────
-  setMode: (mode) =>
-    set({ mode, pendingPoints: [], pendingRedoPoints: [], selectedPolygonId: null, selectedLayerId: null }),
+  setMode: mode =>
+    set({
+      mode,
+      pendingPoints: [],
+      pendingRedoPoints: [],
+      selectedPolygonId: null,
+      selectedLabelId: null,
+      selectedLayerId: null,
+    }),
 
   undo: () => {
     const { past, layers, future } = get();
     if (!past.length) return;
-    
+
     const previous = past[past.length - 1];
     const newPast = past.slice(0, -1);
-    
-    // Check if the only difference is exactly one added polygon (i.e. a commit action)
-    let addedPolygon: TracerPolygon | null = null;
+
+    let addedPath: TracerPolygon | null = null;
     let addedLayerId: string | null = null;
-    
-    for (const currLayer of layers) {
-      const prevLayer = previous.find(l => l.id === currLayer.id);
-      if (prevLayer && currLayer.polygons.length === prevLayer.polygons.length + 1) {
-        addedPolygon = currLayer.polygons[currLayer.polygons.length - 1];
-        addedLayerId = currLayer.id;
+
+    for (const currentLayer of layers) {
+      const previousLayer = previous.find(layer => layer.id === currentLayer.id);
+      if (
+        previousLayer &&
+        currentLayer.polygons.length === previousLayer.polygons.length + 1 &&
+        currentLayer.labels.length === previousLayer.labels.length
+      ) {
+        addedPath = currentLayer.polygons[currentLayer.polygons.length - 1];
+        addedLayerId = currentLayer.id;
         break;
       }
     }
-    
-    if (addedPolygon) {
-      const points = [...addedPolygon.points];
+
+    if (addedPath && addedLayerId) {
+      const points = addedPath.points.map(point => ({ ...point }));
       const lastPoint = points.pop();
+
       set({
         past: newPast,
-        future: [], // Clear future as we are branching off history
+        future: [],
         layers: previous,
         selectedPolygonId: null,
+        selectedLabelId: null,
+        selectedLayerId: null,
         pendingPoints: points,
         pendingRedoPoints: lastPoint ? [lastPoint] : [],
         mode: 'polygon',
-        activeLayerId: addedLayerId!
+        activeLayerId: addedLayerId,
       });
       return;
     }
 
     set({
-      layers: previous, // It's already a clone in past
+      layers: previous,
       past: newPast,
       future: [layers, ...future].slice(0, MAX_HISTORY_ENTRIES),
       pendingPoints: [],
       pendingRedoPoints: [],
+      selectedPolygonId: null,
+      selectedLabelId: null,
+      selectedLayerId: null,
     });
   },
 
   redo: () => {
     const { past, layers, future } = get();
     if (!future.length) return;
+
     set({
       layers: future[0],
       past: appendHistory(past, layers),
       future: future.slice(1),
       pendingPoints: [],
       pendingRedoPoints: [],
+      selectedPolygonId: null,
+      selectedLabelId: null,
+      selectedLayerId: null,
     });
   },
 
@@ -320,13 +479,17 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
       pendingPoints: [],
       pendingRedoPoints: [],
       selectedPolygonId: null,
+      selectedLabelId: null,
       selectedLayerId: null,
       past: [],
       future: [],
     });
-    _polyId = 0;
-    _layerCount = 0;
+
+    pathId = 0;
+    labelId = 0;
+    layerCount = 0;
   },
 }));
 
 export { useShallow };
+

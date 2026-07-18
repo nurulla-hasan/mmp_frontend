@@ -163,7 +163,7 @@ export default function MouzaMapStudioLayout() {
 
   const openStep = (nextStep: StudioStep) => {
     if (nextStep === 'layout' && polygonCount === 0) {
-      ErrorToast('শিট তৈরি করার আগে অন্তত একটি plot trace করুন');
+      ErrorToast('শিট তৈরি করার আগে অন্তত একটি boundary line trace করুন');
       return;
     }
     if (nextStep !== 'align' && (step === 'align' || !compositeMeta || !tracerBackground)) {

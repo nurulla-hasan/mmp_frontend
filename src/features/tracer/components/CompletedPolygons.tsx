@@ -1,152 +1,153 @@
 import { memo, useMemo } from 'react';
 import { Group, Line, Text } from 'react-konva';
-import { centroid, type TracerLayer } from '../store/useTracerStore';
+import type { TracerLayer } from '../store/useTracerStore';
 
 export const CompletedPolygons = memo(function CompletedPolygons({
   layers,
   selectedPolygonId,
+  selectedLabelId,
   selectedLayerId,
   mode,
   stageScale,
   selectPolygon,
-  editPolygonLabel,
-  setPolygonLabelPosition,
+  selectLabel,
+  editLabel,
+  setLabelPosition,
 }: {
   layers: TracerLayer[];
   selectedPolygonId: string | null;
+  selectedLabelId: string | null;
   selectedLayerId: string | null;
   mode: string;
   stageScale: number;
   imageWidth?: number;
-  selectPolygon: (layerId: string | null, polyId: string | null) => void;
-  editPolygonLabel: (layerId: string, polyId: string) => void;
-  setPolygonLabelPosition: (layerId: string, polyId: string, x: number, y: number) => void;
+  selectPolygon: (layerId: string | null, pathId: string | null) => void;
+  selectLabel: (layerId: string | null, labelId: string | null) => void;
+  editLabel: (layerId: string, labelId: string) => void;
+  setLabelPosition: (
+    layerId: string,
+    labelId: string,
+    x: number,
+    y: number,
+  ) => void;
 }) {
-  const geometryByPolygon = useMemo(() => {
-    const geometry = new Map<
-      string,
-      { flatPoints: number[]; center: { x: number; y: number }; minDimension: number }
-    >();
+  const pointsByPath = useMemo(() => {
+    const points = new Map<string, number[]>();
 
     for (const layer of layers) {
-      for (const polygon of layer.polygons) {
-        const flatPoints: number[] = [];
-        let minX = Infinity;
-        let maxX = -Infinity;
-        let minY = Infinity;
-        let maxY = -Infinity;
-
-        for (const point of polygon.points) {
-          flatPoints.push(point.x, point.y);
-          if (point.x < minX) minX = point.x;
-          if (point.x > maxX) maxX = point.x;
-          if (point.y < minY) minY = point.y;
-          if (point.y > maxY) maxY = point.y;
-        }
-
-        geometry.set(polygon.id, {
-          flatPoints,
-          center: centroid(polygon.points),
-          minDimension: Math.min(maxX - minX, maxY - minY),
-        });
+      for (const path of layer.polygons) {
+        points.set(
+          path.id,
+          path.points.flatMap(point => [point.x, point.y]),
+        );
       }
     }
 
-    return geometry;
+    return points;
   }, [layers]);
+
+  const labelFontSize = 14 / stageScale;
+  const labelWidth = 120 / stageScale;
 
   return (
     <>
       {layers.map(layer =>
-        layer.visible
-          ? layer.polygons.map(poly => {
-            const polygonGeometry = geometryByPolygon.get(poly.id);
-            if (!polygonGeometry) return null;
-            const { flatPoints, center, minDimension } = polygonGeometry;
-            const isSelected = selectedPolygonId === poly.id && selectedLayerId === layer.id;
-            
-            // Text should be 14px on screen, but never larger than 40% of the polygon's smallest dimension
-            // to prevent it from overflowing the polygon when zoomed out.
-            const idealWorldFontSize = 14 / stageScale;
-            const maxWorldFontSize = minDimension * 0.4;
-            const labelFontSize = Math.min(idealWorldFontSize, maxWorldFontSize);
+        layer.visible ? (
+          <Group key={layer.id}>
+            {layer.polygons.map(path => {
+              const flatPoints = pointsByPath.get(path.id);
+              if (!flatPoints) return null;
 
-            return (
-              <Group
-                key={poly.id}
-                onClick={e => {
-                  if (mode === 'select') {
-                    e.cancelBubble = true;
-                    selectPolygon(layer.id, poly.id);
-                  }
-                }}
-                onTap={e => {
-                  if (mode === 'select') {
-                    e.cancelBubble = true;
-                    selectPolygon(layer.id, poly.id);
-                  }
-                }}
-                onDblClick={e => {
-                  if (mode === 'select') {
-                    e.cancelBubble = true;
-                    editPolygonLabel(layer.id, poly.id);
-                  }
-                }}
-                onDblTap={e => {
-                  if (mode === 'select') {
-                    e.cancelBubble = true;
-                    editPolygonLabel(layer.id, poly.id);
-                  }
-                }}
-              >
+              const isSelected =
+                selectedPolygonId === path.id && selectedLayerId === layer.id;
+
+              return (
                 <Line
-                  name="polygon"
+                  key={path.id}
+                  name="boundary-path"
                   points={flatPoints}
-                  closed
+                  closed={false}
                   stroke={isSelected ? '#F59E0B' : layer.color}
-                  strokeWidth={(isSelected ? layer.lineWidth + 0.5 : layer.lineWidth) / stageScale}
-                  fill={isSelected ? `${layer.color}1A` : 'transparent'}
+                  strokeWidth={
+                    (isSelected ? layer.lineWidth + 0.75 : layer.lineWidth) /
+                    stageScale
+                  }
+                  lineCap="round"
+                  lineJoin="round"
                   hitStrokeWidth={14 / stageScale}
                   perfectDrawEnabled={false}
                   listening={mode === 'select'}
-                  onClick={e => {
-                    if (mode === 'select') {
-                      e.cancelBubble = true;
-                      selectPolygon(layer.id, poly.id);
-                    }
+                  onClick={event => {
+                    event.cancelBubble = true;
+                    selectPolygon(layer.id, path.id);
                   }}
-                  onTap={e => {
-                    if (mode === 'select') {
-                      e.cancelBubble = true;
-                      selectPolygon(layer.id, poly.id);
-                    }
+                  onTap={event => {
+                    event.cancelBubble = true;
+                    selectPolygon(layer.id, path.id);
                   }}
                 />
-                {poly.label ? (
-                  <Text
-                    x={poly.labelX ?? center.x}
-                    y={poly.labelY ?? center.y}
-                    text={poly.label}
-                    fontSize={labelFontSize}
-                    fontStyle="bold"
-                    fill={layer.color}
-                    align="center"
-                    width={80 / stageScale}
-                    offsetX={40 / stageScale}
-                    offsetY={labelFontSize / 2}
-                    draggable
-                    onDragEnd={e => {
-                      e.cancelBubble = true;
-                      setPolygonLabelPosition(layer.id, poly.id, e.target.x(), e.target.y());
-                    }}
-                    listening={mode !== 'polygon'}
-                  />
-                ) : null}
-              </Group>
-            );
-          })
-          : null,
+              );
+            })}
+
+            {layer.labels.map(label => {
+              if (!label.text) return null;
+
+              const isSelected =
+                selectedLabelId === label.id && selectedLayerId === layer.id;
+
+              return (
+                <Text
+                  key={label.id}
+                  name="dag-label"
+                  x={label.x}
+                  y={label.y}
+                  text={label.text}
+                  fontSize={labelFontSize}
+                  fontStyle="bold"
+                  fill={isSelected ? '#F59E0B' : layer.color}
+                  align="center"
+                  width={labelWidth}
+                  offsetX={labelWidth / 2}
+                  offsetY={labelFontSize / 2}
+                  padding={3 / stageScale}
+                  draggable={mode === 'select'}
+                  listening={mode === 'select'}
+                  onClick={event => {
+                    event.cancelBubble = true;
+                    selectLabel(layer.id, label.id);
+                  }}
+                  onTap={event => {
+                    event.cancelBubble = true;
+                    selectLabel(layer.id, label.id);
+                  }}
+                  onDblClick={event => {
+                    event.cancelBubble = true;
+                    editLabel(layer.id, label.id);
+                  }}
+                  onDblTap={event => {
+                    event.cancelBubble = true;
+                    editLabel(layer.id, label.id);
+                  }}
+                  onDragStart={event => {
+                    event.cancelBubble = true;
+                    selectLabel(layer.id, label.id);
+                  }}
+                  onDragEnd={event => {
+                    event.cancelBubble = true;
+                    setLabelPosition(
+                      layer.id,
+                      label.id,
+                      event.target.x(),
+                      event.target.y(),
+                    );
+                  }}
+                />
+              );
+            })}
+          </Group>
+        ) : null,
       )}
     </>
   );
 });
+

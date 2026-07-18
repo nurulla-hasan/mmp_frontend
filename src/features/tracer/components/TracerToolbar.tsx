@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   MousePointer2, PenLine, Undo2, Redo2, Trash2,
   RotateCcw, FileDown, Download, ArrowLeft,
-  MoreHorizontal, Settings2
+  MoreHorizontal, Settings2, Type, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -81,8 +81,8 @@ export const TracerToolbar = memo(function TracerToolbar({ onToggleSidebar }: { 
   const router = useRouter();
   const {
     mode, setMode,
-    pendingPoints,
-    selectedPolygonId, selectedLayerId, deletePolygon,
+    pendingPoints, commitPolygon,
+    selectedPolygonId, selectedLabelId, selectedLayerId, deletePolygon, deleteLabel,
     past, future, undo, redo,
     undoPendingPoint, redoPendingPoint, pendingRedoPoints,
     backgroundImage, layers,
@@ -92,10 +92,11 @@ export const TracerToolbar = memo(function TracerToolbar({ onToggleSidebar }: { 
     setMode: s.setMode,
     pendingPoints: s.pendingPoints,
     commitPolygon: s.commitPolygon,
-    cancelDrawing: s.cancelDrawing,
     selectedPolygonId: s.selectedPolygonId,
+    selectedLabelId: s.selectedLabelId,
     selectedLayerId: s.selectedLayerId,
     deletePolygon: s.deletePolygon,
+    deleteLabel: s.deleteLabel,
     past: s.past,
     future: s.future,
     undo: s.undo,
@@ -119,17 +120,34 @@ export const TracerToolbar = memo(function TracerToolbar({ onToggleSidebar }: { 
       <ToolBtn icon={MousePointer2} label="নির্বাচন (V)" active={mode === 'select'} onClick={() => setMode('select')} size={size} />
     ),
     polygon: (size: 'md' | 'sm' = 'md') => (
-      <ToolBtn icon={PenLine} label="পলিগন (P)" active={mode === 'polygon'} onClick={() => setMode('polygon')} size={size} />
+      <ToolBtn icon={PenLine} label="বাউন্ডারি লাইন (P)" active={mode === 'polygon'} onClick={() => setMode('polygon')} size={size} />
+    ),
+    label: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn icon={Type} label="দাগ নম্বর বসান (T)" active={mode === 'label'} onClick={() => setMode('label')} size={size} />
+    ),
+    finish: (size: 'md' | 'sm' = 'md') => (
+      <ToolBtn
+        icon={Check}
+        label="লাইন শেষ করুন (Enter)"
+        onClick={commitPolygon}
+        disabled={mode !== 'polygon' || pendingPoints.length < 2}
+        size={size}
+        className={mode === 'polygon' && pendingPoints.length >= 2 ? "text-emerald-600" : ""}
+      />
     ),
 
     delete: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn 
         icon={Trash2} 
         label="মুছুন" 
-        onClick={() => { if (selectedLayerId && selectedPolygonId) deletePolygon(selectedLayerId, selectedPolygonId); }} 
-        disabled={!selectedPolygonId || !selectedLayerId}
+        onClick={() => {
+          if (!selectedLayerId) return;
+          if (selectedLabelId) deleteLabel(selectedLayerId, selectedLabelId);
+          else if (selectedPolygonId) deletePolygon(selectedLayerId, selectedPolygonId);
+        }}
+        disabled={(!selectedPolygonId && !selectedLabelId) || !selectedLayerId}
         size={size} 
-        className={(selectedPolygonId && selectedLayerId) ? "text-destructive hover:text-destructive hover:bg-destructive/10" : ""} 
+        className={((selectedPolygonId || selectedLabelId) && selectedLayerId) ? "text-destructive hover:text-destructive hover:bg-destructive/10" : ""} 
       />
     ),
     undo: (size: 'md' | 'sm' = 'md') => (
@@ -174,6 +192,8 @@ export const TracerToolbar = memo(function TracerToolbar({ onToggleSidebar }: { 
         <VDivider />
         {tools.select()}
         {tools.polygon()}
+        {tools.label()}
+        {tools.finish()}
         {tools.delete()}
         <VDivider />
         {tools.undo()}
@@ -195,6 +215,8 @@ export const TracerToolbar = memo(function TracerToolbar({ onToggleSidebar }: { 
         <HDivider />
         {tools.select('sm')}
         {tools.polygon('sm')}
+        {tools.label('sm')}
+        {tools.finish('sm')}
         {tools.delete('sm')}
         
         <HDivider />

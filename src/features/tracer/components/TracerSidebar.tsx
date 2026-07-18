@@ -177,7 +177,9 @@ const LayersSection = memo(function LayersSection() {
                   </span>
                 )}
 
-                <span className="text-[10px] text-muted-foreground shrink-0">{layer.polygons.length}</span>
+                <span className="text-[10px] text-muted-foreground shrink-0">
+                  {layer.polygons.length} লাইন · {layer.labels.length} দাগ
+                </span>
 
                 {/* Visibility */}
                 <button
@@ -252,59 +254,126 @@ const LayersSection = memo(function LayersSection() {
   );
 });
 
-// ─── Polygon List Section ─────────────────────────────────────────────────────
-const PolygonListSection = memo(function PolygonListSection() {
+// ─── Boundary paths and free Dag No labels ───────────────────────────────────
+const DrawingListSection = memo(function DrawingListSection() {
   const {
-    layers, activeLayerId, selectedPolygonId, selectedLayerId,
-    deletePolygon, selectPolygon, setPolygonLabel,
+    layers, activeLayerId,
+    selectedPolygonId, selectedLabelId, selectedLayerId,
+    deletePolygon, selectPolygon,
+    deleteLabel, selectLabel, setLabelText,
   } = useTracerStore(useShallow(s => ({
     layers: s.layers,
     activeLayerId: s.activeLayerId,
     selectedPolygonId: s.selectedPolygonId,
+    selectedLabelId: s.selectedLabelId,
     selectedLayerId: s.selectedLayerId,
     deletePolygon: s.deletePolygon,
     selectPolygon: s.selectPolygon,
-    setPolygonLabel: s.setPolygonLabel,
+    deleteLabel: s.deleteLabel,
+    selectLabel: s.selectLabel,
+    setLabelText: s.setLabelText,
   })));
 
   const activeLayer = layers.find(l => l.id === activeLayerId);
-  if (!activeLayer || activeLayer.polygons.length === 0) return null;
+  if (!activeLayer || (activeLayer.polygons.length === 0 && activeLayer.labels.length === 0)) {
+    return null;
+  }
 
   return (
-    <div className="space-y-2">
-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
-        দাগসমূহ ({activeLayer.polygons.length})
-      </h3>
-      <div className="space-y-1 max-h-48 overflow-y-auto">
-        {activeLayer.polygons.map(poly => {
-          const isSelected = selectedPolygonId === poly.id && selectedLayerId === activeLayer.id;
-          return (
-            <div
-              key={poly.id}
-              className={`flex items-center gap-2 rounded-md px-2 py-1.5 cursor-pointer transition-colors ${
-                isSelected ? 'bg-primary/10 ring-1 ring-primary/30' : 'bg-muted/40 hover:bg-muted/70'
-              }`}
-              onClick={() => selectPolygon(activeLayer.id, poly.id)}
-            >
-              <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: activeLayer.color }} />
-              <input
-                value={poly.label}
-                onChange={e => setPolygonLabel(activeLayer.id, poly.id, e.target.value)}
-                onClick={e => e.stopPropagation()}
-                placeholder="অনামী দাগ"
-                className="flex-1 text-xs bg-transparent outline-none placeholder:text-muted-foreground/40 min-w-0"
-              />
-              <button
-                onClick={e => { e.stopPropagation(); deletePolygon(activeLayer.id, poly.id); }}
-                className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
-            </div>
-          );
-        })}
+    <div className="space-y-4">
+      {activeLayer.polygons.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
+            বাউন্ডারি লাইন ({activeLayer.polygons.length})
+          </h3>
+          <div className="space-y-1 max-h-36 overflow-y-auto">
+            {activeLayer.polygons.map((path, index) => {
+              const isSelected =
+                selectedPolygonId === path.id && selectedLayerId === activeLayer.id;
+
+              return (
+                <div
+                  key={path.id}
+                  className={`flex items-center gap-2 rounded-md px-2 py-1.5 cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'bg-primary/10 ring-1 ring-primary/30'
+                      : 'bg-muted/40 hover:bg-muted/70'
+                  }`}
+                  onClick={() => selectPolygon(activeLayer.id, path.id)}
+                >
+                  <div
+                    className="w-4 h-0.5 rounded-full shrink-0"
+                    style={{ backgroundColor: activeLayer.color }}
+                  />
+                  <span className="flex-1 text-xs">লাইন {index + 1}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {path.points.length} পয়েন্ট
+                  </span>
+                  <button
+                    onClick={event => {
+                      event.stopPropagation();
+                      deletePolygon(activeLayer.id, path.id);
+                    }}
+                    className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {activeLayer.labels.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
+            দাগ নম্বর ({activeLayer.labels.length})
+          </h3>
+          <div className="space-y-1 max-h-36 overflow-y-auto">
+            {activeLayer.labels.map(label => {
+              const isSelected =
+                selectedLabelId === label.id && selectedLayerId === activeLayer.id;
+
+              return (
+                <div
+                  key={label.id}
+                  className={`flex items-center gap-2 rounded-md px-2 py-1.5 cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'bg-primary/10 ring-1 ring-primary/30'
+                      : 'bg-muted/40 hover:bg-muted/70'
+                  }`}
+                  onClick={() => selectLabel(activeLayer.id, label.id)}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: activeLayer.color }}
+                  />
+                  <input
+                    value={label.text}
+                    onChange={event =>
+                      setLabelText(activeLayer.id, label.id, event.target.value)
+                    }
+                    onClick={event => event.stopPropagation()}
+                    placeholder="দাগ নম্বর"
+                    className="flex-1 text-xs bg-transparent outline-none placeholder:text-muted-foreground/40 min-w-0"
+                  />
+                  <button
+                    onClick={event => {
+                      event.stopPropagation();
+                      deleteLabel(activeLayer.id, label.id);
+                    }}
+                    className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       </div>
-    </div>
   );
 });
 
@@ -358,7 +427,7 @@ const SidebarContent = memo(function SidebarContent() {
       <Separator />
       <LayersSection />
       <Separator />
-      <PolygonListSection />
+      <DrawingListSection />
       <Separator />
       <ExportSection />
     </div>
