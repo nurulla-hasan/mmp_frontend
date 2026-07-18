@@ -11,6 +11,8 @@ import { useTracerStore } from '@/features/tracer/store/useTracerStore';
 import { cn, ErrorToast, SuccessToast } from '@/lib/utils';
 import { useMouzaMapStudioStore, type StudioStep } from '../store/useMouzaMapStudioStore';
 import { createStudioComposite } from '../utils/createStudioComposite';
+import StudioMeasurementLayout from './StudioMeasurementLayout';
+import StudioSheetLayout from './StudioSheetLayout';
 
 const steps: Array<{
   id: StudioStep;
@@ -20,13 +22,20 @@ const steps: Array<{
 }> = [
   { id: 'align', label: 'ম্যাপ মিলান', icon: Map, available: true },
   { id: 'trace', label: 'ট্রেস করুন', icon: PenLine, available: true },
-  { id: 'measure', label: 'পরিমাপ', icon: Ruler, available: false },
-  { id: 'layout', label: 'শিট তৈরি', icon: Sheet, available: false },
+  { id: 'measure', label: 'পরিমাপ', icon: Ruler, available: true },
+  { id: 'layout', label: 'শিট তৈরি', icon: Sheet, available: true },
 ];
 
 export default function MouzaMapStudioLayout() {
   const [isPreparing, setIsPreparing] = useState(false);
-  const { step, compositeMeta, setStep, setCompositeMeta } = useMouzaMapStudioStore();
+  const {
+    step,
+    compositeMeta,
+    setStep,
+    setCompositeMeta,
+    setCalibration,
+    clearDimensions,
+  } = useMouzaMapStudioStore();
   const formerMap = usePantagraphStore((state) => state.formerMap);
   const currentMap = usePantagraphStore((state) => state.currentMap);
   const isLocked = usePantagraphStore((state) => state.isLocked);
@@ -37,7 +46,7 @@ export default function MouzaMapStudioLayout() {
 
   const mapsReady = Boolean(formerMap && currentMap);
 
-  const prepareTracing = async () => {
+  const prepareTracing = async (targetStep: StudioStep = 'trace') => {
     if (!mapsReady) {
       ErrorToast('C.S এবং B.S—দুটি map-ই আগে upload করুন');
       return;
@@ -58,8 +67,10 @@ export default function MouzaMapStudioLayout() {
       const composite = await createStudioComposite(usePantagraphStore.getState());
       if (polygonCount > 0) useTracerStore.getState().reset();
       useTracerStore.getState().setBackground(composite.image);
+      setCalibration(null);
+      clearDimensions();
       setCompositeMeta(composite.meta);
-      setStep('trace');
+      setStep(targetStep);
       SuccessToast('Aligned map tracing-এর জন্য প্রস্তুত');
     } catch (error) {
       ErrorToast(error instanceof Error ? error.message : 'Tracing map তৈরি করা যায়নি');
@@ -69,8 +80,12 @@ export default function MouzaMapStudioLayout() {
   };
 
   const openStep = (nextStep: StudioStep) => {
-    if (nextStep === 'trace' && (!compositeMeta || !tracerBackground)) {
-      void prepareTracing();
+    if (nextStep === 'layout' && polygonCount === 0) {
+      ErrorToast('শিট তৈরি করার আগে অন্তত একটি plot trace করুন');
+      return;
+    }
+    if (nextStep !== 'align' && (!compositeMeta || !tracerBackground)) {
+      void prepareTracing(nextStep);
       return;
     }
     setStep(nextStep);
@@ -78,7 +93,10 @@ export default function MouzaMapStudioLayout() {
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-background">
-      {step === 'align' ? <PantagraphLayout /> : <TracerLayout />}
+      {step === 'align' && <PantagraphLayout />}
+      {step === 'trace' && <TracerLayout />}
+      {step === 'measure' && <StudioMeasurementLayout />}
+      {step === 'layout' && <StudioSheetLayout />}
 
       <div className="pointer-events-none fixed inset-x-0 top-3 z-[100] flex justify-center px-3">
         <div className="pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-2xl border border-border/80 bg-background/95 p-1.5 shadow-xl backdrop-blur">
