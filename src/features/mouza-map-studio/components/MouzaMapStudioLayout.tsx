@@ -2,137 +2,191 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Check, Crop, Layers3, Loader2, Lock, Map, PenLine, Sheet, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Check,
+  Crop,
+  Layers3,
+  Loader2,
+  Map,
+  Paintbrush,
+  Sheet,
+  X,
+} from 'lucide-react';
 
 import PantagraphLayout from '@/features/pantagraph/components/PantagraphLayout';
-import { PantagraphCropDialog, type PantagraphCropResult } from '@/features/pantagraph/components/PantagraphCropDialog';
-import TracerLayout from '@/features/tracer/components/TracerLayout';
+import {
+  PantagraphCropDialog,
+  type PantagraphCropResult,
+} from '@/features/pantagraph/components/PantagraphCropDialog';
 import { usePantagraphStore } from '@/features/pantagraph/store/usePantagraphStore';
-import { useTracerStore } from '@/features/tracer/store/useTracerStore';
 import { cn, ErrorToast, SuccessToast } from '@/lib/utils';
 import {
   useMouzaMapStudioStore,
+  type StudioCompositeCrop,
   type StudioCompositeMeta,
   type StudioStep,
 } from '../store/useMouzaMapStudioStore';
-import { createStudioComposite, cropStudioComposite } from '../utils/createStudioComposite';
+import {
+  createStudioComposite,
+  cropStudioComposite,
+} from '../utils/createStudioComposite';
+import StudioEditorLayout from './StudioEditorLayout';
 import StudioSheetLayout from './StudioSheetLayout';
 
 const steps: Array<{
   id: StudioStep;
   label: string;
   icon: typeof Map;
-  available: boolean;
 }> = [
-  { id: 'align', label: 'ম্যাপ মিলান', icon: Map, available: true },
-  { id: 'trace', label: 'ট্রেস করুন', icon: PenLine, available: true },
-  { id: 'layout', label: 'শিট তৈরি', icon: Sheet, available: true },
+  { id: 'align', label: 'ম্যাপ মিলান', icon: Map },
+  { id: 'edit', label: 'ফাইনাল এডিট', icon: Paintbrush },
+  { id: 'layout', label: 'শিট তৈরি', icon: Sheet },
 ];
 
-const imageToCropObjectUrl = (image: HTMLImageElement) => new Promise<string>((resolve, reject) => {
-  const canvas = document.createElement('canvas');
-  canvas.width = image.naturalWidth || image.width;
-  canvas.height = image.naturalHeight || image.height;
-  const context = canvas.getContext('2d');
-  if (!context) {
-    reject(new Error('Crop preview তৈরি করা যায়নি'));
-    return;
-  }
-  context.drawImage(image, 0, 0);
-  canvas.toBlob((blob) => {
-    canvas.width = 1;
-    canvas.height = 1;
-    if (blob) resolve(URL.createObjectURL(blob));
-    else reject(new Error('Crop preview তৈরি করা যায়নি'));
-  }, 'image/png');
-});
+const imageToCropObjectUrl = (image: HTMLImageElement) =>
+  new Promise<string>((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = image.naturalWidth || image.width;
+    canvas.height = image.naturalHeight || image.height;
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      reject(new Error('Crop preview তৈরি করা যায়নি'));
+      return;
+    }
+
+    context.drawImage(image, 0, 0);
+    canvas.toBlob((blob) => {
+      canvas.width = 1;
+      canvas.height = 1;
+      if (blob) resolve(URL.createObjectURL(blob));
+      else reject(new Error('Crop preview তৈরি করা যায়নি'));
+    }, 'image/png');
+  });
 
 const hasSameCompositeGeometry = (
   previous: StudioCompositeMeta | null,
   next: StudioCompositeMeta,
-) => Boolean(
-  previous &&
-  previous.width === next.width &&
-  previous.height === next.height &&
-  previous.outputScale === next.outputScale &&
-  previous.bounds.minX === next.bounds.minX &&
-  previous.bounds.minY === next.bounds.minY &&
-  previous.bounds.maxX === next.bounds.maxX &&
-  previous.bounds.maxY === next.bounds.maxY
-);
+) =>
+  Boolean(
+    previous &&
+      previous.width === next.width &&
+      previous.height === next.height &&
+      previous.outputScale === next.outputScale &&
+      previous.bounds.minX === next.bounds.minX &&
+      previous.bounds.minY === next.bounds.minY &&
+      previous.bounds.maxX === next.bounds.maxX &&
+      previous.bounds.maxY === next.bounds.maxY,
+  );
 
 export default function MouzaMapStudioLayout() {
   const [isPreparing, setIsPreparing] = useState(false);
-  const [cropSource, setCropSource] = useState<{ src: string; width: number; height: number } | null>(null);
+  const [cropSource, setCropSource] = useState<{
+    src: string;
+    width: number;
+    height: number;
+  } | null>(null);
+
   const {
     step,
     compositeMeta,
     compositeCrop,
+    editorImage,
+    editorStrokes,
+    editorTexts,
     setStep,
     setCompositeMeta,
     setCompositeCrop,
-    setCalibration,
-    clearDimensions,
+    setEditorImage,
+    resetEditorContent,
   } = useMouzaMapStudioStore();
+
   const formerMap = usePantagraphStore((state) => state.formerMap);
   const currentMap = usePantagraphStore((state) => state.currentMap);
   const isLocked = usePantagraphStore((state) => state.isLocked);
-  const polygonCount = useTracerStore((state) =>
-    state.layers.reduce((total, layer) => total + layer.polygons.length, 0),
-  );
-  const tracerBackground = useTracerStore((state) => state.backgroundImage);
 
   const mapsReady = Boolean(formerMap && currentMap);
+  const hasEditorContent =
+    editorStrokes.length > 0 || editorTexts.length > 0;
 
-  const prepareTracing = async (targetStep: StudioStep = 'trace') => {
+  const prepareEditor = async (
+    targetStep: StudioStep = 'edit',
+    cropOverride: StudioCompositeCrop | null = compositeCrop,
+    contentAlreadyReset = false,
+  ) => {
     if (!mapsReady) {
       ErrorToast('C.S এবং B.S—দুটি map-ই আগে upload করুন');
       return;
     }
+
     if (!isLocked) {
       ErrorToast('Alignment ঠিক করে map দুটিকে আগে lock করুন');
       return;
     }
+
     setIsPreparing(true);
     try {
-      const baseComposite = await createStudioComposite(usePantagraphStore.getState());
-      const composite = compositeCrop
-        ? await cropStudioComposite(baseComposite, compositeCrop)
+      const baseComposite = await createStudioComposite(
+        usePantagraphStore.getState(),
+      );
+      const composite = cropOverride
+        ? await cropStudioComposite(baseComposite, cropOverride)
         : baseComposite;
-      const geometryChanged = !hasSameCompositeGeometry(compositeMeta, composite.meta);
+      const geometryChanged = !hasSameCompositeGeometry(
+        compositeMeta,
+        composite.meta,
+      );
 
-      if (polygonCount > 0 && geometryChanged) {
+      if (hasEditorContent && geometryChanged && !contentAlreadyReset) {
         const shouldReplace = window.confirm(
-          'Crop বা alignment বদলেছে। নতুন map বসালে বর্তমান tracing মুছে যাবে। চালিয়ে যাবেন?',
+          'Crop বা alignment-এর আকার বদলেছে। নতুন map বসালে বর্তমান cleanup, text ও mark মুছে যাবে। চালিয়ে যাবেন?',
         );
         if (!shouldReplace) return;
-        useTracerStore.getState().reset();
+        resetEditorContent();
       }
 
-      useTracerStore.getState().setBackground(composite.image);
-      if (geometryChanged) {
-        setCalibration(null);
-        clearDimensions();
-      }
+      setEditorImage(composite.image);
       setCompositeMeta(composite.meta);
       setStep(targetStep);
-      SuccessToast('Aligned map tracing-এর জন্য প্রস্তুত');
+      SuccessToast('Aligned real map ফাইনাল এডিটের জন্য প্রস্তুত');
     } catch (error) {
-      ErrorToast(error instanceof Error ? error.message : 'Tracing map তৈরি করা যায়নি');
+      ErrorToast(
+        error instanceof Error
+          ? error.message
+          : 'Final edit map তৈরি করা যায়নি',
+      );
     } finally {
       setIsPreparing(false);
     }
   };
 
   const openCombinedCrop = async () => {
-    if (!mapsReady || !isLocked) return;
+    if (!mapsReady) {
+      ErrorToast('C.S এবং B.S—দুটি map-ই আগে upload করুন');
+      return;
+    }
+
+    if (!isLocked) {
+      ErrorToast('Crop করার আগে map দুটি lock করুন');
+      return;
+    }
+
     setIsPreparing(true);
     try {
-      const composite = await createStudioComposite(usePantagraphStore.getState());
+      const composite = await createStudioComposite(
+        usePantagraphStore.getState(),
+      );
       const src = await imageToCropObjectUrl(composite.image);
-      setCropSource({ src, width: composite.meta.width, height: composite.meta.height });
+      setCropSource({
+        src,
+        width: composite.meta.width,
+        height: composite.meta.height,
+      });
     } catch (error) {
-      ErrorToast(error instanceof Error ? error.message : 'Aligned map crop করা যায়নি');
+      ErrorToast(
+        error instanceof Error ? error.message : 'Aligned map crop করা যায়নি',
+      );
     } finally {
       setIsPreparing(false);
     }
@@ -143,40 +197,81 @@ export default function MouzaMapStudioLayout() {
     setCropSource(null);
   };
 
-  const saveCombinedCrop = (_image: HTMLImageElement, crop?: PantagraphCropResult) => {
+  const saveCombinedCrop = (
+    _image: HTMLImageElement,
+    crop?: PantagraphCropResult,
+  ) => {
     if (!cropSource || !crop) return;
-    setCompositeCrop({
+
+    if (
+      hasEditorContent &&
+      !window.confirm(
+        'Crop বদলালে বর্তমান cleanup, text ও mark মুছে যাবে। চালিয়ে যাবেন?',
+      )
+    ) {
+      return;
+    }
+
+    const normalizedCrop: StudioCompositeCrop = {
       x: crop.x / cropSource.width,
       y: crop.y / cropSource.height,
       width: crop.width / cropSource.width,
       height: crop.height / cropSource.height,
-    });
+    };
+
+    setCompositeCrop(normalizedCrop);
     setCompositeMeta(null);
-    SuccessToast('দুই ম্যাপের একসাথে crop সংরক্ষণ হয়েছে');
+    resetEditorContent();
+    closeCombinedCrop();
+
+    if (step === 'edit' || step === 'layout') {
+      void prepareEditor('edit', normalizedCrop, true);
+    } else {
+      SuccessToast('দুই ম্যাপের একসাথে crop সংরক্ষণ হয়েছে');
+    }
   };
 
   const clearCombinedCrop = () => {
+    if (
+      hasEditorContent &&
+      !window.confirm(
+        'Crop সরালে বর্তমান cleanup, text ও mark মুছে যাবে। চালিয়ে যাবেন?',
+      )
+    ) {
+      return;
+    }
+
     setCompositeCrop(null);
     setCompositeMeta(null);
-    SuccessToast('Aligned map crop সরানো হয়েছে');
+    resetEditorContent();
+
+    if (step === 'edit' || step === 'layout') {
+      void prepareEditor('edit', null, true);
+    } else {
+      SuccessToast('Aligned map crop সরানো হয়েছে');
+    }
   };
 
   const openStep = (nextStep: StudioStep) => {
-    if (nextStep === 'layout' && polygonCount === 0) {
-      ErrorToast('শিট তৈরি করার আগে অন্তত একটি boundary line trace করুন');
+    if (nextStep === 'align') {
+      setStep('align');
       return;
     }
-    if (nextStep !== 'align' && (step === 'align' || !compositeMeta || !tracerBackground)) {
-      void prepareTracing(nextStep);
+
+    if (!editorImage || !compositeMeta || step === 'align') {
+      void prepareEditor(nextStep);
       return;
     }
+
     setStep(nextStep);
   };
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-background">
       {step === 'align' && <PantagraphLayout />}
-      {step === 'trace' && <TracerLayout />}
+      {step === 'edit' && (
+        <StudioEditorLayout onOpenCrop={() => void openCombinedCrop()} />
+      )}
       {step === 'layout' && <StudioSheetLayout />}
 
       <div className="pointer-events-none fixed inset-x-0 top-3 z-[100] flex justify-center px-3">
@@ -191,28 +286,28 @@ export default function MouzaMapStudioLayout() {
 
           <div className="hidden items-center gap-2 border-x border-border px-3 sm:flex">
             <Layers3 className="size-4 text-primary" />
-            <span className="whitespace-nowrap text-sm font-semibold">মৌজা ম্যাপ স্টুডিও</span>
+            <span className="whitespace-nowrap text-sm font-semibold">
+              মৌজা ম্যাপ স্টুডিও
+            </span>
           </div>
 
-          {steps.map(({ id, label, icon: Icon, available }) => {
+          {steps.map(({ id, label, icon: Icon }) => {
             const active = step === id;
             return (
               <button
                 key={id}
                 type="button"
-                disabled={!available || isPreparing}
-                title={available ? label : `${label} — পরবর্তী ধাপ`}
+                disabled={isPreparing}
                 onClick={() => openStep(id)}
                 className={cn(
                   'flex h-9 shrink-0 items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium transition sm:px-3',
                   active && 'bg-primary text-primary-foreground shadow-sm',
-                  !active && available && 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                  !available && 'cursor-not-allowed text-muted-foreground/45',
+                  !active &&
+                    'text-muted-foreground hover:bg-muted hover:text-foreground',
                 )}
               >
                 <Icon className="size-3.5" />
                 <span className="whitespace-nowrap">{label}</span>
-                {!available && <Lock className="size-3" />}
               </button>
             );
           })}
@@ -225,9 +320,16 @@ export default function MouzaMapStudioLayout() {
                 onClick={() => void openCombinedCrop()}
                 className="ml-1 flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-semibold text-foreground transition hover:bg-muted disabled:cursor-wait disabled:opacity-70"
               >
-                {isPreparing ? <Loader2 className="size-3.5 animate-spin" /> : <Crop className="size-3.5" />}
-                <span className="whitespace-nowrap">{compositeCrop ? 'একসাথে crop বদলান' : 'দুই ম্যাপ একসাথে crop'}</span>
+                {isPreparing ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Crop className="size-3.5" />
+                )}
+                <span className="whitespace-nowrap">
+                  {compositeCrop ? 'একসাথে crop বদলান' : 'দুই ম্যাপ একসাথে crop'}
+                </span>
               </button>
+
               {compositeCrop && (
                 <button
                   type="button"
@@ -245,18 +347,22 @@ export default function MouzaMapStudioLayout() {
             <button
               type="button"
               disabled={isPreparing}
-              onClick={() => void prepareTracing()}
+              onClick={() => void prepareEditor()}
               className="ml-1 flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70"
             >
-              {isPreparing ? <Loader2 className="size-3.5 animate-spin" /> : <PenLine className="size-3.5" />}
-              <span className="whitespace-nowrap">ট্রেসিং শুরু করুন</span>
+              {isPreparing ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Paintbrush className="size-3.5" />
+              )}
+              <span className="whitespace-nowrap">ফাইনাল এডিট শুরু করুন</span>
             </button>
           )}
 
-          {step === 'trace' && compositeMeta && (
+          {step === 'edit' && compositeMeta && (
             <div className="ml-1 hidden h-9 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-500/10 px-3 text-xs font-medium text-emerald-600 lg:flex dark:text-emerald-400">
               <Check className="size-3.5" />
-              Aligned map ready
+              Real aligned map ready
             </div>
           )}
         </div>
