@@ -1,6 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Group, Image as KonvaImage, Layer, Line, Stage, Text } from 'react-konva';
 import type Konva from 'konva';
 import {
@@ -18,6 +24,12 @@ import {
 import { useShallow } from 'zustand/shallow';
 
 import { Button } from '@/components/ui/button';
+import { ConfirmationModal } from '@/components/ui/custom/confirmation-modal';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import {
   type StudioEditorTool,
@@ -39,6 +51,28 @@ const toolDefinitions: Array<{
   { id: 'text', label: 'লেখা বসান', icon: Type },
   { id: 'mark', label: 'Mark আঁকুন', icon: Pencil },
 ];
+
+function EditorTooltip({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={<div className="inline-flex" />}
+        className="focus:outline-none focus-visible:outline-none"
+      >
+        {children}
+      </TooltipTrigger>
+      <TooltipContent side="left" sideOffset={8}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 export default function StudioEditorLayout({
   onOpenCrop,
@@ -62,6 +96,7 @@ export default function StudioEditorLayout({
   const [annotationColor, setAnnotationColor] = useState('#DC2626');
   const [fontSize, setFontSize] = useState(28);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
 
   const {
     editorImage,
@@ -149,22 +184,11 @@ export default function StudioEditorLayout({
       if ('button' in event.evt && event.evt.button !== 0) return;
       if (editorTool === 'pan') return;
 
+      // Text is intentionally created only by double-click/double-tap.
+      if (editorTool === 'text') return;
+
       const point = getImagePoint();
       if (!point) return;
-
-      if (editorTool === 'text') {
-        const id = `studio_text_${++textId}`;
-        addEditorText({
-          id,
-          x: point.x,
-          y: point.y,
-          text: '',
-          color: annotationColor,
-          fontSize,
-        });
-        setEditingTextId(id);
-        return;
-      }
 
       const id = `studio_stroke_${++strokeId}`;
       drawingStrokeRef.current = id;
@@ -179,13 +203,34 @@ export default function StudioEditorLayout({
     [
       editorTool,
       getImagePoint,
-      addEditorText,
       annotationColor,
-      fontSize,
       startEditorStroke,
       cleanupWidth,
       markWidth,
     ],
+  );
+
+  const addTextAtPointer = useCallback(
+    (event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+      if (editorTool !== 'text') return;
+      if ('touches' in event.evt && event.evt.touches.length > 1) return;
+      if ('button' in event.evt && event.evt.button !== 0) return;
+
+      const point = getImagePoint();
+      if (!point) return;
+
+      const id = `studio_text_${++textId}`;
+      addEditorText({
+        id,
+        x: point.x,
+        y: point.y,
+        text: '',
+        color: annotationColor,
+        fontSize,
+      });
+      setEditingTextId(id);
+    },
+    [editorTool, getImagePoint, addEditorText, annotationColor, fontSize],
   );
 
   const continueEdit = useCallback(
@@ -356,6 +401,8 @@ export default function StudioEditorLayout({
           setStagePosition({ x: event.target.x(), y: event.target.y() })
         }
         onWheel={handleWheel}
+        onDblClick={addTextAtPointer}
+        onDblTap={addTextAtPointer}
         onMouseDown={beginEdit}
         onMouseMove={continueEdit}
         onMouseUp={finishEdit}
@@ -410,8 +457,14 @@ export default function StudioEditorLayout({
                         event.target.y(),
                       )
                     }
-                    onDblClick={() => setEditingTextId(item.id)}
-                    onDblTap={() => setEditingTextId(item.id)}
+                    onDblClick={(event) => {
+                      event.cancelBubble = true;
+                      setEditingTextId(item.id);
+                    }}
+                    onDblTap={(event) => {
+                      event.cancelBubble = true;
+                      setEditingTextId(item.id);
+                    }}
                   />
                 ) : null,
               )}
@@ -421,77 +474,84 @@ export default function StudioEditorLayout({
       </Stage>
 
       <div className="absolute right-3 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-1 rounded-2xl border border-border bg-background/95 p-1.5 shadow-xl">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          title="একসাথে crop"
-          onClick={onOpenCrop}
-        >
-          <Crop className="size-4" />
-        </Button>
+        <EditorTooltip label="দুই ম্যাপ একসাথে crop করুন">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="দুই ম্যাপ একসাথে crop করুন"
+            onClick={onOpenCrop}
+          >
+            <Crop className="size-4" />
+          </Button>
+        </EditorTooltip>
 
         <div className="mx-auto h-px w-7 bg-border" />
 
         {toolDefinitions.map(({ id, label, icon: Icon }) => (
-          <Button
-            key={id}
-            type="button"
-            variant={editorTool === id ? 'default' : 'ghost'}
-            size="icon"
-            title={label}
-            onClick={() => setEditorTool(id)}
-          >
-            <Icon className="size-4" />
-          </Button>
+          <EditorTooltip key={id} label={label}>
+            <Button
+              type="button"
+              variant={editorTool === id ? 'default' : 'ghost'}
+              size="icon"
+              aria-label={label}
+              onClick={() => setEditorTool(id)}
+            >
+              <Icon className="size-4" />
+            </Button>
+          </EditorTooltip>
         ))}
 
         <div className="mx-auto h-px w-7 bg-border" />
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          title={showEdits ? 'Original দেখুন' : 'Edited দেখুন'}
-          onClick={() => setShowEdits((value) => !value)}
-        >
-          {showEdits ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          title="Undo"
-          disabled={editorPast.length === 0}
-          onClick={undoEditor}
-        >
-          <Undo2 className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          title="Redo"
-          disabled={editorFuture.length === 0}
-          onClick={redoEditor}
-        >
-          <Redo2 className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          title="সব edit মুছুন"
-          disabled={editorStrokes.length === 0 && editorTexts.length === 0}
-          onClick={() => {
-            if (window.confirm('সব cleanup, text ও mark মুছে ফেলবেন?')) {
-              clearEditor();
-            }
-          }}
-          className="text-muted-foreground hover:text-destructive"
-        >
-          <RotateCcw className="size-4" />
-        </Button>
+        <EditorTooltip label={showEdits ? 'Original map দেখুন' : 'Edited map দেখুন'}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={showEdits ? 'Original map দেখুন' : 'Edited map দেখুন'}
+            onClick={() => setShowEdits((value) => !value)}
+          >
+            {showEdits ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+          </Button>
+        </EditorTooltip>
+        <EditorTooltip label="শেষ edit ফিরিয়ে নিন">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="শেষ edit ফিরিয়ে নিন"
+            disabled={editorPast.length === 0}
+            onClick={undoEditor}
+          >
+            <Undo2 className="size-4" />
+          </Button>
+        </EditorTooltip>
+        <EditorTooltip label="ফিরিয়ে নেওয়া edit আবার দিন">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="ফিরিয়ে নেওয়া edit আবার দিন"
+            disabled={editorFuture.length === 0}
+            onClick={redoEditor}
+          >
+            <Redo2 className="size-4" />
+          </Button>
+        </EditorTooltip>
+        <EditorTooltip label="সব edit মুছুন">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="সব edit মুছুন"
+            disabled={editorStrokes.length === 0 && editorTexts.length === 0}
+            onClick={() => setShowClearConfirmation(true)}
+            className="text-muted-foreground hover:text-destructive"
+          >
+            <RotateCcw className="size-4" />
+          </Button>
+        </EditorTooltip>
       </div>
 
       {controlLabel && (
@@ -592,6 +652,22 @@ export default function StudioEditorLayout({
       <div className="pointer-events-none absolute bottom-4 right-4 rounded-lg border border-border/50 bg-background/80 px-2 py-1 font-mono text-[10px] text-muted-foreground">
         {Math.round(stageScale * 100)}%
       </div>
+
+      <ConfirmationModal
+        open={showClearConfirmation}
+        onOpenChange={setShowClearConfirmation}
+        trigger={null}
+        title="সব edit মুছে ফেলবেন?"
+        description="সব cleanup, text ও mark মুছে যাবে। এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।"
+        confirmText="সব মুছুন"
+        cancelText="বাতিল"
+        variant="destructive"
+        onConfirm={() => {
+          clearEditor();
+          setEditingTextId(null);
+          setShowClearConfirmation(false);
+        }}
+      />
     </div>
   );
 }

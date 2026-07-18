@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import PantagraphLayout from '@/features/pantagraph/components/PantagraphLayout';
+import { ConfirmationModal } from '@/components/ui/custom/confirmation-modal';
 import {
   PantagraphCropDialog,
   type PantagraphCropResult,
@@ -80,6 +81,13 @@ const hasSameCompositeGeometry = (
       previous.bounds.maxY === next.bounds.maxY,
   );
 
+type PendingConfirmation = {
+  title: string;
+  description: string;
+  confirmText: string;
+  onConfirm: () => void;
+};
+
 export default function MouzaMapStudioLayout() {
   const [isPreparing, setIsPreparing] = useState(false);
   const [cropSource, setCropSource] = useState<{
@@ -87,6 +95,8 @@ export default function MouzaMapStudioLayout() {
     width: number;
     height: number;
   } | null>(null);
+  const [pendingConfirmation, setPendingConfirmation] =
+    useState<PendingConfirmation | null>(null);
 
   const {
     step,
@@ -139,11 +149,17 @@ export default function MouzaMapStudioLayout() {
       );
 
       if (hasEditorContent && geometryChanged && !contentAlreadyReset) {
-        const shouldReplace = window.confirm(
-          'Crop বা alignment-এর আকার বদলেছে। নতুন map বসালে বর্তমান cleanup, text ও mark মুছে যাবে। চালিয়ে যাবেন?',
-        );
-        if (!shouldReplace) return;
-        resetEditorContent();
+        setPendingConfirmation({
+          title: 'বর্তমান edit মুছে নতুন map বসাবেন?',
+          description:
+            'Crop বা alignment-এর আকার বদলেছে। চালিয়ে গেলে বর্তমান cleanup, text ও mark মুছে যাবে।',
+          confirmText: 'চালিয়ে যান',
+          onConfirm: () => {
+            resetEditorContent();
+            void prepareEditor(targetStep, cropOverride, true);
+          },
+        });
+        return;
       }
 
       setEditorImage(composite.image);
@@ -197,21 +213,8 @@ export default function MouzaMapStudioLayout() {
     setCropSource(null);
   };
 
-  const saveCombinedCrop = (
-    _image: HTMLImageElement,
-    crop?: PantagraphCropResult,
-  ) => {
-    if (!cropSource || !crop) return;
-
-    if (
-      hasEditorContent &&
-      !window.confirm(
-        'Crop বদলালে বর্তমান cleanup, text ও mark মুছে যাবে। চালিয়ে যাবেন?',
-      )
-    ) {
-      return;
-    }
-
+  const applyCombinedCrop = (crop: PantagraphCropResult) => {
+    if (!cropSource) return;
     const normalizedCrop: StudioCompositeCrop = {
       x: crop.x / cropSource.width,
       y: crop.y / cropSource.height,
@@ -231,16 +234,27 @@ export default function MouzaMapStudioLayout() {
     }
   };
 
-  const clearCombinedCrop = () => {
-    if (
-      hasEditorContent &&
-      !window.confirm(
-        'Crop সরালে বর্তমান cleanup, text ও mark মুছে যাবে। চালিয়ে যাবেন?',
-      )
-    ) {
+  const saveCombinedCrop = (
+    _image: HTMLImageElement,
+    crop?: PantagraphCropResult,
+  ) => {
+    if (!cropSource || !crop) return;
+
+    if (hasEditorContent) {
+      setPendingConfirmation({
+        title: 'Crop পরিবর্তন করবেন?',
+        description:
+          'Crop বদলালে বর্তমান cleanup, text ও mark মুছে যাবে।',
+        confirmText: 'Crop পরিবর্তন করুন',
+        onConfirm: () => applyCombinedCrop(crop),
+      });
       return;
     }
 
+    applyCombinedCrop(crop);
+  };
+
+  const applyClearCombinedCrop = () => {
     setCompositeCrop(null);
     setCompositeMeta(null);
     resetEditorContent();
@@ -250,6 +264,21 @@ export default function MouzaMapStudioLayout() {
     } else {
       SuccessToast('Aligned map crop সরানো হয়েছে');
     }
+  };
+
+  const clearCombinedCrop = () => {
+    if (hasEditorContent) {
+      setPendingConfirmation({
+        title: 'Crop সরিয়ে ফেলবেন?',
+        description:
+          'Crop সরালে বর্তমান cleanup, text ও mark মুছে যাবে।',
+        confirmText: 'Crop সরান',
+        onConfirm: applyClearCombinedCrop,
+      });
+      return;
+    }
+
+    applyClearCombinedCrop();
   };
 
   const openStep = (nextStep: StudioStep) => {
@@ -378,6 +407,24 @@ export default function MouzaMapStudioLayout() {
           onDone={saveCombinedCrop}
         />
       )}
+
+      <ConfirmationModal
+        open={pendingConfirmation !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingConfirmation(null);
+        }}
+        trigger={null}
+        title={pendingConfirmation?.title}
+        description={pendingConfirmation?.description}
+        confirmText={pendingConfirmation?.confirmText}
+        cancelText="বাতিল"
+        variant="destructive"
+        onConfirm={() => {
+          const action = pendingConfirmation?.onConfirm;
+          setPendingConfirmation(null);
+          action?.();
+        }}
+      />
     </div>
   );
 }
