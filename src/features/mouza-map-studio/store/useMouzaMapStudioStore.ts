@@ -42,15 +42,24 @@ export type StudioCompositeMeta = {
   };
 };
 
+export type StudioCompositeCrop = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 type MouzaMapStudioStore = {
   step: StudioStep;
   compositeMeta: StudioCompositeMeta | null;
+  compositeCrop: StudioCompositeCrop | null;
   calibration: StudioCalibration | null;
   dimensions: StudioDimension[];
   sheetMode: StudioSheetMode;
   sheetDetails: StudioSheetDetails;
   setStep: (step: StudioStep) => void;
   setCompositeMeta: (meta: StudioCompositeMeta | null) => void;
+  setCompositeCrop: (crop: StudioCompositeCrop | null) => void;
   setCalibration: (calibration: StudioCalibration | null) => void;
   addDimension: (dimension: StudioDimension) => void;
   removeDimension: (id: string) => void;
@@ -74,12 +83,14 @@ const defaultSheetDetails: StudioSheetDetails = {
 export const useMouzaMapStudioStore = create<MouzaMapStudioStore>()((set) => ({
   step: 'align',
   compositeMeta: null,
+  compositeCrop: null,
   calibration: null,
   dimensions: [],
   sheetMode: 'all',
   sheetDetails: defaultSheetDetails,
   setStep: (step) => set({ step }),
   setCompositeMeta: (compositeMeta) => set({ compositeMeta }),
+  setCompositeCrop: (compositeCrop) => set({ compositeCrop }),
   setCalibration: (calibration) => set({ calibration }),
   addDimension: (dimension) => set((state) => ({ dimensions: [...state.dimensions, dimension] })),
   removeDimension: (id) => set((state) => ({ dimensions: state.dimensions.filter((item) => item.id !== id) })),
@@ -91,6 +102,7 @@ export const useMouzaMapStudioStore = create<MouzaMapStudioStore>()((set) => ({
   reset: () => set({
     step: 'align',
     compositeMeta: null,
+    compositeCrop: null,
     calibration: null,
     dimensions: [],
     sheetMode: 'all',

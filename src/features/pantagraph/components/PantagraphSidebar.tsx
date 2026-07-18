@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { PantagraphCropDialog, type PantagraphCropResult } from './PantagraphCropDialog';
+import { PantagraphCropDialog } from './PantagraphCropDialog';
 import { useShallow } from 'zustand/shallow';
 import { usePantagraphStore } from '../store/usePantagraphStore';
 import { extractImageFromPDF } from '@/features/land-measurement/utils/pdfHelper';
@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/drawer';
 import {
   ImageUp,
-  Crop,
   Trash2,
   Droplets,
   Loader2,
@@ -45,31 +44,24 @@ const MapUploadSection = memo(function MapUploadSection() {
   // Crop dialog state
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [cropTarget, setCropTarget] = useState<'former' | 'current' | null>(null);
-  const [preserveCropPlacement, setPreserveCropPlacement] = useState(false);
   const cropSrcRef = useRef<string | null>(null);
 
-  const { formerMap, currentMap, setFormerMap, setCurrentMap, applyCroppedMap, imageLoading, setImageLoading } = usePantagraphStore(
+  const { formerMap, currentMap, setFormerMap, setCurrentMap, imageLoading, setImageLoading } = usePantagraphStore(
     useShallow((s) => ({
       formerMap: s.formerMap,
       currentMap: s.currentMap,
       setFormerMap: s.setFormerMap,
       setCurrentMap: s.setCurrentMap,
-      applyCroppedMap: s.applyCroppedMap,
       imageLoading: s.imageLoading,
       setImageLoading: s.setImageLoading,
     })),
   );
 
-  const openCropDialog = useCallback((
-    src: string,
-    target: 'former' | 'current',
-    preservePlacement = false,
-  ) => {
+  const openCropDialog = useCallback((src: string, target: 'former' | 'current') => {
     if (cropSrcRef.current) URL.revokeObjectURL(cropSrcRef.current);
     cropSrcRef.current = src;
     setCropSrc(src);
     setCropTarget(target);
-    setPreserveCropPlacement(preservePlacement);
   }, []);
 
   useEffect(() => () => {
@@ -115,37 +107,17 @@ const MapUploadSection = memo(function MapUploadSection() {
     e.target.value = '';
   }, [loadFileForCrop]);
 
-  const cropExistingMap = useCallback(async (target: 'former' | 'current') => {
-    const image = target === 'former' ? formerMap : currentMap;
-    if (!image) return;
-
-    setImageLoading(true);
-    try {
-      openCropDialog(await imageToObjectUrl(image), target, true);
-    } catch (error) {
-      console.error('Existing map crop load error:', error);
-    } finally {
-      setImageLoading(false);
-    }
-  }, [formerMap, currentMap, openCropDialog, setImageLoading]);
-
   // ── When crop is done ────────────────────────────────────────────────────────
-  const handleCropDone = useCallback((img: HTMLImageElement, crop?: PantagraphCropResult) => {
-    if (cropTarget && preserveCropPlacement && crop) {
-      applyCroppedMap(cropTarget, img, crop);
-    } else if (cropTarget === 'former') {
-      setFormerMap(img);
-    } else if (cropTarget === 'current') {
-      setCurrentMap(img);
-    }
-  }, [cropTarget, preserveCropPlacement, applyCroppedMap, setFormerMap, setCurrentMap]);
+  const handleCropDone = useCallback((img: HTMLImageElement) => {
+    if (cropTarget === 'former') setFormerMap(img);
+    else if (cropTarget === 'current') setCurrentMap(img);
+  }, [cropTarget, setFormerMap, setCurrentMap]);
 
   const handleCropClose = useCallback(() => {
     if (cropSrcRef.current) URL.revokeObjectURL(cropSrcRef.current);
     cropSrcRef.current = null;
     setCropSrc(null);
     setCropTarget(null);
-    setPreserveCropPlacement(false);
   }, []);
 
   return (
@@ -167,20 +139,9 @@ const MapUploadSection = memo(function MapUploadSection() {
               {imageLoading ? 'লোড হচ্ছে...' : (formerMap ? 'পরিবর্তন' : 'আপলোড')}
             </Button>
             {formerMap && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => void cropExistingMap('former')}
-                  title="আবার ক্রপ করুন"
-                  disabled={imageLoading}
-                >
-                  <Crop className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => setFormerMap(null)}>
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </>
+              <Button variant="ghost" size="icon" onClick={() => setFormerMap(null)}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
             )}
           </div>
         </div>
@@ -197,20 +158,9 @@ const MapUploadSection = memo(function MapUploadSection() {
               {imageLoading ? 'লোড হচ্ছে...' : (currentMap ? 'পরিবর্তন' : 'আপলোড')}
             </Button>
             {currentMap && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => void cropExistingMap('current')}
-                  title="আবার ক্রপ করুন"
-                  disabled={imageLoading}
-                >
-                  <Crop className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => setCurrentMap(null)}>
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </>
+              <Button variant="ghost" size="icon" onClick={() => setCurrentMap(null)}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
             )}
           </div>
         </div>
@@ -222,7 +172,6 @@ const MapUploadSection = memo(function MapUploadSection() {
           open={true}
           imageSrc={cropSrc}
           mapLabel={cropTarget === 'former' ? 'সাবেক ম্যাপ' : 'হাল ম্যাপ'}
-          preserveResolution={preserveCropPlacement}
           onClose={handleCropClose}
           onDone={handleCropDone}
         />

@@ -1,5 +1,5 @@
 import type { PantagraphStore } from '@/features/pantagraph/store/usePantagraphStore';
-import type { StudioCompositeMeta } from '../store/useMouzaMapStudioStore';
+import type { StudioCompositeCrop, StudioCompositeMeta } from '../store/useMouzaMapStudioStore';
 
 const MAX_COMPOSITE_DIMENSION = 8192;
 const MAX_COMPOSITE_PIXELS = 24_000_000;
@@ -171,6 +171,47 @@ export async function createStudioComposite(state: PantagraphStore): Promise<Stu
     height: canvas.height,
     outputScale,
     bounds: { minX, minY, maxX, maxY },
+  };
+
+  canvas.width = 1;
+  canvas.height = 1;
+  return { image, meta };
+}
+
+
+export async function cropStudioComposite(
+  composite: StudioComposite,
+  crop: StudioCompositeCrop,
+): Promise<StudioComposite> {
+  const sourceWidth = composite.meta.width;
+  const sourceHeight = composite.meta.height;
+  const startX = Math.max(0, Math.min(sourceWidth - 1, Math.round(crop.x * sourceWidth)));
+  const startY = Math.max(0, Math.min(sourceHeight - 1, Math.round(crop.y * sourceHeight)));
+  const endX = Math.max(startX + 1, Math.min(sourceWidth, Math.round((crop.x + crop.width) * sourceWidth)));
+  const endY = Math.max(startY + 1, Math.min(sourceHeight, Math.round((crop.y + crop.height) * sourceHeight)));
+  const width = endX - startX;
+  const height = endY - startY;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Crop canvas তৈরি করা যায়নি');
+  context.drawImage(composite.image, startX, startY, width, height, 0, 0, width, height);
+
+  const image = await canvasToImage(canvas);
+  const minX = composite.meta.bounds.minX + startX / composite.meta.outputScale;
+  const minY = composite.meta.bounds.minY + startY / composite.meta.outputScale;
+  const meta: StudioCompositeMeta = {
+    width,
+    height,
+    outputScale: composite.meta.outputScale,
+    bounds: {
+      minX,
+      minY,
+      maxX: minX + width / composite.meta.outputScale,
+      maxY: minY + height / composite.meta.outputScale,
+    },
   };
 
   canvas.width = 1;

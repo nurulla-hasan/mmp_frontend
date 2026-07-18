@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Check, Layers3, Loader2, Lock, Map, PenLine, Sheet } from 'lucide-react';
+import { ArrowLeft, Check, Crop, Layers3, Loader2, Lock, Map, PenLine, Sheet, X } from 'lucide-react';
 
 import PantagraphLayout from '@/features/pantagraph/components/PantagraphLayout';
+import { PantagraphCropDialog, type PantagraphCropResult } from '@/features/pantagraph/components/PantagraphCropDialog';
 import TracerLayout from '@/features/tracer/components/TracerLayout';
 import { usePantagraphStore } from '@/features/pantagraph/store/usePantagraphStore';
 import { useTracerStore } from '@/features/tracer/store/useTracerStore';
@@ -14,7 +15,7 @@ import {
   type StudioCompositeMeta,
   type StudioStep,
 } from '../store/useMouzaMapStudioStore';
-import { createStudioComposite } from '../utils/createStudioComposite';
+import { createStudioComposite, cropStudioComposite } from '../utils/createStudioComposite';
 import StudioSheetLayout from './StudioSheetLayout';
 
 const steps: Array<{
@@ -27,6 +28,24 @@ const steps: Array<{
   { id: 'trace', label: 'ট্রেস করুন', icon: PenLine, available: true },
   { id: 'layout', label: 'শিট তৈরি', icon: Sheet, available: true },
 ];
+
+const imageToCropObjectUrl = (image: HTMLImageElement) => new Promise<string>((resolve, reject) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth || image.width;
+  canvas.height = image.naturalHeight || image.height;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    reject(new Error('Crop preview তৈরি করা যায়নি'));
+    return;
+  }
+  context.drawImage(image, 0, 0);
+  canvas.toBlob((blob) => {
+    canvas.width = 1;
+    canvas.height = 1;
+    if (blob) resolve(URL.createObjectURL(blob));
+    else reject(new Error('Crop preview তৈরি করা যায়নি'));
+  }, 'image/png');
+});
 
 const hasSameCompositeGeometry = (
   previous: StudioCompositeMeta | null,
@@ -44,11 +63,14 @@ const hasSameCompositeGeometry = (
 
 export default function MouzaMapStudioLayout() {
   const [isPreparing, setIsPreparing] = useState(false);
+  const [cropSource, setCropSource] = useState<{ src: string; width: number; height: number } | null>(null);
   const {
     step,
     compositeMeta,
+    compositeCrop,
     setStep,
     setCompositeMeta,
+    setCompositeCrop,
     setCalibration,
     clearDimensions,
   } = useMouzaMapStudioStore();
@@ -73,7 +95,10 @@ export default function MouzaMapStudioLayout() {
     }
     setIsPreparing(true);
     try {
-      const composite = await createStudioComposite(usePantagraphStore.getState());
+      const baseComposite = await createStudioComposite(usePantagraphStore.getState());
+      const composite = compositeCrop
+        ? await cropStudioComposite(baseComposite, compositeCrop)
+        : baseComposite;
       const geometryChanged = !hasSameCompositeGeometry(compositeMeta, composite.meta);
 
       if (polygonCount > 0 && geometryChanged) {
@@ -97,6 +122,43 @@ export default function MouzaMapStudioLayout() {
     } finally {
       setIsPreparing(false);
     }
+  };
+
+  const openCombinedCrop = async () => {
+    if (!mapsReady || !isLocked) return;
+    setIsPreparing(true);
+    try {
+      const composite = await createStudioComposite(usePantagraphStore.getState());
+      const src = await imageToCropObjectUrl(composite.image);
+      setCropSource({ src, width: composite.meta.width, height: composite.meta.height });
+    } catch (error) {
+      ErrorToast(error instanceof Error ? error.message : 'Aligned map crop করা যায়নি');
+    } finally {
+      setIsPreparing(false);
+    }
+  };
+
+  const closeCombinedCrop = () => {
+    if (cropSource) URL.revokeObjectURL(cropSource.src);
+    setCropSource(null);
+  };
+
+  const saveCombinedCrop = (_image: HTMLImageElement, crop?: PantagraphCropResult) => {
+    if (!cropSource || !crop) return;
+    setCompositeCrop({
+      x: crop.x / cropSource.width,
+      y: crop.y / cropSource.height,
+      width: crop.width / cropSource.width,
+      height: crop.height / cropSource.height,
+    });
+    setCompositeMeta(null);
+    SuccessToast('দুই ম্যাপের একসাথে crop সংরক্ষণ হয়েছে');
+  };
+
+  const clearCombinedCrop = () => {
+    setCompositeCrop(null);
+    setCompositeMeta(null);
+    SuccessToast('Aligned map crop সরানো হয়েছে');
   };
 
   const openStep = (nextStep: StudioStep) => {
@@ -155,6 +217,30 @@ export default function MouzaMapStudioLayout() {
             );
           })}
 
+          {step === 'align' && isLocked && (
+            <>
+              <button
+                type="button"
+                disabled={isPreparing}
+                onClick={() => void openCombinedCrop()}
+                className="ml-1 flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-semibold text-foreground transition hover:bg-muted disabled:cursor-wait disabled:opacity-70"
+              >
+                {isPreparing ? <Loader2 className="size-3.5 animate-spin" /> : <Crop className="size-3.5" />}
+                <span className="whitespace-nowrap">{compositeCrop ? 'একসাথে crop বদলান' : 'দুই ম্যাপ একসাথে crop'}</span>
+              </button>
+              {compositeCrop && (
+                <button
+                  type="button"
+                  onClick={clearCombinedCrop}
+                  title="একসাথে crop সরান"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-destructive"
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
+            </>
+          )}
+
           {step === 'align' && (
             <button
               type="button"
@@ -175,6 +261,17 @@ export default function MouzaMapStudioLayout() {
           )}
         </div>
       </div>
+
+      {cropSource && (
+        <PantagraphCropDialog
+          open
+          imageSrc={cropSource.src}
+          mapLabel="Aligned C.S + B.S ম্যাপ"
+          preserveResolution
+          onClose={closeCombinedCrop}
+          onDone={saveCombinedCrop}
+        />
+      )}
     </div>
   );
 }

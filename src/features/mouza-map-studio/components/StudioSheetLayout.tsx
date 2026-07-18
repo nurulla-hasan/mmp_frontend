@@ -97,7 +97,7 @@ export default function StudioSheetLayout() {
 
   const viewWidth = Math.max(1, mapBounds.maxX - mapBounds.minX);
   const viewHeight = Math.max(1, mapBounds.maxY - mapBounds.minY);
-  const mapFontSize = Math.max(10, Math.max(viewWidth, viewHeight) / 65);
+  const mapFontSize = Math.max(7, Math.max(viewWidth, viewHeight) / 90);
 
   const plotAreas = useMemo(() => {
     if (!calibration) return [];
@@ -180,7 +180,7 @@ export default function StudioSheetLayout() {
           <text x="42" y="52" font-size="20" font-weight="700">${escapeXml(sheetDetails.title || 'MOUZA MAP')}</text>
           <text x="42" y="74" font-size="11" fill="#4b5563">${escapeXml(subtitle)}</text>
           ${legend}
-          <svg x="38" y="92" width="790" height="650" viewBox="${mapBounds.minX} ${mapBounds.minY} ${viewWidth} ${viewHeight}" preserveAspectRatio="xMidYMid meet">${layerMarkup}</svg>
+          <svg x="38" y="92" width="790" height="650" viewBox="${mapBounds.minX} ${mapBounds.minY} ${viewWidth} ${viewHeight}" preserveAspectRatio="xMidYMin meet">${layerMarkup}</svg>
           ${thumbnailMarkup}
           <circle cx="965" cy="125" r="45" fill="none" stroke="#d946ef" stroke-width="2"/>
           <text x="965" y="68" fill="#dc2626" font-size="16" font-weight="700" text-anchor="middle">N</text>
@@ -327,7 +327,7 @@ export default function StudioSheetLayout() {
                 <svg
                   viewBox={`${mapBounds.minX} ${mapBounds.minY} ${viewWidth} ${viewHeight}`}
                   className="h-full w-full"
-                  preserveAspectRatio="xMidYMid meet"
+                  preserveAspectRatio="xMidYMin meet"
                 >
                   {targetLayers.map((layer) => layer.polygons.map((polygon) => {
                     const center = polygon.labelX != null && polygon.labelY != null
