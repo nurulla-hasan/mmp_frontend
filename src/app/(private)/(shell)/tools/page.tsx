@@ -1,4 +1,4 @@
-import { Calculator, Map, MoveDiagonal, PenLine, Scaling } from "lucide-react";
+import { Calculator, Layers3, Map, MoveDiagonal, PenLine, Scaling } from "lucide-react";
 import Link from "next/link";
 
 import { PageWrapper } from "@/components/ui/custom/page-wrapper";
@@ -23,6 +23,15 @@ const featuredTool = {
 };
 
 const quickTools = [
+  {
+    icon: Layers3,
+    title: "মৌজা ম্যাপ স্টুডিও",
+    description:
+      "C.S ও B.S ম্যাপ align করে একই workspace-এ vector tracing করুন।",
+    href: "/tools/mouza-map-studio",
+    badge: "বেটা",
+    color: "text-emerald-600 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30",
+  },
   {
     icon: Scaling,
     title: "ম্যাপ স্কেল ও প্যান্টাগ্রাফ",
