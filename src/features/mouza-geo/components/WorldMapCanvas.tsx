@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import type {
   LeafletMouseEvent,
   Map as LeafletMap,
+  TileLayer,
 } from 'leaflet';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -28,6 +29,8 @@ type WorldMapCanvasProps = {
   transform: GeoTransform | null;
   controlPairs: ControlPair[];
   waitingForWorldPoint: boolean;
+  opacity: number;
+  mapStyle: 'satellite' | 'street';
   interactionTarget: InteractionTarget;
   onPlaceWorldPoint: (point: GeoPoint) => void;
   onTranslateOverlay: (delta: MercatorPoint) => void;
@@ -39,10 +42,59 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
+  const baseLayerRef = useRef<TileLayer | null>(null);
+  const labelLayerRef = useRef<TileLayer | null>(null);
   const propsRef = useRef(props);
   const dragRef = useRef<{ id: number; point: MercatorPoint } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const installBaseMap = useCallback(
+    (
+      leaflet: typeof import('leaflet'),
+      map: LeafletMap,
+      style: 'satellite' | 'street',
+    ) => {
+      baseLayerRef.current?.remove();
+      labelLayerRef.current?.remove();
+      labelLayerRef.current = null;
+
+      if (style === 'satellite') {
+        baseLayerRef.current = leaflet
+          .tileLayer(
+            'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            {
+              minZoom: 2,
+              maxZoom: 19,
+              attribution: 'Tiles &copy; Esri — Sources: Esri and contributors',
+            },
+          )
+          .addTo(map);
+
+        labelLayerRef.current = leaflet
+          .tileLayer(
+            'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+            {
+              minZoom: 2,
+              maxZoom: 19,
+              attribution: 'Labels &copy; Esri',
+            },
+          )
+          .addTo(map);
+        return;
+      }
+
+      baseLayerRef.current = leaflet
+        .tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          minZoom: 2,
+          maxZoom: 19,
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+        })
+        .addTo(map);
+    },
+    [],
+  );
 
   const toScreenPoint = useCallback((source: { x: number; y: number }) => {
     const transform = propsRef.current.transform;
@@ -79,7 +131,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     context.clearRect(0, 0, width, height);
 
-    const { image, transform, controlPairs } = propsRef.current;
+    const { image, transform, opacity, controlPairs } = propsRef.current;
 
     if (transform) {
       const imageWidth = image.naturalWidth || image.width;
@@ -90,6 +142,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
       if (origin && right && bottom) {
         context.save();
+        context.globalAlpha = opacity;
         context.setTransform(
           ((right.x - origin.x) / imageWidth) * ratio,
           ((right.y - origin.y) / imageWidth) * ratio,
@@ -154,16 +207,8 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
           })
           .setView([25.6217, 88.6354], 15);
 
-        leaflet
-          .tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            minZoom: 2,
-            maxZoom: 19,
-            attribution:
-              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
-          })
-          .addTo(map);
-
         mapRef.current = map;
+        installBaseMap(leaflet, map, propsRef.current.mapStyle);
 
         const handleClick = (event: LeafletMouseEvent) => {
           const current = propsRef.current;
@@ -206,8 +251,27 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       resizeObserver?.disconnect();
       map?.remove();
       mapRef.current = null;
+      baseLayerRef.current = null;
+      labelLayerRef.current = null;
     };
-  }, [drawOverlay]);
+  }, [drawOverlay, installBaseMap]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    let cancelled = false;
+
+    void import('leaflet').then((leaflet) => {
+      if (!cancelled && mapRef.current === map) {
+        installBaseMap(leaflet, map, props.mapStyle);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [installBaseMap, props.mapStyle]);
 
   useEffect(() => {
     if (!props.active) return;
@@ -329,4 +393,3 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     </div>
   );
 }
-
