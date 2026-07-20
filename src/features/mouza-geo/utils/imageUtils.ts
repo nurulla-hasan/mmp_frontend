@@ -33,3 +33,20 @@ export const normalizeAsPng = (image: HTMLImageElement) => {
 
   return canvas.toDataURL('image/png');
 };
+
+/** Preserve the image alpha channel for transparent KMZ overlays. */
+export const imageAsPng = (image: HTMLImageElement) => {
+  const width = image.naturalWidth || image.width;
+  const height = image.naturalHeight || image.height;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+
+  if (!context) throw new Error('Image canvas তৈরি করা যায়নি');
+
+  context.clearRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+
+  return canvas.toDataURL('image/png');
+};
