@@ -11,6 +11,7 @@ import {
 
 import type { InteractionTarget, Point2D } from '../types';
 import FloatingToolButton from './FloatingToolButton';
+import { Separator } from '@/components/ui/separator';
 
 type GeoStudioToolbarProps = {
   settingsOpen: boolean;
@@ -52,10 +53,12 @@ export default function GeoStudioToolbar({
     <div
       className={
         mobile
-          ? 'mx-0.5 h-6 w-px bg-border/60'
-          : 'my-0.5 h-px w-6 bg-border/60'
+          ? 'mx-0.5 h-6'
+          : 'my-0.5 w-6'
       }
-    />
+    >
+      <Separator orientation={mobile ? 'vertical' : 'horizontal'} />
+    </div>
   );
 
   return (

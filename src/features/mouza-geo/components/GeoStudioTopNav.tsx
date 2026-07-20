@@ -1,6 +1,9 @@
 import { ArrowLeft, Globe2, ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import type { AlignmentMode, GeoTransform } from '../types';
 
 type GeoStudioTopNavProps = {
@@ -21,54 +24,55 @@ export default function GeoStudioTopNav({
   onWorldClick,
 }: GeoStudioTopNavProps) {
   return (
-    <nav className="absolute left-1/2 top-3 z-40 flex max-w-[calc(100vw-1rem)] -translate-x-1/2 items-center rounded-xl border border-border bg-background/95 p-1 shadow-xl backdrop-blur">
-      <Link
-        href="/tools"
+    <nav className="fixed left-1/2 top-0 z-50 mt-2 -translate-x-1/2 w-fit flex items-center rounded-xl border border-border/80 bg-background/80 px-3 py-2 shadow-2xl shadow-black/5 backdrop-blur-xl supports-backdrop-filter:bg-background/60">
+      <Button
+        nativeButton={false}
+        render={<Link href="/tools" />}
+        variant="ghost"
+        size="icon-lg"
         title="টুলস পেজে ফিরুন"
         aria-label="টুলস পেজে ফিরুন"
-        className="grid size-9 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
-      </Link>
+      </Button>
 
-      <div className="mx-1 hidden h-6 w-px bg-border sm:block" />
-      <p className="hidden px-2 text-xs font-bold text-foreground sm:block">
+      <div className="mx-2 hidden h-6 sm:block">
+        <Separator orientation="vertical" />
+      </div>
+      <p className="hidden px-1 text-xs font-bold text-foreground/80 sm:block">
         Mouza Geo Studio
       </p>
-      <div className="mx-1 h-6 w-px bg-border" />
+      <div className="mx-2 h-6">
+        <Separator orientation="vertical" />
+      </div>
 
-      <button
-        type="button"
+      <Button
+        variant={activeView === 'source' ? 'default' : 'ghost'}
+        size="sm"
         disabled={!image}
         onClick={onSourceClick}
-        className={`flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition disabled:opacity-40 ${
-          activeView === 'source'
-            ? 'bg-primary text-primary-foreground'
-            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-        }`}
       >
-        <ImageIcon className="size-4" />
-        <span>PDF</span>
-      </button>
+        <ImageIcon className="size-3.5" />
+        PDF
+      </Button>
 
-      <button
-        type="button"
+      <Button
+        variant={activeView === 'world' ? 'default' : 'ghost'}
+        size="sm"
         disabled={!image}
         onClick={onWorldClick}
-        className={`flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition disabled:opacity-40 ${
-          activeView === 'world'
-            ? 'bg-primary text-primary-foreground'
-            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-        }`}
       >
-        <Globe2 className="size-4" />
-        <span>World Map</span>
-      </button>
+        <Globe2 className="size-3.5" />
+        World Map
+      </Button>
 
       {transform && (
-        <span className="ml-1 hidden rounded-lg bg-primary/10 px-2 py-2 text-[10px] font-semibold text-primary md:block">
+        <Badge
+          variant="default"
+          className="ml-auto hidden bg-primary/10 text-primary md:block text-[10px] px-2 py-0.5"
+        >
           {alignmentMode === 'affine' ? 'Affine' : 'Aligned'}
-        </span>
+        </Badge>
       )}
     </nav>
   );

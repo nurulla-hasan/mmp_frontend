@@ -1,11 +1,9 @@
-import { Download, FileUp, Loader2, Trash2 } from 'lucide-react';
+import { Download, FileUp, Loader2, Trash2 } from "lucide-react";
 
-import type {
-  AlignmentMode,
-  ControlPair,
-  GeoTransform,
-} from '../types';
-import type { KmzExportQuality } from '../utils/kmz';
+import { Button } from "@/components/ui/button";
+
+import type { AlignmentMode, ControlPair, GeoTransform } from "../types";
+import type { KmzExportQuality } from "../utils/kmz";
 
 type SettingsPanelProps = {
   image: HTMLImageElement | null;
@@ -18,7 +16,7 @@ type SettingsPanelProps = {
   backgroundSensitivity: number;
   lineColor: string;
   opacity: number;
-  mapStyle: 'satellite' | 'street';
+  mapStyle: "satellite" | "street";
   exportQuality: KmzExportQuality;
   exportingKmz: boolean;
   residual: number | null;
@@ -32,7 +30,7 @@ type SettingsPanelProps = {
   onBackgroundSensitivityChange: (value: number) => void;
   onLineColorChange: (value: string) => void;
   onOpacityChange: (value: number) => void;
-  onMapStyleChange: (value: 'satellite' | 'street') => void;
+  onMapStyleChange: (value: "satellite" | "street") => void;
   onExportQualityChange: (value: KmzExportQuality) => void;
   onMapNameChange: (name: string) => void;
   onExport: () => void;
@@ -80,19 +78,20 @@ export default function SettingsPanel({
           </h3>
           {image && <span className="text-xs text-primary">Ready</span>}
         </div>
-        <button
-          type="button"
-          disabled={loadingFile}
-          onClick={onUploadClick}
-          className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 text-sm font-semibold text-foreground transition hover:bg-muted disabled:opacity-50"
-        >
-          <FileUp className="size-4" />
-          {loadingFile
-            ? 'Load হচ্ছে…'
-            : image
-              ? 'ম্যাপ পরিবর্তন'
-              : 'PDF / Image আপলোড'}
-        </button>
+        <div className="w-full">
+          <Button
+            variant="outline"
+            disabled={loadingFile}
+            onClick={onUploadClick}
+          >
+            <FileUp className="size-4" />
+            {loadingFile
+              ? "Load হচ্ছে…"
+              : image
+                ? "ম্যাপ পরিবর্তন"
+                : "PDF / Image আপলোড"}
+          </Button>
+        </div>
       </section>
 
       {/* Control points */}
@@ -120,15 +119,15 @@ export default function SettingsPanel({
               <span className="min-w-0 flex-1 truncate text-muted-foreground">
                 {pair.world.lat.toFixed(6)}, {pair.world.lng.toFixed(6)}
               </span>
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="icon-xs"
                 title="Point pair মুছুন"
                 aria-label="Point pair মুছুন"
                 onClick={() => onRemovePair(pair.id)}
-                className="text-muted-foreground transition hover:text-destructive"
               >
-                <Trash2 className="size-4" />
-              </button>
+                <Trash2 className="size-3.5" />
+              </Button>
             </div>
           ))}
           {controlPairs.length === 0 && (
@@ -145,29 +144,27 @@ export default function SettingsPanel({
           Alignment
         </h3>
         <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
+          <Button
+            variant="outline"
             disabled={controlPairs.length < 2}
             onClick={onSimilarityClick}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-40"
           >
             Similarity
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="outline"
             disabled={controlPairs.length < 3}
             onClick={onAffineClick}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-40"
           >
             Affine refine
-          </button>
+          </Button>
         </div>
 
         {transform && (
           <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-primary">
-                {alignmentMode === 'affine' ? 'Affine' : 'Similarity'} active
+                {alignmentMode === "affine" ? "Affine" : "Similarity"} active
               </span>
               <span className="font-mono text-muted-foreground">
                 RMS {residual?.toFixed(2)}m
@@ -183,24 +180,24 @@ export default function SettingsPanel({
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              aria-pressed={mapStyle === 'satellite'}
-              onClick={() => onMapStyleChange('satellite')}
+              aria-pressed={mapStyle === "satellite"}
+              onClick={() => onMapStyleChange("satellite")}
               className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
-                mapStyle === 'satellite'
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border bg-background text-muted-foreground hover:bg-muted'
+                mapStyle === "satellite"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-background text-muted-foreground hover:bg-muted"
               }`}
             >
               Satellite
             </button>
             <button
               type="button"
-              aria-pressed={mapStyle === 'street'}
-              onClick={() => onMapStyleChange('street')}
+              aria-pressed={mapStyle === "street"}
+              onClick={() => onMapStyleChange("street")}
               className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
-                mapStyle === 'street'
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border bg-background text-muted-foreground hover:bg-muted'
+                mapStyle === "street"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-background text-muted-foreground hover:bg-muted"
               }`}
             >
               Street
@@ -223,12 +220,12 @@ export default function SettingsPanel({
               aria-label="PDF background সরান"
               onClick={() => onBackgroundRemovedChange(!backgroundRemoved)}
               className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors ${
-                backgroundRemoved ? 'bg-primary' : 'bg-muted'
+                backgroundRemoved ? "bg-primary" : "bg-muted"
               }`}
             >
               <span
                 className={`pointer-events-none inline-block size-4 rounded-full bg-background shadow-sm transition-transform ${
-                  backgroundRemoved ? 'translate-x-4' : 'translate-x-0'
+                  backgroundRemoved ? "translate-x-4" : "translate-x-0"
                 }`}
               />
             </button>
@@ -260,9 +257,9 @@ export default function SettingsPanel({
                 </span>
                 <div className="flex gap-2">
                   {[
-                    { value: '#000000', label: 'কালো' },
-                    { value: '#DC2626', label: 'লাল' },
-                    { value: '#16A34A', label: 'সবুজ' },
+                    { value: "#000000", label: "কালো" },
+                    { value: "#DC2626", label: "লাল" },
+                    { value: "#16A34A", label: "সবুজ" },
                   ].map((option) => (
                     <button
                       key={option.value}
@@ -273,8 +270,8 @@ export default function SettingsPanel({
                       onClick={() => onLineColorChange(option.value)}
                       className={`size-8 rounded-full border-2 transition ${
                         lineColor === option.value
-                          ? 'scale-110 border-primary ring-2 ring-primary/25'
-                          : 'border-border'
+                          ? "scale-110 border-primary ring-2 ring-primary/25"
+                          : "border-border"
                       }`}
                       style={{ backgroundColor: option.value }}
                     />
@@ -319,24 +316,24 @@ export default function SettingsPanel({
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              aria-pressed={exportQuality === 'optimized'}
-              onClick={() => onExportQualityChange('optimized')}
+              aria-pressed={exportQuality === "optimized"}
+              onClick={() => onExportQualityChange("optimized")}
               className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
-                exportQuality === 'optimized'
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border bg-background text-muted-foreground hover:bg-muted'
+                exportQuality === "optimized"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-background text-muted-foreground hover:bg-muted"
               }`}
             >
               High · ছোট
             </button>
             <button
               type="button"
-              aria-pressed={exportQuality === 'original'}
-              onClick={() => onExportQualityChange('original')}
+              aria-pressed={exportQuality === "original"}
+              onClick={() => onExportQualityChange("original")}
               className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
-                exportQuality === 'original'
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border bg-background text-muted-foreground hover:bg-muted'
+                exportQuality === "original"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-background text-muted-foreground hover:bg-muted"
               }`}
             >
               Original
@@ -355,31 +352,27 @@ export default function SettingsPanel({
             className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary"
           />
         </label>
-        <button
-          type="button"
-          disabled={
-            !transform ||
-            !canExport ||
-            processingBackground ||
-            exportingKmz
-          }
-          onClick={onExport}
-          className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-40"
-        >
-          {exportingKmz ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Download className="size-4" />
-          )}
-          {exportingKmz ? 'KMZ প্রস্তুত হচ্ছে…' : 'KMZ Export'}
-        </button>
-        <button
-          type="button"
-          onClick={onResetAlignment}
-          className="h-9 w-full rounded-lg border border-border bg-background px-3 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"
-        >
-          Alignment reset
-        </button>
+        <div className="w-full">
+          <Button
+            variant="default"
+            disabled={
+              !transform || !canExport || processingBackground || exportingKmz
+            }
+            onClick={onExport}
+          >
+            {exportingKmz ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Download className="size-4" />
+            )}
+            {exportingKmz ? "KMZ প্রস্তুত হচ্ছে…" : "KMZ Export"}
+          </Button>
+        </div>
+        <div className="w-full">
+          <Button variant="outline" onClick={onResetAlignment}>
+            Alignment reset
+          </Button>
+        </div>
       </section>
     </div>
   );

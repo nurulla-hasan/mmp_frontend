@@ -449,7 +449,7 @@ export const TracerSidebar = memo(function TracerSidebar({
   return (
     <>
       {/* ── Desktop Sidebar ── */}
-      <div className="absolute left-4 top-4 max-h-[calc(100dvh-2rem)] w-80 bg-card/95 backdrop-blur-md border border-border flex-col z-20 hidden md:flex overflow-hidden rounded-2xl shadow-2xl">
+      <div className="absolute left-4 top-16 max-h-[85dvh] w-80 bg-card/95 backdrop-blur-md border border-border flex-col z-20 hidden md:flex overflow-hidden rounded-2xl shadow-2xl">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0 bg-muted/30">
           <h2 className="text-sm font-semibold text-foreground font-heading">ট্রেসার সেটিংস</h2>
           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full shrink-0" onClick={onClose}>

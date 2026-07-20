@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -28,10 +29,7 @@ import {
   solveGeoTransform,
   translateGeoTransform,
 } from "../utils/geoMath";
-import {
-  exportMouzaKmz,
-  type KmzExportQuality,
-} from "../utils/kmz";
+import { exportMouzaKmz, type KmzExportQuality } from "../utils/kmz";
 import { createProcessedPreview } from "../utils/imageProcessing";
 import { loadImage, toDataUrl } from "../utils/imageUtils";
 import EmptyState from "./EmptyState";
@@ -47,7 +45,9 @@ export default function MouzaGeoStudio() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [image, setImage] = useState<HTMLImageElement | null>(null);
-  const [overlayImage, setOverlayImage] = useState<HTMLImageElement | null>(null);
+  const [overlayImage, setOverlayImage] = useState<HTMLImageElement | null>(
+    null,
+  );
   const [mapName, setMapName] = useState("mouza-map");
   const [loadingFile, setLoadingFile] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -69,6 +69,8 @@ export default function MouzaGeoStudio() {
   const [exportQuality, setExportQuality] =
     useState<KmzExportQuality>("optimized");
   const [exportingKmz, setExportingKmz] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   const imageSize = useMemo(
     () => ({
@@ -312,7 +314,16 @@ export default function MouzaGeoStudio() {
   };
 
   return (
-    <div className="relative h-dvh min-h-0 overflow-hidden bg-background">
+    <div
+      className="relative h-dvh min-h-0 overflow-hidden"
+      style={{
+        backgroundColor: isDark ? "#121212" : "#ffffff",
+        backgroundImage: isDark
+          ? `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`
+          : `linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)`,
+        backgroundSize: "20px 20px",
+      }}
+    >
       <input
         ref={fileInputRef}
         type="file"
@@ -437,7 +448,7 @@ export default function MouzaGeoStudio() {
       {settingsOpen && (
         <>
           {/* Desktop settings sidebar */}
-          <aside className="absolute left-4 top-4 z-50 hidden max-h-[calc(100dvh-2rem)] w-80 flex-col overflow-hidden rounded-2xl border border-border bg-card/95 text-card-foreground shadow-2xl backdrop-blur-md md:flex">
+          <aside className="absolute left-4 top-16 z-50 hidden max-h-[85dvh] w-80 flex-col overflow-hidden rounded-2xl border border-border bg-card/95 text-card-foreground shadow-2xl backdrop-blur-md md:flex">
             <header className="flex shrink-0 items-center justify-between border-b border-border bg-muted/30 px-4 py-3">
               <div>
                 <h2 className="font-heading text-sm font-semibold">
@@ -452,7 +463,7 @@ export default function MouzaGeoStudio() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setSettingsOpen(false)}
-                className="size-8 shrink-0 rounded-full"
+                className="shrink-0 rounded-full"
               >
                 <X className="size-4" />
               </Button>
@@ -474,7 +485,9 @@ export default function MouzaGeoStudio() {
                 exportingKmz={exportingKmz}
                 residual={residual}
                 mapName={mapName}
-                canExport={Boolean(image) && !processingBackground && !exportingKmz}
+                canExport={
+                  Boolean(image) && !processingBackground && !exportingKmz
+                }
                 onUploadClick={() => fileInputRef.current?.click()}
                 onRemovePair={removePair}
                 onSimilarityClick={() =>
@@ -545,7 +558,11 @@ export default function MouzaGeoStudio() {
                         exportingKmz={exportingKmz}
                         residual={residual}
                         mapName={mapName}
-                        canExport={Boolean(image) && !processingBackground && !exportingKmz}
+                        canExport={
+                          Boolean(image) &&
+                          !processingBackground &&
+                          !exportingKmz
+                        }
                         onUploadClick={() => fileInputRef.current?.click()}
                         onRemovePair={removePair}
                         onSimilarityClick={() =>

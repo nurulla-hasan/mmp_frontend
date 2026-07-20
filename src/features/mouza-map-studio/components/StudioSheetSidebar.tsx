@@ -24,7 +24,7 @@ export default function StudioSheetSidebar({
   onExport,
 }: StudioSheetSidebarProps) {
   return (
-    <aside className="w-80 shrink-0 overflow-y-auto bg-sidebar p-4 text-sidebar-foreground">
+    <aside className="absolute left-4 top-16 z-50 max-h-[85dvh] w-80 overflow-y-auto rounded-2xl border border-border bg-card/95 p-4 text-card-foreground shadow-2xl backdrop-blur-md">
       <h2 className="text-lg font-semibold">শিট তৈরি</h2>
       <p className="mt-1 text-xs text-muted-foreground">
         Edited real map-এ তথ্য যোগ করে professional sheet export করুন।

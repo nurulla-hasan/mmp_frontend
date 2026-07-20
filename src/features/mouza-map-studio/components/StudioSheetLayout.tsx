@@ -235,7 +235,7 @@ export default function StudioSheetLayout() {
   const visibleTexts = editorTexts.filter((item) => item.text.trim());
 
   return (
-    <div className="flex h-full min-h-0 bg-background pt-16">
+    <div className="relative h-full min-h-0 bg-background pt-16">
       <StudioSheetSidebar
         sheetDetails={sheetDetails}
         mapDataUrl={mapDataUrl}

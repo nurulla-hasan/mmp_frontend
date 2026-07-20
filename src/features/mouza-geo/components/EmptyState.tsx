@@ -1,5 +1,7 @@
 import { FileUp, Globe2 } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
+
 type EmptyStateProps = {
   loadingFile: boolean;
   onUploadClick: () => void;
@@ -21,15 +23,17 @@ export default function EmptyState({
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           Settings থেকে PDF অথবা image upload করুন।
         </p>
-        <button
-          type="button"
-          disabled={loadingFile}
-          onClick={onUploadClick}
-          className="mt-5 inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-        >
-          <FileUp className="size-4" />
-          {loadingFile ? 'Load হচ্ছে…' : 'PDF / Image আপলোড'}
-        </button>
+        <div className="mt-5">
+          <Button
+            variant="default"
+            size="lg"
+            disabled={loadingFile}
+            onClick={onUploadClick}
+          >
+            <FileUp className="size-4" />
+            {loadingFile ? 'Load হচ্ছে…' : 'PDF / Image আপলোড'}
+          </Button>
+        </div>
       </div>
     </div>
   );
