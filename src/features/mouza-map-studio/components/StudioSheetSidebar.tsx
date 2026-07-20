@@ -31,7 +31,7 @@ export default function StudioSheetSidebar({
       <div className="mt-5 space-y-3">
         {([
           ['title', 'শিটের শিরোনাম'],
-          ['ownerName', 'Land Owner / জমির মালিক'],
+          ['ownerName', 'Pantagraph For / যার জন্য তৈরি'],
           ['mouzaName', 'মৌজার নাম'],
           ['sheetNo', 'শিট নম্বর'],
           ['khatianNo', 'খতিয়ান নম্বর'],

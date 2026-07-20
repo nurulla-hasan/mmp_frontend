@@ -109,7 +109,7 @@ export default function StudioSheetPreview({
 
             <div className="mt-5 text-[11px] leading-5">
               {([
-                ['LAND OWNER', sheetDetails.ownerName],
+                ['PANTAGRAPH FOR', sheetDetails.ownerName],
                 ['NAME OF MOUZA', sheetDetails.mouzaName],
                 ['SHEET NO', sheetDetails.sheetNo],
                 ['KHATIAN NO', sheetDetails.khatianNo],
@@ -122,24 +122,6 @@ export default function StudioSheetPreview({
                   {value || '—'}
                 </div>
               ))}
-            </div>
-
-            <div className="mt-4 min-h-0 flex-1 overflow-hidden">
-              <h3 className="border-b border-black pb-1 text-[11px] font-bold">
-                DAG NO / NOTES
-              </h3>
-              <div className="mt-1 space-y-0.5 text-[10px]">
-                {visibleTexts.slice(0, 20).map((item) => (
-                  <div key={item.id} style={{ color: item.color }}>
-                    {item.text}
-                  </div>
-                ))}
-                {visibleTexts.length === 0 && (
-                  <p className="text-gray-500">
-                    Final Edit থেকে text বসান
-                  </p>
-                )}
-              </div>
             </div>
 
             <div className="mt-auto border-t border-black pt-2 text-center text-[9px] text-gray-600">

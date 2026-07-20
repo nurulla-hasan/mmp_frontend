@@ -104,6 +104,36 @@ export default function StudioEditorLayout({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const handleKeyboardShortcut = (event: KeyboardEvent) => {
+      const target = event.target;
+      const isTyping =
+        target instanceof HTMLElement &&
+        Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+
+      if (isTyping || (!event.ctrlKey && !event.metaKey)) return;
+
+      const key = event.key.toLowerCase();
+      if (key === 'z') {
+        event.preventDefault();
+        if (event.shiftKey) {
+          redoEditor();
+        } else {
+          undoEditor();
+        }
+        return;
+      }
+
+      if (key === 'y') {
+        event.preventDefault();
+        redoEditor();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyboardShortcut);
+    return () => window.removeEventListener('keydown', handleKeyboardShortcut);
+  }, [undoEditor, redoEditor]);
+
   useLayoutEffect(() => {
     if (!editorImage || stageSize.width === 0 || stageSize.height === 0) return;
 

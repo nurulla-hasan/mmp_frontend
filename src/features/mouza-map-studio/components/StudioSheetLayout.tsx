@@ -132,7 +132,7 @@ export default function StudioSheetLayout() {
         ].join("");
 
         const details: Array<[string, string]> = [
-          ["LAND OWNER", sheetDetails.ownerName],
+          ["PANTAGRAPH FOR", sheetDetails.ownerName],
           ["NAME OF MOUZA", sheetDetails.mouzaName],
           ["SHEET NO", sheetDetails.sheetNo],
           ["KHATIAN NO", sheetDetails.khatianNo],
@@ -146,15 +146,6 @@ export default function StudioSheetLayout() {
             const y = 270 + index * 30;
             return `<text x="858" y="${y}" font-size="11"><tspan font-weight="700">${escapeXml(label)}: </tspan>${escapeXml(value || "—")}</text><line x1="858" y1="${y + 8}" x2="1080" y2="${y + 8}" stroke="#000" stroke-width="1"/>`;
           })
-          .join("");
-
-        const dagMarkup = editorTexts
-          .filter((item) => item.text.trim())
-          .slice(0, 20)
-          .map(
-            (item, index) =>
-              `<text x="860" y="${520 + index * 15}" fill="${escapeXml(item.color)}" font-size="9">${escapeXml(item.text)}</text>`,
-          )
           .join("");
 
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${EXPORT_WIDTH}" height="${EXPORT_HEIGHT}" viewBox="0 0 ${EXPORT_WIDTH} ${EXPORT_HEIGHT}">
@@ -180,9 +171,6 @@ export default function StudioSheetLayout() {
           <text x="965" y="137" fill="#2563eb" font-size="38" text-anchor="middle">✥</text>
           <line x1="858" y1="205" x2="1080" y2="205" stroke="#000"/>
           ${detailsMarkup}
-          <text x="858" y="500" font-size="10" font-weight="700">DAG NO / NOTES</text>
-          <line x1="858" y1="508" x2="1080" y2="508" stroke="#000"/>
-          ${dagMarkup}
           <text x="969" y="744" fill="#4b5563" font-size="9" text-anchor="middle">Generated with Mouza Map Studio</text>
         </g>
       </svg>`;
