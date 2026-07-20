@@ -68,6 +68,8 @@ export default function MouzaGeoStudio() {
   const [backgroundSensitivity, setBackgroundSensitivity] = useState(75);
   const [lineColor, setLineColor] = useState("#DC2626");
   const [processingBackground, setProcessingBackground] = useState(false);
+  const [opacity, setOpacity] = useState(0.72);
+  const [mapStyle, setMapStyle] = useState<"satellite" | "street">("satellite");
   const appearanceVersionRef = useRef(0);
 
   const imageSize = useMemo(
@@ -342,10 +344,12 @@ export default function MouzaGeoStudio() {
               <WorldMapCanvas
                 key="world"
                 active={true}
-                image={image}
+                image={overlayImage ?? image}
                 transform={transform}
                 controlPairs={controlPairs}
                 waitingForWorldPoint={Boolean(pendingSource)}
+                opacity={opacity}
+                mapStyle={mapStyle}
                 interactionTarget={interactionTarget}
                 onPlaceWorldPoint={handleWorldPoint}
                 onTranslateOverlay={handleTranslate}
@@ -443,6 +447,8 @@ export default function MouzaGeoStudio() {
                 processingBackground={processingBackground}
                 backgroundSensitivity={backgroundSensitivity}
                 lineColor={lineColor}
+                opacity={opacity}
+                mapStyle={mapStyle}
                 residual={residual}
                 mapName={mapName}
                 imageDataUrl={imageDataUrl}
@@ -455,6 +461,8 @@ export default function MouzaGeoStudio() {
                 onBackgroundRemovedChange={setBackgroundRemoved}
                 onBackgroundSensitivityChange={setBackgroundSensitivity}
                 onLineColorChange={setLineColor}
+                onOpacityChange={setOpacity}
+                onMapStyleChange={setMapStyle}
                 onMapNameChange={setMapName}
                 onExport={handleExport}
                 onResetAlignment={resetAlignment}
@@ -507,6 +515,8 @@ export default function MouzaGeoStudio() {
                         processingBackground={processingBackground}
                         backgroundSensitivity={backgroundSensitivity}
                         lineColor={lineColor}
+                        opacity={opacity}
+                        mapStyle={mapStyle}
                         residual={residual}
                         mapName={mapName}
                         imageDataUrl={imageDataUrl}
@@ -521,6 +531,8 @@ export default function MouzaGeoStudio() {
                         onBackgroundRemovedChange={setBackgroundRemoved}
                         onBackgroundSensitivityChange={setBackgroundSensitivity}
                         onLineColorChange={setLineColor}
+                        onOpacityChange={setOpacity}
+                        onMapStyleChange={setMapStyle}
                         onMapNameChange={setMapName}
                         onExport={handleExport}
                         onResetAlignment={resetAlignment}
