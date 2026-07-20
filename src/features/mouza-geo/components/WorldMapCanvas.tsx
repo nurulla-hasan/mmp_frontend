@@ -20,6 +20,7 @@ import {
 type InteractionTarget = 'map' | 'pdf';
 
 type WorldMapCanvasProps = {
+  active: boolean;
   image: HTMLImageElement;
   transform: GeoTransform | null;
   controlPairs: ControlPair[];
@@ -133,7 +134,26 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
     const map = new maplibregl.Map({
       container: host,
-      style: 'https://tiles.openfreemap.org/styles/liberty',
+      style: {
+        version: 8,
+        sources: {
+          openStreetMap: {
+            type: 'raster',
+            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tileSize: 256,
+            maxzoom: 19,
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+          },
+        },
+        layers: [
+          {
+            id: 'openStreetMap',
+            type: 'raster',
+            source: 'openStreetMap',
+          },
+        ],
+      },
       center: [88.6354, 25.6217],
       zoom: 15,
       attributionControl: { compact: true },
@@ -188,6 +208,17 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       mapRef.current = null;
     };
   }, [drawOverlay]);
+
+  useEffect(() => {
+    if (!props.active) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      mapRef.current?.resize();
+      drawOverlay();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [drawOverlay, props.active]);
 
   const getMercatorAtPointer = (clientX: number, clientY: number) => {
     const host = hostRef.current;
