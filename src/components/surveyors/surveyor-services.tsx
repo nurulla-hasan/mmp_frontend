@@ -1,13 +1,18 @@
+import { Banknote } from "lucide-react";
+
 import type { TSurveyorProfile } from "@/types/surveyor-profile.type";
 
 const SERVICE_ICONS: Record<string, string> = {
   "land-measurement": "📏",
   "land-division": "📐",
-  "boundary-identification": "📍",
+  "boundary-determination": "📍",
+  "digital-survey": "🖥️",
+  "mouza-map": "🗺️",
   "survey-report": "📋",
-  "digital-mapping": "🖥️",
   "khatian-search": "📑",
   "mutation": "📝",
+  "record-verification": "✅",
+  "plot-layout": "📐",
 };
 
 function getServiceIcon(slug: string): string {
@@ -22,7 +27,7 @@ export function SurveyorServices({
   return (
     <section>
       <h2 className="text-lg font-semibold font-heading md:text-xl">
-        সেবাসমূহ
+        সেবাসমূহ ও মূল্য
       </h2>
       <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
         {services.map((service) => (
@@ -41,6 +46,12 @@ export function SurveyorServices({
                 <h3 className="font-medium text-foreground transition-colors group-hover:text-primary">
                   {service.name}
                 </h3>
+                {service.startingPrice != null && (
+                  <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-primary">
+                    <Banknote className="size-3" />
+                    ৳{service.startingPrice.toLocaleString("bn")} থেকে
+                  </p>
+                )}
               </div>
             </div>
           </div>

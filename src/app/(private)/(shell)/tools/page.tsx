@@ -90,7 +90,7 @@ export default function ToolsPage() {
             {/* Background gradient */}
             <div className="pointer-events-none absolute -inset-y-20 left-1/2 w-150 -translate-x-1/2 rounded-full bg-primary/3 " />
 
-            <CardContent className="relative p-6 sm:p-8">
+            <CardContent className="relative">
               <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
                 {/* Icon */}
                 <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 shadow-lg shadow-primary/10 ring-2 ring-primary/20">

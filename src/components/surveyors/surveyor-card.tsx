@@ -5,6 +5,7 @@ import Link from "next/link";
 import { StarRating } from "@/components/ui/custom/star-rating";
 import { Button } from "@/components/ui/button";
 import { getInitials } from "@/lib/utils";
+import type { TSurveyorServiceWithPrice } from "@/types/surveyor-profile.type";
 
 export type TSurveyorCard = {
   id: string;
@@ -20,12 +21,7 @@ export type TSurveyorCard = {
     upazila: string;
   };
   isSubscribed?: boolean;
-  services: {
-    id: string;
-    slug: string;
-    name: string;
-  }[];
-  startingPrice?: number;
+  services: TSurveyorServiceWithPrice[];
 };
 
 const MAX_VISIBLE_SERVICES = 3;
@@ -99,14 +95,19 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
           </div>
         )}
 
-        {/* ── Starting price ── */}
-        <div className="border-t border-border/40 pt-3">
-          <p className="text-xs text-muted-foreground">প্রাথমিক মূল্য</p>
-          <p className="text-sm font-semibold text-primary">
-            {surveyor.startingPrice != null
-              ? `৳${surveyor.startingPrice.toLocaleString("bn")} থেকে`
-              : "কোটেশন অনুযায়ী মূল্য"}
-          </p>
+        {/* ── Per-service pricing ── */}
+        <div className="border-t border-border/40 pt-3 space-y-1.5">
+          <p className="text-xs text-muted-foreground">সেবা ও মূল্য</p>
+          {surveyor.services.slice(0, MAX_VISIBLE_SERVICES).map((service) => (
+            <div key={service.id} className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground truncate">{service.name}</span>
+              <span className="font-medium text-primary shrink-0 ml-2">
+                {service.startingPrice != null
+                  ? `৳${service.startingPrice.toLocaleString("bn")} থেকে`
+                  : "—"}
+              </span>
+            </div>
+          ))}
         </div>
 
         {/* ── Actions ── */}
