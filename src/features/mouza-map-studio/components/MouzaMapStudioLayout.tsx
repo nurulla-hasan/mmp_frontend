@@ -110,10 +110,10 @@ export default function MouzaMapStudioLayout() {
         return;
       }
 
-      if (!isLocked) {
-        ErrorToast('Alignment ঠিক করে map দুটিকে আগে lock করুন');
-        return;
-      }
+      // if (!isLocked) {
+      //   ErrorToast('Alignment ঠিক করে map দুটিকে আগে lock করুন');
+      //   return;
+      // }
 
       setIsPreparing(true);
       try {
@@ -156,7 +156,7 @@ export default function MouzaMapStudioLayout() {
         setIsPreparing(false);
       }
     },
-    [mapsReady, isLocked, compositeCrop, compositeMeta, hasEditorContent, resetEditorContent, setEditorImage, setCompositeMeta, setStep],
+    [mapsReady, compositeCrop, compositeMeta, hasEditorContent, resetEditorContent, setEditorImage, setCompositeMeta, setStep],
   );
 
   const openCombinedCrop = useCallback(async () => {
