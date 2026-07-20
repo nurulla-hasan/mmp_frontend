@@ -3,24 +3,25 @@ import { Check, Lock, Star } from "lucide-react";
 import { SectionHeading } from "@/components/home/section-heading";
 import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
+import { FREE_TOOLS } from "./pricing-data";
 
 const FREE_FEATURES = [
-  "বেসিক ল্যান্ড টুলস",
-  "সার্ভেয়ার লিস্টিং দেখা",
-  "সার্ভেয়ার পাবলিক প্রোফাইল দেখা",
-  "সার্ভিস রিকোয়েস্ট তৈরি",
-  "কোটেশন দেখা",
+  "জমির একক রূপান্তর — শতক, কাঠা, বিঘা, একর, বর্গফুট",
+  "জমি বণ্টন ক্যালকুলেটর — অংশীদারদের জমি ভাগ করুন",
+  "সার্ভেয়ার লিস্টিং ও পাবলিক প্রোফাইল দেখা",
+  "সার্ভিস রিকোয়েস্ট তৈরি করা",
+  "সার্ভেয়ারদের পার-সার্ভিস প্রাইসিং দেখা",
   "বেসিক অ্যাকাউন্ট অ্যাক্সেস",
 ];
 
 const PRO_FEATURES = [
-  "ক্যালকুলেশন প্রজেক্ট সেভ",
-  "একাধিক প্লট ম্যানেজমেন্ট",
-  "পরে সম্পাদনা চালিয়ে যান",
-  "PDF/Print রিপোর্ট",
-  "অ্যাডভান্সড ক্যালকুলেশন ওয়ার্কস্পেস",
-  "Device-ভিত্তিক সুরক্ষিত অ্যাক্সেস",
-  "প্রথমিক প্রোডাক্ট আপডেট",
+  "সব ফ্রি টুল + ৫টি অ্যাডভান্সড টুল",
+  "ম্যাপ আপলোড করে প্লট আঁকা ও ক্ষেত্রফল",
+  "প্যান্টাগ্রাফ দিয়ে ম্যাপ এলাইন ও তুলনা",
+  "ডিজিটাল ট্রেসিং — CS/BS দাগ ট্রেস",
+  "মৌজা ম্যাপ স্টুডিও — CS-BS align",
+  "মৌজা জিও স্টুডিও — KMZ ও Google Earth",
+  "প্রকল্প সেভ, PDF/Print/PNG এক্সপোর্ট",
 ];
 
 export function FreeVsPro() {
@@ -49,7 +50,19 @@ export function FreeVsPro() {
               </span>
               <span className="ml-1 text-sm text-muted-foreground">সর্বদা</span>
             </div>
-            <ul className="mt-6 flex-1 space-y-3">
+            {/* Free tools */}
+            <div className="mt-4 mb-2 rounded-lg bg-primary/5 p-2.5">
+              <p className="text-xs font-medium text-primary mb-1.5">ফ্রি টুল:</p>
+              <div className="flex flex-wrap gap-2">
+                {FREE_TOOLS.map((tool) => (
+                  <span key={tool} className="inline-flex items-center gap-1 rounded-md bg-background px-2 py-0.5 text-xs font-medium text-foreground/80 ring-1 ring-primary/10">
+                    <Check className="size-3 text-primary" />
+                    {tool}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <ul className="flex-1 space-y-3">
               {FREE_FEATURES.map((f) => (
                 <li key={f} className="flex items-start gap-3 text-sm">
                   <Check className="mt-0.5 size-4 shrink-0 text-muted-foreground/50" />
@@ -58,7 +71,7 @@ export function FreeVsPro() {
               ))}
             </ul>
             <p className="mt-6 text-xs leading-5 text-muted-foreground italic">
-              Free সুবিধা ও usage limit launch policy অনুযায়ী নির্ধারিত হবে।
+              Free টুলস ও সুবিধা সবার জন্য উন্মুক্ত।
             </p>
           </CardContent>
         </Card>
@@ -79,11 +92,11 @@ export function FreeVsPro() {
             </div>
             <h3 className="text-lg font-semibold font-heading">প্রো অ্যাক্সেস</h3>
             <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
-              Calculation workspace ও professional report-এর advanced সুবিধার জন্য।
+              Advanced calculation workspace, map tracing ও professional report-এর জন্য।
             </p>
             <div className="mt-4">
               <span className="text-4xl font-bold tracking-tight md:text-5xl font-heading">
-                ৳৯৯
+                ৳২৯৯
               </span>
               <span className="ml-1 text-sm text-muted-foreground">/মাস থেকে</span>
             </div>
@@ -98,7 +111,7 @@ export function FreeVsPro() {
               ))}
             </ul>
             <p className="mt-6 text-xs leading-5 text-muted-foreground italic">
-              Pro সুবিধা plan policy অনুযায়ী উপলব্ধ হবে।
+              প্ল্যান অনুযায়ী নির্দিষ্ট টুল ও সুবিধা উপলব্ধ।
             </p>
           </CardContent>
         </Card>

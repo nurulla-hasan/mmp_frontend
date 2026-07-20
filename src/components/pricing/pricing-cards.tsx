@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { PRICING_PLANS, PRICING_FEATURES } from "./pricing-data";
+import { PRICING_PLANS } from "./pricing-data";
 import { SectionWrapper } from "../ui/custom/section-wrapper";
 
 interface PricingCardsProps {
@@ -11,10 +11,6 @@ interface PricingCardsProps {
 }
 
 export function PricingCards({ compact }: PricingCardsProps) {
-  const features = compact
-    ? PRICING_FEATURES.slice(0, 6)
-    : PRICING_FEATURES;
-
   return (
     <SectionWrapper asSection>
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -39,7 +35,7 @@ export function PricingCards({ compact }: PricingCardsProps) {
               </span>
             )}
 
-            <CardContent className="relative flex flex-col">
+            <CardContent className="relative flex flex-1 flex-col">
               {/* Header: Icon + Title */}
               <div className="flex items-center gap-4">
                 <div
@@ -87,12 +83,22 @@ export function PricingCards({ compact }: PricingCardsProps) {
                 {plan.duration}
               </p>
 
+              {/* Tools included */}
+              {/* <div className="mt-6 mb-4 space-y-2 rounded-lg bg-primary/5 p-3">
+                <p className="text-xs font-semibold text-primary tracking-wide">
+                  📦 যেসব টুল পাবেন
+                </p>
+                {plan.tools.map((tool) => (
+                  <div key={tool} className="flex items-center gap-2 text-xs text-foreground/80">
+                    <Check className="size-3 text-primary shrink-0" />
+                    <span>{tool}</span>
+                  </div>
+                ))}
+              </div> */}
+
               {/* Features */}
-              <div className="mt-6 mb-4 rounded bg-primary/5 p-2 text-center text-xs font-medium text-primary">
-                ল্যান্ড মেজারমেন্ট, ডিজিটাল প্যান্টাগ্রাফ ও ম্যাপ ট্রেসার—সবগুলো টুল ব্যবহার করুন।
-              </div>
-              <ul className="flex-1 space-y-3">
-                {features.map((f) => (
+              <ul className="flex-1 space-y-3 mt-6">
+                {plan.features.map((f) => (
                   <li key={f} className="flex items-start gap-3 text-sm">
                     <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/10">
                       <Check className="size-3 text-primary" />
@@ -100,14 +106,6 @@ export function PricingCards({ compact }: PricingCardsProps) {
                     <span>{f}</span>
                   </li>
                 ))}
-                {plan.name === "বার্ষিক প্রো" && (
-                  <li className="flex items-start gap-3 text-sm font-medium text-primary">
-                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/20">
-                      <Check className="size-3 text-primary" />
-                    </span>
-                    <span>নতুন ফিচারে অগ্রাধিকার ভিত্তিতে অ্যাক্সেস</span>
-                  </li>
-                )}
               </ul>
 
               {/* CTA */}
@@ -120,6 +118,11 @@ export function PricingCards({ compact }: PricingCardsProps) {
               >
                 {plan.recommended ? "এখনই শুরু করুন" : "প্ল্যান নির্বাচন করুন"}
               </Button>
+              {plan.recommended && (
+                <p className="mt-2 text-[10px] text-center text-muted-foreground">
+                  বার্ষিক প্ল্যান — মাসে মাত্র ৳১৩৩
+                </p>
+              )}
             </CardContent>
           </Card>
         ))}

@@ -6,6 +6,11 @@ export const SERVICE_OPTIONS = [
   { value: "boundary-determination", label: "সীমানা নির্ধারণ" },
   { value: "digital-survey", label: "ডিজিটাল সার্ভে" },
   { value: "mouza-map", label: "মৌজা ম্যাপ সহায়তা" },
+  { value: "survey-report", label: "পরিমাপ রিপোর্ট তৈরি" },
+  { value: "khatian-search", label: "খতিয়ান অনুসন্ধান" },
+  { value: "mutation", label: "নামজারি (মিউটেশন)" },
+  { value: "record-verification", label: "রেকর্ড যাচাই" },
+  { value: "plot-layout", label: "প্লট লেআউট ও নকশা" },
 ] as const;
 
 export const DISTRICT_OPTIONS = [

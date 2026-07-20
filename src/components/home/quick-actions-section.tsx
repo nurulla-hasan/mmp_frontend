@@ -1,4 +1,4 @@
-import { ArrowRight, Calculator, ClipboardCheck, Compass, PencilRuler } from "lucide-react";
+import { ArrowRight, Calculator, Compass, PencilRuler } from "lucide-react";
 import Link from "next/link";
 
 import { SectionHeading } from "@/components/home/section-heading";
@@ -19,12 +19,7 @@ const actions = [
     href: "/surveyors",
   },
   {
-    icon: ClipboardCheck,
-    title: "কাজ পোস্ট করুন",
-    description: "আপনার প্রয়োজন লিখে একাধিক কোটেশন গ্রহণ করুন。",
-    href: "/post-request",
-  },
-  {
+
     icon: Calculator,
     title: "সার্ভেয়ার হিসেবে যোগ দিন",
     description: "পেশাদার প্রোফাইল তৈরি করে নতুন ক্লায়েন্ট-এর সঙ্গে যুক্ত হন।",

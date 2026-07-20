@@ -1,4 +1,4 @@
-import { Calculator, Layers3, Map, MoveDiagonal, PenLine, Scaling } from "lucide-react";
+import { Calculator, Globe2, Layers3, Map, MoveDiagonal, PenLine, Scaling } from "lucide-react";
 import Link from "next/link";
 
 import { PageWrapper } from "@/components/ui/custom/page-wrapper";
@@ -31,6 +31,15 @@ const quickTools = [
     href: "/tools/mouza-map-studio",
     badge: "বেটা",
     color: "text-emerald-600 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30",
+  },
+  {
+    icon: Globe2,
+    title: "মৌজা জিও স্টুডিও",
+    description:
+      "মৌজা ম্যাপকে পৃথিবীর আসল জায়গায় align করে Google Earth-এর জন্য KMZ তৈরি করুন।",
+    href: "/tools/mouza-geo-studio",
+    badge: "বেটা",
+    color: "text-primary bg-primary/10",
   },
   {
     icon: Scaling,
@@ -81,7 +90,7 @@ export default function ToolsPage() {
             {/* Background gradient */}
             <div className="pointer-events-none absolute -inset-y-20 left-1/2 w-150 -translate-x-1/2 rounded-full bg-primary/3 " />
 
-            <CardContent className="relative p-6 sm:p-8">
+            <CardContent className="relative">
               <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
                 {/* Icon */}
                 <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 shadow-lg shadow-primary/10 ring-2 ring-primary/20">

@@ -15,7 +15,6 @@ const desktopLinks = [
     { label: "হোম", href: "/" },
     { label: "ল্যান্ড টুলস", href: "/tools" },
     { label: "সার্ভেয়ার খুঁজুন", href: "/surveyors" },
-    { label: "রিকোয়েস্ট পোস্ট করুন", href: "/post-request" },
     { label: "প্রাইসিং", href: "/pricing" },
 ];
 

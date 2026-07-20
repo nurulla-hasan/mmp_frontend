@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MessageCircle } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -89,15 +90,26 @@ export function SurveyorHero({
 
         {/* CTA */}
         <div className="flex flex-wrap gap-3">
-          <Button
-            size="lg"
-            nativeButton={false}
-            render={
-              <Link href={`/post-request?surveyor=${surveyor.slug}`} />
-            }
-          >
-            সার্ভেয়ারকে কাজের অনুরোধ পাঠান
-          </Button>
+          {surveyor.whatsappNumber ? (
+            <Button
+              size="lg"
+              nativeButton={false}
+              render={
+                <a
+                  href={`https://wa.me/${surveyor.whatsappNumber}?text=${encodeURIComponent(`হ্যালো, আমি Mouza Map Pro থেকে দেখছি। ${surveyor.fullName} এর সেবা সম্পর্কে জানতে চাই।`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              }
+            >
+              <MessageCircle className="size-5" />
+              WhatsApp-এ যোগাযোগ
+            </Button>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              সার্ভেয়ার এখনো যোগাযোগের মাধ্যম নির্ধারণ করেননি।
+            </p>
+          )}
         </div>
       </div>
     </section>

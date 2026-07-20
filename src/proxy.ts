@@ -32,7 +32,6 @@ const PRIVATE_ROUTES = [
   "/tools",
   "/community",
   "/join-as-surveyor",
-  "/post-request",
 ] as const;
 
 const ROLE_HOME: Record<UserRole, string> = {

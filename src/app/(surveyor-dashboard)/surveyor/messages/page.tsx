@@ -1,2 +1,0 @@
-import { DashboardPage } from "@/components/shared/dashboard-page";
-export default function Page() { return <DashboardPage title="মেসেজ" description="ক্লায়েন্ট কথোপকথন রিকোয়েস্ট এবং জবের সাথে সংযুক্ত রাখুন।" cards={[{ label: "অপঠিত মেসেজ", value: "0", description: "নতুন ক্লায়েন্ট মেসেজ এখানে দেখাবে।" },{ label: "সক্রিয় জব", href: "/surveyor/jobs", description: "সম্পর্কিত জব ওয়ার্কস্পেস খুলুন।" }]} />; }

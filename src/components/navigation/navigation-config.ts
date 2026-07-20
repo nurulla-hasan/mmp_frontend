@@ -1,12 +1,9 @@
 import {
   Calculator,
   CircleUserRound,
-  ClipboardList,
   CreditCard,
-  HandCoins,
   House,
   Megaphone,
-  MessageSquare,
   MonitorSmartphone,
   ShieldCheck,
   ShieldUser,
@@ -35,21 +32,6 @@ export const userNavigation: NavigationItem[] = [
     icon: Calculator,
   },
   {
-    title: "সার্ভিস রিকোয়েস্ট",
-    href: "/dashboard/service-requests",
-    icon: ClipboardList,
-  },
-  {
-    title: "কোটেশন",
-    href: "/dashboard/quotations",
-    icon: HandCoins,
-  },
-  {
-    title: "মেসেজ",
-    href: "/dashboard/messages",
-    icon: MessageSquare,
-  },
-  {
     title: "প্রোফাইল",
     href: "/dashboard/profile",
     icon: CircleUserRound,
@@ -74,21 +56,6 @@ export const surveyorNavigation: NavigationItem[] = [
     icon: CircleUserRound,
   },
 
-  {
-    title: "উপলব্ধ রিকোয়েস্ট",
-    href: "/surveyor/requests",
-    icon: ClipboardList,
-  },
-  {
-    title: "কোটেশন",
-    href: "/surveyor/quotations",
-    icon: HandCoins,
-  },
-  {
-    title: "মেসেজ",
-    href: "/surveyor/messages",
-    icon: MessageSquare,
-  },
 ];
 
 export const adminNavigation: NavigationItem[] = [

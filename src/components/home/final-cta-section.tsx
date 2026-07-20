@@ -36,7 +36,7 @@ export function FinalCtaSection() {
               className="mt-6 w-full"
               size="lg"
               nativeButton={false}
-              render={<Link href="/post-request" />}
+              render={<Link href="/surveyors" />}
             >
               কাজ পোস্ট করুন
               <ArrowRight className="size-4" />

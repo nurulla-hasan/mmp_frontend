@@ -1,3 +1,10 @@
+export type TSurveyorServiceWithPrice = {
+  id: string;
+  slug: string;
+  name: string;
+  startingPrice: number | null;
+};
+
 export type TSurveyorProfile = {
   id: string;
   slug: string;
@@ -21,18 +28,13 @@ export type TSurveyorProfile = {
     upazilas: string[];
   }[];
 
-  services: {
-    id: string;
-    slug: string;
-    name: string;
-  }[];
+  services: TSurveyorServiceWithPrice[];
+
+  whatsappNumber?: string;
 
   rating: number;
   totalReviews: number;
   completedRequests: number;
-
-  pricingType: "QUOTATION_BASED" | "FIXED_PRICE";
-  startingPrice: number | null;
 
   verification: {
     identityReviewed: boolean;

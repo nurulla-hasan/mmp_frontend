@@ -18,7 +18,7 @@ const mobileLinks = [
   { label: "হোম", href: "/", icon: Home },
   { label: "ল্যান্ড টুলস", href: "/tools", icon: Ruler },
   { label: "সার্ভেয়ার খুঁজুন", href: "/surveyors", icon: MapPin },
-  { label: "রিকোয়েস্ট পোস্ট করুন", href: "/post-request", icon: FileText },
+  { label: "সার্ভেয়ার খুঁজুন", href: "/surveyors", icon: FileText },
   { label: "প্রাইসিং", href: "/pricing", icon: Tag },
 ];
 

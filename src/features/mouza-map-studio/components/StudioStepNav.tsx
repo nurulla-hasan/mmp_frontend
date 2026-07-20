@@ -40,8 +40,7 @@ export default function StudioStepNav({
 //   onPrepareEditor,
 }: StudioStepNavProps) {
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-0 z-100 flex justify-center bg-sidebar p-3">
-      <div className="pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-2xl border border-border/80 p-1.5 shadow-xl backdrop-blur">
+    <nav className="fixed left-1/2 top-0 z-50 mt-2 -translate-x-1/2 w-fit flex items-center gap-1 rounded-xl border border-border/80 bg-background/80 px-3 py-2 shadow-2xl shadow-black/5 backdrop-blur-xl supports-backdrop-filter:bg-background/60">
         <Button
           variant="ghost"
           size="icon"
@@ -102,7 +101,6 @@ export default function StudioStepNav({
             Real aligned map ready
           </div>
         )} */}
-      </div>
-    </div>
+    </nav>
   );
 }

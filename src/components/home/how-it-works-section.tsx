@@ -28,7 +28,7 @@ const steps = [
     icon: MessageCircle,
     step: "৪",
     title: "কাজ ট্র্যাক করুন",
-    description: "মেসেজ ও রিকোয়েস্ট স্ট্যাটাস ব্যবহার করে কাজের অগ্রগতি দেখুন।",
+    description: "WhatsApp-এর মাধ্যমে সরাসরি সার্ভেয়ারের সাথে যোগাযোগ করে কাজের অগ্রগতি দেখুন।",
   },
 ];
 
@@ -70,7 +70,7 @@ export function HowItWorksSection() {
         })}
       </div>
       <div className="mt-10 text-center">
-        <Button size="lg" nativeButton={false} render={<Link href="/post-request" />}>
+        <Button size="lg" nativeButton={false} render={<Link href="/surveyors" />}>
           কাজ পোস্ট করুন
         </Button>
       </div>

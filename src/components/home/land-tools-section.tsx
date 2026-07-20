@@ -5,6 +5,7 @@ import {
   MoveDiagonal,
   Ruler,
   Scale,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -12,6 +13,7 @@ import { SectionHeading } from "@/components/home/section-heading";
 import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const tools = [
   {
@@ -19,24 +21,28 @@ const tools = [
     title: "জমির ক্ষেত্রফল",
     description: "বাংলাদেশীয় এককে জমির মাপ ও ক্ষেত্রফল গণনা করুন।",
     href: "/tools/land-measurement",
+    badge: { label: "Pro", variant: "default" as const },
   },
   {
     icon: MoveDiagonal,
     title: "একক রূপান্তর",
     description: "বিভিন্ন জমির এককের মধ্যে রূপান্তর করুন।",
     href: "/tools/unit-converter",
+    badge: { label: "ফ্রি", variant: "secondary" as const },
   },
   {
     icon: Calculator,
     title: "উত্তরাধিকার হিসাব",
     description: "ভাগ সম্পত্তির হিসাব ও বন্টন নির্ধারণ করুন।",
     href: "/tools/inheritance-calculator",
+    badge: { label: "ফ্রি", variant: "secondary" as const },
   },
   {
     icon: Scale,
     title: "স্কেল গাইড",
     description: "মানচিত্রের স্কেল ও দূরত্ব নির্ধারণে সহায়তা।",
     href: "/tools/scale-guide",
+    badge: { label: "ফ্রি", variant: "secondary" as const },
   },
 ];
 
@@ -70,12 +76,17 @@ export function LandToolsSection() {
             className="group sm:col-span-2 lg:col-span-3"
           >
             <Card className="h-full border-primary/10 bg-card/60 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:ring-1 hover:ring-primary/30">
-              <CardContent className="flex flex-col md:flex-row items-center justify-between gap-8 p-6 md:p-8">
+              <CardContent className="flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="flex-1">
                   <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <Ruler className="size-6" />
                   </div>
-                  <h3 className="mt-4 text-xl font-semibold">জমির ক্ষেত্রফল</h3>
+                  <div className="mt-4 flex items-center gap-3">
+                    <h3 className="text-xl font-semibold">জমির ক্ষেত্রফল</h3>
+                    <Badge className="bg-primary/10 text-primary hover:bg-primary/20 text-[10px] px-1.5 py-0.5 gap-1">
+                      <Sparkles className="size-3" /> Pro
+                    </Badge>
+                  </div>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground max-w-md">
                     যেকোনো আকারের প্লটের সঠিক ক্ষেত্রফল শতাংশ, বিঘা ও বর্গফুটে
                     নির্ধারণ করুন।
@@ -104,7 +115,17 @@ export function LandToolsSection() {
                       <Icon className="size-5" />
                     </div>
                     <div>
-                      <h3 className="font-medium">{tool.title}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium">{tool.title}</h3>
+                        {tool.badge && (
+                          <Badge
+                            variant={tool.badge.variant}
+                            className="text-[10px] px-1.5 py-0.5 leading-none"
+                          >
+                            {tool.badge.label}
+                          </Badge>
+                        )}
+                      </div>
                       <p className="mt-0.5 text-sm text-muted-foreground">
                         {tool.description}
                       </p>
