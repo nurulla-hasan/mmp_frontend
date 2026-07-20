@@ -1,85 +1,8 @@
+import { strToU8, Zip, ZipPassThrough } from 'fflate';
+
 import type { GeoPoint, GeoTransform } from '../types';
 import { applyGeoTransform, fromMercator } from './geoMath';
-
-const encoder = new TextEncoder();
-
-function crc32(bytes: Uint8Array): number {
-  let crc = 0xffffffff;
-  for (const byte of bytes) {
-    crc ^= byte;
-    for (let bit = 0; bit < 8; bit += 1) {
-      crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
-    }
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-function concatBytes(parts: Uint8Array[]): Uint8Array {
-  const length = parts.reduce((sum, part) => sum + part.length, 0);
-  const output = new Uint8Array(length);
-  let offset = 0;
-  for (const part of parts) {
-    output.set(part, offset);
-    offset += part.length;
-  }
-  return output;
-}
-
-function writeHeader(length: number, writer: (view: DataView) => void) {
-  const bytes = new Uint8Array(length);
-  writer(new DataView(bytes.buffer));
-  return bytes;
-}
-
-function createStoredZip(files: Array<{ name: string; data: Uint8Array }>) {
-  const localParts: Uint8Array[] = [];
-  const centralParts: Uint8Array[] = [];
-  let localOffset = 0;
-
-  for (const file of files) {
-    const name = encoder.encode(file.name);
-    const checksum = crc32(file.data);
-    const localHeader = writeHeader(30, (view) => {
-      view.setUint32(0, 0x04034b50, true);
-      view.setUint16(4, 20, true);
-      view.setUint16(6, 0x0800, true);
-      view.setUint16(8, 0, true);
-      view.setUint32(14, checksum, true);
-      view.setUint32(18, file.data.length, true);
-      view.setUint32(22, file.data.length, true);
-      view.setUint16(26, name.length, true);
-    });
-
-    localParts.push(localHeader, name, file.data);
-
-    const centralHeader = writeHeader(46, (view) => {
-      view.setUint32(0, 0x02014b50, true);
-      view.setUint16(4, 20, true);
-      view.setUint16(6, 20, true);
-      view.setUint16(8, 0x0800, true);
-      view.setUint16(10, 0, true);
-      view.setUint32(16, checksum, true);
-      view.setUint32(20, file.data.length, true);
-      view.setUint32(24, file.data.length, true);
-      view.setUint16(28, name.length, true);
-      view.setUint32(42, localOffset, true);
-    });
-
-    centralParts.push(centralHeader, name);
-    localOffset += localHeader.length + name.length + file.data.length;
-  }
-
-  const centralDirectory = concatBytes(centralParts);
-  const end = writeHeader(22, (view) => {
-    view.setUint32(0, 0x06054b50, true);
-    view.setUint16(8, files.length, true);
-    view.setUint16(10, files.length, true);
-    view.setUint32(12, centralDirectory.length, true);
-    view.setUint32(16, localOffset, true);
-  });
-
-  return concatBytes([...localParts, centralDirectory, end]);
-}
+import { processGeoPixelBuffer } from './imageProcessing';
 
 function coordinateText(points: GeoPoint[]) {
   return points.map((point) => `${point.lng},${point.lat}`).join(' ');
@@ -97,7 +20,6 @@ type OverlayTile = {
   width: number;
   height: number;
   path: string;
-  data: Uint8Array;
 };
 
 function canvasToBlob(
@@ -126,71 +48,44 @@ function getTileCorners(transform: GeoTransform, tile: OverlayTile) {
   ].map((point) => fromMercator(applyGeoTransform(transform, point)));
 }
 
-async function createOverlayTiles(
-  image: HTMLImageElement,
-  transparent: boolean,
-  quality: KmzExportQuality,
+function createTileDescriptors(
+  width: number,
+  height: number,
+  extension: 'jpg' | 'png',
 ) {
-  const sourceWidth = image.naturalWidth || image.width;
-  const sourceHeight = image.naturalHeight || image.height;
-  const columns = Math.ceil(sourceWidth / TILE_SIZE);
-  const rows = Math.ceil(sourceHeight / TILE_SIZE);
-  const extension = transparent || quality === 'original' ? 'png' : 'jpg';
-  const mimeType = extension === 'png' ? 'image/png' : 'image/jpeg';
-  const canvas = document.createElement('canvas');
+  const columns = Math.ceil(width / TILE_SIZE);
+  const rows = Math.ceil(height / TILE_SIZE);
   const tiles: OverlayTile[] = [];
 
   for (let row = 0; row < rows; row += 1) {
     for (let column = 0; column < columns; column += 1) {
       const x = column * TILE_SIZE;
       const y = row * TILE_SIZE;
-      const width = Math.min(TILE_SIZE, sourceWidth - x);
-      const height = Math.min(TILE_SIZE, sourceHeight - y);
-      canvas.width = width;
-      canvas.height = height;
-      const context = canvas.getContext('2d');
-
-      if (!context) throw new Error('KMZ tile canvas তৈরি করা যায়নি');
-
-      if (!transparent) {
-        context.fillStyle = '#ffffff';
-        context.fillRect(0, 0, width, height);
-      }
-
-      context.drawImage(
-        image,
-        x,
-        y,
-        width,
-        height,
-        0,
-        0,
-        width,
-        height,
-      );
-
-      const blob = await canvasToBlob(
-        canvas,
-        mimeType,
-        mimeType === 'image/jpeg' ? 0.94 : undefined,
-      );
-
       tiles.push({
         column,
         row,
         x,
         y,
-        width,
-        height,
+        width: Math.min(TILE_SIZE, width - x),
+        height: Math.min(TILE_SIZE, height - y),
         path: `files/tile-${row}-${column}.${extension}`,
-        data: new Uint8Array(await blob.arrayBuffer()),
       });
     }
   }
 
-  canvas.width = 1;
-  canvas.height = 1;
   return tiles;
+}
+
+function addStoredFile(zip: Zip, name: string, data: Uint8Array) {
+  const entry = new ZipPassThrough(name);
+  zip.add(entry);
+  entry.push(data, true);
+}
+
+function nextPaint() {
+  return new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => resolve());
+  });
 }
 
 export async function exportMouzaKmz(options: {
@@ -200,12 +95,16 @@ export async function exportMouzaKmz(options: {
   name: string;
   transparent: boolean;
   quality: KmzExportQuality;
+  backgroundSensitivity: number;
+  lineColor: string;
+  onProgress?: (progress: number) => void;
 }) {
-  const tiles = await createOverlayTiles(
-    options.image,
-    options.transparent,
-    options.quality,
-  );
+  const sourceWidth = options.imageSize.width;
+  const sourceHeight = options.imageSize.height;
+  const extension =
+    options.transparent || options.quality === 'original' ? 'png' : 'jpg';
+  const mimeType = extension === 'png' ? 'image/png' : 'image/jpeg';
+  const tiles = createTileDescriptors(sourceWidth, sourceHeight, extension);
   const safeName = options.name.replace(/[<>&]/g, '');
   const overlays = tiles
     .map(
@@ -231,13 +130,87 @@ export async function exportMouzaKmz(options: {
   </Document>
 </kml>`;
 
-  const archive = createStoredZip([
-    { name: 'doc.kml', data: encoder.encode(kml) },
-    ...tiles.map((tile) => ({ name: tile.path, data: tile.data })),
-  ]);
-  const archiveBuffer = new ArrayBuffer(archive.byteLength);
-  new Uint8Array(archiveBuffer).set(archive);
-  const blob = new Blob([archiveBuffer], {
+  const archiveParts: ArrayBuffer[] = [];
+  let resolveArchive!: () => void;
+  let rejectArchive!: (error: Error) => void;
+  const archiveDone = new Promise<void>((resolve, reject) => {
+    resolveArchive = resolve;
+    rejectArchive = reject;
+  });
+  const zip = new Zip((error, chunk, final) => {
+    if (error) {
+      rejectArchive(error);
+      return;
+    }
+    archiveParts.push(
+      chunk.buffer.slice(
+        chunk.byteOffset,
+        chunk.byteOffset + chunk.byteLength,
+      ) as ArrayBuffer,
+    );
+    if (final) resolveArchive();
+  });
+
+  addStoredFile(zip, 'doc.kml', strToU8(kml));
+  const canvas = document.createElement('canvas');
+
+  try {
+    for (let index = 0; index < tiles.length; index += 1) {
+      const tile = tiles[index];
+      canvas.width = tile.width;
+      canvas.height = tile.height;
+      const context = canvas.getContext('2d', { willReadFrequently: options.transparent });
+      if (!context) throw new Error('KMZ tile canvas তৈরি করা যায়নি');
+
+      if (!options.transparent) {
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, tile.width, tile.height);
+      }
+      context.drawImage(
+        options.image,
+        tile.x,
+        tile.y,
+        tile.width,
+        tile.height,
+        0,
+        0,
+        tile.width,
+        tile.height,
+      );
+
+      if (options.transparent) {
+        const pixels = context.getImageData(0, 0, tile.width, tile.height);
+        const processed = await processGeoPixelBuffer(pixels.data, {
+          sensitivity: options.backgroundSensitivity,
+          lineColor: options.lineColor,
+        });
+        const outputPixels = new Uint8ClampedArray(processed.length);
+        outputPixels.set(processed);
+        context.putImageData(
+          new ImageData(outputPixels, tile.width, tile.height),
+          0,
+          0,
+        );
+      }
+
+      const blob = await canvasToBlob(
+        canvas,
+        mimeType,
+        mimeType === 'image/jpeg' ? 0.94 : undefined,
+      );
+      addStoredFile(zip, tile.path, new Uint8Array(await blob.arrayBuffer()));
+      options.onProgress?.((index + 1) / tiles.length);
+      await nextPaint();
+    }
+
+    zip.end();
+    await archiveDone;
+  } finally {
+    canvas.width = 1;
+    canvas.height = 1;
+  }
+
+  const blob = new Blob(archiveParts, {
     type: 'application/vnd.google-earth.kmz',
   });
   const url = URL.createObjectURL(blob);
