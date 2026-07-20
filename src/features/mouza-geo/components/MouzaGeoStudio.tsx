@@ -30,7 +30,10 @@ import {
   solveGeoTransform,
   translateGeoTransform,
 } from "../utils/geoMath";
-import { exportMouzaKmz } from "../utils/kmz";
+import {
+  exportMouzaKmz,
+  type KmzExportQuality,
+} from "../utils/kmz";
 import {
   imageAsPng,
   loadImage,
@@ -70,6 +73,9 @@ export default function MouzaGeoStudio() {
   const [processingBackground, setProcessingBackground] = useState(false);
   const [opacity, setOpacity] = useState(0.72);
   const [mapStyle, setMapStyle] = useState<"satellite" | "street">("satellite");
+  const [exportQuality, setExportQuality] =
+    useState<KmzExportQuality>("optimized");
+  const [exportingKmz, setExportingKmz] = useState(false);
   const appearanceVersionRef = useRef(0);
 
   const imageSize = useMemo(
@@ -282,7 +288,9 @@ export default function MouzaGeoStudio() {
     );
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    if (exportingKmz) return;
+
     if (processingBackground) {
       ErrorToast("Background processing শেষ হলে export করুন");
       return;
@@ -293,13 +301,30 @@ export default function MouzaGeoStudio() {
       return;
     }
 
-    exportMouzaKmz({
-      transform,
-      imageDataUrl,
-      imageSize,
-      name: mapName,
-    });
-    SuccessToast("KMZ export শুরু হয়েছে");
+    setExportingKmz(true);
+
+    try {
+      await exportMouzaKmz({
+        transform,
+        image: overlayImage ?? image,
+        imageDataUrl,
+        imageSize,
+        name: mapName,
+        transparent: backgroundRemoved,
+        quality: exportQuality,
+      });
+      SuccessToast(
+        exportQuality === "optimized"
+          ? "Optimized KMZ export হয়েছে"
+          : "Original quality KMZ export হয়েছে",
+      );
+    } catch (error: unknown) {
+      ErrorToast(
+        error instanceof Error ? error.message : "KMZ export করা যায়নি",
+      );
+    } finally {
+      setExportingKmz(false);
+    }
   };
 
   return (
@@ -449,6 +474,8 @@ export default function MouzaGeoStudio() {
                 lineColor={lineColor}
                 opacity={opacity}
                 mapStyle={mapStyle}
+                exportQuality={exportQuality}
+                exportingKmz={exportingKmz}
                 residual={residual}
                 mapName={mapName}
                 imageDataUrl={imageDataUrl}
@@ -463,6 +490,7 @@ export default function MouzaGeoStudio() {
                 onLineColorChange={setLineColor}
                 onOpacityChange={setOpacity}
                 onMapStyleChange={setMapStyle}
+                onExportQualityChange={setExportQuality}
                 onMapNameChange={setMapName}
                 onExport={handleExport}
                 onResetAlignment={resetAlignment}
@@ -517,6 +545,8 @@ export default function MouzaGeoStudio() {
                         lineColor={lineColor}
                         opacity={opacity}
                         mapStyle={mapStyle}
+                        exportQuality={exportQuality}
+                        exportingKmz={exportingKmz}
                         residual={residual}
                         mapName={mapName}
                         imageDataUrl={imageDataUrl}
@@ -533,6 +563,7 @@ export default function MouzaGeoStudio() {
                         onLineColorChange={setLineColor}
                         onOpacityChange={setOpacity}
                         onMapStyleChange={setMapStyle}
+                        onExportQualityChange={setExportQuality}
                         onMapNameChange={setMapName}
                         onExport={handleExport}
                         onResetAlignment={resetAlignment}
