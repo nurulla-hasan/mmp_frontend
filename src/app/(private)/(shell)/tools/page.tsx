@@ -1,4 +1,4 @@
-import { Calculator, Layers3, Map, MoveDiagonal, PenLine, Scaling } from "lucide-react";
+import { Calculator, Globe2, Layers3, Map, MoveDiagonal, PenLine, Scaling } from "lucide-react";
 import Link from "next/link";
 
 import { PageWrapper } from "@/components/ui/custom/page-wrapper";
@@ -31,6 +31,15 @@ const quickTools = [
     href: "/tools/mouza-map-studio",
     badge: "বেটা",
     color: "text-emerald-600 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30",
+  },
+  {
+    icon: Globe2,
+    title: "মৌজা জিও স্টুডিও",
+    description:
+      "মৌজা ম্যাপকে পৃথিবীর আসল জায়গায় align করে Google Earth-এর জন্য KMZ তৈরি করুন।",
+    href: "/tools/mouza-geo-studio",
+    badge: "বেটা",
+    color: "text-primary bg-primary/10",
   },
   {
     icon: Scaling,
