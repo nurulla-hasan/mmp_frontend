@@ -9,6 +9,7 @@ import type {
   ControlPair,
   GeoPoint,
   GeoTransform,
+  InteractionTarget,
   MercatorPoint,
 } from '../types';
 import {
@@ -16,8 +17,6 @@ import {
   fromMercator,
   toMercator,
 } from '../utils/geoMath';
-
-type InteractionTarget = 'map' | 'pdf';
 
 type WorldMapCanvasProps = {
   active: boolean;
@@ -131,31 +130,41 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     if (!host) return;
 
     let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const map = new maplibregl.Map({
       container: host,
       style: {
         version: 8,
         sources: {
-          openStreetMap: {
+          basemap: {
             type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tiles: [
+              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+            ],
             tileSize: 256,
+            minzoom: 0,
             maxzoom: 19,
             attribution:
-              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | &copy; <a href="https://carto.com/basemaps">CARTO</a>',
           },
         },
         layers: [
           {
-            id: 'openStreetMap',
+            id: 'background',
+            type: 'background',
+            paint: { 'background-color': '#f0f3f5' },
+          },
+          {
+            id: 'basemap-layer',
             type: 'raster',
-            source: 'openStreetMap',
+            source: 'basemap',
           },
         ],
       },
       center: [88.6354, 25.6217],
-      zoom: 15,
+      zoom: 10,
       attributionControl: { compact: true },
       dragRotate: false,
       touchPitch: false,
@@ -168,6 +177,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
     const handleLoad = () => {
       if (cancelled) return;
+      map.resize();
       setLoading(false);
       setError(null);
       drawOverlay();
@@ -186,9 +196,12 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     };
 
     const handleError = (event: maplibregl.ErrorEvent) => {
-      if (cancelled || map.isStyleLoaded()) return;
-      setLoading(false);
-      setError(event.error?.message ?? 'Free map load করা যায়নি');
+      if (cancelled) return;
+      console.error('[MapLibre]', event.error);
+      if (!map.isStyleLoaded()) {
+        setLoading(false);
+        setError(event.error?.message ?? 'Free map load করা যায়নি');
+      }
     };
 
     map.on('load', handleLoad);
@@ -197,8 +210,18 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     map.on('click', handleClick);
     map.on('error', handleError);
 
+    // safety timeout: if load event doesn't fire in 12s, hide loading
+    timeoutId = setTimeout(() => {
+      if (cancelled) return;
+      setLoading(false);
+      if (!map.isStyleLoaded()) {
+        setError('Map load timeout – tile server not responding');
+      }
+    }, 12000);
+
     return () => {
       cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
       map.off('load', handleLoad);
       map.off('move', handleMove);
       map.off('resize', handleMove);
@@ -279,7 +302,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   };
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-muted">
+    <div className="relative h-full w-full overflow-hidden">
       <div ref={hostRef} className="absolute inset-0" />
       <canvas
         ref={canvasRef}

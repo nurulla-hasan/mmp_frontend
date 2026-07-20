@@ -19,6 +19,7 @@ export type ControlPair = {
   world: GeoPoint;
 };
 
+export type InteractionTarget = 'map' | 'pdf';
 export type AlignmentMode = 'similarity' | 'affine';
 
 /** Source-image pixels to normalized Web Mercator coordinates. */
