@@ -308,6 +308,25 @@ const TracerCanvas = memo(function TracerCanvas() {
       }
     }
 
+    if (pendingPoints.length >= 3) {
+      const firstPoint = pendingPoints[0];
+      const distanceToFirst = Math.hypot(
+        finalPos.x - firstPoint.x,
+        finalPos.y - firstPoint.y,
+      );
+
+      if (distanceToFirst <= snapThreshold) {
+        return {
+          point: firstPoint,
+          polyIndex: null,
+          vertexIndex: null,
+          edgeIndex: null,
+          isSnapFirst: true,
+          isEdgeSnap: false,
+        };
+      }
+    }
+
     const snapped = getTracerSnappedPoint(finalPos, snapIndex, snapThreshold);
     const isPointSnapped = snapped.point.x !== finalPos.x || snapped.point.y !== finalPos.y;
 
