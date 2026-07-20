@@ -343,7 +343,8 @@ export default function SettingsPanel({
             </button>
           </div>
           <p className="text-[10px] leading-4 text-muted-foreground">
-            High mode alignment না বদলে export copy optimize করে।
+            দুই mode-ই 2048px georeferenced tile বানায়, তাই zoom করলে map
+            পরিষ্কার থাকে। High mode file size-ও কমায়।
           </p>
         </div>
         <label className="block text-xs text-muted-foreground">
