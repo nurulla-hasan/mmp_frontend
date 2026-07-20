@@ -145,7 +145,7 @@ export default function MouzaMapStudioLayout() {
         setEditorImage(composite.image);
         setCompositeMeta(composite.meta);
         setStep(targetStep);
-        SuccessToast('Aligned real map ফাইনাল এডিটের জন্য প্রস্তুত');
+        // SuccessToast('Aligned real map ফাইনাল এডিটের জন্য প্রস্তুত');
       } catch (error) {
         ErrorToast(
           error instanceof Error

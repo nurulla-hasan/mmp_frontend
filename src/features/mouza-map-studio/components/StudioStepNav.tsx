@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import {
   ArrowLeft,
-  Check,
+//   Check,
   Crop,
-  Layers3,
+//   Layers3,
   Loader2,
   Map,
   Paintbrush,
@@ -43,11 +43,11 @@ export default function StudioStepNav({
   isPreparing,
   isLocked,
   compositeCrop,
-  compositeMeta,
+//   compositeMeta,
   onOpenStep,
   onOpenCrop,
   onClearCrop,
-  onPrepareEditor,
+//   onPrepareEditor,
 }: StudioStepNavProps) {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-3 z-100 flex justify-center px-3">
@@ -60,12 +60,12 @@ export default function StudioStepNav({
           <ArrowLeft className="size-4" />
         </Link>
 
-        <div className="hidden items-center gap-2 border-x border-border px-3 sm:flex">
+        {/* <div className="hidden items-center gap-2 border-x border-border px-3 sm:flex">
           <Layers3 className="size-4 text-primary" />
           <span className="whitespace-nowrap text-sm font-semibold">
             মৌজা ম্যাপ স্টুডিও
           </span>
-        </div>
+        </div> */}
 
         {steps.map(({ id, label, icon: Icon }) => {
           const active = step === id;
@@ -119,7 +119,7 @@ export default function StudioStepNav({
           </>
         )}
 
-        {step === 'align' && (
+        {/* {step === 'align' && (
           <button
             type="button"
             disabled={isPreparing}
@@ -133,14 +133,14 @@ export default function StudioStepNav({
             )}
             <span className="whitespace-nowrap">ফাইনাল এডিট শুরু করুন</span>
           </button>
-        )}
+        )} */}
 
-        {step === 'edit' && compositeMeta && (
+        {/* {step === 'edit' && compositeMeta && (
           <div className="ml-1 hidden h-9 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-500/10 px-3 text-xs font-medium text-emerald-600 lg:flex dark:text-emerald-400">
             <Check className="size-3.5" />
             Real aligned map ready
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );
