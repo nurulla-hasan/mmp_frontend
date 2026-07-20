@@ -1,5 +1,5 @@
 import type { GeoPoint, GeoTransform } from '../types';
-import { getOverlayCorners } from './geoMath';
+import { applyGeoTransform, fromMercator } from './geoMath';
 
 const encoder = new TextEncoder();
 
@@ -81,32 +81,24 @@ function createStoredZip(files: Array<{ name: string; data: Uint8Array }>) {
   return concatBytes([...localParts, centralDirectory, end]);
 }
 
-function dataUrlToBytes(dataUrl: string): Uint8Array {
-  const commaIndex = dataUrl.indexOf(',');
-  if (commaIndex < 0) throw new Error('Overlay image data পাওয়া যায়নি');
-  const metadata = dataUrl.slice(0, commaIndex);
-  const payload = dataUrl.slice(commaIndex + 1);
-
-  if (!metadata.includes(';base64')) {
-    return encoder.encode(decodeURIComponent(payload));
-  }
-
-  const binary = window.atob(payload);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-  return bytes;
-}
-
 function coordinateText(points: GeoPoint[]) {
   return points.map((point) => `${point.lng},${point.lat}`).join(' ');
 }
 
 export type KmzExportQuality = 'optimized' | 'original';
 
-const OPTIMIZED_MAX_DIMENSION = 6144;
-const OPTIMIZED_MAX_PIXELS = 24_000_000;
+const TILE_SIZE = 2048;
+
+type OverlayTile = {
+  column: number;
+  row: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  path: string;
+  data: Uint8Array;
+};
 
 function canvasToBlob(
   canvas: HTMLCanvasElement,
@@ -125,94 +117,123 @@ function canvasToBlob(
   });
 }
 
-async function createOptimizedOverlay(
+function getTileCorners(transform: GeoTransform, tile: OverlayTile) {
+  return [
+    { x: tile.x, y: tile.y + tile.height },
+    { x: tile.x + tile.width, y: tile.y + tile.height },
+    { x: tile.x + tile.width, y: tile.y },
+    { x: tile.x, y: tile.y },
+  ].map((point) => fromMercator(applyGeoTransform(transform, point)));
+}
+
+async function createOverlayTiles(
   image: HTMLImageElement,
   transparent: boolean,
+  quality: KmzExportQuality,
 ) {
   const sourceWidth = image.naturalWidth || image.width;
   const sourceHeight = image.naturalHeight || image.height;
-  const dimensionScale = Math.min(
-    1,
-    OPTIMIZED_MAX_DIMENSION / Math.max(sourceWidth, sourceHeight),
-  );
-  const pixelScale = Math.min(
-    1,
-    Math.sqrt(OPTIMIZED_MAX_PIXELS / (sourceWidth * sourceHeight)),
-  );
-  const scale = Math.min(dimensionScale, pixelScale);
-  const width = Math.max(1, Math.round(sourceWidth * scale));
-  const height = Math.max(1, Math.round(sourceHeight * scale));
+  const columns = Math.ceil(sourceWidth / TILE_SIZE);
+  const rows = Math.ceil(sourceHeight / TILE_SIZE);
+  const extension = transparent || quality === 'original' ? 'png' : 'jpg';
+  const mimeType = extension === 'png' ? 'image/png' : 'image/jpeg';
   const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext('2d');
+  const tiles: OverlayTile[] = [];
 
-  if (!context) throw new Error('KMZ image canvas তৈরি করা যায়নি');
+  for (let row = 0; row < rows; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      const x = column * TILE_SIZE;
+      const y = row * TILE_SIZE;
+      const width = Math.min(TILE_SIZE, sourceWidth - x);
+      const height = Math.min(TILE_SIZE, sourceHeight - y);
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d');
 
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = 'high';
+      if (!context) throw new Error('KMZ tile canvas তৈরি করা যায়নি');
 
-  if (!transparent) {
-    context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, width, height);
+      if (!transparent) {
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, width, height);
+      }
+
+      context.drawImage(
+        image,
+        x,
+        y,
+        width,
+        height,
+        0,
+        0,
+        width,
+        height,
+      );
+
+      const blob = await canvasToBlob(
+        canvas,
+        mimeType,
+        mimeType === 'image/jpeg' ? 0.94 : undefined,
+      );
+
+      tiles.push({
+        column,
+        row,
+        x,
+        y,
+        width,
+        height,
+        path: `files/tile-${row}-${column}.${extension}`,
+        data: new Uint8Array(await blob.arrayBuffer()),
+      });
+    }
   }
 
-  context.drawImage(image, 0, 0, width, height);
-
-  const extension = transparent ? 'png' : 'jpg';
-  const blob = await canvasToBlob(
-    canvas,
-    transparent ? 'image/png' : 'image/jpeg',
-    transparent ? undefined : 0.9,
-  );
-  const data = new Uint8Array(await blob.arrayBuffer());
   canvas.width = 1;
   canvas.height = 1;
-
-  return { data, extension };
-}
-
-function getOriginalOverlay(dataUrl: string) {
-  const isJpeg = /^data:image\/jpe?g[;,]/i.test(dataUrl);
-  return {
-    data: dataUrlToBytes(dataUrl),
-    extension: isJpeg ? 'jpg' : 'png',
-  };
+  return tiles;
 }
 
 export async function exportMouzaKmz(options: {
   transform: GeoTransform;
   image: HTMLImageElement;
-  imageDataUrl: string;
   imageSize: { width: number; height: number };
   name: string;
   transparent: boolean;
   quality: KmzExportQuality;
 }) {
-  const overlay =
-    options.quality === 'optimized'
-      ? await createOptimizedOverlay(options.image, options.transparent)
-      : getOriginalOverlay(options.imageDataUrl);
-  const overlayPath = `files/mouza-map.${overlay.extension}`;
-  const corners = getOverlayCorners(options.transform, options.imageSize);
+  const tiles = await createOverlayTiles(
+    options.image,
+    options.transparent,
+    options.quality,
+  );
+  const safeName = options.name.replace(/[<>&]/g, '');
+  const overlays = tiles
+    .map(
+      (tile) => `
+    <GroundOverlay>
+      <name>${safeName} ${tile.row + 1}-${tile.column + 1}</name>
+      <drawOrder>1</drawOrder>
+      <Icon><href>${tile.path}</href></Icon>
+      <altitudeMode>clampToGround</altitudeMode>
+      <gx:LatLonQuad>
+        <coordinates>${coordinateText(getTileCorners(options.transform, tile))}</coordinates>
+      </gx:LatLonQuad>
+    </GroundOverlay>`,
+    )
+    .join('');
   const kml = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
   <Document>
-    <name>${options.name.replace(/[<>&]/g, '')}</name>
-    <GroundOverlay>
-      <name>${options.name.replace(/[<>&]/g, '')}</name>
-      <Icon><href>${overlayPath}</href></Icon>
-      <altitudeMode>clampToGround</altitudeMode>
-      <gx:LatLonQuad>
-        <coordinates>${coordinateText(corners)}</coordinates>
-      </gx:LatLonQuad>
-    </GroundOverlay>
+    <name>${safeName}</name>
+    <Folder>
+      <name>${safeName} high-resolution tiles</name>${overlays}
+    </Folder>
   </Document>
 </kml>`;
 
   const archive = createStoredZip([
     { name: 'doc.kml', data: encoder.encode(kml) },
-    { name: overlayPath, data: overlay.data },
+    ...tiles.map((tile) => ({ name: tile.path, data: tile.data })),
   ]);
   const archiveBuffer = new ArrayBuffer(archive.byteLength);
   new Uint8Array(archiveBuffer).set(archive);
