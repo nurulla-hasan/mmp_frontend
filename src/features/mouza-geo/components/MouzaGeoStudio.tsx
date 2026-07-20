@@ -307,7 +307,6 @@ export default function MouzaGeoStudio() {
       await exportMouzaKmz({
         transform,
         image: overlayImage ?? image,
-        imageDataUrl,
         imageSize,
         name: mapName,
         transparent: backgroundRemoved,
