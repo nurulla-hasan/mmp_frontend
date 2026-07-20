@@ -5,6 +5,7 @@ import type {
   ControlPair,
   GeoTransform,
 } from '../types';
+import type { KmzExportQuality } from '../utils/kmz';
 
 type SettingsPanelProps = {
   image: HTMLImageElement | null;
@@ -18,6 +19,8 @@ type SettingsPanelProps = {
   lineColor: string;
   opacity: number;
   mapStyle: 'satellite' | 'street';
+  exportQuality: KmzExportQuality;
+  exportingKmz: boolean;
   residual: number | null;
   mapName: string;
   imageDataUrl: string | null;
@@ -30,6 +33,7 @@ type SettingsPanelProps = {
   onLineColorChange: (value: string) => void;
   onOpacityChange: (value: number) => void;
   onMapStyleChange: (value: 'satellite' | 'street') => void;
+  onExportQualityChange: (value: KmzExportQuality) => void;
   onMapNameChange: (name: string) => void;
   onExport: () => void;
   onResetAlignment: () => void;
@@ -47,6 +51,8 @@ export default function SettingsPanel({
   lineColor,
   opacity,
   mapStyle,
+  exportQuality,
+  exportingKmz,
   residual,
   mapName,
   imageDataUrl,
@@ -59,6 +65,7 @@ export default function SettingsPanel({
   onLineColorChange,
   onOpacityChange,
   onMapStyleChange,
+  onExportQualityChange,
   onMapNameChange,
   onExport,
   onResetAlignment,
@@ -305,6 +312,40 @@ export default function SettingsPanel({
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           KMZ Export
         </h3>
+        <div className="space-y-2">
+          <span className="block text-xs text-muted-foreground">
+            Export quality
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              aria-pressed={exportQuality === 'optimized'}
+              onClick={() => onExportQualityChange('optimized')}
+              className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                exportQuality === 'optimized'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-background text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              High · ছোট
+            </button>
+            <button
+              type="button"
+              aria-pressed={exportQuality === 'original'}
+              onClick={() => onExportQualityChange('original')}
+              className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                exportQuality === 'original'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-background text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              Original
+            </button>
+          </div>
+          <p className="text-[10px] leading-4 text-muted-foreground">
+            High mode alignment না বদলে export copy optimize করে।
+          </p>
+        </div>
         <label className="block text-xs text-muted-foreground">
           <span className="mb-1 block">ফাইলের নাম</span>
           <input
@@ -315,12 +356,21 @@ export default function SettingsPanel({
         </label>
         <button
           type="button"
-          disabled={!transform || !imageDataUrl || processingBackground}
+          disabled={
+            !transform ||
+            !imageDataUrl ||
+            processingBackground ||
+            exportingKmz
+          }
           onClick={onExport}
           className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-40"
         >
-          <Download className="size-4" />
-          KMZ Export
+          {exportingKmz ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Download className="size-4" />
+          )}
+          {exportingKmz ? 'KMZ প্রস্তুত হচ্ছে…' : 'KMZ Export'}
         </button>
         <button
           type="button"
