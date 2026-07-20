@@ -26,6 +26,7 @@ type InteractionTarget = 'map' | 'pdf';
 type WorldMapCanvasProps = {
   active: boolean;
   image: HTMLImageElement;
+  imageSize: { width: number; height: number };
   transform: GeoTransform | null;
   controlPairs: ControlPair[];
   waitingForWorldPoint: boolean;
@@ -46,6 +47,11 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   const labelLayerRef = useRef<TileLayer | null>(null);
   const propsRef = useRef(props);
   const dragRef = useRef<{ id: number; point: MercatorPoint } | null>(null);
+  const drawFrameRef = useRef<number | null>(null);
+  const interactionFrameRef = useRef<number | null>(null);
+  const pendingTranslationRef = useRef<MercatorPoint>({ u: 0, v: 0 });
+  const pendingScaleRef = useRef(1);
+  const pendingRotationRef = useRef(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -131,11 +137,12 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     context.clearRect(0, 0, width, height);
 
-    const { image, transform, opacity, controlPairs } = propsRef.current;
+    const { image, imageSize, transform, opacity, controlPairs } =
+      propsRef.current;
 
     if (transform) {
-      const imageWidth = image.naturalWidth || image.width;
-      const imageHeight = image.naturalHeight || image.height;
+      const imageWidth = imageSize.width;
+      const imageHeight = imageSize.height;
       const origin = toScreenPoint({ x: 0, y: 0 });
       const right = toScreenPoint({ x: imageWidth, y: 0 });
       const bottom = toScreenPoint({ x: 0, y: imageHeight });
@@ -162,11 +169,31 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
         pair.world.lng,
       ]);
 
+      const tipX = point.x;
+      const tipY = point.y;
       context.beginPath();
-      context.fillStyle = 'rgb(37 99 235)';
+      context.moveTo(tipX, tipY);
+      context.bezierCurveTo(
+        tipX - 3,
+        tipY - 7,
+        tipX - 13,
+        tipY - 12,
+        tipX - 13,
+        tipY - 22,
+      );
+      context.arc(tipX, tipY - 22, 13, Math.PI, 0);
+      context.bezierCurveTo(
+        tipX + 13,
+        tipY - 12,
+        tipX + 3,
+        tipY - 7,
+        tipX,
+        tipY,
+      );
+      context.closePath();
+      context.fillStyle = 'rgb(220 38 38)';
       context.strokeStyle = 'white';
       context.lineWidth = 2;
-      context.arc(point.x, point.y, 12, 0, Math.PI * 2);
       context.fill();
       context.stroke();
 
@@ -174,14 +201,41 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       context.font = '700 12px sans-serif';
       context.textAlign = 'center';
       context.textBaseline = 'middle';
-      context.fillText(String(index + 1), point.x, point.y);
+      context.fillText(String(index + 1), tipX, tipY - 22);
     });
   }, [toScreenPoint]);
 
+  const scheduleDraw = useCallback(() => {
+    if (drawFrameRef.current !== null) return;
+    drawFrameRef.current = window.requestAnimationFrame(() => {
+      drawFrameRef.current = null;
+      drawOverlay();
+    });
+  }, [drawOverlay]);
+
+  const scheduleInteraction = useCallback(() => {
+    if (interactionFrameRef.current !== null) return;
+    interactionFrameRef.current = window.requestAnimationFrame(() => {
+      interactionFrameRef.current = null;
+      const translation = pendingTranslationRef.current;
+      const scale = pendingScaleRef.current;
+      const rotation = pendingRotationRef.current;
+      pendingTranslationRef.current = { u: 0, v: 0 };
+      pendingScaleRef.current = 1;
+      pendingRotationRef.current = 0;
+
+      if (translation.u || translation.v) {
+        propsRef.current.onTranslateOverlay(translation);
+      }
+      if (scale !== 1) propsRef.current.onScaleOverlay(scale);
+      if (rotation) propsRef.current.onRotateOverlay(rotation);
+    });
+  }, []);
+
   useEffect(() => {
     propsRef.current = props;
-    drawOverlay();
-  }, [drawOverlay, props]);
+    if (props.active) scheduleDraw();
+  }, [props, scheduleDraw]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -221,18 +275,18 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
         };
 
         map.on('click', handleClick);
-        map.on('move zoom resize', drawOverlay);
+        map.on('move zoom resize', scheduleDraw);
         map.whenReady(() => {
           if (cancelled) return;
           setLoading(false);
           setError(null);
           map?.invalidateSize({ pan: false });
-          drawOverlay();
+          scheduleDraw();
         });
 
         resizeObserver = new ResizeObserver(() => {
           map?.invalidateSize({ pan: false });
-          drawOverlay();
+          scheduleDraw();
         });
         resizeObserver.observe(host);
       })
@@ -253,8 +307,16 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       mapRef.current = null;
       baseLayerRef.current = null;
       labelLayerRef.current = null;
+      if (drawFrameRef.current !== null) {
+        window.cancelAnimationFrame(drawFrameRef.current);
+        drawFrameRef.current = null;
+      }
+      if (interactionFrameRef.current !== null) {
+        window.cancelAnimationFrame(interactionFrameRef.current);
+        interactionFrameRef.current = null;
+      }
     };
-  }, [drawOverlay, installBaseMap]);
+  }, [installBaseMap, scheduleDraw]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -278,11 +340,11 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
     const frame = window.requestAnimationFrame(() => {
       mapRef.current?.invalidateSize({ pan: false });
-      drawOverlay();
+      scheduleDraw();
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [drawOverlay, props.active]);
+  }, [props.active, scheduleDraw]);
 
   const getMercatorAtPointer = (clientX: number, clientY: number) => {
     const host = hostRef.current;
@@ -311,16 +373,18 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       event.preventDefault();
 
       if (event.altKey) {
-        propsRef.current.onRotateOverlay(event.deltaY < 0 ? -0.01 : 0.01);
+        pendingRotationRef.current += event.deltaY < 0 ? -0.01 : 0.01;
+        scheduleInteraction();
         return;
       }
 
-      propsRef.current.onScaleOverlay(event.deltaY < 0 ? 1.04 : 1 / 1.04);
+      pendingScaleRef.current *= event.deltaY < 0 ? 1.04 : 1 / 1.04;
+      scheduleInteraction();
     };
 
     canvas.addEventListener('wheel', handleWheel, { passive: false });
     return () => canvas.removeEventListener('wheel', handleWheel);
-  }, [pdfInteractionEnabled]);
+  }, [pdfInteractionEnabled, scheduleInteraction]);
 
   const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (!pdfInteractionEnabled || event.button !== 0) return;
@@ -339,10 +403,9 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     const next = getMercatorAtPointer(event.clientX, event.clientY);
     if (!next) return;
 
-    propsRef.current.onTranslateOverlay({
-      u: next.u - drag.point.u,
-      v: next.v - drag.point.v,
-    });
+    pendingTranslationRef.current.u += next.u - drag.point.u;
+    pendingTranslationRef.current.v += next.v - drag.point.v;
+    scheduleInteraction();
     drag.point = next;
   };
 
