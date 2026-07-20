@@ -1,11 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { MapPin } from 'lucide-react';
 
 import type { ControlPair, Point2D } from '../types';
 
 type SourceMapCanvasProps = {
   image: HTMLImageElement;
+  imageSize: { width: number; height: number };
   controlPairs: ControlPair[];
   pendingSource: Point2D | null;
   active: boolean;
@@ -20,6 +22,7 @@ type ViewState = {
 
 export default function SourceMapCanvas({
   image,
+  imageSize,
   controlPairs,
   pendingSource,
   active,
@@ -36,6 +39,33 @@ export default function SourceMapCanvas({
   } | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [view, setView] = useState<ViewState>({ scale: 1, x: 0, y: 0 });
+  const panFrameRef = useRef<number | null>(null);
+  const pendingPanRef = useRef({ x: 0, y: 0 });
+
+  const schedulePan = useCallback(() => {
+    if (panFrameRef.current !== null) return;
+
+    panFrameRef.current = window.requestAnimationFrame(() => {
+      panFrameRef.current = null;
+      const delta = pendingPanRef.current;
+      pendingPanRef.current = { x: 0, y: 0 };
+      if (!delta.x && !delta.y) return;
+      setView((current) => ({
+        ...current,
+        x: current.x + delta.x,
+        y: current.y + delta.y,
+      }));
+    });
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (panFrameRef.current !== null) {
+        window.cancelAnimationFrame(panFrameRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     const element = containerRef.current;
@@ -80,8 +110,8 @@ export default function SourceMapCanvas({
 
   useEffect(() => {
     if (!size.width || !size.height) return;
-    const imageWidth = image.naturalWidth || image.width;
-    const imageHeight = image.naturalHeight || image.height;
+    const imageWidth = imageSize.width;
+    const imageHeight = imageSize.height;
     const scale = Math.min(
       (size.width - 48) / imageWidth,
       (size.height - 48) / imageHeight,
@@ -95,7 +125,7 @@ export default function SourceMapCanvas({
       });
     });
     return () => cancelAnimationFrame(frame);
-  }, [image, size.height, size.width]);
+  }, [imageSize.height, imageSize.width, size.height, size.width]);
 
   const getSourcePoint = useCallback(
     (clientX: number, clientY: number): Point2D | null => {
@@ -105,14 +135,14 @@ export default function SourceMapCanvas({
         x: (clientX - rect.left - view.x) / view.scale,
         y: (clientY - rect.top - view.y) / view.scale,
       };
-      const width = image.naturalWidth || image.width;
-      const height = image.naturalHeight || image.height;
+      const width = imageSize.width;
+      const height = imageSize.height;
       if (point.x < 0 || point.y < 0 || point.x > width || point.y > height) {
         return null;
       }
       return point;
     },
-    [image, view],
+    [imageSize.height, imageSize.width, view],
   );
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -144,7 +174,9 @@ export default function SourceMapCanvas({
     pointer.clientX = event.clientX;
     pointer.clientY = event.clientY;
     if (pointer.moved) {
-      setView((current) => ({ ...current, x: current.x + dx, y: current.y + dy }));
+      pendingPanRef.current.x += dx;
+      pendingPanRef.current.y += dy;
+      schedulePan();
     }
   };
 
@@ -187,8 +219,8 @@ export default function SourceMapCanvas({
         draggable={false}
         className="pointer-events-none absolute left-0 top-0 max-w-none select-none shadow-2xl"
         style={{
-          width: image.naturalWidth || image.width,
-          height: image.naturalHeight || image.height,
+          width: imageSize.width,
+          height: imageSize.height,
           transformOrigin: '0 0',
           transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
         }}
@@ -197,14 +229,17 @@ export default function SourceMapCanvas({
       {markers.map((marker) => (
         <div
           key={marker.id}
-          className="pointer-events-none absolute z-10 flex size-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-background bg-destructive text-xs font-bold text-destructive-foreground shadow-lg"
+          className="pointer-events-none absolute z-10 size-9 -translate-x-1/2 -translate-y-full drop-shadow-lg"
           style={{
             left: view.x + marker.point.x * view.scale,
             top: view.y + marker.point.y * view.scale,
             opacity: marker.pending ? 0.7 : 1,
           }}
         >
-          {marker.label}
+          <MapPin className="absolute inset-0 size-9 fill-destructive text-destructive stroke-background stroke-[1.5]" />
+          <span className="absolute left-1/2 top-[5px] -translate-x-1/2 text-[11px] font-bold leading-none text-destructive-foreground">
+            {marker.label}
+          </span>
         </div>
       ))}
 
