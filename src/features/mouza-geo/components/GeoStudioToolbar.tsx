@@ -19,7 +19,7 @@ type GeoStudioToolbarProps = {
   pendingSource: Point2D | null;
   interactionTarget: InteractionTarget;
   image: unknown;
-  imageDataUrl: string | null;
+  canExport: boolean;
   onToggleSettings: () => void;
   onSetInteractionTarget: (target: InteractionTarget) => void;
   onScale: (factor: number) => void;
@@ -36,7 +36,7 @@ export default function GeoStudioToolbar({
   pendingSource,
   interactionTarget,
   image,
-  imageDataUrl,
+  canExport,
   onToggleSettings,
   onSetInteractionTarget,
   onScale,
@@ -125,7 +125,7 @@ export default function GeoStudioToolbar({
       <FloatingToolButton
         icon={Download}
         label="KMZ Export"
-        disabled={!transform || !imageDataUrl}
+        disabled={!transform || !canExport}
         onClick={onExport}
         mobile={mobile}
       />
