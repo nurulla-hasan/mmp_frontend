@@ -116,7 +116,7 @@ const howItWorks = [
  step: "৪",
  title: "কাজ সম্পন্ন করুন",
  description:
- "মেসেজ-এর মাধ্যমে বিস্তারিত আলোচনা করে সময় নির্ধারণ করুন এবং রিকোয়েস্ট স্ট্যাটাস ট্র্যাক করুন।",
+"WhatsApp-এর মাধ্যমে সরাসরি যোগাযোগ করে সময় নির্ধারণ করুন।",
  },
 ];
 
@@ -151,9 +151,9 @@ export default function AboutPage() {
  <Button
  size="lg"
  nativeButton={false}
- render={<Link href="/post-request" />}
+ render={<Link href="/surveyors" />}
  >
- কাজ পোস্ট করুন
+ সার্ভেয়ার খুঁজুন
  </Button>
  <Button
  size="lg"
@@ -433,16 +433,16 @@ export default function AboutPage() {
  <SectionHeading
  as="h2"
  title="জমির কাজ শুরু করতে প্রস্তুত?"
- description="হিসাব করুন, প্রয়োজন পোস্ট করুন অথবা professional surveyor হিসেবে আপনার profile তৈরি করুন।"
+ description="হিসাব করুন, পেশাদার সার্ভেয়ার খুঁজুন অথবা professional surveyor হিসেবে আপনার profile তৈরি করুন।"
  alignment="center"
  />
  <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
  <Button
  size="lg"
  nativeButton={false}
- render={<Link href="/post-request" />}
+ render={<Link href="/surveyors" />}
  >
- কাজ পোস্ট করুন
+ সার্ভেয়ার খুঁজুন
  </Button>
  <Button
  size="lg"

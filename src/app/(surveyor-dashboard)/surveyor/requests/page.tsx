@@ -1,2 +1,0 @@
-import { DashboardPage } from "@/components/shared/dashboard-page";
-export default function Page() { return <DashboardPage title="উপলব্ধ রিকোয়েস্ট" description="আপনার সার্ভিস এরিয়ার সাথে মিলে যাওয়া জমি-সেবা রিকোয়েস্ট দেখুন।" cards={[{ label: "ম্যাচিং রিকোয়েস্ট", value: "0", description: "লোকেশন-ভিত্তিক সুযোগ এখানে দেখাবে।" },{ label: "পাঠানো কোটেশন", href: "/surveyor/quotations", description: "ক্লায়েন্ট রিকোয়েস্টে সাড়া ট্র্যাক করুন।" }]} />; }

@@ -76,7 +76,7 @@ export function LandToolsSection() {
             className="group sm:col-span-2 lg:col-span-3"
           >
             <Card className="h-full border-primary/10 bg-card/60 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:ring-1 hover:ring-primary/30">
-              <CardContent className="flex flex-col md:flex-row items-center justify-between gap-8 p-6 md:p-8">
+              <CardContent className="flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="flex-1">
                   <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <Ruler className="size-6" />

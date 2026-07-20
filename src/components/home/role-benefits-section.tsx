@@ -15,7 +15,7 @@ const landownerBenefits = [
   "সার্ভেয়ার খোঁজা",
   "সার্ভিস রিকোয়েস্ট পোস্টিং",
   "কোটেশন তুলনা",
-  "সরাসরি মেসেজিং",
+  "সরাসরি WhatsApp যোগাযোগ",
   "রিকোয়েস্ট স্ট্যাটাস ট্র্যাকিং",
 ];
 
@@ -26,7 +26,7 @@ const surveyorBenefits = [
   "উপলব্ধ রিকোয়েস্ট দেখা",
   "কোটেশন জমা দেওয়া",
   "ক্লায়েন্ট ক্যালকুলেশন ম্যানেজমেন্ট",
-  "সরাসরি মেসেজিং",
+  "সরাসরি WhatsApp যোগাযোগ",
 ]
 
 export function RoleBenefitsSection() {
@@ -57,7 +57,7 @@ export function RoleBenefitsSection() {
             <Button
               className="mt-6 w-full"
               nativeButton={false}
-              render={<Link href="/post-request" />}
+              render={<Link href="/surveyors" />}
             >
               কাজ পোস্ট করুন
             </Button>

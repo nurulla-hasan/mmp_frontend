@@ -77,6 +77,7 @@ const mockSurveyors: Record<string, TSurveyorProfile> = {
     ],
     rating: 4.8,
     totalReviews: 3,
+    whatsappNumber: "8801712345678",
     completedRequests: 128,
     verification: {
       identityReviewed: true,

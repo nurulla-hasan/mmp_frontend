@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Save, Trash2, Loader2 } from "lucide-react";
+import { Plus, Save, Trash2, Loader2, MessageCircle } from "lucide-react";
 
 import { SectionHeading } from "@/components/home/section-heading";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   FieldGroup,
   FieldDescription,
+  FieldLabel,
 } from "@/components/ui/field";
 import {
   Card,
@@ -44,6 +45,7 @@ function useServices() {
 export default function Page() {
   const { services, setServices } = useServices();
   const [isSaving, setIsSaving] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState("8801712345678");
 
   const selectedSlugs = services.map((s) => s.slug);
 
@@ -76,8 +78,10 @@ export default function Page() {
     setIsSaving(true);
     try {
       // TODO: Replace with actual API call
+      console.log("Saving services:", services);
+      console.log("Saving whatsappNumber:", whatsappNumber);
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      SuccessToast("সেবা ও মূল্য তালিকা সংরক্ষিত হয়েছে!");
+      SuccessToast("প্রোফাইল সংরক্ষিত হয়েছে!");
     } catch (error: unknown) {
       ErrorToast(
         error instanceof Error
@@ -100,6 +104,35 @@ export default function Page() {
         description="আপনার প্রদেয় সেবা এবং প্রতিটি সেবার প্রারম্ভিক মূল্য নির্ধারণ করুন। ক্লায়েন্টরা আপনার প্রোফাইলে এই তালিকা দেখতে পাবেন।"
         alignment="left"
       />
+
+      {/* ── WhatsApp Number ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageCircle className="size-5 text-primary" />
+            WhatsApp নম্বর
+          </CardTitle>
+          <FieldDescription>
+            ক্লায়েন্টরা আপনার সাথে সরাসরি WhatsApp-এ যোগাযোগ করতে পারবেন। নম্বরটি
+            প্রোফাইল ও সার্ভেয়ার তালিকায় প্রকাশিত হবে।
+          </FieldDescription>
+        </CardHeader>
+        <CardContent>
+          <FieldGroup>
+            <FieldLabel>WhatsApp নম্বর (বৈকল্পিক)</FieldLabel>
+            <Input
+              type="tel"
+              placeholder="88017XXXXXXXX"
+              className="max-w-xs"
+              value={whatsappNumber}
+              onChange={(e) => setWhatsappNumber(e.target.value)}
+            />
+            <FieldDescription>
+              +৮৮০ এর পর ১০ সংখ্যার নম্বর দিন। যেমন: 8801712345678
+            </FieldDescription>
+          </FieldGroup>
+        </CardContent>
+      </Card>
 
       {/* ── Selected services ── */}
       <Card>

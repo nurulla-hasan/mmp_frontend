@@ -1,6 +1,6 @@
 "use client";
 
-import { Calculator, Home, MapPin, PlusCircle, User } from "lucide-react";
+import { Home, MapPin, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -8,8 +8,6 @@ import { cn } from "@/lib/utils";
 
 const items = [
   { label: "হোম", icon: Home, href: "/" },
-  { label: "পোস্ট", icon: PlusCircle, href: "/post-request" },
-  { label: "টুলস", icon: Calculator, href: "/tools", center: true },
   { label: "সার্ভেয়ার", icon: MapPin, href: "/surveyors" },
   { label: "প্রোফাইল", icon: User, href: "/dashboard/profile" },
 ];
@@ -18,7 +16,8 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 flex h-14 items-center justify-between border-t bg-background px-4 md:hidden" aria-label="দ্রুত নেভিগেশন">
-      {items.map(({ label, icon: Icon, href, center }) => {
+      {items.map(({ label, icon: Icon, href }) => {
+        const center = false;
         const active = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
         return (
           <Link key={href} href={href} aria-current={active ? "page" : undefined} className={cn("flex min-w-12 flex-col items-center text-[10px] text-muted-foreground", active && "text-primary", center && "-translate-y-2 gap-1")}>

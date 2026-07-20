@@ -115,7 +115,7 @@ export function FeaturedSurveyorsSection() {
                   size="sm"
                   className="flex-1"
                   nativeButton={false}
-                  render={<Link href={`/post-request?surveyor=${s.slug}`} />}
+                  render={<Link href={`/surveyors/${s.slug}`} />}
                 >
                   কোটেশন চান
                 </Button>

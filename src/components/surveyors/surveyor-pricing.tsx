@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { Banknote } from "lucide-react";
+import { Banknote, MessageCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { TSurveyorProfile } from "@/types/surveyor-profile.type";
@@ -44,15 +43,30 @@ export function SurveyorPricing({
       )}
 
       <div className="mt-4">
-        <Button
-          className="w-full"
-          nativeButton={false}
-          render={
-            <Link href={`/post-request?surveyor=${surveyor.slug}`} />
-          }
-        >
-          রিকোয়েস্ট পাঠান
-        </Button>
+        {surveyor.whatsappNumber ? (
+          <Button
+            className="w-full"
+            nativeButton={false}
+            render={
+              <a
+                href={`https://wa.me/${surveyor.whatsappNumber}?text=${encodeURIComponent(`হ্যালো, আমি Mouza Map Pro থেকে ${surveyor.fullName} এর সেবার মূল্য তালিকা দেখেছি। আরও বিস্তারিত জানতে চাই।`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+            }
+          >
+            <MessageCircle className="size-4" />
+            WhatsApp-এ যোগাযোগ
+          </Button>
+        ) : (
+          <Button
+            className="w-full"
+            variant="outline"
+            disabled
+          >
+            যোগাযোগের মাধ্যম নেই
+          </Button>
+        )}
       </div>
     </section>
   );

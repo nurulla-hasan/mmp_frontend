@@ -30,6 +30,8 @@ export type TSurveyorProfile = {
 
   services: TSurveyorServiceWithPrice[];
 
+  whatsappNumber?: string;
+
   rating: number;
   totalReviews: number;
   completedRequests: number;

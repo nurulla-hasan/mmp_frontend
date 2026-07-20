@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BadgeCheck, MapPin } from "lucide-react";
+import { BadgeCheck, MapPin, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 import { StarRating } from "@/components/ui/custom/star-rating";
@@ -21,6 +21,7 @@ export type TSurveyorCard = {
     upazila: string;
   };
   isSubscribed?: boolean;
+  whatsappNumber?: string;
   services: TSurveyorServiceWithPrice[];
 };
 
@@ -121,14 +122,27 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
           >
             প্রোফাইল দেখুন
           </Button>
-          <Button
-            size="sm"
-            className="flex-1"
-            nativeButton={false}
-            render={<Link href={`/post-request?surveyor=${surveyor.slug}`} />}
-          >
-            কোটেশন চান
-          </Button>
+          {surveyor.whatsappNumber ? (
+            <Button
+              size="sm"
+              className="flex-1"
+              nativeButton={false}
+              render={
+                <a
+                  href={`https://wa.me/${surveyor.whatsappNumber}?text=${encodeURIComponent(`হ্যালো, আমি ${surveyor.fullName} এর প্রোফাইল Mouza Map Pro থেকে দেখছি। আপনার সেবা সম্পর্কে জানতে চাই।`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              }
+            >
+              <MessageCircle className="size-3.5" />
+              WhatsApp
+            </Button>
+          ) : (
+            <Button size="sm" variant="outline" className="flex-1" disabled>
+              যোগাযোগ নেই
+            </Button>
+          )}
         </div>
       </div>
     </div>
