@@ -1,19 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  ArrowLeft,
-//   Check,
-  Crop,
-//   Layers3,
-  Loader2,
-  Map,
-  Paintbrush,
-  Sheet,
-  X,
-} from 'lucide-react';
+import { ArrowLeft, Crop, Map, Paintbrush, Sheet, X } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import type { StudioStep } from '../store/useMouzaMapStudioStore';
 
 const steps: Array<{
@@ -50,90 +40,61 @@ export default function StudioStepNav({
 //   onPrepareEditor,
 }: StudioStepNavProps) {
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-3 z-100 flex justify-center px-3">
-      <div className="pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-2xl border border-border/80 bg-background/95 p-1.5 shadow-xl backdrop-blur">
-        <Link
-          href="/tools"
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-100 flex justify-center bg-sidebar p-3">
+      <div className="pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-2xl border border-border/80 p-1.5 shadow-xl backdrop-blur">
+        <Button
+          variant="ghost"
+          size="icon"
+          nativeButton={false}
+          render={<Link href="/tools" />}
           aria-label="টুলস পেজে ফিরুন"
-          className="flex size-9 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
         >
           <ArrowLeft className="size-4" />
-        </Link>
-
-        {/* <div className="hidden items-center gap-2 border-x border-border px-3 sm:flex">
-          <Layers3 className="size-4 text-primary" />
-          <span className="whitespace-nowrap text-sm font-semibold">
-            মৌজা ম্যাপ স্টুডিও
-          </span>
-        </div> */}
+        </Button>
 
         {steps.map(({ id, label, icon: Icon }) => {
           const active = step === id;
           return (
-            <button
+            <Button
               key={id}
-              type="button"
+              variant={active ? 'default' : 'ghost'}
+              size="default"
               disabled={isPreparing}
               onClick={() => onOpenStep(id)}
-              className={cn(
-                'flex h-9 shrink-0 items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium transition sm:px-3',
-                active && 'bg-primary text-primary-foreground shadow-sm',
-                !active &&
-                  'text-muted-foreground hover:bg-muted hover:text-foreground',
-              )}
             >
               <Icon className="size-3.5" />
               <span className="whitespace-nowrap">{label}</span>
-            </button>
+            </Button>
           );
         })}
 
         {step === 'align' && isLocked && (
           <>
-            <button
-              type="button"
-              disabled={isPreparing}
+            <Button
+              variant="outline"
+              size="default"
+              loading={isPreparing}
+              loadingText={compositeCrop ? 'একসাথে crop বদলান' : 'দুই ম্যাপ একসাথে crop'}
               onClick={onOpenCrop}
-              className="ml-1 flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-semibold text-foreground transition hover:bg-muted disabled:cursor-wait disabled:opacity-70"
             >
-              {isPreparing ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <Crop className="size-3.5" />
-              )}
+              <Crop className="size-3.5" />
               <span className="whitespace-nowrap">
                 {compositeCrop ? 'একসাথে crop বদলান' : 'দুই ম্যাপ একসাথে crop'}
               </span>
-            </button>
+            </Button>
 
             {compositeCrop && (
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 onClick={onClearCrop}
                 title="একসাথে crop সরান"
-                className="flex size-9 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-destructive"
               >
                 <X className="size-3.5" />
-              </button>
+              </Button>
             )}
           </>
         )}
-
-        {/* {step === 'align' && (
-          <button
-            type="button"
-            disabled={isPreparing}
-            onClick={onPrepareEditor}
-            className="ml-1 flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70"
-          >
-            {isPreparing ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <Paintbrush className="size-3.5" />
-            )}
-            <span className="whitespace-nowrap">ফাইনাল এডিট শুরু করুন</span>
-          </button>
-        )} */}
 
         {/* {step === 'edit' && compositeMeta && (
           <div className="ml-1 hidden h-9 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-500/10 px-3 text-xs font-medium text-emerald-600 lg:flex dark:text-emerald-400">

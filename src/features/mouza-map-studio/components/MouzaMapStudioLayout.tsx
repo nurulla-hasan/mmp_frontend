@@ -284,7 +284,7 @@ export default function MouzaMapStudioLayout() {
   );
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden bg-background">
+    <div className="relative h-dvh w-full overflow-hidden">
       {step === 'align' && <PantagraphLayout />}
       {step === 'edit' && (
         <StudioEditorLayout onOpenCrop={() => void openCombinedCrop()} />
