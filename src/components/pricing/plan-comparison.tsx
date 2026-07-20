@@ -11,32 +11,48 @@ const COMPARISON_ROWS: { label: string; values: string[] }[] = [
     values: PRICING_PLANS.map((p) => p.duration),
   },
   {
-    label: "ক্যালকুলেশন প্রজেক্ট",
+    label: "মূল্য",
+    values: PRICING_PLANS.map((p) => p.price),
+  },
+  {
+    label: "জমির একক রূপান্তর",
+    values: ["ফ্রি", "ফ্রি", "ফ্রি"],
+  },
+  {
+    label: "জমি বণ্টন ক্যালকুলেটর",
+    values: ["ফ্রি", "ফ্রি", "ফ্রি"],
+  },
+  {
+    label: "জমির ক্ষেত্রফল (প্লট মাপ)",
     values: ["✓", "✓", "✓"],
   },
   {
-    label: "একাধিক প্লট সাপোর্ট",
+    label: "প্যান্টাগ্রাফ (ম্যাপ এলাইনমেন্ট)",
     values: ["✓", "✓", "✓"],
   },
   {
-    label: "প্রজেক্ট সেভ",
-    values: ["✓", "✓", "✓"],
+    label: "ডিজিটাল ম্যাপ ট্রেসিং",
+    values: ["—", "✓", "✓"],
   },
   {
-    label: "পরে সম্পাদনা",
-    values: ["✓", "✓", "✓"],
+    label: "মৌজা ম্যাপ স্টুডিও",
+    values: ["—", "✓", "✓"],
   },
   {
-    label: "PDF/Print রিপোর্ট",
-    values: ["✓", "✓", "✓"],
+    label: "মৌজা জিও স্টুডিও (KMZ)",
+    values: ["—", "—", "✓"],
   },
   {
-    label: "Device-ভিত্তিক অ্যাক্সেস",
-    values: ["Plan policy অনুযায়ী", "Plan policy অনুযায়ী", "Plan policy অনুযায়ী"],
+    label: "প্রকল্প সেভ ও সম্পাদনা",
+    values: ["সীমিত", "আনলিমিটেড", "আনলিমিটেড"],
   },
   {
-    label: "প্রথমিক আপডেট",
-    values: ["✓", "✓", "✓"],
+    label: "PDF/Print/PNG এক্সপোর্ট",
+    values: ["সীমিত", "আনলিমিটেড", "আনলিমিটেড"],
+  },
+  {
+    label: "নতুন ফিচারে অগ্রাধিকার",
+    values: ["—", "—", "✓"],
   },
 ];
 
