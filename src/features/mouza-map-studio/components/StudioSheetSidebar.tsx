@@ -2,6 +2,8 @@
 
 import { Download, ImageDown, Loader2 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { StudioSheetDetails } from "../store/useMouzaMapStudioStore";
 
 type ExportFormat = "png" | "pdf";
@@ -42,31 +44,29 @@ export default function StudioSheetSidebar({
         ).map(([field, label]) => (
           <label key={field} className="block text-xs">
             <span className="mb-1 block text-muted-foreground">{label}</span>
-            <input
+            <Input
               value={sheetDetails[field]}
               onChange={(event) => onChangeField(field, event.target.value)}
-              className="h-9 w-full rounded-lg border border-input bg-background px-3 outline-none transition focus:border-primary"
             />
           </label>
         ))}
 
         <label className="block text-xs">
           <span className="mb-1 block text-muted-foreground">তারিখ</span>
-          <input
+          <Input
             type="date"
             value={sheetDetails.date}
             onChange={(event) => onChangeField("date", event.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 outline-none transition focus:border-primary"
           />
         </label>
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-2">
-        <button
+        <Button
           type="button"
+          variant="outline"
           disabled={Boolean(exporting) || !mapDataUrl}
           onClick={() => onExport("png")}
-          className="flex h-10 items-center justify-center gap-2 rounded-lg border border-border text-xs font-semibold transition hover:bg-accent disabled:opacity-50"
         >
           {exporting === "png" ? (
             <Loader2 className="size-4 animate-spin" />
@@ -74,13 +74,13 @@ export default function StudioSheetSidebar({
             <ImageDown className="size-4" />
           )}
           PNG
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
+          variant="default"
           disabled={Boolean(exporting) || !mapDataUrl}
           onClick={() => onExport("pdf")}
-          className="flex h-10 items-center justify-center gap-2 rounded-lg bg-primary text-xs font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
         >
           {exporting === "pdf" ? (
             <Loader2 className="size-4 animate-spin" />
@@ -88,7 +88,7 @@ export default function StudioSheetSidebar({
             <Download className="size-4" />
           )}
           PDF
-        </button>
+        </Button>
       </div>
     </aside>
   );

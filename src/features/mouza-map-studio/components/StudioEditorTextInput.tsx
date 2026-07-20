@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 import type { StudioEditorText } from '../store/useMouzaMapStudioStore';
 
 type StudioEditorTextInputProps = {
@@ -23,7 +23,7 @@ export default function StudioEditorTextInput({
       className="absolute z-40 -translate-x-1/2 -translate-y-full pb-3"
       style={{ left: x, top: y }}
     >
-      <input
+      <Input
         autoFocus
         value={selectedText.text}
         placeholder="দাগ নম্বর / লেখা"
@@ -35,10 +35,7 @@ export default function StudioEditorTextInput({
           }
         }}
         onPointerDown={(event) => event.stopPropagation()}
-        className={cn(
-          'h-9 w-44 rounded-lg border bg-background/95 px-3 text-center text-sm font-semibold shadow-xl outline-none',
-          'focus:ring-2 focus:ring-primary/40',
-        )}
+        className="w-44 text-center font-semibold shadow-xl"
         style={{
           color: selectedText.color,
           borderColor: selectedText.color,

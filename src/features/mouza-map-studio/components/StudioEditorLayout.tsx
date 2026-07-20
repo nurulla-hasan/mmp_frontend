@@ -3,7 +3,6 @@
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -47,6 +46,7 @@ export default function StudioEditorLayout({
   const [annotationColor, setAnnotationColor] = useState('#DC2626');
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
+  const [prevImageSrc, setPrevImageSrc] = useState<string | null>(null);
 
   const {
     editorImage,
@@ -134,23 +134,27 @@ export default function StudioEditorLayout({
     return () => window.removeEventListener('keydown', handleKeyboardShortcut);
   }, [undoEditor, redoEditor]);
 
-  useLayoutEffect(() => {
-    if (!editorImage || stageSize.width === 0 || stageSize.height === 0) return;
+  // Auto-fit image when it first loads or stage resizes — computed during render
+  // to avoid setState inside an effect.
+  if (editorImage && stageSize.width > 0 && stageSize.height > 0) {
+    const currentSrc = editorImage.src;
+    if (currentSrc !== prevImageSrc) {
+      setPrevImageSrc(currentSrc);
+      const imageWidth = editorImage.naturalWidth || editorImage.width;
+      const imageHeight = editorImage.naturalHeight || editorImage.height;
+      const scale = Math.min(
+        (stageSize.width - 80) / imageWidth,
+        (stageSize.height - 96) / imageHeight,
+        1,
+      );
 
-    const imageWidth = editorImage.naturalWidth || editorImage.width;
-    const imageHeight = editorImage.naturalHeight || editorImage.height;
-    const scale = Math.min(
-      (stageSize.width - 80) / imageWidth,
-      (stageSize.height - 96) / imageHeight,
-      1,
-    );
-
-    setStageScale(scale);
-    setStagePosition({
-      x: (stageSize.width - imageWidth * scale) / 2,
-      y: (stageSize.height - imageHeight * scale) / 2,
-    });
-  }, [editorImage, stageSize.width, stageSize.height]);
+      setStageScale(scale);
+      setStagePosition({
+        x: (stageSize.width - imageWidth * scale) / 2,
+        y: (stageSize.height - imageHeight * scale) / 2,
+      });
+    }
+  }
 
   const getImagePoint = useCallback(() => {
     const pointer = stageRef.current?.getPointerPosition();
