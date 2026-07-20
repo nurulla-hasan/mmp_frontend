@@ -1,4 +1,4 @@
-import { Download, FileUp, Trash2 } from 'lucide-react';
+import { Download, FileUp, Loader2, Trash2 } from 'lucide-react';
 
 import type {
   AlignmentMode,
@@ -12,7 +12,10 @@ type SettingsPanelProps = {
   controlPairs: ControlPair[];
   alignmentMode: AlignmentMode;
   transform: GeoTransform | null;
-  opacity: number;
+  backgroundRemoved: boolean;
+  processingBackground: boolean;
+  backgroundSensitivity: number;
+  lineColor: string;
   residual: number | null;
   mapName: string;
   imageDataUrl: string | null;
@@ -20,7 +23,9 @@ type SettingsPanelProps = {
   onRemovePair: (id: string) => void;
   onSimilarityClick: () => void;
   onAffineClick: () => void;
-  onOpacityChange: (value: number) => void;
+  onBackgroundRemovedChange: (value: boolean) => void;
+  onBackgroundSensitivityChange: (value: number) => void;
+  onLineColorChange: (value: string) => void;
   onMapNameChange: (name: string) => void;
   onExport: () => void;
   onResetAlignment: () => void;
@@ -32,7 +37,10 @@ export default function SettingsPanel({
   controlPairs,
   alignmentMode,
   transform,
-  opacity,
+  backgroundRemoved,
+  processingBackground,
+  backgroundSensitivity,
+  lineColor,
   residual,
   mapName,
   imageDataUrl,
@@ -40,7 +48,9 @@ export default function SettingsPanel({
   onRemovePair,
   onSimilarityClick,
   onAffineClick,
-  onOpacityChange,
+  onBackgroundRemovedChange,
+  onBackgroundSensitivityChange,
+  onLineColorChange,
   onMapNameChange,
   onExport,
   onResetAlignment,
@@ -151,22 +161,86 @@ export default function SettingsPanel({
           </div>
         )}
 
-        <label className="block text-xs text-muted-foreground">
-          <span className="mb-1 flex justify-between">
-            <span>PDF opacity</span>
-            <span>{Math.round(opacity * 100)}%</span>
-          </span>
-          <input
-            type="range"
-            min={10}
-            max={100}
-            value={Math.round(opacity * 100)}
-            onChange={(event) =>
-              onOpacityChange(Number(event.target.value) / 100)
-            }
-            className="w-full accent-primary"
-          />
-        </label>
+        <div className="space-y-3 border-t border-border pt-3">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-xs text-muted-foreground">
+              PDF background সরান
+              {processingBackground && (
+                <Loader2 className="size-3.5 animate-spin" />
+              )}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={backgroundRemoved}
+              aria-label="PDF background সরান"
+              onClick={() => onBackgroundRemovedChange(!backgroundRemoved)}
+              className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors ${
+                backgroundRemoved ? 'bg-primary' : 'bg-muted'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block size-4 rounded-full bg-background shadow-sm transition-transform ${
+                  backgroundRemoved ? 'translate-x-4' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {backgroundRemoved && (
+            <div className="space-y-3">
+              <label className="block text-xs text-muted-foreground">
+                <span className="mb-1 flex justify-between">
+                  <span>লাইন ধরার মাত্রা</span>
+                  <span className="font-mono">{backgroundSensitivity}%</span>
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={backgroundSensitivity}
+                  onChange={(event) =>
+                    onBackgroundSensitivityChange(Number(event.target.value))
+                  }
+                  className="w-full accent-primary"
+                />
+              </label>
+
+              <div className="space-y-2">
+                <span className="block text-xs text-muted-foreground">
+                  লাইনের রং
+                </span>
+                <div className="flex gap-2">
+                  {[
+                    { value: '#000000', label: 'কালো' },
+                    { value: '#DC2626', label: 'লাল' },
+                    { value: '#16A34A', label: 'সবুজ' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      title={option.label}
+                      aria-label={`${option.label} লাইন`}
+                      aria-pressed={lineColor === option.value}
+                      onClick={() => onLineColorChange(option.value)}
+                      className={`size-8 rounded-full border-2 transition ${
+                        lineColor === option.value
+                          ? 'scale-110 border-primary ring-2 ring-primary/25'
+                          : 'border-border'
+                      }`}
+                      style={{ backgroundColor: option.value }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <p className="text-[10px] leading-4 text-muted-foreground">
+                কমালে শুধু গাঢ় কালো, বাড়ালে ফিকে ও পুরোনো line-ও থাকবে।
+              </p>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* KMZ Export */}
@@ -184,7 +258,7 @@ export default function SettingsPanel({
         </label>
         <button
           type="button"
-          disabled={!transform || !imageDataUrl}
+          disabled={!transform || !imageDataUrl || processingBackground}
           onClick={onExport}
           className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-40"
         >
