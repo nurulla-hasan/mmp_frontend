@@ -16,6 +16,8 @@ type SettingsPanelProps = {
   processingBackground: boolean;
   backgroundSensitivity: number;
   lineColor: string;
+  opacity: number;
+  mapStyle: 'satellite' | 'street';
   residual: number | null;
   mapName: string;
   imageDataUrl: string | null;
@@ -26,6 +28,8 @@ type SettingsPanelProps = {
   onBackgroundRemovedChange: (value: boolean) => void;
   onBackgroundSensitivityChange: (value: number) => void;
   onLineColorChange: (value: string) => void;
+  onOpacityChange: (value: number) => void;
+  onMapStyleChange: (value: 'satellite' | 'street') => void;
   onMapNameChange: (name: string) => void;
   onExport: () => void;
   onResetAlignment: () => void;
@@ -41,6 +45,8 @@ export default function SettingsPanel({
   processingBackground,
   backgroundSensitivity,
   lineColor,
+  opacity,
+  mapStyle,
   residual,
   mapName,
   imageDataUrl,
@@ -51,6 +57,8 @@ export default function SettingsPanel({
   onBackgroundRemovedChange,
   onBackgroundSensitivityChange,
   onLineColorChange,
+  onOpacityChange,
+  onMapStyleChange,
   onMapNameChange,
   onExport,
   onResetAlignment,
@@ -161,6 +169,38 @@ export default function SettingsPanel({
           </div>
         )}
 
+        <div className="space-y-2 border-t border-border pt-3">
+          <span className="block text-xs text-muted-foreground">
+            World map style
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              aria-pressed={mapStyle === 'satellite'}
+              onClick={() => onMapStyleChange('satellite')}
+              className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                mapStyle === 'satellite'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-background text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              Satellite
+            </button>
+            <button
+              type="button"
+              aria-pressed={mapStyle === 'street'}
+              onClick={() => onMapStyleChange('street')}
+              className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                mapStyle === 'street'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-background text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              Street
+            </button>
+          </div>
+        </div>
+
         <div className="space-y-3 border-t border-border pt-3">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -241,6 +281,23 @@ export default function SettingsPanel({
             </div>
           )}
         </div>
+
+        <label className="block border-t border-border pt-3 text-xs text-muted-foreground">
+          <span className="mb-1 flex justify-between">
+            <span>PDF opacity</span>
+            <span>{Math.round(opacity * 100)}%</span>
+          </span>
+          <input
+            type="range"
+            min={10}
+            max={100}
+            value={Math.round(opacity * 100)}
+            onChange={(event) =>
+              onOpacityChange(Number(event.target.value) / 100)
+            }
+            className="w-full accent-primary"
+          />
+        </label>
       </section>
 
       {/* KMZ Export */}
