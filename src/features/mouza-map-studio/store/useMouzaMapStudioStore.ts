@@ -65,6 +65,7 @@ type MouzaMapStudioStore = {
   editorTool: StudioEditorTool;
   editorStrokes: StudioEditorStroke[];
   editorTexts: StudioEditorText[];
+  editorFontSize: number;
   editorPast: StudioEditorSnapshot[];
   editorFuture: StudioEditorSnapshot[];
   sheetDetails: StudioSheetDetails;
@@ -78,6 +79,7 @@ type MouzaMapStudioStore = {
   appendEditorStrokePoint: (id: string, point: StudioPoint) => void;
   addEditorText: (text: StudioEditorText) => void;
   updateEditorText: (id: string, text: string) => void;
+  setEditorFontSize: (fontSize: number) => void;
   moveEditorText: (id: string, x: number, y: number) => void;
   deleteEditorText: (id: string) => void;
   undoEditor: () => void;
@@ -132,6 +134,7 @@ export const useMouzaMapStudioStore = create<MouzaMapStudioStore>()((set, get) =
   editorTool: 'pan',
   editorStrokes: [],
   editorTexts: [],
+  editorFontSize: 14,
   editorPast: [],
   editorFuture: [],
   sheetDetails: defaultSheetDetails,
@@ -161,11 +164,11 @@ export const useMouzaMapStudioStore = create<MouzaMapStudioStore>()((set, get) =
     })),
 
   addEditorText: (text) => {
-    const { editorStrokes, editorTexts, editorPast } = get();
+    const { editorStrokes, editorTexts, editorPast, editorFontSize } = get();
     set({
       editorPast: appendHistory(editorPast, snapshot(editorStrokes, editorTexts)),
       editorFuture: [],
-      editorTexts: [...editorTexts, text],
+      editorTexts: [...editorTexts, { ...text, fontSize: editorFontSize }],
     });
   },
 
@@ -175,6 +178,18 @@ export const useMouzaMapStudioStore = create<MouzaMapStudioStore>()((set, get) =
         item.id === id ? { ...item, text } : item,
       ),
     })),
+
+  setEditorFontSize: (value) =>
+    set((state) => {
+      const editorFontSize = Math.max(10, Math.min(20, value));
+      return {
+        editorFontSize,
+        editorTexts: state.editorTexts.map((item) => ({
+          ...item,
+          fontSize: editorFontSize,
+        })),
+      };
+    }),
 
   moveEditorText: (id, x, y) =>
     set((state) => ({
@@ -199,7 +214,10 @@ export const useMouzaMapStudioStore = create<MouzaMapStudioStore>()((set, get) =
 
     set({
       editorStrokes: cloneStrokes(previous.strokes),
-      editorTexts: cloneTexts(previous.texts),
+      editorTexts: cloneTexts(previous.texts).map((item) => ({
+        ...item,
+        fontSize: get().editorFontSize,
+      })),
       editorPast: editorPast.slice(0, -1),
       editorFuture: [
         snapshot(editorStrokes, editorTexts),
@@ -215,7 +233,10 @@ export const useMouzaMapStudioStore = create<MouzaMapStudioStore>()((set, get) =
 
     set({
       editorStrokes: cloneStrokes(next.strokes),
-      editorTexts: cloneTexts(next.texts),
+      editorTexts: cloneTexts(next.texts).map((item) => ({
+        ...item,
+        fontSize: get().editorFontSize,
+      })),
       editorPast: appendHistory(editorPast, snapshot(editorStrokes, editorTexts)),
       editorFuture: editorFuture.slice(1),
     });
@@ -256,6 +277,7 @@ export const useMouzaMapStudioStore = create<MouzaMapStudioStore>()((set, get) =
       editorTool: 'pan',
       editorStrokes: [],
       editorTexts: [],
+      editorFontSize: 14,
       editorPast: [],
       editorFuture: [],
       sheetDetails: {

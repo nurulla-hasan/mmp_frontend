@@ -63,8 +63,8 @@ export default function StudioEditorControls({
       {editorTool === 'text' && (
         <input
           type="range"
-          min={14}
-          max={72}
+          min={10}
+          max={20}
           value={fontSize}
           onChange={(event) => onChangeFontSize(Number(event.target.value))}
         />

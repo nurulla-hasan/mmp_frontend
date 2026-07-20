@@ -45,7 +45,6 @@ export default function StudioEditorLayout({
   const [cleanupWidth, setCleanupWidth] = useState(36);
   const [markWidth, setMarkWidth] = useState(4);
   const [annotationColor, setAnnotationColor] = useState('#DC2626');
-  const [fontSize, setFontSize] = useState(28);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
 
@@ -54,6 +53,7 @@ export default function StudioEditorLayout({
     editorTool,
     editorStrokes,
     editorTexts,
+    editorFontSize,
     editorPast,
     editorFuture,
     setEditorTool,
@@ -61,6 +61,7 @@ export default function StudioEditorLayout({
     appendEditorStrokePoint,
     addEditorText,
     updateEditorText,
+    setEditorFontSize,
     moveEditorText,
     deleteEditorText,
     undoEditor,
@@ -71,6 +72,7 @@ export default function StudioEditorLayout({
     editorTool: state.editorTool,
     editorStrokes: state.editorStrokes,
     editorTexts: state.editorTexts,
+    editorFontSize: state.editorFontSize,
     editorPast: state.editorPast,
     editorFuture: state.editorFuture,
     setEditorTool: state.setEditorTool,
@@ -78,6 +80,7 @@ export default function StudioEditorLayout({
     appendEditorStrokePoint: state.appendEditorStrokePoint,
     addEditorText: state.addEditorText,
     updateEditorText: state.updateEditorText,
+    setEditorFontSize: state.setEditorFontSize,
     moveEditorText: state.moveEditorText,
     deleteEditorText: state.deleteEditorText,
     undoEditor: state.undoEditor,
@@ -177,11 +180,11 @@ export default function StudioEditorLayout({
         y: point.y,
         text: '',
         color: annotationColor,
-        fontSize,
+        fontSize: editorFontSize,
       });
       setEditingTextId(id);
     },
-    [editorTool, getImagePoint, addEditorText, annotationColor, fontSize],
+    [editorTool, getImagePoint, addEditorText, annotationColor, editorFontSize],
   );
 
   const continueEdit = useCallback(
@@ -441,11 +444,11 @@ export default function StudioEditorLayout({
         editorTool={editorTool}
         cleanupWidth={cleanupWidth}
         markWidth={markWidth}
-        fontSize={fontSize}
+        fontSize={editorFontSize}
         annotationColor={annotationColor}
         onChangeCleanupWidth={setCleanupWidth}
         onChangeMarkWidth={setMarkWidth}
-        onChangeFontSize={setFontSize}
+        onChangeFontSize={setEditorFontSize}
         onChangeAnnotationColor={setAnnotationColor}
       />
 
