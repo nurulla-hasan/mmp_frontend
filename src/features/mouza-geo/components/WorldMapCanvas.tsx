@@ -1,15 +1,17 @@
 'use client';
 
-import 'maplibre-gl/dist/maplibre-gl.css';
+import 'leaflet/dist/leaflet.css';
 
-import maplibregl, { type Map as MapLibreMap } from 'maplibre-gl';
+import type {
+  LeafletMouseEvent,
+  Map as LeafletMap,
+} from 'leaflet';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type {
   ControlPair,
   GeoPoint,
   GeoTransform,
-  InteractionTarget,
   MercatorPoint,
 } from '../types';
 import {
@@ -17,6 +19,8 @@ import {
   fromMercator,
   toMercator,
 } from '../utils/geoMath';
+
+type InteractionTarget = 'map' | 'pdf';
 
 type WorldMapCanvasProps = {
   active: boolean;
@@ -35,7 +39,7 @@ type WorldMapCanvasProps = {
 export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mapRef = useRef<MapLibreMap | null>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
   const propsRef = useRef(props);
   const dragRef = useRef<{ id: number; point: MercatorPoint } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +51,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     if (!transform || !map) return null;
 
     const geo = fromMercator(applyGeoTransform(transform, source));
-    return map.project([geo.lng, geo.lat]);
+    return map.latLngToContainerPoint([geo.lat, geo.lng]);
   }, []);
 
   const drawOverlay = useCallback(() => {
@@ -102,7 +106,10 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     }
 
     controlPairs.forEach((pair, index) => {
-      const point = map.project([pair.world.lng, pair.world.lat]);
+      const point = map.latLngToContainerPoint([
+        pair.world.lat,
+        pair.world.lng,
+      ]);
 
       context.beginPath();
       context.fillStyle = 'rgb(37 99 235)';
@@ -130,104 +137,76 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     if (!host) return;
 
     let cancelled = false;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let map: LeafletMap | null = null;
+    let resizeObserver: ResizeObserver | null = null;
 
-    const map = new maplibregl.Map({
-      container: host,
-      style: {
-        version: 8,
-        sources: {
-          basemap: {
-            type: 'raster',
-            tiles: [
-              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-            ],
-            tileSize: 256,
-            minzoom: 0,
-            maxzoom: 19,
+    void import('leaflet')
+      .then((leaflet) => {
+        if (cancelled) return;
+
+        map = leaflet
+          .map(host, {
+            center: [25.6217, 88.6354],
+            zoom: 15,
+            zoomControl: false,
+            attributionControl: true,
+            zoomAnimation: false,
+            fadeAnimation: false,
+            markerZoomAnimation: false,
+          })
+          .setView([25.6217, 88.6354], 15);
+
+        leaflet
+          .tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            minZoom: 2,
+            maxZoom: 19,
             attribution:
-              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | &copy; <a href="https://carto.com/basemaps">CARTO</a>',
-          },
-        },
-        layers: [
-          {
-            id: 'background',
-            type: 'background',
-            paint: { 'background-color': '#f0f3f5' },
-          },
-          {
-            id: 'basemap-layer',
-            type: 'raster',
-            source: 'basemap',
-          },
-        ],
-      },
-      center: [88.6354, 25.6217],
-      zoom: 10,
-      attributionControl: { compact: true },
-      dragRotate: false,
-      touchPitch: false,
-      pitchWithRotate: false,
-    });
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+          })
+          .addTo(map);
 
-    mapRef.current = map;
-    map.touchZoomRotate.disableRotation();
-    map.keyboard.disableRotation();
+        mapRef.current = map;
 
-    const handleLoad = () => {
-      if (cancelled) return;
-      map.resize();
-      setLoading(false);
-      setError(null);
-      drawOverlay();
-    };
+        const handleClick = (event: LeafletMouseEvent) => {
+          const current = propsRef.current;
+          if (!current.waitingForWorldPoint) return;
 
-    const handleMove = () => drawOverlay();
+          current.onPlaceWorldPoint({
+            lat: event.latlng.lat,
+            lng: event.latlng.lng,
+          });
+        };
 
-    const handleClick = (event: maplibregl.MapMouseEvent) => {
-      const current = propsRef.current;
-      if (!current.waitingForWorldPoint) return;
+        map.on('click', handleClick);
+        map.on('move zoom resize', drawOverlay);
+        map.whenReady(() => {
+          if (cancelled) return;
+          setLoading(false);
+          setError(null);
+          map?.invalidateSize({ pan: false });
+          drawOverlay();
+        });
 
-      current.onPlaceWorldPoint({
-        lat: event.lngLat.lat,
-        lng: event.lngLat.lng,
-      });
-    };
-
-    const handleError = (event: maplibregl.ErrorEvent) => {
-      if (cancelled) return;
-      console.error('[MapLibre]', event.error);
-      if (!map.isStyleLoaded()) {
+        resizeObserver = new ResizeObserver(() => {
+          map?.invalidateSize({ pan: false });
+          drawOverlay();
+        });
+        resizeObserver.observe(host);
+      })
+      .catch((loadError: unknown) => {
+        if (cancelled) return;
         setLoading(false);
-        setError(event.error?.message ?? 'Free map load করা যায়নি');
-      }
-    };
-
-    map.on('load', handleLoad);
-    map.on('move', handleMove);
-    map.on('resize', handleMove);
-    map.on('click', handleClick);
-    map.on('error', handleError);
-
-    // safety timeout: if load event doesn't fire in 12s, hide loading
-    timeoutId = setTimeout(() => {
-      if (cancelled) return;
-      setLoading(false);
-      if (!map.isStyleLoaded()) {
-        setError('Map load timeout – tile server not responding');
-      }
-    }, 12000);
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : 'OpenStreetMap load করা যায়নি',
+        );
+      });
 
     return () => {
       cancelled = true;
-      if (timeoutId) clearTimeout(timeoutId);
-      map.off('load', handleLoad);
-      map.off('move', handleMove);
-      map.off('resize', handleMove);
-      map.off('click', handleClick);
-      map.off('error', handleError);
-      map.remove();
+      resizeObserver?.disconnect();
+      map?.remove();
       mapRef.current = null;
     };
   }, [drawOverlay]);
@@ -236,7 +215,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     if (!props.active) return;
 
     const frame = window.requestAnimationFrame(() => {
-      mapRef.current?.resize();
+      mapRef.current?.invalidateSize({ pan: false });
       drawOverlay();
     });
 
@@ -249,7 +228,11 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     if (!host || !map) return null;
 
     const rect = host.getBoundingClientRect();
-    const point = map.unproject([clientX - rect.left, clientY - rect.top]);
+    const point = map.containerPointToLatLng([
+      clientX - rect.left,
+      clientY - rect.top,
+    ]);
+
     return toMercator({ lat: point.lat, lng: point.lng });
   };
 
@@ -302,11 +285,12 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   };
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      <div ref={hostRef} className="absolute inset-0" />
+    <div className="relative h-full w-full overflow-hidden bg-muted">
+      <div ref={hostRef} className="absolute inset-0 z-0 bg-muted" />
+
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 touch-none"
+        className="absolute inset-0 z-10 touch-none bg-transparent"
         style={{ pointerEvents: pdfInteractionEnabled ? 'auto' : 'none' }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -319,13 +303,13 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       />
 
       {loading && (
-        <div className="absolute inset-0 grid place-items-center bg-background/80 text-sm text-foreground">
+        <div className="absolute inset-0 z-20 grid place-items-center bg-background/80 text-sm text-foreground">
           Free OpenStreetMap load হচ্ছে…
         </div>
       )}
 
       {error && (
-        <div className="absolute inset-0 grid place-items-center bg-background p-6 text-center">
+        <div className="absolute inset-0 z-20 grid place-items-center bg-background p-6 text-center">
           <div className="max-w-md rounded-xl border border-border bg-card p-5 text-sm text-card-foreground shadow-lg">
             <p className="font-semibold">OpenStreetMap চালু করা যায়নি</p>
             <p className="mt-2 text-muted-foreground">{error}</p>
@@ -334,16 +318,17 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       )}
 
       {!loading && !error && props.waitingForWorldPoint && (
-        <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-4 py-2 text-xs font-semibold text-foreground shadow-lg backdrop-blur">
+        <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-4 py-2 text-xs font-semibold text-foreground shadow-lg backdrop-blur">
           PDF point-এর একই জায়গায় OpenStreetMap-এ click করুন
         </div>
       )}
 
       {pdfInteractionEnabled && (
-        <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-2 text-center text-xs text-foreground shadow-lg backdrop-blur">
+        <div className="pointer-events-none absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-2 text-center text-xs text-foreground shadow-lg backdrop-blur">
           Drag: PDF সরান · Wheel: scale · Alt + Wheel: rotate
         </div>
       )}
     </div>
   );
 }
+
