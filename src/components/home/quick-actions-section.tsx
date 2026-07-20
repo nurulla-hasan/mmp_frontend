@@ -8,8 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 const actions = [
   {
     icon: PencilRuler,
-    title: "জমির হিসাব করুন",
-    description: "জমির মাপ, প্লট ও ক্ষেত্রফলের হিসাব শুরু করুন।",
+    title: "সব জরিপ টুল",
+    description: "পলিগন ট্রেসার, প্যান্টাগ্রাফ ও জমির মাপ—তিনটি টুল একসাথে ব্যবহার করুন।",
     href: "/tools",
   },
   {
