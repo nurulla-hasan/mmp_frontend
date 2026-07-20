@@ -103,12 +103,97 @@ function coordinateText(points: GeoPoint[]) {
   return points.map((point) => `${point.lng},${point.lat}`).join(' ');
 }
 
-export function exportMouzaKmz(options: {
+export type KmzExportQuality = 'optimized' | 'original';
+
+const OPTIMIZED_MAX_DIMENSION = 6144;
+const OPTIMIZED_MAX_PIXELS = 24_000_000;
+
+function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  type: 'image/jpeg' | 'image/png',
+  quality?: number,
+) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) =>
+        blob
+          ? resolve(blob)
+          : reject(new Error('KMZ image optimize করা যায়নি')),
+      type,
+      quality,
+    );
+  });
+}
+
+async function createOptimizedOverlay(
+  image: HTMLImageElement,
+  transparent: boolean,
+) {
+  const sourceWidth = image.naturalWidth || image.width;
+  const sourceHeight = image.naturalHeight || image.height;
+  const dimensionScale = Math.min(
+    1,
+    OPTIMIZED_MAX_DIMENSION / Math.max(sourceWidth, sourceHeight),
+  );
+  const pixelScale = Math.min(
+    1,
+    Math.sqrt(OPTIMIZED_MAX_PIXELS / (sourceWidth * sourceHeight)),
+  );
+  const scale = Math.min(dimensionScale, pixelScale);
+  const width = Math.max(1, Math.round(sourceWidth * scale));
+  const height = Math.max(1, Math.round(sourceHeight * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+
+  if (!context) throw new Error('KMZ image canvas তৈরি করা যায়নি');
+
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+
+  if (!transparent) {
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, width, height);
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+
+  const extension = transparent ? 'png' : 'jpg';
+  const blob = await canvasToBlob(
+    canvas,
+    transparent ? 'image/png' : 'image/jpeg',
+    transparent ? undefined : 0.9,
+  );
+  const data = new Uint8Array(await blob.arrayBuffer());
+  canvas.width = 1;
+  canvas.height = 1;
+
+  return { data, extension };
+}
+
+function getOriginalOverlay(dataUrl: string) {
+  const isJpeg = /^data:image\/jpe?g[;,]/i.test(dataUrl);
+  return {
+    data: dataUrlToBytes(dataUrl),
+    extension: isJpeg ? 'jpg' : 'png',
+  };
+}
+
+export async function exportMouzaKmz(options: {
   transform: GeoTransform;
+  image: HTMLImageElement;
   imageDataUrl: string;
   imageSize: { width: number; height: number };
   name: string;
+  transparent: boolean;
+  quality: KmzExportQuality;
 }) {
+  const overlay =
+    options.quality === 'optimized'
+      ? await createOptimizedOverlay(options.image, options.transparent)
+      : getOriginalOverlay(options.imageDataUrl);
+  const overlayPath = `files/mouza-map.${overlay.extension}`;
   const corners = getOverlayCorners(options.transform, options.imageSize);
   const kml = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
@@ -116,7 +201,7 @@ export function exportMouzaKmz(options: {
     <name>${options.name.replace(/[<>&]/g, '')}</name>
     <GroundOverlay>
       <name>${options.name.replace(/[<>&]/g, '')}</name>
-      <Icon><href>files/mouza-map.png</href></Icon>
+      <Icon><href>${overlayPath}</href></Icon>
       <altitudeMode>clampToGround</altitudeMode>
       <gx:LatLonQuad>
         <coordinates>${coordinateText(corners)}</coordinates>
@@ -127,7 +212,7 @@ export function exportMouzaKmz(options: {
 
   const archive = createStoredZip([
     { name: 'doc.kml', data: encoder.encode(kml) },
-    { name: 'files/mouza-map.png', data: dataUrlToBytes(options.imageDataUrl) },
+    { name: overlayPath, data: overlay.data },
   ]);
   const archiveBuffer = new ArrayBuffer(archive.byteLength);
   new Uint8Array(archiveBuffer).set(archive);
