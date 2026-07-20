@@ -28,7 +28,6 @@ type WorldMapCanvasProps = {
   transform: GeoTransform | null;
   controlPairs: ControlPair[];
   waitingForWorldPoint: boolean;
-  opacity: number;
   interactionTarget: InteractionTarget;
   onPlaceWorldPoint: (point: GeoPoint) => void;
   onTranslateOverlay: (delta: MercatorPoint) => void;
@@ -80,7 +79,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     context.clearRect(0, 0, width, height);
 
-    const { image, transform, opacity, controlPairs } = propsRef.current;
+    const { image, transform, controlPairs } = propsRef.current;
 
     if (transform) {
       const imageWidth = image.naturalWidth || image.width;
@@ -91,7 +90,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
       if (origin && right && bottom) {
         context.save();
-        context.globalAlpha = opacity;
         context.setTransform(
           ((right.x - origin.x) / imageWidth) * ratio,
           ((right.y - origin.y) / imageWidth) * ratio,
