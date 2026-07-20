@@ -54,9 +54,11 @@ export const useStageEvents = () => {
 
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
   const lastDeviceRef = useRef<'mouse' | 'touch'>('touch');
+  const lastTouchAtRef = useRef(0);
 
   const TAP_GRACE_MS = 200;
   const TAP_MIN_MS = 50;
+  const TOUCH_COMPATIBILITY_WINDOW_MS = 800;
 
   const {
     mode,
@@ -136,6 +138,10 @@ export const useStageEvents = () => {
 
   // onMouseMove — stable reference, no plotPoints in deps
   const onMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+    // Ignore compatibility mousemove events emitted immediately after touch;
+    // otherwise the mobile preview line jumps from the center crosshair to the tap.
+    if (Date.now() - lastTouchAtRef.current < TOUCH_COMPATIBILITY_WINDOW_MS) return;
+
     lastDeviceRef.current = 'mouse';
     const store = useMapStore.getState();
     if (store.deviceType !== 'mouse') store.setDeviceType('mouse');
@@ -172,6 +178,7 @@ export const useStageEvents = () => {
   const onTouchStart = useCallback(
     (e: Konva.KonvaEventObject<TouchEvent>) => {
       lastDeviceRef.current = 'touch';
+      lastTouchAtRef.current = Date.now();
       const store = useMapStore.getState();
       if (store.deviceType !== 'touch') store.setDeviceType('touch');
       const touches = e.evt.touches;
@@ -222,6 +229,7 @@ export const useStageEvents = () => {
 
   const onTouchMove = useCallback(
     (e: Konva.KonvaEventObject<TouchEvent>) => {
+      lastTouchAtRef.current = Date.now();
       const touches = e.evt.touches;
       if (isPinchingRef.current && touches && touches.length >= 2) {
         blockTapRef.current = true;
@@ -274,6 +282,7 @@ export const useStageEvents = () => {
 
   const onTouchEnd = useCallback(
     (e: Konva.KonvaEventObject<TouchEvent>) => {
+      lastTouchAtRef.current = Date.now();
       const touches = e.evt.touches;
       if (isPinchingRef.current) {
         if (touches && touches.length === 1) {
@@ -379,9 +388,14 @@ export const useStageEvents = () => {
       // Only left click, only on stage background (not shapes)
       if (e.evt.button !== 0) return;
 
-      // Konva also emits a click after a touch. Mobile points must only be
-      // added through the dedicated "Add point" button at the crosshair.
-      if (lastDeviceRef.current !== 'mouse') return;
+      // Konva/browser compatibility events can emit mousemove + click after a
+      // touch. Device type alone is therefore not enough; also suppress clicks
+      // inside the touch compatibility window. Mobile points are added only by
+      // the dedicated button at the crosshair.
+      const isTouchGeneratedClick =
+        lastDeviceRef.current !== 'mouse' ||
+        Date.now() - lastTouchAtRef.current < TOUCH_COMPATIBILITY_WINDOW_MS;
+      if (isTouchGeneratedClick) return;
 
       // Allow clicks on stage or on layers (background), but block clicks on named shapes
       const targetName = (e.target as Konva.Node).name?.() || '';

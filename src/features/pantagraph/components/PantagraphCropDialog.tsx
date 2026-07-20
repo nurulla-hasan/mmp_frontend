@@ -31,12 +31,20 @@ interface ImageLayout {
   dispH: number;
 }
 
+export interface PantagraphCropResult {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface PantagraphCropDialogProps {
   open: boolean;
   imageSrc: string;
   mapLabel: string;
+  preserveResolution?: boolean;
   onClose: () => void;
-  onDone: (img: HTMLImageElement) => void;
+  onDone: (img: HTMLImageElement, crop?: PantagraphCropResult) => void;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -79,7 +87,7 @@ function hitHandle(cx: number, cy: number, s: Rect): HandleType | null {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function PantagraphCropDialog({
-  open, imageSrc, mapLabel, onClose, onDone,
+  open, imageSrc, mapLabel, preserveResolution = false, onClose, onDone,
 }: PantagraphCropDialogProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef       = useRef<HTMLImageElement>(null);
@@ -273,7 +281,7 @@ export function PantagraphCropDialog({
       const ph = Math.round(s.h / scale);
 
       const src = await loadImageSource(imageSrc);
-      const outputScale = getCanvasSafeScale(pw, ph);
+      const outputScale = preserveResolution ? 1 : getCanvasSafeScale(pw, ph);
 
       const canvas = document.createElement('canvas');
       canvas.width = Math.max(1, Math.round(pw * outputScale));
@@ -291,7 +299,7 @@ export function PantagraphCropDialog({
             else reject(new Error('toBlob failed'));
           }, 'image/png');
         });
-        onDone(await blobToImage(blob));
+        onDone(await blobToImage(blob), { x: px, y: py, width: pw, height: ph });
         onClose();
       } finally {
         canvas.width = 1;
@@ -302,10 +310,15 @@ export function PantagraphCropDialog({
     } finally {
       setIsBusy(false);
     }
-  }, [imageSrc, onDone, onClose]);
+  }, [imageSrc, preserveResolution, onDone, onClose]);
 
   // ── skip ─────────────────────────────────────────────────────────────────
   const handleSkip = useCallback(async () => {
+    if (preserveResolution) {
+      onClose();
+      return;
+    }
+
     setIsBusy(true);
     try {
       const img = await resizeImageForCanvas(await loadImageSource(imageSrc));
@@ -316,7 +329,7 @@ export function PantagraphCropDialog({
     } finally {
       setIsBusy(false);
     }
-  }, [imageSrc, onDone, onClose]);
+  }, [imageSrc, preserveResolution, onDone, onClose]);
 
   // ── handle positions for render ───────────────────────────────────────────
   const handles: { id: HandleType; cx: number; cy: number }[] = ready ? [

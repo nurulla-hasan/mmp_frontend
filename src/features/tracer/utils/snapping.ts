@@ -1,4 +1,4 @@
-﻿import type Konva from 'konva';
+import type Konva from 'konva';
 import { getClosestPointOnSegment } from '@/features/land-measurement/utils/geometry';
 
 export type SnapResult = {
@@ -31,7 +31,7 @@ export type TracerSnapIndex = {
   edges: IndexedEdge[];
 };
 
-/** Precompute stable segment metadata once when completed polygons change. */
+/** Precompute stable point and segment metadata once when boundary paths change. */
 export function buildTracerSnapIndex(
   polygons: Konva.Vector2d[][],
   ignoreFlatVerticesThreshold = 15,
@@ -43,11 +43,11 @@ export function buildTracerSnapIndex(
     const polygon = polygons[polyIndex];
     for (let vertexIndex = 0; vertexIndex < polygon.length; vertexIndex++) {
       const point = polygon[vertexIndex];
-      const next = polygon[(vertexIndex + 1) % polygon.length];
       let magnetMultiplier = 1.5;
 
-      if (polygon.length > 2) {
-        const previous = polygon[(vertexIndex - 1 + polygon.length) % polygon.length];
+      if (vertexIndex > 0 && vertexIndex < polygon.length - 1) {
+        const previous = polygon[vertexIndex - 1];
+        const next = polygon[vertexIndex + 1];
         const angle1 = Math.atan2(point.y - previous.y, point.x - previous.x);
         const angle2 = Math.atan2(next.y - point.y, next.x - point.x);
         let deflection = Math.abs((angle1 - angle2) * 180 / Math.PI);
@@ -56,11 +56,16 @@ export function buildTracerSnapIndex(
       }
 
       vertices.push({ point, polyIndex, vertexIndex, magnetMultiplier });
+    }
+
+    for (let edgeIndex = 0; edgeIndex < polygon.length - 1; edgeIndex++) {
+      const point = polygon[edgeIndex];
+      const next = polygon[edgeIndex + 1];
       edges.push({
         p1: point,
         p2: next,
         polyIndex,
-        edgeIndex: vertexIndex,
+        edgeIndex,
         minX: Math.min(point.x, next.x),
         maxX: Math.max(point.x, next.x),
         minY: Math.min(point.y, next.y),

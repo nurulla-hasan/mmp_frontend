@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import type Konva from 'konva';
 import type { MatchPoint } from '../types';
-import { removeBackground, parseHex } from '../utils/bgRemover';
+import { keepBlackOnly } from '../utils/bgRemover';
 import { colorizeImage } from '../utils/colorizeImage';
 import { SuccessToast, ErrorToast } from '@/lib/utils';
 
@@ -66,6 +66,10 @@ export interface PantagraphState {
   // Line smoothing after BG removal (0 = none, 5 = max)
   lineSmoothing: number;
 
+  // Automatic black-line detection sensitivity (0 = darkest only, 100 = faint lines)
+  formerBlackSensitivity: number;
+  currentBlackSensitivity: number;
+
   // BG removal tolerance (0-255, how wide a color range to remove)
   formerBgTolerance: number;
   currentBgTolerance: number;
@@ -96,6 +100,11 @@ export interface PantagraphActions {
   // Image actions
   setFormerMap: (img: HTMLImageElement | null) => void;
   setCurrentMap: (img: HTMLImageElement | null) => void;
+  applyCroppedMap: (
+    target: 'former' | 'current',
+    img: HTMLImageElement,
+    crop: { x: number; y: number; width: number; height: number },
+  ) => void;
   setActiveMap: (map: 'former' | 'current') => void;
   setCanvasBg: (bg: CanvasBg) => void;
   toggleFormerBgRemoval: () => Promise<void>;
@@ -111,6 +120,8 @@ export interface PantagraphActions {
   setFormerBgTolerance: (tolerance: number) => void;
   setCurrentBgTolerance: (tolerance: number) => void;
   setLineSmoothing: (smoothing: number) => void;
+  setFormerBlackSensitivity: (sensitivity: number) => void;
+  setCurrentBlackSensitivity: (sensitivity: number) => void;
   setFormerOpacity: (opacity: number) => void;
   setCurrentOpacity: (opacity: number) => void;
 
@@ -170,11 +181,14 @@ const initialState: PantagraphState = {
   formerMapClean: null,
   currentMapClean: null,
 
-  formerLineColor: '#000000',
-  currentLineColor: '#000000',
+  formerLineColor: '#DC2626',
+  currentLineColor: '#16A34A',
   lineColorizeThreshold: 200,
 
   lineSmoothing: 2,
+
+  formerBlackSensitivity: 75,
+  currentBlackSensitivity: 75,
 
   formerBgTolerance: 60,
   currentBgTolerance: 60,
@@ -302,29 +316,27 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => {
         const bgRemoved = target === 'former'
           ? state.formerBgRemoved
           : state.currentBgRemoved;
-        const bgColor = target === 'former' ? state.formerBgColor : state.currentBgColor;
-        const tolerance = target === 'former'
-          ? state.formerBgTolerance
-          : state.currentBgTolerance;
-        const lineColor = target === 'former'
-          ? state.formerLineColor
-          : state.currentLineColor;
+        const lineColor = target === 'former' ? '#DC2626' : '#16A34A';
+        const blackSensitivity = target === 'former'
+          ? state.formerBlackSensitivity
+          : state.currentBlackSensitivity;
 
         setProcessingState(target, true);
         try {
           const cleanMap = bgRemoved
-            ? await removeBackground(
+            ? await keepBlackOnly(
                 original,
-                [parseHex(bgColor)],
-                tolerance,
                 state.lineSmoothing,
+                blackSensitivity,
               )
             : original;
-          const finalMap = await applyLineToCleanMap(
-            cleanMap,
-            lineColor,
-            state.lineColorizeThreshold,
-          );
+          const finalMap = bgRemoved
+            ? await applyLineToCleanMap(
+                cleanMap,
+                lineColor,
+                state.lineColorizeThreshold,
+              )
+            : original;
 
           if (requestedVersion !== controller.version) continue;
           set(target === 'former'
@@ -393,6 +405,70 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => {
       isRemovingCurrentBg: false,
     });
   },
+  applyCroppedMap: (target, img, crop) => {
+    invalidateMapProcessing(target);
+    set((state) => {
+      const rad = ((target === 'former' ? state.formerRotation : state.currentRotation) * Math.PI) / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      const scaleX = target === 'former' ? state.formerScaleX : 1;
+      const scaleY = target === 'former' ? state.formerScaleY : 1;
+      const skewX = target === 'former' ? state.formerSkewX : 0;
+      const skewY = target === 'former' ? state.formerSkewY : 0;
+      const transformedX = scaleX * crop.x + skewX * crop.y;
+      const transformedY = skewY * crop.x + scaleY * crop.y;
+      const offset = {
+        x: transformedX * cos - transformedY * sin,
+        y: transformedX * sin + transformedY * cos,
+      };
+      const adjustPoint = (point: { x: number; y: number } | null) => {
+        if (!point) return null;
+        if (
+          point.x < crop.x || point.y < crop.y ||
+          point.x > crop.x + crop.width || point.y > crop.y + crop.height
+        ) return null;
+        return { x: point.x - crop.x, y: point.y - crop.y };
+      };
+      const matchPoints = state.matchPoints.flatMap((point) => {
+        if (target === 'former') {
+          const former = adjustPoint(point.former);
+          return former ? [{ ...point, former }] : [];
+        }
+        const current = adjustPoint(point.current);
+        return current ? [{ ...point, current }] : [];
+      });
+
+      if (target === 'former') {
+        return {
+          formerMap: img,
+          formerMapOriginal: img,
+          formerMapClean: img,
+          formerBgRemoved: false,
+          isRemovingFormerBg: false,
+          formerPosition: {
+            x: state.formerPosition.x + offset.x,
+            y: state.formerPosition.y + offset.y,
+          },
+          matchPoints,
+          redoStack: [],
+        };
+      }
+
+      return {
+        currentMap: img,
+        currentMapOriginal: img,
+        currentMapClean: img,
+        currentBgRemoved: false,
+        isRemovingCurrentBg: false,
+        currentPosition: {
+          x: state.currentPosition.x + offset.x,
+          y: state.currentPosition.y + offset.y,
+        },
+        matchPoints,
+        redoStack: [],
+      };
+    });
+  },
   setActiveMap: (activeMap) => set({ activeMap }),
   setCanvasBg: (canvasBg) => set({ canvasBg }),
   setImageLoading: (imageLoading) => set({ imageLoading }),
@@ -435,20 +511,37 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => {
     if (get().currentBgRemoved) scheduleMapProcessing('current');
   },
 
+  setFormerBlackSensitivity: (sensitivity) => {
+    const formerBlackSensitivity = Math.max(0, Math.min(100, sensitivity));
+    set({ formerBlackSensitivity });
+    if (get().formerBgRemoved) scheduleMapProcessing('former');
+  },
+  setCurrentBlackSensitivity: (sensitivity) => {
+    const currentBlackSensitivity = Math.max(0, Math.min(100, sensitivity));
+    set({ currentBlackSensitivity });
+    if (get().currentBgRemoved) scheduleMapProcessing('current');
+  },
+
   setFormerOpacity: (formerOpacity) => set({ formerOpacity }),
   setCurrentOpacity: (currentOpacity) => set({ currentOpacity }),
 
   toggleFormerBgRemoval: async () => {
     const { formerMapOriginal, formerBgRemoved } = get();
     if (!formerMapOriginal) return;
-    set({ formerBgRemoved: !formerBgRemoved });
+    set({
+      formerBgRemoved: !formerBgRemoved,
+      formerLineColor: '#DC2626',
+    });
     scheduleMapProcessing('former', 0);
   },
 
   toggleCurrentBgRemoval: async () => {
     const { currentMapOriginal, currentBgRemoved } = get();
     if (!currentMapOriginal) return;
-    set({ currentBgRemoved: !currentBgRemoved });
+    set({
+      currentBgRemoved: !currentBgRemoved,
+      currentLineColor: '#16A34A',
+    });
     scheduleMapProcessing('current', 0);
   },
 

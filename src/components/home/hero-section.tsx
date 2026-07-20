@@ -247,7 +247,7 @@ export function HeroSection() {
                         Digital Pantagraph
                       </div>
                       <Badge variant="admin" size="sm" className="rounded-md">
-                        Advanced Tool
+                        অ্যাডভান্সড টুল
                       </Badge>
                     </div>
                     <p className="mt-2 text-xs text-muted-foreground">
@@ -301,7 +301,7 @@ export function HeroSection() {
                         Digital Map Tracer
                       </div>
                       <Badge variant="processing" size="sm" className="rounded-md">
-                        Advanced Tool
+                        অ্যাডভান্সড টুল
                       </Badge>
                     </div>
                     <p className="mt-2 text-xs text-muted-foreground">
