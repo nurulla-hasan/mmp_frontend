@@ -344,9 +344,12 @@ export default function StudioEditorLayout({
         scaleX={stageScale}
         scaleY={stageScale}
         draggable={editorTool === 'pan'}
-        onDragEnd={(event) =>
-          setStagePosition({ x: event.target.x(), y: event.target.y() })
-        }
+        onDragEnd={(event) => {
+          // Text drags bubble through Konva. Only a drag of the Stage itself
+          // may update the map viewport position.
+          if (event.target !== event.currentTarget) return;
+          setStagePosition({ x: event.target.x(), y: event.target.y() });
+        }}
         onWheel={handleWheel}
         onDblClick={addTextAtPointer}
         onDblTap={addTextAtPointer}
