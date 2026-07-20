@@ -90,7 +90,6 @@ export default function MouzaGeoStudio() {
   const [transform, setTransform] = useState<GeoTransform | null>(null);
   const [opacity, setOpacity] = useState(0.62);
 
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? '';
   const imageSize = useMemo(
     () => ({
       width: image?.naturalWidth || image?.width || 0,
@@ -306,7 +305,7 @@ export default function MouzaGeoStudio() {
             </span>
           </div>
           <p className="text-xs leading-5 text-muted-foreground">
-            PDF-এ point দিলে Google Map নিজে খুলবে। একই জায়গায় click করুন।
+            PDF-এ point দিলে OpenStreetMap নিজে খুলবে। একই জায়গায় click করুন।
           </p>
           <div className="space-y-2">
             {controlPairs.map((pair, index) => (
@@ -441,7 +440,7 @@ export default function MouzaGeoStudio() {
             onClick={() => setActiveView('world')}
             className={`flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition ${activeView === 'world' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
           >
-            <Globe2 className="size-4" /> Google Map
+            <Globe2 className="size-4" /> OpenStreetMap
           </button>
           {activeView === 'world' && transform && !pendingSource && (
             <div className="ml-1 flex items-center gap-1 border-l border-border pl-2">
@@ -488,7 +487,6 @@ export default function MouzaGeoStudio() {
             </div>
             <div className={activeView === 'world' ? 'h-full' : 'hidden'}>
               <WorldMapCanvas
-                apiKey={apiKey}
                 image={image}
                 transform={transform}
                 controlPairs={controlPairs}
