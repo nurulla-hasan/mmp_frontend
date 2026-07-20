@@ -39,6 +39,34 @@ export default function SourceMapCanvas({
 
   useEffect(() => {
     const element = containerRef.current;
+    if (!element || !active) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const rect = element.getBoundingClientRect();
+      const pointerX = event.clientX - rect.left;
+      const pointerY = event.clientY - rect.top;
+      const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+
+      setView((current) => {
+        const nextScale = Math.max(0.03, Math.min(16, current.scale * factor));
+        const sourceX = (pointerX - current.x) / current.scale;
+        const sourceY = (pointerY - current.y) / current.scale;
+
+        return {
+          scale: nextScale,
+          x: pointerX - sourceX * nextScale,
+          y: pointerY - sourceY * nextScale,
+        };
+      });
+    };
+
+    element.addEventListener('wheel', handleWheel, { passive: false });
+    return () => element.removeEventListener('wheel', handleWheel);
+  }, [active]);
+
+  useEffect(() => {
+    const element = containerRef.current;
     if (!element) return;
     const observer = new ResizeObserver(([entry]) => {
       setSize({
@@ -128,26 +156,6 @@ export default function SourceMapCanvas({
     if (point) onPlacePoint(point);
   };
 
-  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const pointerX = event.clientX - rect.left;
-    const pointerY = event.clientY - rect.top;
-    const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
-
-    setView((current) => {
-      const nextScale = Math.max(0.03, Math.min(16, current.scale * factor));
-      const sourceX = (pointerX - current.x) / current.scale;
-      const sourceY = (pointerY - current.y) / current.scale;
-      return {
-        scale: nextScale,
-        x: pointerX - sourceX * nextScale,
-        y: pointerY - sourceY * nextScale,
-      };
-    });
-  };
-
   const markers = [
     ...controlPairs.map((pair, index) => ({
       id: pair.id,
@@ -170,7 +178,6 @@ export default function SourceMapCanvas({
       onPointerCancel={() => {
         pointerRef.current = null;
       }}
-      onWheel={handleWheel}
     >
       {/* Blob/data URL source maps cannot use Next Image optimization. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}

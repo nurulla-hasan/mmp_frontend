@@ -235,6 +235,25 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     Boolean(props.transform) &&
     !props.waitingForWorldPoint;
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !pdfInteractionEnabled) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+
+      if (event.altKey) {
+        propsRef.current.onRotateOverlay(event.deltaY < 0 ? -0.01 : 0.01);
+        return;
+      }
+
+      propsRef.current.onScaleOverlay(event.deltaY < 0 ? 1.04 : 1 / 1.04);
+    };
+
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', handleWheel);
+  }, [pdfInteractionEnabled]);
+
   const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (!pdfInteractionEnabled || event.button !== 0) return;
 
@@ -259,19 +278,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     drag.point = next;
   };
 
-  const handleWheel = (event: React.WheelEvent<HTMLCanvasElement>) => {
-    if (!pdfInteractionEnabled) return;
-
-    event.preventDefault();
-
-    if (event.altKey) {
-      propsRef.current.onRotateOverlay(event.deltaY < 0 ? -0.01 : 0.01);
-      return;
-    }
-
-    propsRef.current.onScaleOverlay(event.deltaY < 0 ? 1.04 : 1 / 1.04);
-  };
-
   return (
     <div className="relative h-full w-full overflow-hidden bg-muted">
       <div ref={hostRef} className="absolute inset-0" />
@@ -287,7 +293,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
         onPointerCancel={() => {
           dragRef.current = null;
         }}
-        onWheel={handleWheel}
       />
 
       {loading && (

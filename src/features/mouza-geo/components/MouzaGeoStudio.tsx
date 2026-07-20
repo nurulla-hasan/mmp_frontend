@@ -16,10 +16,24 @@ import {
   X,
   ZoomIn,
   ZoomOut,
+  type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { Button } from '@/components/ui/button';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerOverlay,
+  DrawerPortal,
+} from '@/components/ui/drawer';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { extractImageFromPDF } from '@/features/land-measurement/utils/pdfHelper';
+import { useMediaQuery } from '@/hooks/useUtilityHooks';
 import { ErrorToast, SuccessToast } from '@/lib/utils';
 import type {
   AlignmentMode,
@@ -42,6 +56,47 @@ import WorldMapCanvas from './WorldMapCanvas';
 
 type ActiveView = 'source' | 'world';
 type InteractionTarget = 'map' | 'pdf';
+
+type FloatingToolButtonProps = {
+  icon: LucideIcon;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  disabled?: boolean;
+  mobile?: boolean;
+};
+
+function FloatingToolButton({
+  icon: Icon,
+  label,
+  onClick,
+  active = false,
+  disabled = false,
+  mobile = false,
+}: FloatingToolButtonProps) {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={<div className="inline-flex" />}
+        className="focus:outline-none focus-visible:outline-none"
+      >
+        <Button
+          type="button"
+          variant={active ? 'default' : 'ghost'}
+          size={mobile ? 'icon' : 'icon-lg'}
+          disabled={disabled}
+          onClick={onClick}
+          className={active ? '' : 'text-muted-foreground'}
+        >
+          <Icon className={mobile ? 'size-4' : 'size-5'} />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side={mobile ? 'top' : 'left'} sideOffset={8}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 const toDataUrl = (file: File) =>
   new Promise<string>((resolve, reject) => {
@@ -81,11 +136,12 @@ const normalizeAsPng = (image: HTMLImageElement) => {
 
 export default function MouzaGeoStudio() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [mapName, setMapName] = useState('mouza-map');
   const [loadingFile, setLoadingFile] = useState(false);
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeView, setActiveView] = useState<ActiveView>('source');
   const [interactionTarget, setInteractionTarget] =
     useState<InteractionTarget>('map');
@@ -142,7 +198,7 @@ export default function MouzaGeoStudio() {
       setMapName(file.name.replace(/\.[^.]+$/, '') || 'mouza-map');
       resetAlignment();
       setActiveView('source');
-      setPanelOpen(false);
+      setSettingsOpen(false);
       SuccessToast('মৌজা ম্যাপ প্রস্তুত হয়েছে');
     } catch (error: unknown) {
       ErrorToast(
@@ -268,6 +324,261 @@ export default function MouzaGeoStudio() {
     SuccessToast('KMZ export শুরু হয়েছে');
   };
 
+  const settingsBody = (
+    <div className="space-y-6 p-4">
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            মৌজা ম্যাপ
+          </h3>
+          {image && <span className="text-xs text-primary">Ready</span>}
+        </div>
+        <button
+          type="button"
+          disabled={loadingFile}
+          onClick={() => fileInputRef.current?.click()}
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 text-sm font-semibold text-foreground transition hover:bg-muted disabled:opacity-50"
+        >
+          <FileUp className="size-4" />
+          {loadingFile
+            ? 'Load হচ্ছে…'
+            : image
+              ? 'ম্যাপ পরিবর্তন'
+              : 'PDF / Image আপলোড'}
+        </button>
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Control points
+          </h3>
+          <span className="font-mono text-xs text-muted-foreground">
+            {controlPairs.length} pair
+          </span>
+        </div>
+        <p className="text-xs leading-5 text-muted-foreground">
+          PDF-এ point দিলে World Map খুলবে। একই জায়গায় click করুন।
+        </p>
+        <div className="space-y-2">
+          {controlPairs.map((pair, index) => (
+            <div
+              key={pair.id}
+              className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs"
+            >
+              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary font-bold text-primary-foreground">
+                {index + 1}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-muted-foreground">
+                {pair.world.lat.toFixed(6)}, {pair.world.lng.toFixed(6)}
+              </span>
+              <button
+                type="button"
+                title="Point pair মুছুন"
+                aria-label="Point pair মুছুন"
+                onClick={() => removePair(pair.id)}
+                className="text-muted-foreground transition hover:text-destructive"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            </div>
+          ))}
+          {controlPairs.length === 0 && (
+            <div className="rounded-lg border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+              PDF view-এ প্রথম point দিন
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Alignment
+        </h3>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            disabled={controlPairs.length < 2}
+            onClick={() => fitTransform(controlPairs, 'similarity')}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-40"
+          >
+            Similarity
+          </button>
+          <button
+            type="button"
+            disabled={controlPairs.length < 3}
+            onClick={() => fitTransform(controlPairs, 'affine')}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-40"
+          >
+            Affine refine
+          </button>
+        </div>
+
+        {transform && (
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-primary">
+                {alignmentMode === 'affine' ? 'Affine' : 'Similarity'} active
+              </span>
+              <span className="font-mono text-muted-foreground">
+                RMS {residual?.toFixed(2)}m
+              </span>
+            </div>
+          </div>
+        )}
+
+        <label className="block text-xs text-muted-foreground">
+          <span className="mb-1 flex justify-between">
+            <span>PDF opacity</span>
+            <span>{Math.round(opacity * 100)}%</span>
+          </span>
+          <input
+            type="range"
+            min={10}
+            max={100}
+            value={Math.round(opacity * 100)}
+            onChange={(event) =>
+              setOpacity(Number(event.target.value) / 100)
+            }
+            className="w-full accent-primary"
+          />
+        </label>
+      </section>
+
+      <section className="space-y-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          KMZ Export
+        </h3>
+        <label className="block text-xs text-muted-foreground">
+          <span className="mb-1 block">ফাইলের নাম</span>
+          <input
+            value={mapName}
+            onChange={(event) => setMapName(event.target.value)}
+            className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary"
+          />
+        </label>
+        <button
+          type="button"
+          disabled={!transform || !imageDataUrl}
+          onClick={handleExport}
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-40"
+        >
+          <Download className="size-4" />
+          KMZ Export
+        </button>
+        <button
+          type="button"
+          onClick={resetAlignment}
+          className="h-9 w-full rounded-lg border border-border bg-background px-3 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"
+        >
+          Alignment reset
+        </button>
+      </section>
+    </div>
+  );
+
+  const mapControlsDisabled =
+    activeView !== 'world' || !transform || Boolean(pendingSource);
+
+  const toolbar = (mobile: boolean) => (
+    <>
+      <FloatingToolButton
+        icon={Settings2}
+        label="ম্যাপ ও সেটিংস"
+        active={settingsOpen}
+        onClick={() => setSettingsOpen((open) => !open)}
+        mobile={mobile}
+      />
+      <div
+        className={
+          mobile
+            ? 'mx-0.5 h-6 w-px bg-border/60'
+            : 'my-0.5 h-px w-6 bg-border/60'
+        }
+      />
+      <FloatingToolButton
+        icon={MapPinned}
+        label="World Map control"
+        active={
+          activeView === 'world' &&
+          interactionTarget === 'map' &&
+          !mapControlsDisabled
+        }
+        disabled={mapControlsDisabled}
+        onClick={() => setInteractionTarget('map')}
+        mobile={mobile}
+      />
+      <FloatingToolButton
+        icon={Crosshair}
+        label="PDF overlay control"
+        active={
+          activeView === 'world' &&
+          interactionTarget === 'pdf' &&
+          !mapControlsDisabled
+        }
+        disabled={mapControlsDisabled}
+        onClick={() => setInteractionTarget('pdf')}
+        mobile={mobile}
+      />
+      <div
+        className={
+          mobile
+            ? 'mx-0.5 h-6 w-px bg-border/60'
+            : 'my-0.5 h-px w-6 bg-border/60'
+        }
+      />
+      <FloatingToolButton
+        icon={ZoomOut}
+        label="PDF ছোট করুন"
+        disabled={!transform}
+        onClick={() => handleScale(1 / 1.02)}
+        mobile={mobile}
+      />
+      <FloatingToolButton
+        icon={ZoomIn}
+        label="PDF বড় করুন"
+        disabled={!transform}
+        onClick={() => handleScale(1.02)}
+        mobile={mobile}
+      />
+      <FloatingToolButton
+        icon={RotateCcw}
+        label="PDF বামে ঘোরান"
+        disabled={!transform}
+        onClick={() => handleRotate(-Math.PI / 180)}
+        mobile={mobile}
+      />
+      <FloatingToolButton
+        icon={RotateCw}
+        label="PDF ডানে ঘোরান"
+        disabled={!transform}
+        onClick={() => handleRotate(Math.PI / 180)}
+        mobile={mobile}
+      />
+      <div
+        className={
+          mobile
+            ? 'mx-0.5 h-6 w-px bg-border/60'
+            : 'my-0.5 h-px w-6 bg-border/60'
+        }
+      />
+      <FloatingToolButton
+        icon={Download}
+        label="KMZ Export"
+        disabled={!transform || !imageDataUrl}
+        onClick={handleExport}
+        mobile={mobile}
+      />
+      <FloatingToolButton
+        icon={RotateCcw}
+        label="Alignment reset"
+        disabled={!image}
+        onClick={resetAlignment}
+        mobile={mobile}
+      />
+    </>
+  );
+
   return (
     <div className="relative h-dvh min-h-0 overflow-hidden bg-background">
       <input
@@ -293,7 +604,7 @@ export default function MouzaGeoStudio() {
                 মৌজা ম্যাপ Georeference করুন
               </h1>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Floating settings থেকে PDF অথবা image upload করুন।
+                Settings থেকে PDF অথবা image upload করুন।
               </p>
               <button
                 type="button"
@@ -308,7 +619,13 @@ export default function MouzaGeoStudio() {
           </div>
         ) : (
           <>
-            <div className={activeView === 'source' ? 'h-full' : 'hidden'}>
+            <div
+              className={`absolute inset-0 ${
+                activeView === 'source'
+                  ? 'visible'
+                  : 'invisible pointer-events-none'
+              }`}
+            >
               <SourceMapCanvas
                 image={image}
                 controlPairs={controlPairs}
@@ -318,7 +635,13 @@ export default function MouzaGeoStudio() {
               />
             </div>
 
-            <div className={activeView === 'world' ? 'h-full' : 'hidden'}>
+            <div
+              className={`absolute inset-0 ${
+                activeView === 'world'
+                  ? 'visible'
+                  : 'invisible pointer-events-none'
+              }`}
+            >
               <WorldMapCanvas
                 active={activeView === 'world'}
                 image={image}
@@ -348,13 +671,9 @@ export default function MouzaGeoStudio() {
         </Link>
 
         <div className="mx-1 hidden h-6 w-px bg-border sm:block" />
-
-        <div className="hidden min-w-0 px-2 sm:block">
-          <p className="truncate text-xs font-bold text-foreground">
-            Mouza Geo Studio
-          </p>
-        </div>
-
+        <p className="hidden px-2 text-xs font-bold text-foreground sm:block">
+          Mouza Geo Studio
+        </p>
         <div className="mx-1 h-6 w-px bg-border" />
 
         <button
@@ -392,284 +711,86 @@ export default function MouzaGeoStudio() {
         )}
       </nav>
 
-      <div className="absolute right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col gap-1 rounded-xl border border-border bg-background/95 p-1 shadow-xl backdrop-blur">
-        <button
-          type="button"
-          title="Settings"
-          aria-label="Settings"
-          onClick={() => setPanelOpen((current) => !current)}
-          className={`grid size-9 place-items-center rounded-lg transition ${
-            panelOpen
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          <Settings2 className="size-4" />
-        </button>
-
-        <div className="mx-auto h-px w-6 bg-border" />
-
-        <button
-          type="button"
-          title="Map control"
-          aria-label="Map control"
-          disabled={activeView !== 'world' || !transform || Boolean(pendingSource)}
-          onClick={() => setInteractionTarget('map')}
-          className={`grid size-9 place-items-center rounded-lg transition disabled:opacity-30 ${
-            activeView === 'world' && interactionTarget === 'map'
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          <MapPinned className="size-4" />
-        </button>
-
-        <button
-          type="button"
-          title="PDF overlay control"
-          aria-label="PDF overlay control"
-          disabled={activeView !== 'world' || !transform || Boolean(pendingSource)}
-          onClick={() => setInteractionTarget('pdf')}
-          className={`grid size-9 place-items-center rounded-lg transition disabled:opacity-30 ${
-            activeView === 'world' && interactionTarget === 'pdf'
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          <Crosshair className="size-4" />
-        </button>
-
-        <div className="mx-auto h-px w-6 bg-border" />
-
-        <button
-          type="button"
-          title="PDF ছোট করুন"
-          aria-label="PDF ছোট করুন"
-          disabled={!transform}
-          onClick={() => handleScale(1 / 1.02)}
-          className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-30"
-        >
-          <ZoomOut className="size-4" />
-        </button>
-
-        <button
-          type="button"
-          title="PDF বড় করুন"
-          aria-label="PDF বড় করুন"
-          disabled={!transform}
-          onClick={() => handleScale(1.02)}
-          className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-30"
-        >
-          <ZoomIn className="size-4" />
-        </button>
-
-        <button
-          type="button"
-          title="PDF বামে ঘোরান"
-          aria-label="PDF বামে ঘোরান"
-          disabled={!transform}
-          onClick={() => handleRotate(-Math.PI / 180)}
-          className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-30"
-        >
-          <RotateCcw className="size-4" />
-        </button>
-
-        <button
-          type="button"
-          title="PDF ডানে ঘোরান"
-          aria-label="PDF ডানে ঘোরান"
-          disabled={!transform}
-          onClick={() => handleRotate(Math.PI / 180)}
-          className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-30"
-        >
-          <RotateCw className="size-4" />
-        </button>
-
-        <div className="mx-auto h-px w-6 bg-border" />
-
-        <button
-          type="button"
-          title="KMZ Export"
-          aria-label="KMZ Export"
-          disabled={!transform || !imageDataUrl}
-          onClick={handleExport}
-          className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-30"
-        >
-          <Download className="size-4" />
-        </button>
+      <div className="absolute right-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl md:flex">
+        {toolbar(false)}
       </div>
 
-      {panelOpen && (
-        <aside className="absolute inset-x-3 bottom-3 z-50 max-h-[70dvh] overflow-y-auto rounded-2xl border border-border bg-card/97 text-card-foreground shadow-2xl backdrop-blur sm:inset-x-auto sm:bottom-auto sm:left-4 sm:top-4 sm:max-h-[calc(100dvh-2rem)] sm:w-80">
-          <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card/95 px-4 py-3 backdrop-blur">
-            <div>
-              <h2 className="font-heading text-sm font-bold">Geo Settings</h2>
-              <p className="text-[11px] text-muted-foreground">
-                Point pair → Align → KMZ
-              </p>
+      <div
+        className="absolute bottom-4 left-1/2 z-40 flex w-max max-w-[95vw] -translate-x-1/2 items-center gap-1 overflow-x-auto whitespace-nowrap rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl md:hidden"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {toolbar(true)}
+      </div>
+
+      {settingsOpen && (
+        <>
+          <aside className="absolute left-4 top-4 z-50 hidden max-h-[calc(100dvh-2rem)] w-80 flex-col overflow-hidden rounded-2xl border border-border bg-card/95 text-card-foreground shadow-2xl backdrop-blur-md md:flex">
+            <header className="flex shrink-0 items-center justify-between border-b border-border bg-muted/30 px-4 py-3">
+              <div>
+                <h2 className="font-heading text-sm font-semibold">
+                  ম্যাপ ও সেটিংস
+                </h2>
+                <p className="text-[11px] text-muted-foreground">
+                  Point pair → Align → KMZ
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setSettingsOpen(false)}
+                className="size-8 shrink-0 rounded-full"
+              >
+                <X className="size-4" />
+              </Button>
+            </header>
+            <div className="overflow-y-auto" style={{ minHeight: 0 }}>
+              {settingsBody}
             </div>
-            <button
-              type="button"
-              title="Settings বন্ধ করুন"
-              aria-label="Settings বন্ধ করুন"
-              onClick={() => setPanelOpen(false)}
-              className="grid size-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
-            >
-              <X className="size-4" />
-            </button>
-          </header>
+          </aside>
 
-          <div className="space-y-6 p-4">
-            <section className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  মৌজা ম্যাপ
-                </h3>
-                {image && <span className="text-xs text-primary">Ready</span>}
-              </div>
-              <button
-                type="button"
-                disabled={loadingFile}
-                onClick={() => fileInputRef.current?.click()}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 text-sm font-semibold text-foreground transition hover:bg-muted disabled:opacity-50"
+          {isMobile && (
+            <div className="md:hidden">
+              <Drawer
+                open={settingsOpen}
+                onOpenChange={(open) => {
+                  if (!open) setSettingsOpen(false);
+                }}
               >
-                <FileUp className="size-4" />
-                {loadingFile
-                  ? 'Load হচ্ছে…'
-                  : image
-                    ? 'ম্যাপ পরিবর্তন'
-                    : 'PDF / Image আপলোড'}
-              </button>
-            </section>
-
-            <section className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Control points
-                </h3>
-                <span className="font-mono text-xs text-muted-foreground">
-                  {controlPairs.length} pair
-                </span>
-              </div>
-              <p className="text-xs leading-5 text-muted-foreground">
-                PDF-এ point দিলে World Map খুলবে। একই জায়গায় click করুন।
-              </p>
-              <div className="space-y-2">
-                {controlPairs.map((pair, index) => (
-                  <div
-                    key={pair.id}
-                    className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs"
-                  >
-                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary font-bold text-primary-foreground">
-                      {index + 1}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-muted-foreground">
-                      {pair.world.lat.toFixed(6)}, {pair.world.lng.toFixed(6)}
-                    </span>
-                    <button
-                      type="button"
-                      title="Point pair মুছুন"
-                      aria-label="Point pair মুছুন"
-                      onClick={() => removePair(pair.id)}
-                      className="text-muted-foreground transition hover:text-destructive"
+                <DrawerPortal>
+                  <DrawerOverlay className="md:hidden" />
+                  <DrawerContent className="flex max-h-[85dvh] flex-col md:hidden">
+                    <header className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+                      <div>
+                        <h2 className="font-heading text-sm font-semibold">
+                          ম্যাপ ও সেটিংস
+                        </h2>
+                        <p className="text-[11px] text-muted-foreground">
+                          Point pair → Align → KMZ
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setSettingsOpen(false)}
+                        className="size-8 shrink-0 rounded-full"
+                      >
+                        <X className="size-4" />
+                      </Button>
+                    </header>
+                    <div
+                      className="flex-1 overflow-y-auto"
+                      style={{ minHeight: 0 }}
                     >
-                      <Trash2 className="size-4" />
-                    </button>
-                  </div>
-                ))}
-                {controlPairs.length === 0 && (
-                  <div className="rounded-lg border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
-                    PDF view-এ প্রথম point দিন
-                  </div>
-                )}
-              </div>
-            </section>
-
-            <section className="space-y-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Alignment
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  disabled={controlPairs.length < 2}
-                  onClick={() => fitTransform(controlPairs, 'similarity')}
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-40"
-                >
-                  Similarity
-                </button>
-                <button
-                  type="button"
-                  disabled={controlPairs.length < 3}
-                  onClick={() => fitTransform(controlPairs, 'affine')}
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-40"
-                >
-                  Affine refine
-                </button>
-              </div>
-
-              {transform && (
-                <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-primary">
-                      {alignmentMode === 'affine' ? 'Affine' : 'Similarity'} active
-                    </span>
-                    <span className="font-mono text-muted-foreground">
-                      RMS {residual?.toFixed(2)}m
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <label className="block text-xs text-muted-foreground">
-                <span className="mb-1 flex justify-between">
-                  <span>PDF opacity</span>
-                  <span>{Math.round(opacity * 100)}%</span>
-                </span>
-                <input
-                  type="range"
-                  min={10}
-                  max={100}
-                  value={Math.round(opacity * 100)}
-                  onChange={(event) =>
-                    setOpacity(Number(event.target.value) / 100)
-                  }
-                  className="w-full accent-primary"
-                />
-              </label>
-            </section>
-
-            <section className="space-y-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                KMZ Export
-              </h3>
-              <label className="block text-xs text-muted-foreground">
-                <span className="mb-1 block">ফাইলের নাম</span>
-                <input
-                  value={mapName}
-                  onChange={(event) => setMapName(event.target.value)}
-                  className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary"
-                />
-              </label>
-              <button
-                type="button"
-                disabled={!transform || !imageDataUrl}
-                onClick={handleExport}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-40"
-              >
-                <Download className="size-4" />
-                KMZ Export
-              </button>
-              <button
-                type="button"
-                onClick={resetAlignment}
-                className="h-9 w-full rounded-lg border border-border bg-background px-3 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"
-              >
-                Alignment reset
-              </button>
-            </section>
-          </div>
-        </aside>
+                      {settingsBody}
+                    </div>
+                  </DrawerContent>
+                </DrawerPortal>
+              </Drawer>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
