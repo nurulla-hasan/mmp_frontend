@@ -10,8 +10,6 @@ import {
   DrawerPortal,
 } from "@/components/ui/drawer";
 import { extractImageFromPDF } from "@/features/land-measurement/utils/pdfHelper";
-import { keepBlackOnly } from "@/features/pantagraph/utils/bgRemover";
-import { colorizeImage } from "@/features/pantagraph/utils/colorizeImage";
 import { useMediaQuery } from "@/hooks/useUtilityHooks";
 import { ErrorToast, SuccessToast } from "@/lib/utils";
 import type {
@@ -34,12 +32,8 @@ import {
   exportMouzaKmz,
   type KmzExportQuality,
 } from "../utils/kmz";
-import {
-  imageAsPng,
-  loadImage,
-  normalizeAsPng,
-  toDataUrl,
-} from "../utils/imageUtils";
+import { createProcessedPreview } from "../utils/imageProcessing";
+import { loadImage, toDataUrl } from "../utils/imageUtils";
 import EmptyState from "./EmptyState";
 import GeoStudioToolbar from "./GeoStudioToolbar";
 import GeoStudioTopNav from "./GeoStudioTopNav";
@@ -54,12 +48,11 @@ export default function MouzaGeoStudio() {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [overlayImage, setOverlayImage] = useState<HTMLImageElement | null>(null);
-  const [sourceImageDataUrl, setSourceImageDataUrl] = useState<string | null>(null);
-  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [mapName, setMapName] = useState("mouza-map");
   const [loadingFile, setLoadingFile] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeView, setActiveView] = useState<ActiveView>("source");
+  const [worldInitialized, setWorldInitialized] = useState(false);
   const [interactionTarget, setInteractionTarget] =
     useState<InteractionTarget>("map");
   const [controlPairs, setControlPairs] = useState<ControlPair[]>([]);
@@ -76,7 +69,6 @@ export default function MouzaGeoStudio() {
   const [exportQuality, setExportQuality] =
     useState<KmzExportQuality>("optimized");
   const [exportingKmz, setExportingKmz] = useState(false);
-  const appearanceVersionRef = useRef(0);
 
   const imageSize = useMemo(
     () => ({
@@ -97,32 +89,32 @@ export default function MouzaGeoStudio() {
   );
 
   useEffect(() => {
-    if (!image || !sourceImageDataUrl) return;
+    if (!image) return;
 
-    const version = ++appearanceVersionRef.current;
-    let cancelled = false;
+    const controller = new AbortController();
     const delay = backgroundRemoved ? 220 : 0;
 
     const timer = window.setTimeout(() => {
       if (!backgroundRemoved) {
         setOverlayImage(image);
-        setImageDataUrl(sourceImageDataUrl);
         setProcessingBackground(false);
         return;
       }
 
       setProcessingBackground(true);
 
-      void keepBlackOnly(image, 2, backgroundSensitivity)
-        .then((cleanedImage) => colorizeImage(cleanedImage, lineColor))
+      void createProcessedPreview(
+        image,
+        { sensitivity: backgroundSensitivity, lineColor },
+        controller.signal,
+      )
         .then((processedImage) => {
-          if (cancelled || appearanceVersionRef.current !== version) return;
-
           setOverlayImage(processedImage);
-          setImageDataUrl(imageAsPng(processedImage));
         })
         .catch((error: unknown) => {
-          if (cancelled || appearanceVersionRef.current !== version) return;
+          if (error instanceof DOMException && error.name === "AbortError") {
+            return;
+          }
 
           ErrorToast(
             error instanceof Error
@@ -131,23 +123,17 @@ export default function MouzaGeoStudio() {
           );
         })
         .finally(() => {
-          if (!cancelled && appearanceVersionRef.current === version) {
+          if (!controller.signal.aborted) {
             setProcessingBackground(false);
           }
         });
     }, delay);
 
     return () => {
-      cancelled = true;
       window.clearTimeout(timer);
+      controller.abort();
     };
-  }, [
-    backgroundRemoved,
-    backgroundSensitivity,
-    image,
-    lineColor,
-    sourceImageDataUrl,
-  ]);
+  }, [backgroundRemoved, backgroundSensitivity, image, lineColor]);
 
   const resetAlignment = () => {
     setControlPairs([]);
@@ -168,19 +154,15 @@ export default function MouzaGeoStudio() {
 
       if (!loadedImage) throw new Error("PDF থেকে map পাওয়া যায়নি");
 
-      const png = normalizeAsPng(loadedImage);
-      const normalizedImage = await loadImage(png);
-
-      setImage(normalizedImage);
-      setOverlayImage(normalizedImage);
-      setSourceImageDataUrl(png);
-      setImageDataUrl(png);
+      setImage(loadedImage);
+      setOverlayImage(loadedImage);
       setBackgroundRemoved(false);
       setBackgroundSensitivity(75);
       setLineColor("#DC2626");
       setMapName(file.name.replace(/\.[^.]+$/, "") || "mouza-map");
       resetAlignment();
       setActiveView("source");
+      setWorldInitialized(false);
       setSettingsOpen(false);
       SuccessToast("মৌজা ম্যাপ প্রস্তুত হয়েছে");
     } catch (error: unknown) {
@@ -221,6 +203,7 @@ export default function MouzaGeoStudio() {
 
   const handleSourcePoint = (point: Point2D) => {
     setPendingSource(point);
+    setWorldInitialized(true);
     setActiveView("world");
     setInteractionTarget("map");
   };
@@ -296,7 +279,7 @@ export default function MouzaGeoStudio() {
       return;
     }
 
-    if (!transform || !imageDataUrl || !image) {
+    if (!transform || !image) {
       ErrorToast("KMZ export-এর আগে map align করুন");
       return;
     }
@@ -306,11 +289,13 @@ export default function MouzaGeoStudio() {
     try {
       await exportMouzaKmz({
         transform,
-        image: overlayImage ?? image,
+        image,
         imageSize,
         name: mapName,
         transparent: backgroundRemoved,
         quality: exportQuality,
+        backgroundSensitivity,
+        lineColor,
       });
       SuccessToast(
         exportQuality === "optimized"
@@ -357,6 +342,7 @@ export default function MouzaGeoStudio() {
             >
               <SourceMapCanvas
                 image={overlayImage ?? image}
+                imageSize={imageSize}
                 controlPairs={controlPairs}
                 pendingSource={pendingSource}
                 active={activeView === "source"}
@@ -364,22 +350,30 @@ export default function MouzaGeoStudio() {
               />
             </div>
 
-            {activeView === "world" && (
-              <WorldMapCanvas
-                key="world"
-                active={true}
-                image={overlayImage ?? image}
-                transform={transform}
-                controlPairs={controlPairs}
-                waitingForWorldPoint={Boolean(pendingSource)}
-                opacity={opacity}
-                mapStyle={mapStyle}
-                interactionTarget={interactionTarget}
-                onPlaceWorldPoint={handleWorldPoint}
-                onTranslateOverlay={handleTranslate}
-                onScaleOverlay={handleScale}
-                onRotateOverlay={handleRotate}
-              />
+            {worldInitialized && (
+              <div
+                className={`absolute inset-0 ${
+                  activeView === "world"
+                    ? "visible"
+                    : "invisible pointer-events-none"
+                }`}
+              >
+                <WorldMapCanvas
+                  active={activeView === "world"}
+                  image={overlayImage ?? image}
+                  imageSize={imageSize}
+                  transform={transform}
+                  controlPairs={controlPairs}
+                  waitingForWorldPoint={Boolean(pendingSource)}
+                  opacity={opacity}
+                  mapStyle={mapStyle}
+                  interactionTarget={interactionTarget}
+                  onPlaceWorldPoint={handleWorldPoint}
+                  onTranslateOverlay={handleTranslate}
+                  onScaleOverlay={handleScale}
+                  onRotateOverlay={handleRotate}
+                />
+              </div>
             )}
           </>
         )}
@@ -391,7 +385,10 @@ export default function MouzaGeoStudio() {
         alignmentMode={alignmentMode}
         transform={transform}
         onSourceClick={() => setActiveView("source")}
-        onWorldClick={() => setActiveView("world")}
+        onWorldClick={() => {
+          setWorldInitialized(true);
+          setActiveView("world");
+        }}
       />
 
       {/* Desktop floating toolbar */}
@@ -403,7 +400,7 @@ export default function MouzaGeoStudio() {
           pendingSource={pendingSource}
           interactionTarget={interactionTarget}
           image={image}
-          imageDataUrl={imageDataUrl}
+          canExport={Boolean(image) && !processingBackground && !exportingKmz}
           onToggleSettings={() => setSettingsOpen((open) => !open)}
           onSetInteractionTarget={setInteractionTarget}
           onScale={handleScale}
@@ -426,7 +423,7 @@ export default function MouzaGeoStudio() {
           pendingSource={pendingSource}
           interactionTarget={interactionTarget}
           image={image}
-          imageDataUrl={imageDataUrl}
+          canExport={Boolean(image) && !processingBackground && !exportingKmz}
           onToggleSettings={() => setSettingsOpen((open) => !open)}
           onSetInteractionTarget={setInteractionTarget}
           onScale={handleScale}
@@ -477,7 +474,7 @@ export default function MouzaGeoStudio() {
                 exportingKmz={exportingKmz}
                 residual={residual}
                 mapName={mapName}
-                imageDataUrl={imageDataUrl}
+                canExport={Boolean(image) && !processingBackground && !exportingKmz}
                 onUploadClick={() => fileInputRef.current?.click()}
                 onRemovePair={removePair}
                 onSimilarityClick={() =>
@@ -548,7 +545,7 @@ export default function MouzaGeoStudio() {
                         exportingKmz={exportingKmz}
                         residual={residual}
                         mapName={mapName}
-                        imageDataUrl={imageDataUrl}
+                        canExport={Boolean(image) && !processingBackground && !exportingKmz}
                         onUploadClick={() => fileInputRef.current?.click()}
                         onRemovePair={removePair}
                         onSimilarityClick={() =>
