@@ -23,7 +23,7 @@ type SettingsPanelProps = {
   exportingKmz: boolean;
   residual: number | null;
   mapName: string;
-  imageDataUrl: string | null;
+  canExport: boolean;
   onUploadClick: () => void;
   onRemovePair: (id: string) => void;
   onSimilarityClick: () => void;
@@ -55,7 +55,7 @@ export default function SettingsPanel({
   exportingKmz,
   residual,
   mapName,
-  imageDataUrl,
+  canExport,
   onUploadClick,
   onRemovePair,
   onSimilarityClick,
@@ -359,7 +359,7 @@ export default function SettingsPanel({
           type="button"
           disabled={
             !transform ||
-            !imageDataUrl ||
+            !canExport ||
             processingBackground ||
             exportingKmz
           }
