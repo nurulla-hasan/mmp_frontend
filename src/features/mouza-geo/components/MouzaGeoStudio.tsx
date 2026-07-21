@@ -259,9 +259,9 @@ export default function MouzaGeoStudio() {
     );
   };
 
-  const handleScale = (factor: number) => {
+  const handleScale = (factor: number, anchor = imageCenter) => {
     setTransform((current) =>
-      current ? scaleGeoTransform(current, imageCenter, factor) : current,
+      current ? scaleGeoTransform(current, anchor, factor) : current,
     );
   };
 
