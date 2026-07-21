@@ -45,7 +45,7 @@ function useServices() {
 export default function Page() {
   const { services, setServices } = useServices();
   const [isSaving, setIsSaving] = useState(false);
-  const [whatsappNumber, setWhatsappNumber] = useState("8801712345678");
+  const [whatsappNumber, setWhatsappNumber] = useState("1712345678");
 
   const selectedSlugs = services.map((s) => s.slug);
 
@@ -122,13 +122,16 @@ export default function Page() {
             <FieldLabel>WhatsApp নম্বর (বৈকল্পিক)</FieldLabel>
             <Input
               type="tel"
-              placeholder="88017XXXXXXXX"
+              placeholder="17XXXXXXXXX"
               className="max-w-xs"
               value={whatsappNumber}
-              onChange={(e) => setWhatsappNumber(e.target.value)}
+              onChange={(e) => {
+                const cleaned = e.target.value.replace(/\D/g, "").replace(/^0?880?|^0+/, "");
+                setWhatsappNumber(cleaned);
+              }}
             />
             <FieldDescription>
-              +৮৮০ এর পর ১০ সংখ্যার নম্বর দিন। যেমন: 8801712345678
+              +৮৮০ বাদে ১১ সংখ্যার নম্বর দিন। যেমন: 17123456789
             </FieldDescription>
           </FieldGroup>
         </CardContent>

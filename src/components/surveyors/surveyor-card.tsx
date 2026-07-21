@@ -129,7 +129,7 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
               nativeButton={false}
               render={
                 <a
-                  href={`https://wa.me/${surveyor.whatsappNumber}?text=${encodeURIComponent(`হ্যালো, আমি ${surveyor.fullName} এর প্রোফাইল Mouza Map Pro থেকে দেখছি। আপনার সেবা সম্পর্কে জানতে চাই।`)}`}
+                  href={`https://wa.me/880${surveyor.whatsappNumber}?text=${encodeURIComponent(`হ্যালো, আমি ${surveyor.fullName} এর প্রোফাইল Mouza Map Pro থেকে দেখছি। আপনার সেবা সম্পর্কে জানতে চাই।`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 />

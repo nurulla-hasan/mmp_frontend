@@ -31,7 +31,7 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-004", slug: "survey-report", name: "পরিমাপ রিপোর্ট তৈরি", startingPrice: 2000 },
       { id: "s-005", slug: "digital-survey", name: "ডিজিটাল সার্ভে", startingPrice: 6000 },
     ],
-    whatsappNumber: "8801712345678",
+    whatsappNumber: "1712345678",
   },
   {
     id: "surveyor-002",
@@ -54,7 +54,7 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-010", slug: "khatian-search", name: "খতিয়ান অনুসন্ধান", startingPrice: 2000 },
       { id: "s-011", slug: "survey-report", name: "পরিমাপ রিপোর্ট তৈরি", startingPrice: 3500 },
     ],
-    whatsappNumber: "8801711122233",
+    whatsappNumber: "1711122233",
   },
   {
     id: "surveyor-003",
@@ -76,7 +76,7 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-015", slug: "land-measurement", name: "জমি পরিমাপ", startingPrice: 2000 },
       { id: "s-016", slug: "khatian-search", name: "খতিয়ান অনুসন্ধান", startingPrice: 1000 },
     ],
-    whatsappNumber: "8801912345678",
+    whatsappNumber: "1912345678",
   },
   {
     id: "surveyor-004",
@@ -99,7 +99,7 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-021", slug: "survey-report", name: "পরিমাপ রিপোর্ট তৈরি", startingPrice: 4000 },
       { id: "s-022", slug: "plot-layout", name: "প্লট লেআউট ও নকশা", startingPrice: 10000 },
     ],
-    whatsappNumber: "8801312345678",
+    whatsappNumber: "1312345678",
   },
   {
     id: "surveyor-005",
@@ -121,7 +121,7 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-026", slug: "khatian-search", name: "খতিয়ান অনুসন্ধান", startingPrice: 1500 },
       { id: "s-027", slug: "land-measurement", name: "জমি পরিমাপ", startingPrice: 3000 },
     ],
-    whatsappNumber: "8801512345678",
+    whatsappNumber: "1512345678",
   },
   {
     id: "surveyor-006",
@@ -142,7 +142,7 @@ const surveyors: TSurveyorCard[] = [
       { id: "s-030", slug: "boundary-determination", name: "সীমানা নির্ধারণ", startingPrice: 1800 },
       { id: "s-031", slug: "khatian-search", name: "খতিয়ান অনুসন্ধান", startingPrice: 1000 },
     ],
-    whatsappNumber: "8801612345678",
+    whatsappNumber: "1612345678",
   },
 ];
 

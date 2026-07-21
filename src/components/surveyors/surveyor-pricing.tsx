@@ -49,7 +49,7 @@ export function SurveyorPricing({
             nativeButton={false}
             render={
               <a
-                href={`https://wa.me/${surveyor.whatsappNumber}?text=${encodeURIComponent(`হ্যালো, আমি Mouza Map Pro থেকে ${surveyor.fullName} এর সেবার মূল্য তালিকা দেখেছি। আরও বিস্তারিত জানতে চাই।`)}`}
+                href={`https://wa.me/880${surveyor.whatsappNumber}?text=${encodeURIComponent(`হ্যালো, আমি Mouza Map Pro থেকে ${surveyor.fullName} এর সেবার মূল্য তালিকা দেখেছি। আরও বিস্তারিত জানতে চাই।`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
               />
