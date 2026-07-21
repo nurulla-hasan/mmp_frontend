@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { StarRating } from "@/components/ui/custom/star-rating";
 import {
   Select,
   SelectContent,
@@ -29,7 +29,6 @@ export function ReviewForm({
 }) {
   const [reviewerName, setReviewerName] = useState("");
   const [rating, setRating] = useState(0);
-  const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
   const [serviceName, setServiceName] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -106,25 +105,13 @@ export function ReviewForm({
         {/* Rating */}
         <Field>
           <FieldLabel>রেটিং</FieldLabel>
-          <div className="mt-1 flex items-center gap-1">
-            {Array.from({ length: 5 }, (_, i) => i + 1).map((star) => (
-              <button
-                key={star}
-                type="button"
-                onClick={() => setRating(star)}
-                onMouseEnter={() => setHoveredRating(star)}
-                onMouseLeave={() => setHoveredRating(0)}
-                className="transition-colors"
-              >
-                <Star
-                  className={`size-6 ${
-                    star <= (hoveredRating || rating)
-                      ? "fill-amber-400 text-amber-400"
-                      : "text-muted-foreground/30"
-                  }`}
-                />
-              </button>
-            ))}
+          <div className="mt-1">
+            <StarRating
+              rating={rating}
+              totalStars={5}
+              onRate={(val) => setRating(val)}
+              size={24}
+            />
           </div>
           {errors.rating && (
             <p className="mt-1 text-xs text-destructive">{errors.rating}</p>

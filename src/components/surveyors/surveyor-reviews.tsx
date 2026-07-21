@@ -112,7 +112,7 @@ export function SurveyorReviews({
           {pendingReviews.map((review) => (
             <div
               key={review.id}
-              className="rounded-xl border border-dashed border-muted-foreground/30 bg-muted/30 p-4 opacity-60"
+              className="rounded-xl border border-dashed border-muted-foreground/30 bg-muted/30 p-4 opacity-60 space-y-2"
             >
               <p className="text-xs text-muted-foreground">
                 ⏳ আপনার জমা দেওয়া রিভিউটি যাচাইয়ের অপেক্ষায় আছে
