@@ -45,7 +45,7 @@ function useServices() {
 export default function Page() {
   const { services, setServices } = useServices();
   const [isSaving, setIsSaving] = useState(false);
-  const [whatsappNumber, setWhatsappNumber] = useState("1712345678");
+  const [whatsappNumber, setWhatsappNumber] = useState("01712345678");
 
   const selectedSlugs = services.map((s) => s.slug);
 
@@ -126,12 +126,12 @@ export default function Page() {
               className="max-w-xs"
               value={whatsappNumber}
               onChange={(e) => {
-                const cleaned = e.target.value.replace(/\D/g, "").replace(/^0?880?|^0+/, "");
+                const cleaned = e.target.value.replace(/\D/g, "").replace(/^880/, "");
                 setWhatsappNumber(cleaned);
               }}
             />
             <FieldDescription>
-              +৮৮০ বাদে ১১ সংখ্যার নম্বর দিন। যেমন: 17123456789
+              +৮৮ বাদে ১১ সংখ্যার নম্বর দিন। যেমন: 017123456789
             </FieldDescription>
           </FieldGroup>
         </CardContent>
