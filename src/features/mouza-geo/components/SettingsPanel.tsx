@@ -66,7 +66,6 @@ export default function SettingsPanel({
   onExportQualityChange,
   onMapNameChange,
   onExport,
-  onResetAlignment,
 }: SettingsPanelProps) {
   return (
     <div className="space-y-6 p-4">
@@ -366,11 +365,6 @@ export default function SettingsPanel({
               <Download className="size-4" />
             )}
             {exportingKmz ? "KMZ প্রস্তুত হচ্ছে…" : "KMZ Export"}
-          </Button>
-        </div>
-        <div className="w-full">
-          <Button variant="outline" onClick={onResetAlignment}>
-            Alignment reset
           </Button>
         </div>
       </section>

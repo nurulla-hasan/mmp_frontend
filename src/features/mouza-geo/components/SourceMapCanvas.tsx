@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { ControlPair, Point2D } from '../types';
+import type { ControlPair, Point2D } from "../types";
 
 type SourceMapCanvasProps = {
   image: HTMLImageElement;
@@ -14,11 +14,16 @@ type SourceMapCanvasProps = {
   onPlacePoint: (point: Point2D) => void;
 };
 
-type ViewState = {
-  scale: number;
-  x: number;
-  y: number;
+type ViewState = { scale: number; x: number; y: number };
+type ActivePointer = {
+  clientX: number;
+  clientY: number;
+  startX: number;
+  startY: number;
+  moved: boolean;
 };
+
+const clampScale = (scale: number) => Math.max(0.03, Math.min(16, scale));
 
 export default function SourceMapCanvas({
   image,
@@ -29,39 +34,68 @@ export default function SourceMapCanvas({
   onPlacePoint,
 }: SourceMapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const pointerRef = useRef<{
-    id: number;
-    clientX: number;
-    clientY: number;
-    startX: number;
-    startY: number;
-    moved: boolean;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pointersRef = useRef(new Map<number, ActivePointer>());
+  const gestureUsedMultipleRef = useRef(false);
+  const pinchRef = useRef<{
+    distance: number;
+    centerX: number;
+    centerY: number;
   } | null>(null);
+  const drawFrameRef = useRef<number | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [view, setView] = useState<ViewState>({ scale: 1, x: 0, y: 0 });
-  const panFrameRef = useRef<number | null>(null);
-  const pendingPanRef = useRef({ x: 0, y: 0 });
 
-  const schedulePan = useCallback(() => {
-    if (panFrameRef.current !== null) return;
+  const scheduleDraw = useCallback(() => {
+    if (drawFrameRef.current !== null) {
+      window.cancelAnimationFrame(drawFrameRef.current);
+    }
+    drawFrameRef.current = window.requestAnimationFrame(() => {
+      drawFrameRef.current = null;
+      const canvas = canvasRef.current;
+      if (!canvas || !size.width || !size.height) return;
 
-    panFrameRef.current = window.requestAnimationFrame(() => {
-      panFrameRef.current = null;
-      const delta = pendingPanRef.current;
-      pendingPanRef.current = { x: 0, y: 0 };
-      if (!delta.x && !delta.y) return;
-      setView((current) => ({
-        ...current,
-        x: current.x + delta.x,
-        y: current.y + delta.y,
-      }));
+      const deviceMemory =
+        (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4;
+      const ratio = Math.min(
+        window.devicePixelRatio || 1,
+        deviceMemory <= 4 ? 1.5 : 2,
+      );
+      const pixelWidth = Math.round(size.width * ratio);
+      const pixelHeight = Math.round(size.height * ratio);
+      if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+        canvas.width = pixelWidth;
+        canvas.height = pixelHeight;
+        canvas.style.width = `${size.width}px`;
+        canvas.style.height = `${size.height}px`;
+      }
+
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      context.clearRect(0, 0, size.width, size.height);
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = "high";
+      context.setTransform(
+        view.scale * ratio,
+        0,
+        0,
+        view.scale * ratio,
+        view.x * ratio,
+        view.y * ratio,
+      );
+      context.drawImage(image, 0, 0, imageSize.width, imageSize.height);
     });
-  }, []);
+  }, [image, imageSize.height, imageSize.width, size.height, size.width, view]);
+
+  useEffect(() => {
+    scheduleDraw();
+  }, [scheduleDraw]);
 
   useEffect(
     () => () => {
-      if (panFrameRef.current !== null) {
-        window.cancelAnimationFrame(panFrameRef.current);
+      if (drawFrameRef.current !== null) {
+        window.cancelAnimationFrame(drawFrameRef.current);
       }
     },
     [],
@@ -70,19 +104,16 @@ export default function SourceMapCanvas({
   useEffect(() => {
     const element = containerRef.current;
     if (!element || !active) return;
-
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
       const rect = element.getBoundingClientRect();
       const pointerX = event.clientX - rect.left;
       const pointerY = event.clientY - rect.top;
       const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
-
       setView((current) => {
-        const nextScale = Math.max(0.03, Math.min(16, current.scale * factor));
+        const nextScale = clampScale(current.scale * factor);
         const sourceX = (pointerX - current.x) / current.scale;
         const sourceY = (pointerY - current.y) / current.scale;
-
         return {
           scale: nextScale,
           x: pointerX - sourceX * nextScale,
@@ -90,9 +121,8 @@ export default function SourceMapCanvas({
         };
       });
     };
-
-    element.addEventListener('wheel', handleWheel, { passive: false });
-    return () => element.removeEventListener('wheel', handleWheel);
+    element.addEventListener("wheel", handleWheel, { passive: false });
+    return () => element.removeEventListener("wheel", handleWheel);
   }, [active]);
 
   useEffect(() => {
@@ -109,22 +139,24 @@ export default function SourceMapCanvas({
   }, []);
 
   useEffect(() => {
-    if (!size.width || !size.height) return;
-    const imageWidth = imageSize.width;
-    const imageHeight = imageSize.height;
-    const scale = Math.min(
-      (size.width - 48) / imageWidth,
-      (size.height - 48) / imageHeight,
-      1,
+    if (!size.width || !size.height || !imageSize.width || !imageSize.height)
+      return;
+    const scale = Math.max(
+      0.03,
+      Math.min(
+        (size.width - 48) / imageSize.width,
+        (size.height - 48) / imageSize.height,
+        1,
+      ),
     );
-    const frame = requestAnimationFrame(() => {
+    const frame = window.requestAnimationFrame(() => {
       setView({
         scale,
-        x: (size.width - imageWidth * scale) / 2,
-        y: (size.height - imageHeight * scale) / 2,
+        x: (size.width - imageSize.width * scale) / 2,
+        y: (size.height - imageSize.height * scale) / 2,
       });
     });
-    return () => cancelAnimationFrame(frame);
+    return () => window.cancelAnimationFrame(frame);
   }, [imageSize.height, imageSize.width, size.height, size.width]);
 
   const getSourcePoint = useCallback(
@@ -135,9 +167,12 @@ export default function SourceMapCanvas({
         x: (clientX - rect.left - view.x) / view.scale,
         y: (clientY - rect.top - view.y) / view.scale,
       };
-      const width = imageSize.width;
-      const height = imageSize.height;
-      if (point.x < 0 || point.y < 0 || point.x > width || point.y > height) {
+      if (
+        point.x < 0 ||
+        point.y < 0 ||
+        point.x > imageSize.width ||
+        point.y > imageSize.height
+      ) {
         return null;
       }
       return point;
@@ -145,24 +180,75 @@ export default function SourceMapCanvas({
     [imageSize.height, imageSize.width, view],
   );
 
+  const getPinch = () => {
+    const points = [...pointersRef.current.values()];
+    if (points.length < 2) return null;
+    const first = points[0];
+    const second = points[1];
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    return {
+      distance: Math.max(
+        1,
+        Math.hypot(
+          second.clientX - first.clientX,
+          second.clientY - first.clientY,
+        ),
+      ),
+      centerX: (first.clientX + second.clientX) / 2 - rect.left,
+      centerY: (first.clientY + second.clientY) / 2 - rect.top,
+    };
+  };
+
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!active || event.button !== 0) return;
+    if (!active || (event.pointerType === "mouse" && event.button !== 0))
+      return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    pointerRef.current = {
-      id: event.pointerId,
+    pointersRef.current.set(event.pointerId, {
       clientX: event.clientX,
       clientY: event.clientY,
       startX: event.clientX,
       startY: event.clientY,
       moved: false,
-    };
+    });
+    if (pointersRef.current.size >= 2) {
+      gestureUsedMultipleRef.current = true;
+      pointersRef.current.forEach((pointer) => {
+        pointer.moved = true;
+      });
+      pinchRef.current = getPinch();
+    }
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    const pointer = pointerRef.current;
-    if (!pointer || pointer.id !== event.pointerId) return;
-    const dx = event.clientX - pointer.clientX;
-    const dy = event.clientY - pointer.clientY;
+    const pointer = pointersRef.current.get(event.pointerId);
+    if (!pointer) return;
+    const previousX = pointer.clientX;
+    const previousY = pointer.clientY;
+    pointer.clientX = event.clientX;
+    pointer.clientY = event.clientY;
+
+    if (pointersRef.current.size >= 2) {
+      const previousPinch = pinchRef.current;
+      const nextPinch = getPinch();
+      if (previousPinch && nextPinch) {
+        setView((current) => {
+          const nextScale = clampScale(
+            current.scale * (nextPinch.distance / previousPinch.distance),
+          );
+          const sourceX = (previousPinch.centerX - current.x) / current.scale;
+          const sourceY = (previousPinch.centerY - current.y) / current.scale;
+          return {
+            scale: nextScale,
+            x: nextPinch.centerX - sourceX * nextScale,
+            y: nextPinch.centerY - sourceY * nextScale,
+          };
+        });
+      }
+      pinchRef.current = nextPinch;
+      return;
+    }
+
     if (
       Math.hypot(
         event.clientX - pointer.startX,
@@ -171,21 +257,44 @@ export default function SourceMapCanvas({
     ) {
       pointer.moved = true;
     }
-    pointer.clientX = event.clientX;
-    pointer.clientY = event.clientY;
     if (pointer.moved) {
-      pendingPanRef.current.x += dx;
-      pendingPanRef.current.y += dy;
-      schedulePan();
+      setView((current) => ({
+        ...current,
+        x: current.x + event.clientX - previousX,
+        y: current.y + event.clientY - previousY,
+      }));
     }
   };
 
-  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
-    const pointer = pointerRef.current;
-    pointerRef.current = null;
-    if (!pointer || pointer.id !== event.pointerId || pointer.moved) return;
-    const point = getSourcePoint(event.clientX, event.clientY);
-    if (point) onPlacePoint(point);
+  const finishPointer = (
+    event: React.PointerEvent<HTMLDivElement>,
+    cancelled = false,
+  ) => {
+    const pointer = pointersRef.current.get(event.pointerId);
+    const wasOnlyPointer = pointersRef.current.size === 1;
+    pointersRef.current.delete(event.pointerId);
+    pinchRef.current = pointersRef.current.size >= 2 ? getPinch() : null;
+
+    if (pointersRef.current.size === 1) {
+      const remaining = [...pointersRef.current.values()][0];
+      remaining.startX = remaining.clientX;
+      remaining.startY = remaining.clientY;
+      remaining.moved = true;
+    }
+
+    if (
+      !cancelled &&
+      pointer &&
+      wasOnlyPointer &&
+      !pointer.moved &&
+      !gestureUsedMultipleRef.current
+    ) {
+      const point = getSourcePoint(event.clientX, event.clientY);
+      if (point) onPlacePoint(point);
+    }
+    if (pointersRef.current.size === 0) {
+      gestureUsedMultipleRef.current = false;
+    }
   };
 
   const markers = [
@@ -196,7 +305,14 @@ export default function SourceMapCanvas({
       pending: false,
     })),
     ...(pendingSource
-      ? [{ id: 'pending', point: pendingSource, label: controlPairs.length + 1, pending: true }]
+      ? [
+          {
+            id: "pending",
+            point: pendingSource,
+            label: controlPairs.length + 1,
+            pending: true,
+          },
+        ]
       : []),
   ];
 
@@ -206,24 +322,13 @@ export default function SourceMapCanvas({
       className="relative h-full w-full touch-none overflow-hidden bg-muted"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={() => {
-        pointerRef.current = null;
-      }}
+      onPointerUp={(event) => finishPointer(event)}
+      onPointerCancel={(event) => finishPointer(event, true)}
     >
-      {/* Blob/data URL source maps cannot use Next Image optimization. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={image.src}
-        alt="আপলোড করা মৌজা ম্যাপ"
-        draggable={false}
-        className="pointer-events-none absolute left-0 top-0 max-w-none select-none shadow-2xl"
-        style={{
-          width: imageSize.width,
-          height: imageSize.height,
-          transformOrigin: '0 0',
-          transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
-        }}
+      <canvas
+        ref={canvasRef}
+        className="pointer-events-none absolute inset-0 select-none"
+        aria-label="আপলোড করা মৌজা ম্যাপ"
       />
 
       {markers.map((marker) => (
@@ -244,7 +349,7 @@ export default function SourceMapCanvas({
       ))}
 
       <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-2 text-center text-xs text-foreground shadow-lg backdrop-blur">
-        Click: control point · Drag: pan · Wheel: zoom
+        Tap: point · Drag: pan · Pinch/Wheel: zoom
       </div>
     </div>
   );

@@ -18,12 +18,31 @@ const mobileLinks = [
   { label: "হোম", href: "/", icon: Home },
   { label: "ল্যান্ড টুলস", href: "/tools", icon: Ruler },
   { label: "সার্ভেয়ার খুঁজুন", href: "/surveyors", icon: MapPin },
-  { label: "সার্ভেয়ার খুঁজুন", href: "/surveyors", icon: FileText },
   { label: "প্রাইসিং", href: "/pricing", icon: Tag },
 ];
 
-export function PublicMobileDrawer() {
+const userMobileLinks = [
+  { label: "ড্যাশবোর্ড", href: "/dashboard", icon: Home },
+  { label: "ক্যালকুলেশন", href: "/dashboard/calculations", icon: Ruler },
+  { label: "প্রোফাইল", href: "/dashboard/profile", icon: FileText },
+];
+
+const surveyorMobileLinks = [
+  { label: "ড্যাশবোর্ড", href: "/surveyor/dashboard", icon: Home },
+  { label: "ক্যালকুলেশন", href: "/surveyor/calculations", icon: Ruler },
+  { label: "প্রোফাইল", href: "/surveyor/profile", icon: FileText },
+];
+
+export function PublicMobileDrawer({
+  isAuthenticated,
+  userRole,
+}: {
+  isAuthenticated?: boolean;
+  userRole?: "USER" | "SURVEYOR" | "ADMIN";
+}) {
   const pathname = usePathname();
+  const isSurveyor = userRole === "SURVEYOR";
+  const dashboardLinks = isSurveyor ? surveyorMobileLinks : userMobileLinks;
 
   return (
     <Drawer swipeDirection="right">
@@ -102,42 +121,79 @@ export function PublicMobileDrawer() {
 
         {/* Footer Actions */}
         <div className="border-t p-4">
-          <p className="mb-3 px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
-            Account
-          </p>
-          <div className="grid gap-2">
-            <div className="grid grid-cols-2 gap-2">
-              <DrawerClose
-                nativeButton={false}
-                render={
-                  <Button
-                    className="w-full"
+          {isAuthenticated ? (
+            <>
+              <p className="mb-3 px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
+                ড্যাশবোর্ড
+              </p>
+              <div className="grid gap-1">
+                {dashboardLinks.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname.startsWith(item.href);
+                  return (
+                    <DrawerClose
+                      key={item.href}
+                      nativeButton={false}
+                      render={
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                            isActive
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                          )}
+                        >
+                          <Icon className="size-4 shrink-0" />
+                          <span>{item.label}</span>
+                        </Link>
+                      }
+                    />
+                  );
+                })}
+              </div>
+              <div className="mt-3">
+                <Button variant="outline" className="w-full">
+                  লগআউট
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="mb-3 px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
+                Account
+              </p>
+              <div className="grid gap-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <DrawerClose
                     nativeButton={false}
-                    render={<Link href="/login" />}
-                  >
-                    Login
-                  </Button>
-                }
-              />
-              <DrawerClose
-                nativeButton={false}
-                render={
-                  <Button
-                    className="w-full"
-                    variant="outline"
+                    render={
+                      <Button
+                        className="w-full"
+                        nativeButton={false}
+                        render={<Link href="/login" />}
+                      >
+                        Login
+                      </Button>
+                    }
+                  />
+                  <DrawerClose
                     nativeButton={false}
-                    render={<Link href="/register" />}
-                  >
-                    Register
-                  </Button>
-                }
-              />
-            </div>
-            <p className="px-1 text-xs text-muted-foreground/60 text-center">
-              After registering, you can apply to become a surveyor from your
-              dashboard.
-            </p>
-          </div>
+                    render={
+                      <Button
+                        className="w-full"
+                        variant="outline"
+                        nativeButton={false}
+                        render={<Link href="/register" />}
+                      >
+                        Register
+                      </Button>
+                    }
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </DrawerContent>
     </Drawer>

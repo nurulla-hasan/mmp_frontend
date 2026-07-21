@@ -1,27 +1,34 @@
-'use client';
+"use client";
 
-import 'leaflet/dist/leaflet.css';
+import "leaflet/dist/leaflet.css";
 
-import type {
-  LeafletMouseEvent,
-  Map as LeafletMap,
-  TileLayer,
-} from 'leaflet';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import type { LeafletMouseEvent, Map as LeafletMap, TileLayer } from "leaflet";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type {
   ControlPair,
   GeoPoint,
   GeoTransform,
   MercatorPoint,
-} from '../types';
-import {
-  applyGeoTransform,
-  fromMercator,
-  toMercator,
-} from '../utils/geoMath';
+  Point2D,
+} from "../types";
+import { applyGeoTransform, fromMercator, toMercator } from "../utils/geoMath";
 
-type InteractionTarget = 'map' | 'pdf';
+type InteractionTarget = "map" | "pdf";
+
+function sourcePointAtWorld(
+  transform: GeoTransform,
+  world: MercatorPoint,
+): Point2D | null {
+  const determinant = transform.a * transform.d - transform.b * transform.c;
+  if (Math.abs(determinant) < 1e-20) return null;
+  const u = world.u - transform.tx;
+  const v = world.v - transform.ty;
+  return {
+    x: (transform.d * u - transform.b * v) / determinant,
+    y: (-transform.c * u + transform.a * v) / determinant,
+  };
+}
 
 type WorldMapCanvasProps = {
   active: boolean;
@@ -31,11 +38,11 @@ type WorldMapCanvasProps = {
   controlPairs: ControlPair[];
   waitingForWorldPoint: boolean;
   opacity: number;
-  mapStyle: 'satellite' | 'street';
+  mapStyle: "satellite" | "street";
   interactionTarget: InteractionTarget;
   onPlaceWorldPoint: (point: GeoPoint) => void;
   onTranslateOverlay: (delta: MercatorPoint) => void;
-  onScaleOverlay: (factor: number) => void;
+  onScaleOverlay: (factor: number, anchor?: Point2D) => void;
   onRotateOverlay: (angleRadians: number) => void;
 };
 
@@ -51,39 +58,45 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   const interactionFrameRef = useRef<number | null>(null);
   const pendingTranslationRef = useRef<MercatorPoint>({ u: 0, v: 0 });
   const pendingScaleRef = useRef(1);
+  const pendingScaleAnchorRef = useRef<Point2D | null>(null);
   const pendingRotationRef = useRef(0);
+  const touchPointsRef = useRef(new Map<number, { x: number; y: number }>());
+  const pinchRef = useRef<{
+    distance: number;
+    center: MercatorPoint;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const installBaseMap = useCallback(
     (
-      leaflet: typeof import('leaflet'),
+      leaflet: typeof import("leaflet"),
       map: LeafletMap,
-      style: 'satellite' | 'street',
+      style: "satellite" | "street",
     ) => {
       baseLayerRef.current?.remove();
       labelLayerRef.current?.remove();
       labelLayerRef.current = null;
 
-      if (style === 'satellite') {
+      if (style === "satellite") {
         baseLayerRef.current = leaflet
           .tileLayer(
-            'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             {
               minZoom: 2,
               maxZoom: 19,
-              attribution: 'Tiles &copy; Esri — Sources: Esri and contributors',
+              attribution: "Tiles &copy; Esri — Sources: Esri and contributors",
             },
           )
           .addTo(map);
 
         labelLayerRef.current = leaflet
           .tileLayer(
-            'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+            "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
             {
               minZoom: 2,
               maxZoom: 19,
-              attribution: 'Labels &copy; Esri',
+              attribution: "Labels &copy; Esri",
             },
           )
           .addTo(map);
@@ -91,7 +104,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       }
 
       baseLayerRef.current = leaflet
-        .tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        .tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
           minZoom: 2,
           maxZoom: 19,
           attribution:
@@ -117,7 +130,12 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     const map = mapRef.current;
     if (!canvas || !host || !map) return;
 
-    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    const deviceMemory =
+      (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4;
+    const ratio = Math.min(
+      window.devicePixelRatio || 1,
+      deviceMemory <= 4 ? 1.5 : 2,
+    );
     const width = host.clientWidth;
     const height = host.clientHeight;
 
@@ -131,7 +149,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       canvas.style.height = `${height}px`;
     }
 
-    const context = canvas.getContext('2d');
+    const context = canvas.getContext("2d");
     if (!context) return;
 
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -191,16 +209,16 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
         tipY,
       );
       context.closePath();
-      context.fillStyle = 'rgb(220 38 38)';
-      context.strokeStyle = 'white';
+      context.fillStyle = "rgb(220 38 38)";
+      context.strokeStyle = "white";
       context.lineWidth = 2;
       context.fill();
       context.stroke();
 
-      context.fillStyle = 'white';
-      context.font = '700 12px sans-serif';
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
+      context.fillStyle = "white";
+      context.font = "700 12px sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
       context.fillText(String(index + 1), tipX, tipY - 22);
     });
   }, [toScreenPoint]);
@@ -219,15 +237,19 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       interactionFrameRef.current = null;
       const translation = pendingTranslationRef.current;
       const scale = pendingScaleRef.current;
+      const scaleAnchor = pendingScaleAnchorRef.current;
       const rotation = pendingRotationRef.current;
       pendingTranslationRef.current = { u: 0, v: 0 };
       pendingScaleRef.current = 1;
+      pendingScaleAnchorRef.current = null;
       pendingRotationRef.current = 0;
 
       if (translation.u || translation.v) {
         propsRef.current.onTranslateOverlay(translation);
       }
-      if (scale !== 1) propsRef.current.onScaleOverlay(scale);
+      if (scale !== 1) {
+        propsRef.current.onScaleOverlay(scale, scaleAnchor ?? undefined);
+      }
       if (rotation) propsRef.current.onRotateOverlay(rotation);
     });
   }, []);
@@ -245,7 +267,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     let map: LeafletMap | null = null;
     let resizeObserver: ResizeObserver | null = null;
 
-    void import('leaflet')
+    void import("leaflet")
       .then((leaflet) => {
         if (cancelled) return;
 
@@ -274,8 +296,8 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
           });
         };
 
-        map.on('click', handleClick);
-        map.on('move zoom resize', scheduleDraw);
+        map.on("click", handleClick);
+        map.on("move zoom resize", scheduleDraw);
         map.whenReady(() => {
           if (cancelled) return;
           setLoading(false);
@@ -296,7 +318,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
         setError(
           loadError instanceof Error
             ? loadError.message
-            : 'OpenStreetMap load করা যায়নি',
+            : "OpenStreetMap load করা যায়নি",
         );
       });
 
@@ -324,7 +346,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
     let cancelled = false;
 
-    void import('leaflet').then((leaflet) => {
+    void import("leaflet").then((leaflet) => {
       if (!cancelled && mapRef.current === map) {
         installBaseMap(leaflet, map, props.mapStyle);
       }
@@ -361,7 +383,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   };
 
   const pdfInteractionEnabled =
-    props.interactionTarget === 'pdf' &&
+    props.interactionTarget === "pdf" &&
     Boolean(props.transform) &&
     !props.waitingForWorldPoint;
 
@@ -379,24 +401,93 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       }
 
       pendingScaleRef.current *= event.deltaY < 0 ? 1.04 : 1 / 1.04;
+      const world = getMercatorAtPointer(event.clientX, event.clientY);
+      const transform = propsRef.current.transform;
+      if (world && transform) {
+        pendingScaleAnchorRef.current = sourcePointAtWorld(transform, world);
+      }
       scheduleInteraction();
     };
 
-    canvas.addEventListener('wheel', handleWheel, { passive: false });
-    return () => canvas.removeEventListener('wheel', handleWheel);
+    canvas.addEventListener("wheel", handleWheel, { passive: false });
+    return () => canvas.removeEventListener("wheel", handleWheel);
   }, [pdfInteractionEnabled, scheduleInteraction]);
 
   const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!pdfInteractionEnabled || event.button !== 0) return;
+    if (
+      !pdfInteractionEnabled ||
+      (event.pointerType === "mouse" && event.button !== 0)
+    ) {
+      return;
+    }
 
     const point = getMercatorAtPointer(event.clientX, event.clientY);
     if (!point) return;
 
     event.currentTarget.setPointerCapture(event.pointerId);
+    touchPointsRef.current.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+
+    if (touchPointsRef.current.size >= 2) {
+      const points = [...touchPointsRef.current.values()];
+      const centerX = (points[0].x + points[1].x) / 2;
+      const centerY = (points[0].y + points[1].y) / 2;
+      const center = getMercatorAtPointer(centerX, centerY);
+      if (center) {
+        pinchRef.current = {
+          distance: Math.max(
+            1,
+            Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y),
+          ),
+          center,
+        };
+      }
+      dragRef.current = null;
+      return;
+    }
+
     dragRef.current = { id: event.pointerId, point };
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    if (touchPointsRef.current.has(event.pointerId)) {
+      touchPointsRef.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+    }
+
+    if (touchPointsRef.current.size >= 2) {
+      const points = [...touchPointsRef.current.values()];
+      const centerX = (points[0].x + points[1].x) / 2;
+      const centerY = (points[0].y + points[1].y) / 2;
+      const center = getMercatorAtPointer(centerX, centerY);
+      const distance = Math.max(
+        1,
+        Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y),
+      );
+      const previous = pinchRef.current;
+
+      if (center && previous) {
+        pendingTranslationRef.current.u += center.u - previous.center.u;
+        pendingTranslationRef.current.v += center.v - previous.center.v;
+        pendingScaleRef.current *= distance / previous.distance;
+        const transform = propsRef.current.transform;
+        if (transform) {
+          pendingScaleAnchorRef.current = sourcePointAtWorld(
+            transform,
+            previous.center,
+          );
+        }
+        scheduleInteraction();
+      }
+
+      if (center) pinchRef.current = { distance, center };
+      return;
+    }
+
     const drag = dragRef.current;
     if (!drag || drag.id !== event.pointerId) return;
 
@@ -409,6 +500,18 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     drag.point = next;
   };
 
+  const finishPointer = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    touchPointsRef.current.delete(event.pointerId);
+    pinchRef.current = null;
+    dragRef.current = null;
+
+    if (touchPointsRef.current.size === 1) {
+      const [id, pointer] = [...touchPointsRef.current.entries()][0];
+      const point = getMercatorAtPointer(pointer.x, pointer.y);
+      if (point) dragRef.current = { id, point };
+    }
+  };
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-muted">
       <div ref={hostRef} className="absolute inset-0 z-0 bg-muted" />
@@ -416,15 +519,11 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       <canvas
         ref={canvasRef}
         className="absolute inset-0 z-10 touch-none bg-transparent"
-        style={{ pointerEvents: pdfInteractionEnabled ? 'auto' : 'none' }}
+        style={{ pointerEvents: pdfInteractionEnabled ? "auto" : "none" }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
-        onPointerUp={() => {
-          dragRef.current = null;
-        }}
-        onPointerCancel={() => {
-          dragRef.current = null;
-        }}
+        onPointerUp={finishPointer}
+        onPointerCancel={finishPointer}
       />
 
       {loading && (
@@ -450,7 +549,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
       {pdfInteractionEnabled && (
         <div className="pointer-events-none absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-2 text-center text-xs text-foreground shadow-lg backdrop-blur">
-          Drag: PDF সরান · Wheel: scale · Alt + Wheel: rotate
+          Drag: PDF সরান · Pinch/Wheel: scale · Alt + Wheel: rotate
         </div>
       )}
     </div>

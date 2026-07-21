@@ -1,6 +1,12 @@
+"use client";
+
 import { BadgeCheck, Star } from "lucide-react";
 
-import type { TSurveyorProfile, TSurveyorReview } from "@/types/surveyor-profile.type";
+import type {
+  TSurveyorReview,
+  TSurveyorServiceWithPrice,
+} from "@/types/surveyor-profile.type";
+import { ReviewModal } from "@/components/surveyors/review-modal";
 
 function formatJoinDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("bn-BD", {
@@ -30,7 +36,10 @@ function ReviewCard({ review }: { review: TSurveyorReview }) {
           </div>
         </div>
         {review.isVerifiedService && (
-          <span className="flex items-center gap-1" title="এই রিভিউটি যাচাইকৃত কাজের">
+          <span
+            className="flex items-center gap-1"
+            title="এই রিভিউটি যাচাইকৃত কাজের"
+          >
             <BadgeCheck className="size-4 text-primary" />
             <span className="text-xs text-muted-foreground">যাচাইকৃত কাজ</span>
           </span>
@@ -46,26 +55,38 @@ function ReviewCard({ review }: { review: TSurveyorReview }) {
   );
 }
 
+
 export function SurveyorReviews({
   reviews,
   totalReviews,
+  services,
 }: {
   reviews: TSurveyorReview[];
   totalReviews: number;
+  services?: TSurveyorServiceWithPrice[];
 }) {
+  const approvedReviews = reviews.filter((r) => r.status === "approved");
+  const pendingReviews = reviews.filter((r) => r.status === "pending");
+
   return (
     <section>
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold font-heading md:text-xl">
-          ক্লায়েন্ট রিভিউ
-        </h2>
-        <span className="text-sm text-muted-foreground">
-          {totalReviews} টি
-        </span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold font-heading md:text-xl">
+            ক্লায়েন্ট রিভিউ
+          </h2>
+          <span className="text-sm text-muted-foreground">
+            ({totalReviews} টি)
+          </span>
+        </div>
+        {services && services.length > 0 && (
+          <ReviewModal services={services} />
+        )}
       </div>
-      {reviews.length > 0 ? (
+
+      {approvedReviews.length > 0 ? (
         <div className="mt-4 space-y-3">
-          {reviews.map((review) => (
+          {approvedReviews.map((review) => (
             <ReviewCard key={review.id} review={review} />
           ))}
         </div>
@@ -73,6 +94,22 @@ export function SurveyorReviews({
         <p className="mt-4 text-sm text-muted-foreground">
           এখনও কোনো রিভিউ নেই।
         </p>
+      )}
+
+      {pendingReviews.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {pendingReviews.map((review) => (
+            <div
+              key={review.id}
+              className="rounded-xl border border-dashed border-muted-foreground/30 bg-muted/30 p-4 opacity-60 space-y-2"
+            >
+              <p className="text-xs text-muted-foreground">
+                ⏳ আপনার জমা দেওয়া রিভিউটি যাচাইয়ের অপেক্ষায় আছে
+              </p>
+              <ReviewCard review={review} />
+            </div>
+          ))}
+        </div>
       )}
     </section>
   );

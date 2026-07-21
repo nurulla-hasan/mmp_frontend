@@ -14,6 +14,7 @@ export type TSurveyorProfile = {
   bio?: string;
 
   isVerified: boolean;
+  isSubscribed?: boolean;
 
   experienceYears: number;
   joinedAt: string;
@@ -54,4 +55,5 @@ export type TSurveyorReview = {
   serviceName: string;
   createdAt: string;
   isVerifiedService: boolean;
+  status: "approved" | "pending" | "rejected";
 };
