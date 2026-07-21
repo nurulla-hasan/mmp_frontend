@@ -33,9 +33,10 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
   return (
     <Link
       href={`/surveyors/${surveyor.slug}`}
-      className="flex flex-col rounded-2xl border border-border bg-card shadow-sm transition-all duration-200 hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+      className="flex flex-col rounded-2xl border border-border bg-card shadow-sm transition-all duration-200 hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5 cursor-pointer h-full"
     >
-      <div className="flex flex-col gap-4 p-5 md:p-6">
+      <div className="flex flex-1 flex-col gap-4 p-5 md:p-6">
+        <div className="flex-1 space-y-4">
         {/* ── Header: Large square avatar + Name/Location ── */}
         <div className="flex items-start gap-4">
           <div className="shrink-0 overflow-hidden">
@@ -138,6 +139,7 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
               </span>
             </div>
           ))}
+        </div>
         </div>
         {/* ── WhatsApp only ── */}
         {surveyor.whatsappNumber ? (

@@ -14,7 +14,6 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -73,27 +72,6 @@ export function ReviewModal({
     >
       <form onSubmit={form.handleSubmit(handleFormSubmit)}>
         <div className="space-y-4">
-          {/* Name */}
-          <Controller
-            name="reviewerName"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>আপনার নাম</FieldLabel>
-                <FieldGroup>
-                  <Input
-                    {...field}
-                    placeholder="যেমন: রহিম উদ্দিন"
-                    aria-invalid={fieldState.invalid}
-                  />
-                </FieldGroup>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
           {/* Service */}
           <Controller
             name="serviceName"
