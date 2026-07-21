@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { BadgeCheck, CalendarDays, MapPin } from "lucide-react";
-import { getInitials } from "@/lib/utils";
+import { cn, getInitials } from "@/lib/utils";
 import type { TSurveyorProfile } from "@/types/surveyor-profile.type";
 import { StarRating } from "../ui/custom/star-rating";
 
@@ -25,13 +24,17 @@ export function SurveyorHero({
       {/* Avatar */}
       <div className="flex shrink-0 justify-center md:block">
         <div className="relative size-20 md:size-24">
-          <Avatar className="size-20 md:size-24">
-            {surveyor.profilePhoto ? (
-              <AvatarImage
-                src={surveyor.profilePhoto}
-                alt={surveyor.fullName}
-              />
-            ) : null}
+          <Avatar
+            className={cn(
+              "size-20 md:size-24",
+              surveyor.isSubscribed &&
+                "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5",
+            )}
+          >
+            <AvatarImage
+              src={surveyor.profilePhoto}
+              alt={surveyor.fullName}
+            />
             <AvatarFallback className="text-xl md:text-2xl">
               {getInitials(surveyor.fullName)}
             </AvatarFallback>

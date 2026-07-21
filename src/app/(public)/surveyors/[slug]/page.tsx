@@ -17,10 +17,11 @@ const mockSurveyors: Record<string, TSurveyorProfile> = {
     id: "surveyor-001",
     slug: "md-abdul-karim",
     fullName: "মো. আব্দুল করিম",
-    profilePhoto: "/images/surveyors/abdul-karim.webp",
+    // profilePhoto: "/images/surveyors/abdul-karim.webp",
     headline: "জমি পরিমাপ ও সীমানা নির্ধারণে অভিজ্ঞ সার্ভেয়ার",
     bio: "আমি দিনাজপুর সদর ও আশপাশের এলাকায় দীর্ঘদিন ধরে জমি পরিমাপ, সীমানা নির্ধারণ, জমি ভাগ-বাটোয়ারা এবং পরিমাপ রিপোর্ট প্রস্তুতের কাজ করে আসছি। কাজের প্রতিটি ধাপ সহজ ভাষায় বুঝিয়ে দেওয়ার চেষ্টা করি।",
     isVerified: true,
+    isSubscribed: true,
     experienceYears: 8,
     joinedAt: "2026-01-12T10:30:00.000Z",
     primaryLocation: {

@@ -1,13 +1,12 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BadgeCheck, MapPin, MessageCircle } from "lucide-react";
+import { BadgeCheck, Briefcase, MapPin, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
-import { cn } from "@/lib/utils";
 import { StarRating } from "@/components/ui/custom/star-rating";
 import { Button } from "@/components/ui/button";
-import { getInitials } from "@/lib/utils";
+import { cn, getInitials } from "@/lib/utils";
 import type { TSurveyorServiceWithPrice } from "@/types/surveyor-profile.type";
 import { Separator } from "@/components/ui/separator";
 
@@ -38,33 +37,24 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
       <div className="flex flex-col gap-4 p-5 md:p-6">
         {/* ── Header: Large square avatar + Name/Location ── */}
         <div className="flex items-start gap-4">
-          <div
-            className={cn(
-              "shrink-0 rounded-xl overflow-hidden",
-              surveyor.isSubscribed
-                ? "p-0.5 bg-linear-to-br from-violet-500 via-green-500 to-red-500"
-                : "",
-            )}
-          >
-            <div className="size-16 md:size-20 overflow-hidden rounded-xl">
-              {surveyor.profilePhoto ? (
-                <Avatar className="size-full rounded-xl">
-                  <AvatarImage
-                    src={surveyor.profilePhoto}
-                    alt={surveyor.fullName}
-                    className="size-full object-cover"
-                  />
-                  <AvatarFallback className="size-full rounded-xl text-lg md:text-xl">
-                    {getInitials(surveyor.fullName)}
-                  </AvatarFallback>
-                </Avatar>
-              ) : (
-                <Avatar className="size-full rounded-xl">
-                  <AvatarFallback className="size-full rounded-xl text-lg md:text-xl">
-                    {getInitials(surveyor.fullName)}
-                  </AvatarFallback>
-                </Avatar>
-              )}
+          <div className="shrink-0 overflow-hidden">
+            <div className="size-16 md:size-20 overflow-hidden">
+              <Avatar
+                className={cn(
+                  "size-full",
+                  surveyor.isSubscribed &&
+                    "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5",
+                )}
+              >
+                <AvatarImage
+                  src={surveyor.profilePhoto}
+                  alt={surveyor.fullName}
+                  className="size-full object-cover"
+                />
+                <AvatarFallback className="size-full text-lg md:text-xl">
+                  {getInitials(surveyor.fullName)}
+                </AvatarFallback>
+              </Avatar>
             </div>
           </div>
           <div className="min-w-0 flex-1">
@@ -98,9 +88,10 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
                 {surveyor.primaryLocation.district}
               </span>
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              অভিজ্ঞতা: {surveyor.experienceYears} বছর
-            </p>
+            <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+              <Briefcase className="size-3.5 shrink-0" />
+              <span>অভিজ্ঞতা: {surveyor.experienceYears} বছর</span>
+            </div>
           </div>
         </div>
 

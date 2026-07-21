@@ -14,6 +14,7 @@ export type TSurveyorProfile = {
   bio?: string;
 
   isVerified: boolean;
+  isSubscribed?: boolean;
 
   experienceYears: number;
   joinedAt: string;
