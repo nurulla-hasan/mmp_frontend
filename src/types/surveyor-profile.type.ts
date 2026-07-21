@@ -54,4 +54,5 @@ export type TSurveyorReview = {
   serviceName: string;
   createdAt: string;
   isVerifiedService: boolean;
+  status: "approved" | "pending" | "rejected";
 };

@@ -7,6 +7,7 @@ import {
   MonitorSmartphone,
   ShieldCheck,
   ShieldUser,
+  Star,
   Tags,
   UserRoundCheck,
   Users,
@@ -108,6 +109,11 @@ export const adminNavigation: NavigationItem[] = [
     title: "ভেরিফিকেশন রিকোয়েস্ট",
     href: "/admin/verifications",
     icon: ShieldCheck,
+  },
+  {
+    title: "মূল্যায়ন",
+    href: "/admin/reviews",
+    icon: Star,
   },
   {
     title: "সার্ভিস ক্যাটাগরি",

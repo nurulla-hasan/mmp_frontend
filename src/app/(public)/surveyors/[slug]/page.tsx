@@ -95,6 +95,7 @@ const mockSurveyors: Record<string, TSurveyorProfile> = {
         serviceName: "জমি পরিমাপ",
         createdAt: "2026-06-18T14:20:00.000Z",
         isVerifiedService: true,
+        status: "approved",
       },
       {
         id: "review-002",
@@ -105,6 +106,7 @@ const mockSurveyors: Record<string, TSurveyorProfile> = {
         serviceName: "সীমানা নির্ধারণ",
         createdAt: "2026-05-27T11:40:00.000Z",
         isVerifiedService: true,
+        status: "approved",
       },
       {
         id: "review-003",
@@ -115,6 +117,27 @@ const mockSurveyors: Record<string, TSurveyorProfile> = {
         serviceName: "জমি ভাগ",
         createdAt: "2026-04-09T16:10:00.000Z",
         isVerifiedService: true,
+        status: "approved",
+      },
+      {
+        id: "review-pending-001",
+        reviewerName: "আনোয়ার হোসেন",
+        rating: 4,
+        comment: "ভালো কাজ করেছেন। তবে একটু দেরি করেছিলেন।",
+        serviceName: "জমি পরিমাপ",
+        createdAt: "2026-07-20T10:30:00.000Z",
+        isVerifiedService: false,
+        status: "pending",
+      },
+      {
+        id: "review-pending-002",
+        reviewerName: "শামীমা বেগম",
+        rating: 3,
+        comment: "মোটামুটি কাজ। আরও ভালো হতে পারে সীমানা নির্ধারণ।",
+        serviceName: "সীমানা নির্ধারণ",
+        createdAt: "2026-07-19T16:45:00.000Z",
+        isVerifiedService: false,
+        status: "pending",
       },
     ],
   },
@@ -170,6 +193,7 @@ export default async function Page({
       <SurveyorReviews
         reviews={surveyor.reviews}
         totalReviews={surveyor.totalReviews}
+        services={surveyor.services}
       />
     </PageWrapper>
   );

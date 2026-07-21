@@ -131,7 +131,7 @@ export default function Page() {
               }}
             />
             <FieldDescription>
-              +৮৮ বাদে ১১ সংখ্যার নম্বর দিন। যেমন: 017123456789
+              ১১ সংখ্যার নম্বর দিন। যেমন: 017123456789
             </FieldDescription>
           </FieldGroup>
         </CardContent>
