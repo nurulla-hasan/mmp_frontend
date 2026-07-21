@@ -14,6 +14,7 @@ export type TSurveyorCard = {
   id: string;
   slug: string;
   fullName: string;
+  headline?: string;
   profilePhoto?: string;
   isVerified: boolean;
   experienceYears: number;
@@ -81,6 +82,11 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
                 </span>
               </div>
             </div>
+            {surveyor.headline && (
+              <p className="mt-1 text-sm text-muted-foreground/80">
+                {surveyor.headline}
+              </p>
+            )}
             <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="size-3.5 shrink-0" />
               <span className="truncate">

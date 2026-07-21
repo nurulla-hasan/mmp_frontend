@@ -1,2 +1,0 @@
-import { DashboardPage } from "@/components/shared/dashboard-page";
-export default function Page() { return <DashboardPage title="সক্রিয় জব" description="ভিজিট, পরিমাপ, রিপোর্ট এবং সম্পন্ন অবস্থা ট্র্যাক করুন।" cards={[{ label: "চলমান", value: "0", description: "নির্বাচিত সার্ভিস জব এখানে দেখাবে।" },{ label: "রিপোর্ট তৈরি করুন", href: "/surveyor/reports/create", description: "একটি কাঠামোবদ্ধ জরিপ রিপোর্ট তৈরি করুন।" }]} />; }
