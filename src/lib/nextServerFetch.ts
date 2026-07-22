@@ -54,14 +54,16 @@ const getAccessToken = cache(async (): Promise<string | null> => {
   return cookieStore.get("accessToken")?.value ?? null;
 });
 
-const parseJsonResponse = async (response: Response): Promise<unknown> => {
-  if (response.status === 204) {
+const parseJsonResponse = async (
+  response: Response,
+): Promise<unknown> => {
+  if (response.status === 204 || response.status === 205) {
     return null;
   }
 
   const responseText = await response.text();
 
-  if (!responseText) {
+  if (!responseText.trim()) {
     return null;
   }
 
@@ -71,7 +73,9 @@ const parseJsonResponse = async (response: Response): Promise<unknown> => {
     throw new ApiError(
       "API returned an invalid JSON response",
       response.status,
-      null,
+      {
+        rawResponse: responseText.slice(0, 500),
+      },
     );
   }
 };
