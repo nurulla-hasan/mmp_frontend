@@ -8,7 +8,6 @@ import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/ui/custom/theme-toggle";
 import { cn } from "@/lib/utils";
 
-import { PublicMobileDrawer } from "./public-mobile-drawer";
 import { CONTAINER_MAX_WIDTH } from "../ui/custom/page-wrapper";
 
 const desktopLinks = [
@@ -27,15 +26,20 @@ export function PublicHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 bg-background/95 shadow-sm">
+    <header className="sticky top-0 z-40 bg-sidebar shadow-sm">
       <div
         className={cn(
           `mx-auto flex h-16 w-full ${CONTAINER_MAX_WIDTH} items-center px-4 sm:px-6`,
         )}
       >
         {/* Left: Logo */}
-        <div className="flex-1">
-          <Logo />
+        <div className="flex flex-1 items-center gap-2">
+          <div className="lg:hidden flex items-center">
+            <Logo showText={true} size="sm" />
+          </div>
+          <div className="hidden lg:flex items-center">
+            <Logo showText={true} size="md" />
+          </div>
         </div>
 
         {/* Center: Nav */}
@@ -63,7 +67,6 @@ export function PublicHeader() {
         <div className="flex flex-1 items-center justify-end gap-2">
           <ThemeToggle />
           <AuthDropdown isAuthenticated={true} />
-          <PublicMobileDrawer isAuthenticated={true} />
         </div>
       </div>
     </header>

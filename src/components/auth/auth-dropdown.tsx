@@ -71,20 +71,40 @@ export function AuthDropdown({
             />
           }
         >
-          <Avatar
-            className={cn(
-              "size-8",
-              user.isSubscribed &&
-                "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5",
-            )}
-          >
-            <AvatarImage
-              src={user.profilePhoto || "/assets/fallback-avatar.png"}
-            />
-            <AvatarFallback className="size-full">
-              {getInitials(user.name || "") || <UserRound />}
-            </AvatarFallback>
-          </Avatar>
+          <>
+            {/* Mobile Avatar (Default Size) */}
+            <Avatar
+              className={cn(
+                "lg:hidden",
+                user.isSubscribed &&
+                  "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5",
+              )}
+            >
+              <AvatarImage
+                src={user.profilePhoto || "/assets/fallback-avatar.png"}
+              />
+              <AvatarFallback className="size-full">
+                {getInitials(user.name || "") || <UserRound />}
+              </AvatarFallback>
+            </Avatar>
+
+            {/* Desktop Avatar (Large Size) */}
+            <Avatar
+              size="lg"
+              className={cn(
+                "hidden lg:flex",
+                user.isSubscribed &&
+                  "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5",
+              )}
+            >
+              <AvatarImage
+                src={user.profilePhoto || "/assets/fallback-avatar.png"}
+              />
+              <AvatarFallback className="size-full">
+                {getInitials(user.name || "") || <UserRound />}
+              </AvatarFallback>
+            </Avatar>
+          </>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="w-56">

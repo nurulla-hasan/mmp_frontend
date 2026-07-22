@@ -18,7 +18,7 @@ export function Logo({
     <Link
       href="/"
       className={cn(
-        "inline-flex items-center gap-3 font-semibold tracking-tight",
+        "inline-flex items-end gap-3 font-semibold tracking-tight",
         className,
       )}
     >
@@ -29,7 +29,7 @@ export function Logo({
         height={0}
         sizes={`${pixelSize}px`}
         className={cn(
-          "h-auto w-auto rounded-lg",
+          "block h-auto w-auto rounded-lg object-contain",
           size === "lg" && "max-h-12",
           size === "md" && "max-h-10",
           size === "sm" && "max-h-8",
@@ -38,13 +38,13 @@ export function Logo({
       {showText && (
         <span
           className={cn(
-            "font-heading font-bold text-foreground",
+            "hidden sm:block bg-linear-to-r from-primary to-yellow-500 bg-clip-text text-transparent font-heading font-bold tracking-tight",
             size === "lg" && "text-xl",
             size === "md" && "text-lg",
             size === "sm" && "text-base",
           )}
         >
-          Mouza Map Pro
+          মৌজা ম্যাপ প্রো
         </span>
       )}
     </Link>
