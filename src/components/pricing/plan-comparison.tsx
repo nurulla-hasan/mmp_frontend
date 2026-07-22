@@ -1,7 +1,17 @@
+"use client";
+
 import { Check } from "lucide-react";
 
 import { SectionHeading } from "@/components/home/section-heading";
 import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { PRICING_PLANS } from "./pricing-data";
 
@@ -56,6 +66,8 @@ const COMPARISON_ROWS: { label: string; values: string[] }[] = [
   },
 ];
 
+const recomendedBg = "bg-primary/5";
+
 export function PlanComparison() {
   return (
     <SectionWrapper id="plan-comparison">
@@ -65,19 +77,19 @@ export function PlanComparison() {
         description="সব Pro plan একই মূল সুবিধা দেয়; প্রধান পার্থক্য হলো plan-এর মেয়াদ ও মূল্য।"
       />
 
-      <div className="mt-10 overflow-x-auto rounded-xl border bg-card shadow-lg shadow-primary/5 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
-        <table className="w-full min-w-150 text-sm">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="px-6 py-4 text-left font-semibold text-foreground">
+      <div className="mt-10 rounded-xl border bg-card shadow-lg shadow-primary/5 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead className="px-6 py-4 text-left font-semibold text-foreground">
                 সুবিধা
-              </th>
+              </TableHead>
               {PRICING_PLANS.map((plan) => (
-                <th
+                <TableHead
                   key={plan.name}
                   className={
                     plan.recommended
-                      ? "px-6 py-4 text-center font-semibold text-foreground bg-primary/5"
+                      ? `px-6 py-4 text-center font-semibold text-foreground ${recomendedBg}`
                       : "px-6 py-4 text-center font-semibold text-foreground"
                   }
                 >
@@ -89,29 +101,29 @@ export function PlanComparison() {
                       </Badge>
                     )}
                   </span>
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {COMPARISON_ROWS.map((row, i) => (
-              <tr
+              <TableRow
                 key={row.label}
                 className={
                   i % 2 === 0
-                    ? "border-b transition-colors hover:bg-muted/20"
-                    : "border-b bg-muted/20 transition-colors hover:bg-muted/30"
+                    ? "hover:bg-muted/20"
+                    : "bg-muted/20 hover:bg-muted/30"
                 }
               >
-                <td className="px-6 py-4 font-medium text-foreground">
+                <TableCell className="px-6 py-4 font-medium text-foreground">
                   {row.label}
-                </td>
+                </TableCell>
                 {row.values.map((val, j) => (
-                  <td
+                  <TableCell
                     key={j}
                     className={
                       PRICING_PLANS[j].recommended
-                        ? "px-6 py-4 text-center text-muted-foreground bg-primary/5"
+                        ? `px-6 py-4 text-center text-muted-foreground ${recomendedBg}`
                         : "px-6 py-4 text-center text-muted-foreground"
                     }
                   >
@@ -125,12 +137,12 @@ export function PlanComparison() {
                     ) : (
                       <span className="text-xs">{val}</span>
                     )}
-                  </td>
+                  </TableCell>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </SectionWrapper>
   );

@@ -232,7 +232,7 @@ export default function FraudAwarenessPage() {
  {/* ─── Hero ──────────────────────────────────────────── */}
  <SectionWrapper padding="lg">
  <div className="relative mx-auto max-w-3xl text-center">
-  <div className="pointer-events-none absolute top-0 left-1/2 -z-10 h-96 w-96 -translate-x-1/2 -translate-y-20 rounded-full bg-destructive/10 blur-[100px]" />
+  <div className="pointer-events-none absolute top-0 left-1/2 -z-10 size-90 -translate-x-1/2 -translate-y-20 rounded-full bg-destructive/10 blur-[100px]" />
  <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-destructive/10 shadow-lg shadow-destructive/10">
  <ShieldAlert className="size-8 text-destructive" />
  </div>

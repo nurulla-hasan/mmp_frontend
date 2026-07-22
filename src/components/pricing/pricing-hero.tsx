@@ -13,7 +13,7 @@ export function PricingHero() {
         <SectionWrapper padding="lg">
             <div className="relative mx-auto max-w-3xl text-center">
                 {/* Glow */}
-                <div className="pointer-events-none absolute top-0 left-1/2 -z-10 h-96 w-96 -translate-x-1/2 -translate-y-20 rounded-full bg-primary/10 blur-[100px]" />
+                <div className="pointer-events-none absolute top-0 left-1/2 -z-10 h-96 w-full max-w-sm -translate-x-1/2 -translate-y-20 rounded-full bg-primary/20 blur-[100px]" />
 
                 {/* Icon */}
                 <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/10 shadow-lg shadow-primary/10">

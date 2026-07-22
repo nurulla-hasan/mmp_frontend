@@ -36,7 +36,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("h-full antialiased font-sans", notoSansBengali.variable, hindSiliguri.variable, spaceGrotesk.variable, geistMono.variable)}>
+    <html lang="en" suppressHydrationWarning className={cn("h-full antialiased font-sans overflow-x-hidden", notoSansBengali.variable, hindSiliguri.variable, spaceGrotesk.variable, geistMono.variable)}>
       <body className="flex min-h-full flex-col max-w-480 mx-auto">
         <ThemeProvider>
           <TooltipProvider>
