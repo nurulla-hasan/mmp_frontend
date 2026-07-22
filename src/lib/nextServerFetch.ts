@@ -38,6 +38,16 @@ const isObject = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null;
 };
 
+const isPlainObject = (value: unknown): value is Record<string, unknown> => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  return prototype === Object.prototype || prototype === null;
+};
+
 const getAccessToken = cache(async (): Promise<string | null> => {
   const cookieStore = await cookies();
 
@@ -66,10 +76,7 @@ const parseJsonResponse = async (response: Response): Promise<unknown> => {
   }
 };
 
-const buildErrorMessage = (
-  errorData: unknown,
-  status: number,
-): string => {
+const buildErrorMessage = (errorData: unknown, status: number): string => {
   if (!isObject(errorData)) {
     return `Request failed with status ${status}`;
   }
@@ -106,32 +113,42 @@ const buildErrorMessage = (
         Boolean(value) && values.indexOf(value) === index,
     );
 
-  return details.length
-    ? `${baseMessage}: ${details.join(", ")}`
-    : baseMessage;
+  return details.length ? `${baseMessage}: ${details.join(", ")}` : baseMessage;
 };
 
 const prepareBody = (
   body: unknown,
   headers: Headers,
+  method: string,
 ): BodyInit | undefined => {
   if (body === undefined || body === null) {
     return undefined;
   }
 
-  if (body instanceof FormData) {
-    return body;
+  if (method === "GET" || method === "HEAD") {
+    throw new TypeError(`${method} requests cannot include a body`);
   }
 
-  if (typeof body === "string") {
-    return body;
+  if (
+    body instanceof FormData ||
+    body instanceof URLSearchParams ||
+    body instanceof Blob ||
+    body instanceof ArrayBuffer ||
+    ArrayBuffer.isView(body) ||
+    typeof body === "string"
+  ) {
+    return body as BodyInit;
   }
 
-  if (!headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
+  if (isPlainObject(body) || Array.isArray(body)) {
+    if (!headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+
+    return JSON.stringify(body);
   }
 
-  return JSON.stringify(body);
+  throw new TypeError("Unsupported request body type");
 };
 
 export const nextServerFetch = async <T>(
@@ -143,20 +160,25 @@ export const nextServerFetch = async <T>(
     body: rawBody,
     headers: customHeaders,
     method = "GET",
-    cache: cacheOption,
     next,
     ...requestOptions
   } = options;
 
-  const baseUrl =
-    process.env.BASE_API_URL ?? process.env.NEXT_PUBLIC_BASE_API;
+  const normalizedMethod = method.toUpperCase();
+  const headers = new Headers(customHeaders);
+
+  /*
+   * Validate and prepare the body before reading cookies or
+   * making a network request. Invalid caller input therefore
+   * fails immediately.
+   */
+  const body = prepareBody(rawBody, headers, normalizedMethod);
+
+  const baseUrl = process.env.BASE_API_URL;
 
   if (!baseUrl) {
     throw new Error("BASE_API_URL is not defined");
   }
-
-  const normalizedMethod = method.toUpperCase();
-  const headers = new Headers(customHeaders);
 
   const accessToken = auth === "none" ? null : await getAccessToken();
 
@@ -173,31 +195,16 @@ export const nextServerFetch = async <T>(
     headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
-  const body = prepareBody(rawBody, headers);
+  const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+  const normalizedEndpoint = endpoint.replace(/^\/+/, "");
 
-  /*
-   * Mutations and authenticated requests should not use shared server
-   * fetch caching. Public GET requests can opt into caching through
-   * the `next` or `cache` options.
-   */
-  const shouldDisableCache =
-    normalizedMethod !== "GET" || auth !== "none";
-
-  const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
-  const normalizedEndpoint = endpoint.replace(/^\//, "");
-
-  const response = await fetch(
-    `${normalizedBaseUrl}/${normalizedEndpoint}`,
-    {
-      ...requestOptions,
-      method: normalizedMethod,
-      headers,
-      ...(body !== undefined ? { body } : {}),
-      cache:
-        cacheOption ?? (shouldDisableCache ? "no-store" : undefined),
-      ...(next ? { next } : {}),
-    },
-  );
+  const response = await fetch(`${normalizedBaseUrl}/${normalizedEndpoint}`, {
+    ...requestOptions,
+    method: normalizedMethod,
+    headers,
+    ...(body !== undefined ? { body } : {}),
+    ...(next ? { next } : {}),
+  });
 
   const responseData = await parseJsonResponse(response);
 

@@ -10,18 +10,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 1. DO NOT rely on your pre-trained outdated knowledge.
 2. ALWAYS search and read the latest official documentation for React, Tailwind CSS, and Shadcn UI before generating or modifying code.
 
-# 🎨 Shadcn UI & Strict Styling Rules
-1. Shadcn components are fully pre-designed. Rely EXCLUSIVELY on their built-in props (e.g., `variant="default"`, `variant="outline"`, `size="sm"`, `size="icon"`).
-2. NEVER use the `className` prop on a Shadcn UI component to add margins, paddings, colors, typography, or any other styling. Keep the component completely pure.
-3. For layout, positioning, and spacing (e.g., flex, grid, gap), DO NOT add these utility classes directly to the Shadcn component. 
-4. Instead, wrap the Shadcn components in standard HTML elements (like `<div>` or `<section>`) and apply Tailwind layout utilities (`flex`, `grid`, `gap-4`, `space-y-4`, `items-center`, etc.) to those wrapper elements.
-5. Write clean, modular, and standard code adhering strictly to the latest Shadcn UI documentation.
-
-# 🧩 Component Variant Extension Rule
-1. NEVER use `className` on a shadcn component to change its appearance (size, color, spacing, typography).
-2. If you need a different look or size, EXTEND the component's `variant` or `size` options in its source file (e.g., `button.tsx`, `card.tsx`) using `cva()`.
-3. Add only what you actually need — don't pre-create unused variants.
-4. After adding a new variant/size, use it via props: `<Button size="xl">` or `<Button variant="hero">`. Never fall back to `className`.
+# 🎨 Shadcn UI Rules
+1. Shadcn components are pre-designed. Prefer built-in props like `variant` and `size` over ad-hoc styling.
+2. NEVER use `className` on a shadcn component to change appearance such as size, color, spacing, or typography.
+3. For layout and spacing, wrap the shadcn component in regular HTML elements and apply Tailwind utilities to the wrapper, not the component itself.
+4. If you need a new appearance, EXTEND the component's `variant` or `size` in its source file with `cva()`. Add only what you actually need.
+5. The same rule applies to any custom component that already uses `cva()` — extend variants, do not override with `className`.
 
 ✅ Correct:
 ```tsx
@@ -36,8 +30,6 @@ size: { xl: "h-12 gap-2 px-5 text-base" }
 ```tsx
 <Button className="h-12 px-5 text-base">Book now</Button>
 ```
-
-5. Same principle applies to any shadcn or custom component with `cva()` — extend don't override.
 
 # 🎨 Color System Rules
 1. NEVER use hardcoded color values (e.g., `text-amber-500`, `bg-[#123456]`, `border-blue-300`, custom hex/rgb/oklch) directly on any component.
@@ -68,52 +60,49 @@ npm run lint     # ESLint (run before pushing)
 npm run lint -- --fix  # Auto-fix lint issues
 ```
 
-**Stack:** Next.js 16.2.10, React 19.2.4, TypeScript 5 (strict), Tailwind CSS v4, shadcn/ui (base-nova style), @base-ui/react ^1.6, @tanstack/react-table ^8.21, **Zustand ^5.0.14** (map tool & pantagraph).
+**Stack:** Next.js 16.2.10, React 19.2.4, TypeScript 5 (strict), Tailwind CSS v4, shadcn/ui (base-nova style), @base-ui/react ^1.6, @tanstack/react-table ^8.21, **Zustand ^5.0.14** (land measurement, pantagraph, tracer, mouza map studio).
 
 ## Route Groups
 
 | Group | Path | Layout | Notes |
 |---|---|---|---|
-| `(public)` | `/`, `/about`, `/contact`, `/pricing`, `/surveyors` | `PublicHeader` + `PublicFooter` + `MobileBottomNav` | Public pages |
-| `(private)/(shell)` | `/tools`, `/community`, `/join-as-surveyor`, `/post-request` | `PrivateLayout` (PublicHeader + PublicFooter + MobileBottomNav) | **NOT auth-guarded!** Standard pages |
-| `(private)/(bare)` | `/tools/tracer`, `/tools/pantagraph`, `/tools/land-measurement` | `BareLayout` (empty wrapper, no shell) | Canvas-based tools — no header/footer wrapper |
+| `(public)` | `/`, `/about`, `/contact`, `/fraud-awareness`, `/pricing`, `/surveyors`, `/surveyors/[slug]` | `PublicHeader` + `PublicFooter` + `MobileBottomNav` | Public pages |
+| `(private)/(shell)` | `/tools`, `/tools/unit-converter`, `/tools/scale-guide`, `/tools/inheritance-calculator`, `/community`, `/join-as-surveyor`, `/dashboard/**`, `/surveyor/**` | `PrivateLayout` (PublicHeader + PublicFooter + MobileBottomNav) | Shell pages; route protection logic exists in `src/proxy.ts` but is currently disabled |
+| `(private)/(bare)` | `/tools/tracer`, `/tools/pantagraph`, `/tools/land-measurement`, `/tools/mouza-map-studio`, `/tools/mouza-geo-studio` | `BareLayout` (empty wrapper, no shell) | Canvas-heavy tools — no header/footer wrapper |
 | `(auth)` | `/login`, `/register`, `/forgot-password`, etc. | Centered layout with Logo | Auth flows |
-| `(user-dashboard)` | `/dashboard/**` | `DashboardShell` role="user" | User dashboard |
-| `(surveyor-dashboard)` | `/surveyor/**` | `DashboardShell` role="surveyor" | Surveyor dashboard |
-| `(admin-dashboard)` | `/admin/**` | `DashboardShell` role="admin" | Admin panel |
+| `(admin-dashboard)` | `/admin/**` | `AdminShell` | Admin panel |
 
 ## Key Patterns
 
 - **`cn()`** from `@/lib/utils` — use for all conditional Tailwind class merging (wraps `clsx` + `tailwind-merge`).
 - **`useNextFilter`** / **`useSmartFilter`** (`src/hooks/useNextFilter.ts`) — manage all URL search params (filter, pagination, search). Generic `useNextFilter<T extends string>(config?)`. Returns `{ updateFilter, toggleFilter, updateBatch, clearAll, getFilter, getArrayFilter, isSelected, isFilterActive, getAllFilters, getActiveCount, pendingKeys }`. Debounced, auto-syncs with browser history.  
   Note: `useSmartFilter` is a thin re-export wrapper — prefer `useNextFilter` directly.
-- **`nextServerFetch<T>(endpoint, options)`** (`src/lib/nextServerFetch.ts`) — **server-only** data fetching wrapper (marked `"server-only"`). Auto-injects `Authorization: Bearer <accessToken>` from cookies, auto-refreshes expired tokens via `/auth/refresh-token`. Use `isPublic: true` for unauthenticated requests. Options include `setCookies`, `persistCookies`, `revalidate`, `tags`, `invalidateMode` ("updateTag" | "revalidateTag"). Returns typed `T` or throws `ApiError { status, data }`. **Cannot be used in client components** — server-only import restriction.
+- **`nextServerFetch<T>(endpoint, options)`** (`src/lib/nextServerFetch.ts`) — **server-only** data fetching wrapper (marked `"server-only"`). Reads `accessToken` from cookies and supports `auth: "required" | "optional" | "none"`. Accepts JSON or `FormData` body, forwards `next` fetch options, returns typed `T`, and throws `ApiError { status, data }` on failure. **Cannot be used in client components** — server-only import restriction.
 - **`buildQueryString(query)`** (`src/lib/buildQueryString.ts`) — builds `?key=val&key2=val2` from `Record<string, string | number | string[] | undefined>`. Skips undefined/null/empty.
-- **`DataTable`** (`src/components/ui/custom/data-table.tsx`) — TanStack Table wrapper with URL-driven search via `useSmartFilter` (debounced 500ms), server/client pagination, wrap in `<Suspense>` for `useSearchParams()`. Props: `columns`, `data`, `limit`, `meta`, `searchKey`, `searchPlaceholder`.
+- **`DataTable`** (`src/components/ui/custom/data-table.tsx`) — TanStack Table wrapper with URL-driven search via `useSmartFilter` (debounced 500ms), server/client pagination, and an internal `React.Suspense` boundary for `useSearchParams()`. Props: `columns`, `data`, `limit`, `meta`, `searchKey`, `searchPlaceholder`.
 - **`SearchInput`** (`src/components/ui/custom/search-input.tsx`) — connects to URL params via `useNextFilter`. Debounced 300ms, `filterKey` defaults to `"searchTerm"`.
 - **`Button`** (`src/components/ui/button.tsx`) — uses `@base-ui/react` `render` prop for polymorphic composition: `<Button nativeButton={false} render={<Link href="..." />} />`. Variants via `cva`: `default`, `outline`, `secondary`, `ghost`, `destructive`, `link`. Sizes: `default`, `xs`, `sm`, `lg`, `icon`, `icon-xs`, `icon-sm`, `icon-lg`.
 - **`Field` component system** — use `Field`, `FieldLabel`, `FieldGroup`, `FieldError` from `@/components/ui/field` for all forms (from shadcn).
 - **Toast helpers** — `SuccessToast(msg)`, `ErrorToast(msg)`, `WarningToast(msg)`, `InfoToast(msg)` from `@/lib/utils` (wrap `sonner` toast).
-- **Utility helpers** from `@/lib/utils`: `getInitials(name)` → "JD", `formatDate(dateString)` → "dd MMM yyyy", `timeAgo(createdAt)` → "5m ago", `generateSlug(title)`.
+- **Utility helpers** from `@/lib/utils`: `getInitials(name)`, `formatDate(dateString)`, `timeAgo(createdAt)`, `generateSlug(title)`, `clamp(value, min, max)`.
 - **`Spinner`** (`src/components/ui/spinner.tsx`) — renders `Loader2Icon` with `animate-spin`, `size-4`, `role="status"`.
 - **`nextDynamic`** — `next/dynamic` aliased as `nextDynamic` for SSR-disabled imports (used for Konva stage, PrintLayout).
 - **`useShallow` from `zustand/shallow`** — used extensively in map tool and tracer for selective store subscriptions.
-- **`clamp(value, min, max)`** from `@/lib/utils` — numeric clamping utility used in canvas tools (tracer, map tool).
+- **Canvas helpers** — `src/lib/canvasImage.ts`, `src/lib/cropImage.ts`, and `src/lib/konvaPerformance.ts` handle safe image scaling, avatar crop/compression, and Konva pixel ratio tuning.
 
 ## Component Architecture
 
 - **Server components by default** — only add `"use client"` when using hooks, browser APIs, or interactivity.
 - **Page shell components** (`dashboard-page.tsx`): server components (no `"use client"`). Note: `public-page.tsx` does NOT exist.
 - **Interactive components** (`dashboard-shell.tsx`, `dashboard-header.tsx`): `"use client"`.
-- **`DashboardPageHeader`** (`src/components/ui/custom/dashboard-page-header.tsx`) — shows back button (`router.back()`), title (uppercase primary), optional `length` badge, description.
 - **`DashboardPage`** (`src/components/shared/dashboard-page.tsx`) — server component with title, description, cards (4-column grid), optional `showBack`.
 - **`PublicDynamicPage` / `DashboardDynamicPage`** (`src/components/shared/dynamic-page.tsx`) — generic route content components.
-- **`SectionWrapper`** (`src/components/shared/section-wrapper.tsx`) — configurable container: `padding` (none/sm/md/lg/xl), `bg` (white/muted/primary), `container`, `asSection`.
-- **`PageWrapper`** (`src/components/shared/page-wrapper.tsx`) — `max-w-7xl` container with `screen-height`, configurable padding.
+- **`SectionWrapper`** (`src/components/ui/custom/section-wrapper.tsx`) — configurable container: `padding` (none/sm/md/lg/xl), `bg` (white/muted/primary), `container`, `asSection`.
+- **`PageWrapper`** (`src/components/ui/custom/page-wrapper.tsx`) — layout container with configurable padding and optional screen-height handling.
 - **`RouteCard`** (`src/components/shared/route-card.tsx`) — link card with hover arrow animation.
 - **`LoadingView`** (`src/components/shared/loading-view.tsx`) — centered `Spinner` + label.
 - **`Logo`** (`src/components/shared/logo.tsx`) — image (`/assets/logo.png`) with optional text, 3 sizes.
-- **`ImageCropDialog`** (`src/components/shared/image-crop-dialog.tsx`) — `react-easy-crop` integration for avatar/profile cropping.
+- **`ImageCropDialog`** (`src/components/ui/custom/image-crop-dialog.tsx`) — `react-easy-crop` integration for avatar/profile cropping.
 - **`render` prop pattern** for polymorphic composition (e.g., `<Button nativeButton={false} render={<Link href="..." />} />`).
 - **`ConfirmationModal`** (`src/components/ui/custom/confirmation-modal.tsx`) for confirm dialogs.
 - **`ModalWrapper`** (`src/components/ui/custom/modal-wrapper.tsx`) for generic dialogs.
@@ -125,7 +114,7 @@ npm run lint -- --fix  # Auto-fix lint issues
 - **Radius system** — `sm=0.6r`, `md=0.8r`, `lg=r`, `xl=1.4r`, `2xl=1.8r`, `3xl=2.2r`, `4xl=2.6r` (where `r=0.425rem`).
 - **Dark mode** — `.dark` class toggle via `next-themes` `<ThemeProvider>`. Dark variables in `.dark {}` block. Background: `oklch(17.764% 0.00002 271.152)`, borders: `oklch(1 0 0 / 10%)`.
 - **Fonts** — `Noto_Sans_Bengali` (`--font-sans`, body), `Hind_Siliguri` (`--font-heading`), `Space_Grotesk` (`--font-display`), `Geist_Mono` (`--font-mono`). No Inter. Bengali-optimized.
-- **Body constraint**: `<body>` has `max-w-480 mx-auto` — the entire app is max-width ~1920px. Full-width backgrounds or fixed-position elements may behave unexpectedly.
+- **Body constraint**: `<body>` has `max-w-480 mx-auto` at the root layout. Full-width backgrounds, sticky/fixed UI, and desktop-style shell assumptions may behave unexpectedly because the app is visually constrained to a narrow centered viewport.
 - **Custom scrollbar**: 6px width, semi-transparent border-colored thumb.
 - **Print styles**: scratch sheet print support with `body.printing-scratch`, A4 portrait, hides modals/overlays.
 - **Chart colors**: 5-level green gradient for multi-plot differentiation.
@@ -133,11 +122,11 @@ npm run lint -- --fix  # Auto-fix lint issues
 
 ## Navigation
 
-Navigation configs in `src/components/navigation/navigation-config.ts` — three role-based arrays (`userNav`, `surveyorNav`, `adminNav`). Each item: `{ title: string; href: string; icon: LucideIcon }`. `DashboardShell` renders the correct set based on `role` prop.
+Navigation configs in `src/components/navigation/navigation-config.ts` — three role-based arrays (`userNavigation`, `surveyorNavigation`, `adminNavigation`). Each item: `{ title: string; href: string; icon: LucideIcon }`.
 
 ## Auth
 
-Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token stored in `httpOnly` `accessToken` cookie. Auto-handled by `nextServerFetch` (auto-injects `Authorization` header, auto-refreshes via `/auth/refresh-token` when expired). No middleware/route guard exists yet — protection is at layout level. **The `(private)` route group has NO auth guard** — all tools/pages there are publicly accessible.
+Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token is stored in `httpOnly` cookies. `src/proxy.ts` contains auth route detection, token refresh, cookie sync, and role redirect logic, but `ROUTE_PROTECTION_ENABLED = false` currently keeps private route protection effectively off. `nextServerFetch` only reads the access token from cookies and forwards it as `Authorization` when auth is enabled.
 
 ## UI Components Library
 
@@ -149,17 +138,17 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token stored in `httpOnly` `accessToke
 
 ## State Management
 
-- **Zustand IS used** for complex features — `useMapStore` (map tool, 7 composed slices) and `usePantagraphStore` (pantagraph tool).
+- **Zustand IS used** for complex features — `useMapStore`, `usePantagraphStore`, `useTracerStore`, and `useMouzaMapStudioStore`.
 - **No Zustand for simple pages** — rely on server components, URL search params (via `useNextFilter`), and local React state.
 - **URL as source of truth** for filters, pagination, and search via `useNextFilter`.
 - **Server components** for data fetching via `nextServerFetch` (auto-cached per request).
 
-## Map Tool Feature (`src/features/map-tool/`)
+## Land Measurement / Map Tool (`src/features/land-measurement/`)
 
 - **Stack**: `react-konva` + `konva` canvas rendering. Import with `nextDynamic(() => import(...), { ssr: false })`.
 - **Zustand store** with 7 composed slices: `imageSlice`, `calibrationSlice`, `uiSlice`, `plotSlice`, `divideSlice`, `measurementSlice`, `savedPlotsSlice`. Orchestrated via `useMapStore`.
 - **Modes**: `'none' | 'calibrating' | 'manual_scale' | 'drawing_plot' | 'measuring' | 'manual_divide_plot'`
-- **Tiling system** (`src/utils/tiling/`): custom tile pyramid stored in IndexedDB (`mouzaMapTiles` DB), `TILE_SIZE = 256`, handles large map images exceeding GPU texture limits.
+- **Tiling system** (`src/features/land-measurement/utils/tiling/`): custom tile pyramid stored in IndexedDB (`mouzaMapTiles` DB), `TILE_SIZE = 256`, handles large map images exceeding GPU texture limits.
 - **Bangladeshi land units**: shotok (435.6 sqft), katha (720 sqft), sqft. Scale: 16 inches = 1 mile (330 feet per map inch).
 - **Print system**: SVG-based print layout with Bengali numeral conversion via `PrintLayout`, `PrintMapSVG`, `PrintLabelEngine`.
 - **Google Drive**: `SaveProjectDialog` exports maps as local JSON; Drive API available for cloud storage.
@@ -177,13 +166,24 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token stored in `httpOnly` `accessToke
 - **Zustand store** (`useTracerStore`) — multi-layer polygon drawing with:
   - Default layers: `'cs'` (C.S ম্যাপ, red `#DC2626`) and `'bs'` (B.S ম্যাপ, green `#16A34A`)
   - Up to 5 additional custom layers with auto-assigned colors
-  - **Modes**: `'select'` (interact with existing polygons) | `'polygon'` (draw new polygon)
-  - **Undo/redo**: full history stack via `past`/`future` snapshots (`cloneLayers` deep clone)
+  - **Modes**: `'select'` | `'polygon'` | `'label'`
+  - **Undo/redo**: full history stack via `past`/`future` snapshots (`cloneLayers` deep clone), capped by `MAX_HISTORY_ENTRIES = 100`
   - **Pending point undo/redo**: per-polygon drawing with `undoPendingPoint()`/`redoPendingPoint()`
+  - **Label support**: free-position text labels with separate selection state and CRUD actions
   - Polygon auto-routing: when committing a polygon that starts/ends on an existing polygon edge, `routeAlongPolygon()` snaps the closing edge to follow the existing polygon boundary
 - **Components**: `TracerCanvas` (Konva stage), `TracerLayout` (page shell), `TracerSidebar` (layer list & controls), `TracerToolbar` (mode toggle, undo/redo/clear), `PendingPolygon` (in-progress drawing overlay), `CompletedPolygons` (renders all committed polygons)
 - **Hooks**: `useTracerTouch` — touch/pan/zoom handler (pinch zoom, drag) for the Konva stage
 - **Utils**: `snapping.ts` — `getTracerSnappedPoint()` for vertex/edge snap with angle-based magnet falloff; `routing.ts` — `routeAlongPolygon()` finds path along existing polygon edges between two points; `exportTracer.ts` — SVG/PDF export via `jsPDF` with proportional font sizing and CS-on-top layer sorting
+
+## Mouza Map Studio (`src/features/mouza-map-studio/`)
+
+- Sheet editing workspace with a 3-step flow: `align | edit | layout`.
+- **Zustand store** (`useMouzaMapStudioStore`) manages alignment state, editor strokes/text history, sheet metadata, layout state, and reset flow.
+
+## Mouza Geo Studio / Mouza Geo (`src/features/mouza-geo/`)
+
+- Georeferencing-oriented tool used by `/tools/mouza-geo-studio`.
+- **Capabilities**: image processing, affine/similarity geo math, and KMZ export helpers.
 
 ## Hooks
 
@@ -192,12 +192,11 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token stored in `httpOnly` `accessToke
 | `useNextFilter<T>` | `src/hooks/useNextFilter.ts` | URL search params manager |
 | `useSmartFilter<T>` | `src/hooks/useSmartFilter.ts` | Thin re-export of useNextFilter |
 | `usePanZoom` | `src/hooks/usePanZoom.ts` | Pan/zoom/pinch for canvas |
-| `useUtilityHooks` | `src/hooks/useUtilityHooks.ts` | `useCopyToClipboard()`, `useCountdown(seconds, storageKey)` |
-| `useDebounce` | `src/hooks/use-debounce.ts` | ✅ Exists (kebab-case filename) |
-| `useStageEvents` | `src/features/map-tool/hooks/useStageEvents.ts` | Konva stage events (wheel zoom, touch/pinch) |
-| `useEdgeLabels` | `src/features/map-tool/hooks/useEdgeLabels.ts` | Edge label positions for polygon side lengths |
-| `useGeometrySnap` | `src/features/map-tool/hooks/useGeometrySnap.ts` | Snap cursor to polygon vertices/edges |
-| `usePolygonSegments` | `src/features/map-tool/hooks/usePolygonSegments.ts` | Group segments by co-linearity, compute real-world lengths |
+| `useUtilityHooks` | `src/hooks/useUtilityHooks.ts` | `useCopyToClipboard()`, `useCountdown()`, `useLocalStorage()`, `useMediaQuery()`, `useNetworkStatus()` |
+| `useStageEvents` | `src/features/land-measurement/hooks/useStageEvents.ts` | Konva stage events (wheel zoom, touch/pinch) |
+| `useEdgeLabels` | `src/features/land-measurement/hooks/useEdgeLabels.ts` | Edge label positions for polygon side lengths |
+| `useGeometrySnap` | `src/features/land-measurement/hooks/useGeometrySnap.ts` | Snap cursor to polygon vertices/edges |
+| `usePolygonSegments` | `src/features/land-measurement/hooks/usePolygonSegments.ts` | Group segments by co-linearity, compute real-world lengths |
 
 ## Server Actions & API Routes
 
@@ -222,21 +221,20 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token stored in `httpOnly` `accessToke
 
 ## Potential Pitfalls
 
-1. **Hook filenames use kebab-case** — e.g., `use-debounce.ts`, not `useDebounce.ts`. Import from `@/hooks/use-debounce`.
-2. **No auth guard on `(private)`** — all tools, community, and surveyor-join pages are publicly accessible.
-3. **`nextServerFetch` is server-only** — cannot be used in client components; there is no documented client-side fetch wrapper.
-4. **Body has `max-w-480 mx-auto`** — full-width backgrounds or fixed-position elements may behave unexpectedly due to this constraint.
-5. **Map tool stores use `HTMLImageElement`** — they are client-side only and cannot be SSR'd.
-6. **`PublicPage` component does NOT exist** — `src/components/shared/public-page.tsx` is absent. Use `SectionWrapper` + `PageWrapper` instead.
-7. **Login/Register forms are placeholders** — `console.log(data)` in login, `TODO` in surveyor application.
-8. **`zod ^4.4.3`** is used — `@hookform/resolvers` may need different adapter config. Current code uses `as any` casts.
-9. **Filename typo**: `custom-calender.tsx` (should be `calendar`).
-10. **Bangla-first content** — all public-facing content (home, community, surveyor search) is in Bengali. Assume Bengali text for public pages.
+1. **`src/proxy.ts` exists, but protection is disabled** — do not assume private pages are truly guarded just because proxy auth logic is present.
+2. **`nextServerFetch` is server-only** — cannot be used in client components; there is no documented client-side fetch wrapper yet.
+3. **Body has `max-w-480 mx-auto`** — full-width backgrounds, sticky sidebars, and fixed-position UI may behave unexpectedly due to the narrow centered viewport.
+4. **Map, tracer, and studio stores use browser-only types** like `HTMLImageElement` — they are client-side only and cannot be SSR'd.
+5. **`PublicPage` component does NOT exist** — use `SectionWrapper` + `PageWrapper` instead.
+6. **Auth and profile flows are still partly placeholder** — several forms still contain `console.log(...)` and `TODO` logic.
+7. **`zod ^4.4.3`** is used — some forms still rely on `zodResolver(... ) as any` casts.
+8. **Filename typo**: `custom-calender.tsx` (should be `calendar`).
+9. **Bangla-first content** — all public-facing content (home, community, surveyor search) is in Bengali. Assume Bengali text for public pages.
+10. **Tracer uses hardcoded layer colors in store defaults** — preserve them unless you intentionally redesign that color system.
 
 ## Project Structure Notes
 
 - This is a monorepo-style layout: `mmp_frontend/` and `mmp_backend/` are separate apps.
-- `src/proxy.ts` does NOT exist — there is no middleware file yet.
 - ESLint v9 flat config in `eslint.config.mjs` (uses `eslint-config-next`).
 - TSConfig path alias: `@/*` → `./src/*`.
 - Icons: primarily `lucide-react`, also `@hugeicons/core-free-icons` + `@hugeicons/react` available.
