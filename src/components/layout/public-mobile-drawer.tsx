@@ -36,9 +36,11 @@ const surveyorMobileLinks = [
 export function PublicMobileDrawer({
   isAuthenticated,
   userRole,
+  customTrigger,
 }: {
   isAuthenticated?: boolean;
   userRole?: "USER" | "SURVEYOR" | "ADMIN";
+  customTrigger?: React.ReactElement;
 }) {
   const pathname = usePathname();
   const isSurveyor = userRole === "SURVEYOR";
@@ -48,15 +50,19 @@ export function PublicMobileDrawer({
     <Drawer swipeDirection="right">
       <DrawerTrigger
         render={
-          <Button
-            variant="outline"
-            size="icon"
-            className="lg:hidden"
-            aria-label="মেনু খুলুন"
-          />
+          customTrigger ? (
+            customTrigger
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden rounded-full"
+              aria-label="মেনু খুলুন"
+            />
+          )
         }
       >
-        <Menu />
+        {!customTrigger && <Menu />}
       </DrawerTrigger>
       <DrawerContent>
         {/* Header */}

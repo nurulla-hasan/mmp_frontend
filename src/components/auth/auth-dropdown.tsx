@@ -61,30 +61,61 @@ export function AuthDropdown({
     <div className="flex items-center gap-2">
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="outline-none"
+          className="outline-none rounded-full focus-visible:ring-3 focus-visible:ring-ring/50"
           render={
             <Button
               variant="ghost"
-              size="icon"
-              className="rounded-full"
+              className="h-auto w-auto p-0 rounded-full"
               aria-label="প্রোফাইল মেনু"
             />
           }
         >
-          <Avatar
-            className={cn(
-              "size-8",
-              user.isSubscribed &&
-                "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5",
-            )}
-          >
-            <AvatarImage
-              src={user.profilePhoto || "/assets/fallback-avatar.png"}
-            />
-            <AvatarFallback className="size-full">
-              {getInitials(user.name || "") || <UserRound />}
-            </AvatarFallback>
-          </Avatar>
+          <>
+            {/* Mobile Avatar (Default Size) */}
+            <Avatar
+              className={cn(
+                "lg:hidden",
+                user.isSubscribed &&
+                  "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5",
+              )}
+            >
+              <AvatarImage
+                src={user.profilePhoto || "/assets/fallback-avatar.png"}
+                className={cn(user.isSubscribed && "border-2 border-sidebar")}
+              />
+              <AvatarFallback 
+                className={cn(
+                  "size-full", 
+                  user.isSubscribed && "border-2 border-sidebar"
+                )}
+              >
+                {getInitials(user.name || "") || <UserRound />}
+              </AvatarFallback>
+            </Avatar>
+
+            {/* Desktop Avatar (Large Size) */}
+            <Avatar
+              size="lg"
+              className={cn(
+                "hidden lg:flex",
+                user.isSubscribed &&
+                  "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5",
+              )}
+            >
+              <AvatarImage
+                src={user.profilePhoto || "/assets/fallback-avatar.png"}
+                className={cn(user.isSubscribed && "border-2 border-sidebar")}
+              />
+              <AvatarFallback 
+                className={cn(
+                  "size-full", 
+                  user.isSubscribed && "border-2 border-sidebar"
+                )}
+              >
+                {getInitials(user.name || "") || <UserRound />}
+              </AvatarFallback>
+            </Avatar>
+          </>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="w-56">

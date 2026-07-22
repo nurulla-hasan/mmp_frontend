@@ -18,7 +18,7 @@ export function FinalCtaSection() {
       <SectionWrapper id="get-started">
       <SectionHeading
         title="জমির কাজ শুরু করতে প্রস্তুত?"
-        description="হিসাব করুন, প্রয়োজন পোস্ট করুন অথবা পেশাদার সার্ভেয়ার হিসেবে আপনার প্রোফাইল তৈরি করুন。"
+        description="জমির সঠিক মাপজোক করুন, এলাকার সেরা সার্ভেয়ার খুঁজে বের করুন অথবা পেশাদার সার্ভেয়ার হিসেবে আপনার প্রোফাইল তৈরি করুন।"
       />
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         {/* Landowner CTA */}
@@ -29,8 +29,7 @@ export function FinalCtaSection() {
             </div>
             <h3 className="mt-4 text-lg font-medium">জমির কাজ আছে?</h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              আপনার প্রয়োজন পোস্ট করুন এবং এলাকার সার্ভেয়ারদের কোটেশন গ্রহণ
-              করুন।
+              আপনার এলাকার বিশ্বস্ত ও অভিজ্ঞ সার্ভেয়ারদের তালিকা থেকে সরাসরি যোগাযোগ করুন।
             </p>
             <Button
               className="mt-6 w-full"
@@ -38,7 +37,7 @@ export function FinalCtaSection() {
               nativeButton={false}
               render={<Link href="/surveyors" />}
             >
-              কাজ পোস্ট করুন
+              সার্ভেয়ার খুঁজুন
               <ArrowRight className="size-4" />
             </Button>
           </CardContent>
@@ -52,8 +51,7 @@ export function FinalCtaSection() {
             </div>
             <h3 className="mt-4 text-lg font-medium">আপনি একজন সার্ভেয়ার?</h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              পেশাদার প্রোফাইল তৈরি করে নতুন ক্লায়েন্ট এবং উপলব্ধ রিকোয়েস্ট-এর
-              সঙ্গে যুক্ত হন।
+              পেশাদার প্রোফাইল তৈরি করে নতুন ক্লায়েন্টদের কাছে সহজেই পৌঁছান এবং আপনার পরিচিতি বাড়ান।
             </p>
             <Button
               className="mt-6 w-full"

@@ -10,7 +10,7 @@ export default function PublicLayout({
   return (
     <>
       <PublicHeader />
-      <div className="pb-14 md:pb-0">
+      <div className="pb-14 lg:pb-0">
         {children}
       <PublicFooter />
       </div>

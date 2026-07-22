@@ -59,7 +59,7 @@ export function LandToolsSection() {
     <div className="relative overflow-hidden bg-background">
       {/* Ambient Glows */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-1/2 left-1/4 h-125 w-125 -translate-y-1/2 -translate-x-1/2 rounded-full bg-primary/10 blur-[100px]" />
+        <div className="absolute top-1/2 left-1/4 h-125 w-125 -translate-y-1/2 -translate-x-1/2 rounded-full bg-primary/20 blur-[100px]" />
         <div className="absolute top-1/2 right-1/4 h-125 w-125 -translate-y-1/2 translate-x-1/2 rounded-full bg-blue-500/10 blur-[100px]" />
       </div>
 
