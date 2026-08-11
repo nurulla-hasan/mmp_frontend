@@ -47,9 +47,14 @@ export function ToolTopNav({
 
       <div className="mx-1 h-6 w-px shrink-0 bg-border/70" />
 
-      <div className="hidden shrink-0 items-center gap-2 px-1 sm:flex">
+      <div
+        className={cn(
+          'shrink-0 items-center gap-2 px-1',
+          children ? 'hidden sm:flex' : 'flex',
+        )}
+      >
         {Icon && <Icon className="size-4 text-primary" />}
-        <span className="whitespace-nowrap text-xs font-semibold text-foreground/85">
+        <span className="max-w-40 truncate whitespace-nowrap text-xs font-semibold text-foreground/85 sm:max-w-none">
           {title}
         </span>
       </div>
