@@ -155,8 +155,8 @@ export default function MapCalculator() {
             <div className="absolute inset-0 z-10">
               <ToolEmptyState
                 icon={Upload}
-                title="কোনো ম্যাপ আপলোড করা নেই"
-                description="কাজ শুরু করতে জমির নকশা বা ম্যাপ (JPG, PNG, PDF) আপলোড করুন।"
+                title="জমি পরিমাপ শুরু করুন"
+                description="জমির ম্যাপ আপলোড করে স্কেল সেট করুন, প্লট আঁকুন এবং জমির পরিমাণ হিসাব করুন। প্রয়োজন হলে একই প্লট ভাগও করতে পারবেন।"
                 actions={
                   <>
                     <Button
