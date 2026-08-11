@@ -16,7 +16,7 @@ export default function EmptyState({
     <ToolEmptyState
       icon={Globe2}
       title="মৌজা ম্যাপ জিওরেফারেন্স করুন"
-      description="কাজ শুরু করতে PDF অথবা image আপলোড করুন।"
+      description="PDF বা image আপলোড করে মৌজা ম্যাপকে বাস্তব পৃথিবীর অবস্থানের সঙ্গে মিলান এবং Google Earth-এর জন্য KMZ export করুন।"
       actions={
         <Button
           size="lg"
