@@ -147,7 +147,7 @@ export default function MapCalculator() {
             minHeight: '400px',
           }}
         >
-          <ToolTopNav title="জমি পরিমাপ" icon={Ruler} />
+          <ToolTopNav title="জমি পরিমাপ" icon={Ruler} backButtonId="step-home" />
 
           <KonvaStage containerRef={containerRef} stageRef={stageRef} />
 
