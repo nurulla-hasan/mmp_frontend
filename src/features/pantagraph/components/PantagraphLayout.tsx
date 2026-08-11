@@ -14,7 +14,19 @@ import { PantagraphSidebar } from './PantagraphSidebar';
 import { PantagraphToolbar } from './PantagraphToolbar';
 import { usePantagraphStore } from '../store/usePantagraphStore';
 
-export default function PantagraphLayout() {
+type PantagraphLayoutProps = {
+  embedded?: boolean;
+  topNavTitle?: string;
+  emptyStateTitle?: string;
+  emptyStateDescription?: string;
+};
+
+export default function PantagraphLayout({
+  embedded = false,
+  topNavTitle = 'ম্যাপ তুলনা',
+  emptyStateTitle = 'সাবেক ও হাল ম্যাপ তুলনা করুন',
+  emptyStateDescription = 'সাবেক ও হাল ম্যাপ আপলোড করে matching point বসান, তারপর দুই ম্যাপের অবস্থান ও স্কেল মিলিয়ে নিন।',
+}: PantagraphLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const imageLoading = usePantagraphStore((s) => s.imageLoading);
   const formerMap = usePantagraphStore((s) => s.formerMap);
@@ -23,7 +35,7 @@ export default function PantagraphLayout() {
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-background">
-      <ToolTopNav title="ম্যাপ তুলনা" icon={MapPinned} />
+      {!embedded && <ToolTopNav title={topNavTitle} icon={MapPinned} />}
 
       <PantagraphToolbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
@@ -34,8 +46,8 @@ export default function PantagraphLayout() {
           <div className="absolute inset-0 z-10">
             <ToolEmptyState
               icon={MapPinned}
-              title="ম্যাপ তুলনা শুরু করুন"
-              description="সাবেক ও হাল ম্যাপ আপলোড করে পয়েন্ট মিলিয়ে তুলনা শুরু করুন।"
+              title={emptyStateTitle}
+              description={emptyStateDescription}
               actions={
                 <Button className="w-full" onClick={() => setSidebarOpen(true)}>
                   <Settings2 className="size-4" />
