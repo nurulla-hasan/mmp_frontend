@@ -39,8 +39,8 @@ export default function TracerLayout() {
           <div className="absolute inset-0 z-10">
             <ToolEmptyState
               icon={PenTool}
-              title="ডিজিটাল ট্রেসিং শুরু করুন"
-              description="পুরানো ম্যাপ আপলোড করুন, তারপর দাগের সীমানা ও নম্বর ট্রেস করুন।"
+              title="পুরানো ম্যাপকে ডিজিটাল ট্রেসে রূপ দিন"
+              description="মৌজা ম্যাপ আপলোড করে দাগের সীমানা ও দাগ নম্বর ট্রেস করুন, যাতে পরিষ্কার digital vector map তৈরি করা যায়।"
               actions={
                 <Button className="w-full" onClick={() => setSidebarOpen(true)}>
                   <Settings2 className="size-4" />
