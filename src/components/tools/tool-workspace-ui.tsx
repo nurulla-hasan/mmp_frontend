@@ -13,6 +13,7 @@ type ToolTopNavProps = {
   children?: ReactNode;
   backHref?: string;
   backLabel?: string;
+  backButtonId?: string;
   className?: string;
 };
 
@@ -22,6 +23,7 @@ export function ToolTopNav({
   children,
   backHref = '/tools',
   backLabel = 'টুলস পেজে ফিরুন',
+  backButtonId,
   className,
 }: ToolTopNavProps) {
   return (
@@ -32,6 +34,7 @@ export function ToolTopNav({
       )}
     >
       <Button
+        id={backButtonId}
         nativeButton={false}
         render={<Link href={backHref} />}
         variant="ghost"
