@@ -40,7 +40,7 @@ export function HeroSection() {
       {/* Ambient Glows */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute top-0 right-1/4 h-200 w-200 -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" />
-        <div className="absolute bottom-0 left-0 h-200 w-200 translate-y-1/3 -translate-x-1/3 rounded-full bg-blue-500/10 blur-[100px]" />
+        <div className="absolute bottom-0 left-0 h-200 w-200 translate-y-1/3 -translate-x-1/3 rounded-full bg-yellow-500/10 blur-[100px]" />
       </div>
 
       <SectionWrapper
