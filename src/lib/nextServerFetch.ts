@@ -7,7 +7,7 @@ type AuthMode = "auth" | "none";
 
 type NextServerFetchOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
-  auth?: AuthMode;
+  auth: AuthMode;
   next?: NextFetchRequestConfig;
 };
 
@@ -106,14 +106,17 @@ const prepareBody = (
  * auth: "none"
  * - Skips all auth token handling.
  *
+ * The auth mode is intentionally required so every call site must explicitly
+ * decide whether the request is authenticated or public.
+ *
  * Network, runtime, JSON parsing, and Next.js errors may throw.
  */
 export const nextServerFetch = async <T = unknown>(
   endpoint: string,
-  options: NextServerFetchOptions = {},
+  options: NextServerFetchOptions,
 ): Promise<T> => {
   const {
-    auth = "auth",
+    auth,
     body: rawBody,
     headers: customHeaders,
     next,
