@@ -3,7 +3,7 @@ import "server-only";
 import { jwtDecode } from "jwt-decode";
 import { cookies } from "next/headers";
 
-type AuthMode = "required" | "optional" | "none";
+type AuthMode = "auth" | "none";
 
 type NextServerFetchOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
@@ -21,9 +21,7 @@ const getBaseUrl = (): string => {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   if (!baseUrl) {
-    throw new Error(
-      "NEXT_PUBLIC_API_URL is not defined", 
-    );
+    throw new Error("NEXT_PUBLIC_API_URL is not defined");
   }
 
   return baseUrl;
@@ -52,22 +50,17 @@ const getRequestTokens = async () => {
 const refreshAccessToken = async (
   refreshToken: string,
 ): Promise<string | null> => {
-  const response = await fetch(
-    `${getBaseUrl()}/auth/refresh-token`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
-      cache: "no-store",
-    },
-  );
+  const response = await fetch(`${getBaseUrl()}/auth/refresh-token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+    cache: "no-store",
+  });
 
   const result = (await response.json()) as RefreshResponse;
   const accessToken = result.data?.accessToken;
 
-  return typeof accessToken === "string"
-    ? accessToken
-    : null;
+  return typeof accessToken === "string" ? accessToken : null;
 };
 
 const isPlainObject = (
@@ -104,6 +97,15 @@ const prepareBody = (
 /**
  * Thin server-side wrapper around Next.js fetch.
  * Returns the backend JSON response unchanged.
+ *
+ * auth: "auth"
+ * - Requires an access token.
+ * - Refreshes it when missing or expired if a refresh token is available.
+ * - Throws before the backend request when no valid access token can be resolved.
+ *
+ * auth: "none"
+ * - Skips all auth token handling.
+ *
  * Network, runtime, JSON parsing, and Next.js errors may throw.
  */
 export const nextServerFetch = async <T = unknown>(
@@ -111,7 +113,7 @@ export const nextServerFetch = async <T = unknown>(
   options: NextServerFetchOptions = {},
 ): Promise<T> => {
   const {
-    auth = "required",
+    auth = "auth",
     body: rawBody,
     headers: customHeaders,
     next,
@@ -121,7 +123,7 @@ export const nextServerFetch = async <T = unknown>(
   const headers = new Headers(customHeaders);
   const body = prepareBody(rawBody, headers);
 
-  if (auth !== "none") {
+  if (auth === "auth") {
     const tokens = await getRequestTokens();
     let accessToken = tokens.accessToken;
 
@@ -131,9 +133,11 @@ export const nextServerFetch = async <T = unknown>(
         : null;
     }
 
-    if (accessToken) {
-      headers.set("Authorization", `Bearer ${accessToken}`);
+    if (!accessToken) {
+      throw new Error("Authentication required");
     }
+
+    headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
   const response = await fetch(`${getBaseUrl()}${endpoint}`, {
