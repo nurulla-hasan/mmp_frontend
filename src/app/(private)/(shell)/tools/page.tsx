@@ -27,7 +27,7 @@ const quickTools = [
     icon: Layers3,
     title: "মৌজা ম্যাপ স্টুডিও",
     description:
-      "C.S ও B.S ম্যাপ align করে একই workspace-এ vector tracing করুন।",
+      "C.S ও B.S ম্যাপ align করে cleanup, text/mark edit করুন এবং শেষে ব্যবহারযোগ্য sheet তৈরি করুন।",
     href: "/tools/mouza-map-studio",
     badge: "বেটা",
     color: "text-emerald-600 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30",
@@ -36,16 +36,16 @@ const quickTools = [
     icon: Globe2,
     title: "মৌজা জিও স্টুডিও",
     description:
-      "মৌজা ম্যাপকে পৃথিবীর আসল জায়গায় align করে Google Earth-এর জন্য KMZ তৈরি করুন।",
+      "মৌজা ম্যাপকে বাস্তব পৃথিবীর অবস্থানের সঙ্গে align করে Google Earth-এর জন্য KMZ তৈরি করুন।",
     href: "/tools/mouza-geo-studio",
     badge: "বেটা",
     color: "text-primary bg-primary/10",
   },
   {
     icon: Scaling,
-    title: "ম্যাপ স্কেল ও প্যান্টাগ্রাফ",
+    title: "ম্যাপ তুলনা ও প্যান্টাগ্রাফ",
     description:
-      "ম্যাপের স্কেল হিসাব করুন, এক স্কেল থেকে অন্য স্কেলে রূপান্তর করুন এবং প্যান্টাগ্রাফ রেশিও বের করুন।",
+      "সাবেক ও হাল ম্যাপ আপলোড করে matching point বসিয়ে অবস্থান, rotation ও scale মিলিয়ে তুলনা করুন।",
     href: "/tools/pantagraph",
     badge: "নতুন",
     color: "text-cyan-600 bg-cyan-100 dark:text-cyan-400 dark:bg-cyan-900/30",
@@ -54,7 +54,7 @@ const quickTools = [
     icon: PenLine,
     title: "ডিজিটাল ম্যাপ ট্রেসিং",
     description:
-      "পুরানো মৌজা ম্যাপের উপর সরাসরি C.S ও B.S দাগের সীমানা ট্রেস করে পরিষ্কার ভেক্টর ম্যাপ তৈরি করুন।",
+      "পুরানো মৌজা ম্যাপের দাগের সীমানা ও দাগ নম্বর ট্রেস করে পরিষ্কার digital vector map তৈরি করুন।",
     href: "/tools/tracer",
     badge: "নতুন",
     color: "text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30",
@@ -87,17 +87,14 @@ export default function ToolsPage() {
       <section>
         <Link href={featuredTool.href} className="group block">
           <Card className="relative overflow-hidden border-2 border-primary/20 transition-all duration-300 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10">
-            {/* Background gradient */}
             <div className="pointer-events-none absolute -inset-y-20 left-1/2 w-150 -translate-x-1/2 rounded-full bg-primary/3 " />
 
             <CardContent className="relative">
               <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
-                {/* Icon */}
                 <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 shadow-lg shadow-primary/10 ring-2 ring-primary/20">
                   <FeaturedIcon className="size-8 text-primary" />
                 </div>
 
-                {/* Content */}
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-3">
                     <h2 className="text-xl font-bold tracking-tight sm:text-2xl font-heading">
@@ -111,7 +108,6 @@ export default function ToolsPage() {
                     {featuredTool.description}
                   </p>
 
-                  {/* Feature chips */}
                   <div className="mt-4 flex flex-wrap gap-2">
                     {featuredTool.features.map((f) => (
                       <span
@@ -124,7 +120,6 @@ export default function ToolsPage() {
                   </div>
                 </div>
 
-                {/* CTA */}
                 <div className="shrink-0">
                   <Button size="lg" className="w-full sm:w-auto">
                     টুল খুলুন
@@ -138,9 +133,9 @@ export default function ToolsPage() {
 
       {/* ─── Quick Tools ────────────────────────────────────── */}
       <section>
-        <h2 className="text-lg font-semibold font-heading">কুইক টুলস</h2>
+        <h2 className="text-lg font-semibold font-heading">অন্যান্য টুলস</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          দ্রুত প্রয়োজনীয় গণনার জন্য সহায়ক টুলসমূহ।
+          বিশেষায়িত ম্যাপ, ট্রেসিং, জিওরেফারেন্স ও ভূমি হিসাবের টুলসমূহ।
         </p>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">

@@ -3,9 +3,8 @@
 import { useRef, useMemo, useCallback, memo } from 'react';
 import {
     Upload, Ruler, PenTool, Scissors, Eye, EyeOff, Search, HelpCircle,
-    Moon, Sun, MoreHorizontal, HardDrive, ArrowLeft, RotateCcw
+    Moon, Sun, MoreHorizontal, HardDrive, RotateCcw
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useShallow } from 'zustand/shallow';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
@@ -14,7 +13,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 
-// ─── Tooltip wrapper ─────────────────────────────────────────────────────────
 const ToolTip = memo(function ToolTip({ label, children, side = "left" }: { label: React.ReactNode; children: React.ReactNode; side?: "left" | "top" | "right" | "bottom" }) {
     return (
         <Tooltip>
@@ -28,7 +26,6 @@ const ToolTip = memo(function ToolTip({ label, children, side = "left" }: { labe
     );
 });
 
-// ─── Icon button ─────────────────────────────────────────────────────────────
 const ToolBtn = memo(function ToolBtn({
     icon: Icon,
     label,
@@ -79,14 +76,12 @@ const ToolBtn = memo(function ToolBtn({
     );
 });
 
-// ─── Divider ─────────────────────────────────────────────────────────────────
 function VDivider() {
     return <div className="my-1 h-px w-7 self-center bg-border" />;
 }
-// ─── Main Component ───────────────────────────────────────────────────────────
+
 export function FloatingToolbar() {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const router = useRouter();
     const { theme, setTheme } = useTheme();
 
     const {
@@ -224,15 +219,6 @@ export function FloatingToolbar() {
                 id="step-magnifier"
             />
         ),
-        home: (size: 'md' | 'sm' = 'md') => (
-            <ToolBtn
-                icon={ArrowLeft}
-                label="টুলস"
-                onClick={() => router.push('/tools')}
-                size={size}
-                id="step-home"
-            />
-        ),
         reset: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={RotateCcw}
@@ -255,7 +241,6 @@ export function FloatingToolbar() {
                 />
             );
         },
-
         help: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={HelpCircle}
@@ -269,12 +254,11 @@ export function FloatingToolbar() {
         selectedFile, isProcessingFile, handleUploadClick,
         scale, mode, image, plots.length, isDrawing, handleCalibrateClick, startPlotDrawing,
         startManualDivide, isShowDiagonals, setIsShowDiagonals,
-        isMagnifierEnabled, setIsMagnifierEnabled, router, theme, setTheme, confirmClearMap
+        isMagnifierEnabled, setIsMagnifierEnabled, theme, setTheme, confirmClearMap
     ]);
 
     return (
         <>
-            {/* Hidden file input */}
             <input
                 ref={fileInputRef}
                 type="file"
@@ -284,13 +268,10 @@ export function FloatingToolbar() {
                 onChange={handleImageUpload}
             />
 
-            {/* ── Desktop: floating right panel ─────────────────────────────────── */}
             <div
                 id="step-toolbar"
                 className="absolute right-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl md:flex"
             >
-                {commonTools.home()}
-                <VDivider />
                 {commonTools.upload()}
                 {commonTools.drive()}
                 <VDivider />
@@ -300,7 +281,6 @@ export function FloatingToolbar() {
                 <VDivider />
                 {commonTools.diagonals()}
                 {commonTools.magnifier()}
-
                 <VDivider />
                 <span id="step-save"><SaveProjectDialog iconOnly /></span>
                 {commonTools.help()}
@@ -308,16 +288,13 @@ export function FloatingToolbar() {
                 {commonTools.reset()}
             </div>
 
-            {/* ── Mobile: Scale Indicator ───────────────────────────────────────── */}
             {scale && !isDrawing && (
                 <div className="absolute bottom-18 left-1/2 z-40 -translate-x-1/2 rounded-full border border-border bg-card/95 px-3 py-1 shadow-md text-[10px] font-medium md:hidden text-primary whitespace-nowrap">
                     স্কেল: ১ px ≈ {(1 / scale).toFixed(2)} ft
                 </div>
             )}
 
-            {/* ── Mobile: floating bottom bar ───────────────────────────────────── */}
             <div id="step-toolbar" className={`absolute bottom-4 left-1/2 z-40 w-max max-w-[95vw] flex-wrap -translate-x-1/2 items-center justify-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl ${isDrawing ? 'hidden' : 'flex md:hidden'}`}>
-                {commonTools.home('sm')}
                 {commonTools.upload('sm')}
                 {commonTools.drive('sm')}
                 {commonTools.calibrate('sm')}
@@ -342,6 +319,7 @@ export function FloatingToolbar() {
                         <div>
                             {commonTools.magnifier('sm')}
                             {commonTools.diagonals('sm')}
+                            {commonTools.themeToggle('sm')}
                             {commonTools.help('sm')}
                             {commonTools.reset('sm')}
                         </div>
@@ -351,4 +329,3 @@ export function FloatingToolbar() {
         </>
     );
 }
-

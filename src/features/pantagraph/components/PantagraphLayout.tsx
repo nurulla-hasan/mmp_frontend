@@ -1,42 +1,82 @@
 'use client';
 
 import { useState } from 'react';
+import { MapPinned, Settings2 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+
+import { Button } from '@/components/ui/button';
+import {
+  ToolEmptyState,
+  ToolLoadingOverlay,
+  ToolTopNav,
+} from '@/components/tools/tool-workspace-ui';
 import { PantagraphStage } from './PantagraphStage';
 import { PantagraphSidebar } from './PantagraphSidebar';
 import { PantagraphToolbar } from './PantagraphToolbar';
 import { usePantagraphStore } from '../store/usePantagraphStore';
-import { Loader2 } from 'lucide-react';
 
-export default function PantagraphLayout() {
+type PantagraphLayoutProps = {
+  embedded?: boolean;
+  topNavTitle?: string;
+  emptyStateTitle?: string;
+  emptyStateDescription?: string;
+};
+
+export default function PantagraphLayout({
+  embedded = false,
+  topNavTitle = 'ম্যাপ তুলনা',
+  emptyStateTitle,
+  emptyStateDescription,
+}: PantagraphLayoutProps) {
+  const pathname = usePathname();
+  const isStudioContext = pathname.includes('/tools/mouza-map-studio');
+  const isEmbedded = embedded || isStudioContext;
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const imageLoading = usePantagraphStore(s => s.imageLoading);
+  const imageLoading = usePantagraphStore((s) => s.imageLoading);
+  const formerMap = usePantagraphStore((s) => s.formerMap);
+  const currentMap = usePantagraphStore((s) => s.currentMap);
+  const isEmpty = !formerMap && !currentMap && !imageLoading;
+
+  const resolvedEmptyTitle =
+    emptyStateTitle ??
+    (isStudioContext ? 'প্রথমে C.S ও B.S ম্যাপ মিলান' : 'সাবেক ও হাল ম্যাপ তুলনা করুন');
+  const resolvedEmptyDescription =
+    emptyStateDescription ??
+    (isStudioContext
+      ? 'C.S ও B.S ম্যাপ আপলোড করে matching point বসিয়ে align করুন। এরপর ফাইনাল এডিটে cleanup, লেখা ও mark যোগ করে শেষে sheet তৈরি করতে পারবেন।'
+      : 'সাবেক ও হাল ম্যাপ আপলোড করে matching point বসান, তারপর দুই ম্যাপের অবস্থান ও স্কেল মিলিয়ে নিন।');
 
   return (
-    <div className="relative w-full h-dvh overflow-hidden bg-background">
-      {/* Floating Toolbar */}
+    <div className="relative h-dvh w-full overflow-hidden bg-background">
+      {!isEmbedded && <ToolTopNav title={topNavTitle} icon={MapPinned} />}
+
       <PantagraphToolbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-
-      {/* Main canvas area — full screen */}
       <div className="absolute inset-0">
         <PantagraphStage />
-        {imageLoading && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/75">
-            <div className="flex min-w-60 flex-col items-center gap-4 rounded-xl border border-border bg-card px-6 py-5 text-center shadow-lg">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <div>
-                <p className="text-sm font-semibold text-foreground">ম্যাপ লোড হচ্ছে</p>
-                <p className="mt-1 text-xs text-muted-foreground">একটু সময় লাগতে পারে</p>
-              </div>
-            </div>
+
+        {isEmpty && (
+          <div className="absolute inset-0 z-10">
+            <ToolEmptyState
+              icon={MapPinned}
+              title={resolvedEmptyTitle}
+              description={resolvedEmptyDescription}
+              actions={
+                <Button className="w-full" onClick={() => setSidebarOpen(true)}>
+                  <Settings2 className="size-4" />
+                  ম্যাপ ও সেটিংস খুলুন
+                </Button>
+              }
+            />
           </div>
         )}
+
+        {imageLoading && <ToolLoadingOverlay />}
       </div>
 
-      {/* Floating Sidebar (Settings) */}
-      <PantagraphSidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+      <PantagraphSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
     </div>
   );

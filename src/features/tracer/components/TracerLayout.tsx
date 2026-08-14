@@ -1,32 +1,59 @@
 'use client';
 
 import { useState } from 'react';
+import { PenTool, Settings2 } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import {
+  ToolEmptyState,
+  ToolLoadingOverlay,
+  ToolTopNav,
+} from '@/components/tools/tool-workspace-ui';
 import { TracerToolbar } from './TracerToolbar';
 import { TracerSidebar } from './TracerSidebar';
 import TracerCanvas from './TracerCanvas';
 import { useTracerStore } from '../store/useTracerStore';
-import { Loader2 } from 'lucide-react';
 
 export default function TracerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const imageLoading = useTracerStore(s => s.imageLoading);
+  const imageLoading = useTracerStore((s) => s.imageLoading);
+  const backgroundImage = useTracerStore((s) => s.backgroundImage);
+  const layers = useTracerStore((s) => s.layers);
+  const pendingPoints = useTracerStore((s) => s.pendingPoints);
+  const isEmpty =
+    !backgroundImage &&
+    !imageLoading &&
+    pendingPoints.length === 0 &&
+    layers.every((layer) => layer.polygons.length === 0 && layer.labels.length === 0);
+
   return (
-    <div className="relative w-full h-dvh overflow-hidden bg-background">
+    <div className="relative h-dvh w-full overflow-hidden bg-background">
+      <ToolTopNav title="ডিজিটাল ট্রেসার" icon={PenTool} />
+
       <TracerToolbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+
       <div className="absolute inset-0">
         <TracerCanvas />
-        {imageLoading && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/75">
-            <div className="flex min-w-60 flex-col items-center gap-4 rounded-xl border border-border bg-card px-6 py-5 text-center shadow-lg">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <div>
-                <p className="text-sm font-semibold text-foreground">ম্যাপ লোড হচ্ছে</p>
-                <p className="mt-1 text-xs text-muted-foreground">একটু সময় লাগতে পারে</p>
-              </div>
-            </div>
+
+        {isEmpty && (
+          <div className="absolute inset-0 z-10">
+            <ToolEmptyState
+              icon={PenTool}
+              title="পুরানো ম্যাপকে ডিজিটাল ট্রেসে রূপ দিন"
+              description="মৌজা ম্যাপ আপলোড করে দাগের সীমানা ও দাগ নম্বর ট্রেস করুন, যাতে পরিষ্কার digital vector map তৈরি করা যায়।"
+              actions={
+                <Button className="w-full" onClick={() => setSidebarOpen(true)}>
+                  <Settings2 className="size-4" />
+                  ট্রেসার সেটিংস খুলুন
+                </Button>
+              }
+            />
           </div>
         )}
+
+        {imageLoading && <ToolLoadingOverlay />}
       </div>
+
       <TracerSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </div>
   );

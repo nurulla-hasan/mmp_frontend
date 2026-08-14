@@ -1,6 +1,7 @@
 import { FileUp, Globe2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { ToolEmptyState } from '@/components/tools/tool-workspace-ui';
 
 type EmptyStateProps = {
   loadingFile: boolean;
@@ -12,29 +13,21 @@ export default function EmptyState({
   onUploadClick,
 }: EmptyStateProps) {
   return (
-    <div className="grid h-full place-items-center p-6">
-      <div className="max-w-md text-center">
-        <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-primary/10 text-primary">
-          <Globe2 className="size-8" />
-        </div>
-        <h1 className="mt-4 font-heading text-xl font-bold">
-          মৌজা ম্যাপ Georeference করুন
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Settings থেকে PDF অথবা image upload করুন।
-        </p>
-        <div className="mt-5">
-          <Button
-            variant="default"
-            size="lg"
-            disabled={loadingFile}
-            onClick={onUploadClick}
-          >
-            <FileUp className="size-4" />
-            {loadingFile ? 'Load হচ্ছে…' : 'PDF / Image আপলোড'}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <ToolEmptyState
+      icon={Globe2}
+      title="মৌজা ম্যাপ জিওরেফারেন্স করুন"
+      description="PDF বা image আপলোড করে মৌজা ম্যাপকে বাস্তব পৃথিবীর অবস্থানের সঙ্গে মিলান এবং Google Earth-এর জন্য KMZ export করুন।"
+      actions={
+        <Button
+          size="lg"
+          disabled={loadingFile}
+          onClick={onUploadClick}
+          className="w-full"
+        >
+          <FileUp className="size-4" />
+          {loadingFile ? 'লোড হচ্ছে…' : 'PDF / Image আপলোড'}
+        </Button>
+      }
+    />
   );
 }
