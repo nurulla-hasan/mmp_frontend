@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { PageWrapper } from "@/components/ui/custom/page-wrapper";
+import { PageWrapper } from "@/components/common/page-wrapper";
 
 function formatRouteValue(value: string) {
   return decodeURIComponent(value).replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());

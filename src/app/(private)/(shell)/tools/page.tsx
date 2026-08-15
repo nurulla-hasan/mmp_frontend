@@ -1,7 +1,7 @@
 import { Calculator, Globe2, Layers3, Map, MoveDiagonal, PenLine, Scaling } from "lucide-react";
 import Link from "next/link";
 
-import { PageWrapper } from "@/components/ui/custom/page-wrapper";
+import { PageWrapper } from "@/components/common/page-wrapper";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

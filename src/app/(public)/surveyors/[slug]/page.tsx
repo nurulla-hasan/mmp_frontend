@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { PageWrapper } from "@/components/ui/custom/page-wrapper";
-import type { TSurveyorProfile } from "@/types/surveyor-profile.type";
-import { SurveyorHero } from "@/components/surveyors/surveyor-hero";
-import { SurveyorStatsPanel } from "@/components/surveyors/surveyor-stats-panel";
-import { SurveyorServices } from "@/components/surveyors/surveyor-services";
-import { SurveyorServiceAreas } from "@/components/surveyors/surveyor-service-areas";
-import { SurveyorPricing } from "@/components/surveyors/surveyor-pricing";
-import { SurveyorVerification } from "@/components/surveyors/surveyor-verification";
-import { SurveyorReviews } from "@/components/surveyors/surveyor-reviews";
-import CustomBreadcrumb from "@/components/ui/custom/custom-breadcrumb";
+import { PageWrapper } from "@/components/common/page-wrapper";
+import type { TSurveyorProfile } from "@/interface/surveyor-profile";
+import { SurveyorHero } from "../_components/surveyor-hero";
+import { SurveyorStatsPanel } from "../_components/surveyor-stats-panel";
+import { SurveyorServices } from "../_components/surveyor-services";
+import { SurveyorServiceAreas } from "../_components/surveyor-service-areas";
+import { SurveyorPricing } from "../_components/surveyor-pricing";
+import { SurveyorVerification } from "../_components/surveyor-verification";
+import { SurveyorReviews } from "../_components/surveyor-reviews";
+import CustomBreadcrumb from "@/components/common/custom-breadcrumb";
 
 // ─── Mock data ───────────────────────────────────────────
 const mockSurveyors: Record<string, TSurveyorProfile> = {

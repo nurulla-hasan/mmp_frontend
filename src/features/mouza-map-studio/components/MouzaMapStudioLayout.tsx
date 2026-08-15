@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react';
 
 import PantagraphLayout from '@/features/pantagraph/components/PantagraphLayout';
-import { ConfirmationModal } from '@/components/ui/custom/confirmation-modal';
+import { ConfirmationModal } from '@/components/common/confirmation-modal';
 import {
   PantagraphCropDialog,
   type PantagraphCropResult,

@@ -2,7 +2,7 @@ import { ClipboardCheck, FileEdit, MessageCircle, UserCheck } from "lucide-react
 import Link from "next/link";
 
 import { SectionHeading } from "@/components/home/section-heading";
-import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
+import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Button } from "@/components/ui/button";
 
 const steps = [

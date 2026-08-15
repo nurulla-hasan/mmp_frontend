@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { PageWrapper } from "@/components/ui/custom/page-wrapper";
+import { PageWrapper } from "@/components/common/page-wrapper";
 import { SectionHeading } from "@/components/home/section-heading";
-import { SearchInput } from "@/components/ui/custom/search-input";
+import { SearchInput } from "@/components/common/search-input";
 import {
   SurveyorCard,
   type TSurveyorCard,
-} from "@/components/surveyors/surveyor-card";
+} from "./_components/surveyor-card";
 import { useNextFilter } from "@/hooks/useNextFilter";
 
 const surveyors: TSurveyorCard[] = [

@@ -11,7 +11,7 @@ import { Group, Image as KonvaImage, Layer, Line, Stage, Text } from 'react-konv
 import type Konva from 'konva';
 import { useShallow } from 'zustand/shallow';
 
-import { ConfirmationModal } from '@/components/ui/custom/confirmation-modal';
+import { ConfirmationModal } from '@/components/common/confirmation-modal';
 import {
   useMouzaMapStudioStore,
 } from '../store/useMouzaMapStudioStore';

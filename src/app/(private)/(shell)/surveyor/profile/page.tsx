@@ -1,5 +1,5 @@
-import { PageWrapper } from "@/components/ui/custom/page-wrapper";
-import { SurveyorProfileForm } from "@/components/surveyor/profile/surveyor-profile-form";
+import { PageWrapper } from "@/components/common/page-wrapper";
+import { SurveyorProfileForm } from "./_components/surveyor-profile-form";
 
 export default function Page() {
   return (

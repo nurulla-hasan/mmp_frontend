@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import { SectionHeading } from "@/components/home/section-heading";
-import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
+import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -125,7 +125,7 @@ const howItWorks = [
 export default function AboutPage() {
   return (
     <>
-      {/* ─── Hero ──────────────────────────────────────────── */}
+      {/* ─── Hero  */}
       <SectionWrapper padding="lg">
         <div className="relative mx-auto max-w-3xl text-center">
           {/* Background glow */}
@@ -165,7 +165,7 @@ export default function AboutPage() {
         </div>
       </SectionWrapper>
 
-      {/* ─── Stats ─────────────────────────────────────────── */}
+      {/* ─── Stats ────── */}
       <SectionWrapper padding="md" bg="muted">
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           {stats.map((stat) => (
@@ -185,7 +185,7 @@ export default function AboutPage() {
         </div>
       </SectionWrapper>
 
-      {/* ─── Mission & Values ──────────────────────────────── */}
+      {/* ─── Mission & Values ──── */}
       <SectionWrapper padding="lg">
         <SectionHeading
           title="আমাদের লক্ষ্য ও মূল্যবোধ"
@@ -215,7 +215,7 @@ export default function AboutPage() {
         </div>
       </SectionWrapper>
 
-      {/* ─── Features / What We Offer ──────────────────────── */}
+      {/* ─── Features / What We Offer ────*/}
       <SectionWrapper padding="lg" bg="muted">
         <SectionHeading
           badge="আমরা যা অফার করি"
@@ -244,7 +244,7 @@ export default function AboutPage() {
         </div>
       </SectionWrapper>
 
-      {/* ─── How It Works ──────────────────────────────────── */}
+      {/* ─── How It Works ────*/}
       <SectionWrapper padding="lg">
         <SectionHeading
           badge="কীভাবে কাজ করে"
@@ -277,7 +277,7 @@ export default function AboutPage() {
         </div>
       </SectionWrapper>
 
-      {/* ─── For Whom ──────────────────────────────────────── */}
+      {/* ─── For Whom ─── */}
       <SectionWrapper padding="lg" bg="muted">
         <SectionHeading
           title="এটি কার জন্য?"
@@ -357,7 +357,7 @@ export default function AboutPage() {
         </div>
       </SectionWrapper>
 
-      {/* ─── Why Mouza Map Pro ─────────────────────────────── */}
+      {/* ─── Why Mouza Map Pro ─── */}
       <SectionWrapper padding="lg">
         <SectionHeading
           badge="কেন Mouza Map Pro"
@@ -406,7 +406,7 @@ export default function AboutPage() {
         </div>
       </SectionWrapper>
 
-      {/* ─── Team ──────────────────────────────────────────── */}
+      {/* ─── Team ──── */}
       <SectionWrapper padding="lg" bg="muted">
         <SectionHeading
           title="আমাদের টিম"
@@ -429,7 +429,7 @@ export default function AboutPage() {
         </div>
       </SectionWrapper>
 
-      {/* ─── Final CTA ─────────────────────────────────────── */}
+      {/* ─── Final CTA ── */}
       <SectionWrapper padding="lg" bg="primary">
         <div className="relative">
           <div className="pointer-events-none absolute inset-0 mx-auto size-80 rounded-full bg-primary/10 " />

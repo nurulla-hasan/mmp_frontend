@@ -6,10 +6,10 @@ import {
  Users,
 } from "lucide-react";
 
-import { AskQuestionModal } from "@/components/community/ask-question-modal";
-import { FaqAccordion } from "@/components/community/faq-accordion";
+import { AskQuestionModal } from "./_components/ask-question-modal";
+import { FaqAccordion } from "./_components/faq-accordion";
 import { SectionHeading } from "@/components/home/section-heading";
-import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
+import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

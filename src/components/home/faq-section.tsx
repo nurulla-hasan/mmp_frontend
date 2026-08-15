@@ -4,7 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 import { SectionHeading } from "@/components/home/section-heading";
-import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
+import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Collapsible,

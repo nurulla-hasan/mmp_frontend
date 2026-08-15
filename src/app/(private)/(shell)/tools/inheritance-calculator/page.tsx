@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { PageWrapper } from "@/components/ui/custom/page-wrapper";
+import { PageWrapper } from "@/components/common/page-wrapper";
 import {
   Select,
   SelectContent,

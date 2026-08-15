@@ -6,7 +6,7 @@ import {
   HowItWorksSection,
   LandToolsSection,
   PopularServicesSection,
-  PricingSection,
+  // PricingSection,
   ProfessionalReportSection,
   QuickActionsSection,
   RoleBenefitsSection,
@@ -28,7 +28,7 @@ export default function HomePage() {
       <SavedCalculationsSection />
       <RoleBenefitsSection />
       <ProfessionalReportSection />
-      <PricingSection />
+      {/* <PricingSection /> */}
       <TestimonialsSection />
       <FaqSection />
       <FinalCtaSection />

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, HelpCircle, MessageSquare, Send } from "lucide-react";
 
 import { SectionHeading } from "@/components/home/section-heading";
-import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
+import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {

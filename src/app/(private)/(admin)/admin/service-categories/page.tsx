@@ -1,2 +1,47 @@
-import { DashboardPage } from "@/components/shared/dashboard-page";
-export default function Page() { return <DashboardPage title="সার্ভিস ক্যাটাগরি" description="পাবলিক জমি-সেবা ক্যাটাগরি এবং বর্ণনা পরিচালনা করুন।" cards={[{ label: "প্রকাশিত ক্যাটাগরি", value: "0", description: "সার্ভিস ক্যাটাগরি এখানে দেখাবে।" },{ label: "পাবলিক ক্যাটালগ", href: "/services", description: "পাবলিক সার্ভিস ডিসকভারি প্রিভিউ দেখুন।" }]} />; }
+"use client";
+import { DataTable } from "@/components/common/data-table";
+import { SectionHeading } from "@/components/common/section-heading";
+import {
+  serviceCategoryColumns,
+  type ServiceCategoryRow,
+} from "./_components/service-category-column";
+
+const ServiceCategories: ServiceCategoryRow[] = [
+  {
+    id: "sc-001",
+    name: "জমি পরিমাপ",
+    slug: "land-measurement",
+    status: "published",
+  },
+  {
+    id: "sc-002",
+    name: "সীমানা নির্ধারণ",
+    slug: "boundary-marking",
+    status: "published",
+  },
+  {
+    id: "sc-003",
+    name: "জমি ভাগ",
+    slug: "land-division",
+    status: "draft",
+  },
+];
+
+export default function Page() {
+  return (
+    <div className="space-y-6">
+      <SectionHeading
+        title="Service Categories"
+        description="Manage public land-service categories and descriptions."
+        as="h3"
+        alignment="left"
+      />
+      <DataTable
+        data={ServiceCategories}
+        columns={serviceCategoryColumns}
+        searchKey="name"
+        searchPlaceholder="Search categories..."
+      />
+    </div>
+  );
+}

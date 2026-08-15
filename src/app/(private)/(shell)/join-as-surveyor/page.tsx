@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { JoinAsSurveyorForm } from "@/components/join-as-surveyor/join-as-surveyor-form";
-import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
+import { JoinAsSurveyorForm } from "./_components/join-as-surveyor-form";
+import { SectionWrapper } from "@/components/common/section-wrapper";
 
 export const metadata: Metadata = {
   title: "সার্ভেয়ার হিসেবে যোগ দিন — MMP",

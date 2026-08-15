@@ -6,7 +6,7 @@ import {
   PricingFaq,
   PricingHero,
   PricingPolicies,
-} from "@/components/pricing";
+} from "./_components";
 
 export default function PricingPage() {
   return (

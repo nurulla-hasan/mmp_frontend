@@ -62,7 +62,7 @@ export function ToolTopNav({
       {children && (
         <>
           <div className="mx-1 hidden h-6 w-px shrink-0 bg-border/70 sm:block" />
-          <div className="flex min-w-0 items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-0 items-center gap-1 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden">
             {children}
           </div>
         </>

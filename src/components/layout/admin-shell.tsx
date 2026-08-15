@@ -1,138 +1,167 @@
 "use client";
 
-import { useState } from "react";
-import { Bell, LogOut, Menu, UserRound } from "lucide-react";
+import { Bell, LogOut, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Logo } from "@/components/shared/logo";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/custom/theme-toggle";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { adminNavigation } from "@/components/navigation/navigation-config";
-import { cn } from "@/lib/utils";
-import { CONTAINER_MAX_WIDTH } from "@/components/ui/custom/page-wrapper";
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Logo } from "@/components/common/logo";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/common/theme-toggle";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { adminNavigation } from "@/constants/nav-links";
+import { getInitials } from "@/lib/utils";
 
-function isRouteActive(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
+// MMP has no getMe()/logoutAction() yet — use a placeholder admin user
+// and a placeholder logout until the auth server actions are wired up.
+const placeholderUser = {
+  name: "অ্যাডমিন",
+  email: "admin@mouzamappro.com",
+};
 
-function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
+function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center border-b px-4">
-        <Logo className="px-2" />
-      </div>
-      <ScrollArea className="flex-1 overflow-y-auto p-2">
-        <nav className="mt-4 space-y-1" aria-label="অ্যাডমিন নেভিগেশন">
-          {adminNavigation.map((item) => {
-            const Icon = item.icon;
-            const active = isRouteActive(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onNavigate}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                  active
-                    ? "bg-primary text-sidebar-primary-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent",
-                )}
-              >
-                <Icon className="size-4 shrink-0" aria-hidden="true" />
-                <span className="truncate">{item.title}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </ScrollArea>
-      <div className="flex h-16 items-center justify-center border-t">
-        <Button variant="ghost" className="w-full">
+    <Sidebar>
+      <SidebarHeader className="h-16 border-b">
+        <Logo size="md" showText showTextOnMobile />
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-1.5">
+              {adminNavigation.map((item) => {
+                const isActive =
+                  pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`);
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      size="md"
+                      isActive={isActive}
+                      render={<Link href={item.href} />}
+                    >
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter>
+        <Button
+          variant="destructive"
+          size="lg"
+          className="justify-start"
+        >
           <LogOut />
-          লগআউট
+          Logout
         </Button>
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
+
+function AdminHeader() {
+  const fallback = placeholderUser.name ? (
+    getInitials(placeholderUser.name)
+  ) : (
+    <UserRound className="size-4" />
+  );
+
+  const handleLogout = () => {
+    // TODO: wire up logoutAction() once auth server actions exist
+    console.log("logout clicked");
+  };
+
+  return (
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-sidebar px-4 sm:px-6">
+      <SidebarTrigger className="lg:hidden" />
+
+      <div className="ml-auto flex items-center gap-1">
+        <ThemeToggle />
+
+        <Button variant="ghost" size="icon" aria-label="নোটিফিকেশন">
+          <Bell className="size-4" />
+        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+            <Avatar className="size-8 cursor-pointer">
+              <AvatarFallback>{fallback}</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col">
+                  <p className="text-sm font-medium text-foreground">
+                    {placeholderUser.name}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground/70">
+                    {placeholderUser.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                render={<Link href="/" />}
+                className="flex items-center gap-2"
+              >
+                <UserRound className="size-4" />
+                প্রোফাইল
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+              <LogOut className="size-4" />
+              লগআউট
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-    </div>
+    </header>
   );
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-
   return (
-    <div className="min-h-dvh bg-muted/30">
-      {/* Desktop Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r bg-sidebar lg:flex lg:flex-col">
-        <AdminSidebar />
-      </aside>
-
-      {/* Main Area */}
-      <div className="lg:pl-64">
-        {/* Header */}
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-sidebar px-4 sm:px-6">
-          {/* Mobile Drawer Trigger */}
-          <Drawer
-            open={mobileOpen}
-            onOpenChange={setMobileOpen}
-            swipeDirection="left"
-          >
-            <DrawerTrigger
-              render={
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="lg:hidden"
-                  aria-label="নেভিগেশন খুলুন"
-                />
-              }
-            >
-              <Menu />
-            </DrawerTrigger>
-            <DrawerContent>
-              <DrawerTitle className="sr-only">অ্যাডমিন নেভিগেশন</DrawerTitle>
-              <DrawerDescription className="sr-only">
-                অ্যাডমিন ড্যাশবোর্ডে নেভিগেট করুন।
-              </DrawerDescription>
-              <AdminSidebar onNavigate={() => setMobileOpen(false)} />
-            </DrawerContent>
-          </Drawer>
-
-          <div>
-            <p className="text-sm font-medium">অ্যাডমিন প্যানেল</p>
-            <p className="text-xs text-muted-foreground">মৌজা ম্যাপ প্রো</p>
-          </div>
-
-          <div className="ml-auto flex items-center gap-1">
-            <Button variant="ghost" size="icon" aria-label="নোটিফিকেশন">
-              <Bell />
-            </Button>
-            <ThemeToggle />
-            <Button variant="ghost" size="icon" aria-label="প্রোফাইল মেনু">
-              <UserRound />
-            </Button>
-          </div>
-        </header>
-
-        {/* Content */}
-        <main
-          className={cn(
-            `mx-auto w-full ${CONTAINER_MAX_WIDTH} p-4 sm:p-6 lg:p-8`,
-          )}
-        >
-          {children}
-        </main>
-      </div>
-    </div>
+    <SidebarProvider>
+      <AdminSidebar />
+      <SidebarInset>
+        <AdminHeader />
+        <div className="flex-1 p-4 sm:p-6">{children}</div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

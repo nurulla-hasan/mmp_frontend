@@ -66,8 +66,8 @@ npm run lint -- --fix  # Auto-fix lint issues
 
 | Group | Path | Layout | Notes |
 |---|---|---|---|
-| `(public)` | `/`, `/about`, `/contact`, `/fraud-awareness`, `/pricing`, `/surveyors`, `/surveyors/[slug]` | `PublicHeader` + `PublicFooter` + `MobileBottomNav` | Public pages |
-| `(private)/(shell)` | `/tools`, `/tools/unit-converter`, `/tools/scale-guide`, `/tools/inheritance-calculator`, `/community`, `/join-as-surveyor`, `/dashboard/**`, `/surveyor/**` | `PrivateLayout` (PublicHeader + PublicFooter + MobileBottomNav) | Shell pages; route protection logic exists in `src/proxy.ts` but is currently disabled |
+| `(public)` | `/`, `/about`, `/contact`, `/fraud-awareness`, `/pricing`, `/surveyors`, `/surveyors/[slug]` | `Navbar` + `PublicFooter` + `MobileBottomNav` | Public pages |
+| `(private)/(shell)` | `/tools`, `/tools/unit-converter`, `/tools/scale-guide`, `/tools/inheritance-calculator`, `/community`, `/join-as-surveyor`, `/dashboard/**`, `/surveyor/**` | `PrivateLayout` (Navbar + PublicFooter + MobileBottomNav) | Shell pages; route protection logic exists in `src/proxy.ts` but is currently disabled |
 | `(private)/(bare)` | `/tools/tracer`, `/tools/pantagraph`, `/tools/land-measurement`, `/tools/mouza-map-studio`, `/tools/mouza-geo-studio` | `BareLayout` (empty wrapper, no shell) | Canvas-heavy tools — no header/footer wrapper |
 | `(auth)` | `/login`, `/register`, `/forgot-password`, etc. | Centered layout with Logo | Auth flows |
 | `(admin-dashboard)` | `/admin/**` | `AdminShell` | Admin panel |
@@ -77,10 +77,10 @@ npm run lint -- --fix  # Auto-fix lint issues
 - **`cn()`** from `@/lib/utils` — use for all conditional Tailwind class merging (wraps `clsx` + `tailwind-merge`).
 - **`useNextFilter`** / **`useSmartFilter`** (`src/hooks/useNextFilter.ts`) — manage all URL search params (filter, pagination, search). Generic `useNextFilter<T extends string>(config?)`. Returns `{ updateFilter, toggleFilter, updateBatch, clearAll, getFilter, getArrayFilter, isSelected, isFilterActive, getAllFilters, getActiveCount, pendingKeys }`. Debounced, auto-syncs with browser history.  
   Note: `useSmartFilter` is a thin re-export wrapper — prefer `useNextFilter` directly.
-- **`nextServerFetch<T>(endpoint, options)`** (`src/lib/nextServerFetch.ts`) — **server-only** data fetching wrapper (marked `"server-only"`). Reads `accessToken` from cookies and supports `auth: "required" | "optional" | "none"`. Accepts JSON or `FormData` body, forwards `next` fetch options, returns typed `T`, and throws `ApiError { status, data }` on failure. **Cannot be used in client components** — server-only import restriction.
+- **`nextServerFetch<T>(endpoint, options)`** (`src/lib/nextServerFetch.ts`) — **server-only** data fetching wrapper (marked `"server-only"`). Reads `accessToken`/`refreshToken` from cookies and supports `auth: "auth" | "none"` (auth mode is **required** at every call site). With `auth: "auth"`, it auto-refreshes the access token via `/auth/refresh-token` when missing/expired, then forwards it as `Authorization: Bearer ...`; throws a plain `Error("Authentication required")` if no valid token can be resolved. Accepts JSON or `FormData` body, forwards `next` fetch options, returns `response.json()` typed as `T`. **Cannot be used in client components** — server-only import restriction.
 - **`buildQueryString(query)`** (`src/lib/buildQueryString.ts`) — builds `?key=val&key2=val2` from `Record<string, string | number | string[] | undefined>`. Skips undefined/null/empty.
-- **`DataTable`** (`src/components/ui/custom/data-table.tsx`) — TanStack Table wrapper with URL-driven search via `useSmartFilter` (debounced 500ms), server/client pagination, and an internal `React.Suspense` boundary for `useSearchParams()`. Props: `columns`, `data`, `limit`, `meta`, `searchKey`, `searchPlaceholder`.
-- **`SearchInput`** (`src/components/ui/custom/search-input.tsx`) — connects to URL params via `useNextFilter`. Debounced 300ms, `filterKey` defaults to `"searchTerm"`.
+- **`DataTable`** (`src/components/common/data-table.tsx`) — TanStack Table wrapper with URL-driven search via `useSmartFilter` (debounced 500ms), server/client pagination, and an internal `React.Suspense` boundary for `useSearchParams()`. Props: `columns`, `data`, `limit`, `meta`, `searchKey`, `searchPlaceholder`.
+- **`SearchInput`** (`src/components/common/search-input.tsx`) — connects to URL params via `useNextFilter`. Debounced 300ms, `filterKey` defaults to `"searchTerm"`.
 - **`Button`** (`src/components/ui/button.tsx`) — uses `@base-ui/react` `render` prop for polymorphic composition: `<Button nativeButton={false} render={<Link href="..." />} />`. Variants via `cva`: `default`, `outline`, `secondary`, `ghost`, `destructive`, `link`. Sizes: `default`, `xs`, `sm`, `lg`, `icon`, `icon-xs`, `icon-sm`, `icon-lg`.
 - **`Field` component system** — use `Field`, `FieldLabel`, `FieldGroup`, `FieldError` from `@/components/ui/field` for all forms (from shadcn).
 - **Toast helpers** — `SuccessToast(msg)`, `ErrorToast(msg)`, `WarningToast(msg)`, `InfoToast(msg)` from `@/lib/utils` (wrap `sonner` toast).
@@ -95,17 +95,17 @@ npm run lint -- --fix  # Auto-fix lint issues
 - **Server components by default** — only add `"use client"` when using hooks, browser APIs, or interactivity.
 - **Page shell components** (`dashboard-page.tsx`): server components (no `"use client"`). Note: `public-page.tsx` does NOT exist.
 - **Interactive components** (`dashboard-shell.tsx`, `dashboard-header.tsx`): `"use client"`.
-- **`DashboardPage`** (`src/components/shared/dashboard-page.tsx`) — server component with title, description, cards (4-column grid), optional `showBack`.
-- **`PublicDynamicPage` / `DashboardDynamicPage`** (`src/components/shared/dynamic-page.tsx`) — generic route content components.
-- **`SectionWrapper`** (`src/components/ui/custom/section-wrapper.tsx`) — configurable container: `padding` (none/sm/md/lg/xl), `bg` (white/muted/primary), `container`, `asSection`.
-- **`PageWrapper`** (`src/components/ui/custom/page-wrapper.tsx`) — layout container with configurable padding and optional screen-height handling.
-- **`RouteCard`** (`src/components/shared/route-card.tsx`) — link card with hover arrow animation.
-- **`LoadingView`** (`src/components/shared/loading-view.tsx`) — centered `Spinner` + label.
-- **`Logo`** (`src/components/shared/logo.tsx`) — image (`/assets/logo.png`) with optional text, 3 sizes.
-- **`ImageCropDialog`** (`src/components/ui/custom/image-crop-dialog.tsx`) — `react-easy-crop` integration for avatar/profile cropping.
+- **`DashboardPage`** (`src/components/common/dashboard-page.tsx`) — server component with title, description, cards (4-column grid), optional `showBack`.
+- **`PublicDynamicPage` / `DashboardDynamicPage`** (`src/components/common/dynamic-page.tsx`) — generic route content components.
+- **`SectionWrapper`** (`src/components/common/section-wrapper.tsx`) — configurable container: `padding` (none/sm/md/lg/xl), `bg` (white/muted/primary), `container`, `asSection`.
+- **`PageWrapper`** (`src/components/common/page-wrapper.tsx`) — layout container with configurable padding and optional screen-height handling.
+- **`RouteCard`** (`src/components/common/route-card.tsx`) — link card with hover arrow animation.
+- **`LoadingView`** (`src/components/common/loading-view.tsx`) — centered `Spinner` + label.
+- **`Logo`** (`src/components/common/logo.tsx`) — image (`/assets/logo.png`) with optional text, 3 sizes.
+- **`ImageCropDialog`** (`src/components/common/image-crop-dialog.tsx`) — `react-easy-crop` integration for avatar/profile cropping.
 - **`render` prop pattern** for polymorphic composition (e.g., `<Button nativeButton={false} render={<Link href="..." />} />`).
-- **`ConfirmationModal`** (`src/components/ui/custom/confirmation-modal.tsx`) for confirm dialogs.
-- **`ModalWrapper`** (`src/components/ui/custom/modal-wrapper.tsx`) for generic dialogs.
+- **`ConfirmationModal`** (`src/components/common/confirmation-modal.tsx`) for confirm dialogs.
+- **`ModalWrapper`** (`src/components/common/modal-wrapper.tsx`) for generic dialogs.
 
 ## Styling & Theming
 
@@ -122,19 +122,19 @@ npm run lint -- --fix  # Auto-fix lint issues
 
 ## Navigation
 
-Navigation configs in `src/components/navigation/navigation-config.ts` — three role-based arrays (`userNavigation`, `surveyorNavigation`, `adminNavigation`). Each item: `{ title: string; href: string; icon: LucideIcon }`.
+Navigation configs in `src/constants/nav-links.ts` — three role-based arrays (`userNavigation`, `surveyorNavigation`, `adminNavigation`). Each item: `{ title: string; href: string; icon: LucideIcon }`.
 
 ## Auth
 
-Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token is stored in `httpOnly` cookies. `src/proxy.ts` contains auth route detection, token refresh, cookie sync, and role redirect logic, but `ROUTE_PROTECTION_ENABLED = false` currently keeps private route protection effectively off. `nextServerFetch` only reads the access token from cookies and forwards it as `Authorization` when auth is enabled.
+Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token is stored in `httpOnly` cookies. `src/proxy.ts` contains auth route detection, token refresh, cookie sync, and role redirect logic, but `IS_PROTECTION_ON = false` currently keeps private route protection effectively off. `nextServerFetch` reads the access/refresh tokens from cookies and forwards the access token as `Authorization` when `auth: "auth"` is set.
 
 ## UI Components Library
 
 **shadcn base-nova components** (`src/components/ui/`):
 `alert-dialog`, `button`, `calendar`, `collapsible`, `dialog`, `drawer`, `dropdown-menu`, `field`, `input-otp`, `input`, `label`, `pagination`, `scroll-area`, `separator`, `sonner`, `spinner`, `table`, `tooltip`.
 
-**Custom components** (`src/components/ui/custom/`):
-`back-button`, `confirmation-modal`, `custom-breadcrumb`, `custom-calender` (note: filename typo — "calender" vs "calendar"), `custom-pagination`, `dashboard-page-header`, `data-table-pagination`, `data-table`, `mobile-bottom-nav`, `modal-wrapper`, `search-input`, `star-rating`, `theme-toggle`.
+**Custom components** (`src/components/common/`):
+`back-button`, `confirmation-modal`, `custom-breadcrumb`, `custom-calender` (note: filename typo — "calender" vs "calendar"), `custom-pagination`, `dashboard-page-header`, `data-table-pagination`, `data-table`, `image-crop-dialog`, `mobile-bottom-nav`, `modal-wrapper`, `page-wrapper`, `search-input`, `section-wrapper`, `star-rating`, `theme-toggle`.
 
 ## State Management
 
@@ -200,8 +200,8 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token is stored in `httpOnly` cookies.
 
 ## Server Actions & API Routes
 
-- **`src/actions/drive.ts`** — `getDriveFolders(parentId?)`, `getDriveFiles(folderId)` — Google Drive listing.
 - **`src/app/api/drive/proxy/route.ts`** — `GET?id=fileId` — proxies image files from Google Drive (streams response).
+- Route-specific server actions live in a `_actions/` co-located folder inside each route directory (e.g. `src/app/(auth)/_actions/auth.actions.ts`). There is currently no global `src/actions/` folder.
 
 ## Key Dependencies Not in Standard Stack
 
@@ -221,11 +221,12 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token is stored in `httpOnly` cookies.
 
 ## Potential Pitfalls
 
-1. **`src/proxy.ts` exists, but protection is disabled** — do not assume private pages are truly guarded just because proxy auth logic is present.
+1. **`src/proxy.ts` exists, but protection is disabled** — `IS_PROTECTION_ON = false` keeps private route protection effectively off; do not assume private pages are truly guarded just because proxy auth logic is present.
 2. **`nextServerFetch` is server-only** — cannot be used in client components; there is no documented client-side fetch wrapper yet.
 3. **Body has `max-w-480 mx-auto`** — full-width backgrounds, sticky sidebars, and fixed-position UI may behave unexpectedly due to the narrow centered viewport.
 4. **Map, tracer, and studio stores use browser-only types** like `HTMLImageElement` — they are client-side only and cannot be SSR'd.
 5. **`PublicPage` component does NOT exist** — use `SectionWrapper` + `PageWrapper` instead.
+6. **Navbar pattern** — the public/shell header is `Navbar` (`src/components/layout/navbar/navbar.tsx`) + `MobileDrawer` (`src/components/layout/navbar/mobile-drawer.tsx`), not `public-header.tsx`/`public-mobile-drawer.tsx`.
 6. **Auth and profile flows are still partly placeholder** — several forms still contain `console.log(...)` and `TODO` logic.
 7. **`zod ^4.4.3`** is used — some forms still rely on `zodResolver(... ) as any` casts.
 8. **Filename typo**: `custom-calender.tsx` (should be `calendar`).
@@ -239,3 +240,18 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token is stored in `httpOnly` cookies.
 - TSConfig path alias: `@/*` → `./src/*`.
 - Icons: primarily `lucide-react`, also `@hugeicons/core-free-icons` + `@hugeicons/react` available.
 - See `CLAUDE.md` which references this file.
+
+### `src/` top-level folders
+
+| Folder | Purpose |
+|---|---|
+| `app/` | Next.js App Router routes, grouped by `(public)`, `(private)/(shell)`, `(private)/(bare)`, `(auth)`, `(admin-dashboard)`. Route-specific components live in a co-located `_components/` folder; route server actions in `_actions/`. |
+| `components/` | Shared/cross-route components: `auth/`, `common/` (all custom/shared UI), `home/` (home-page sections, shared), `layout/` (`navbar/`, `public-footer`), `tools/` (`tool-workspace-ui`, shared by canvas tools), `ui/` (raw shadcn primitives only). |
+| `features/` | Canvas-heavy tool implementations (land-measurement, pantagraph, tracer, mouza-map-studio, mouza-geo). **Untouched by file/folder restructuring.** |
+| `interface/` | TypeScript types (was `types/`). |
+| `constants/` | App-wide constants (e.g. `nav-links.ts`). |
+| `validation/` | Zod schemas (was `components/**/schema.ts`). |
+| `provider/` | React context providers (was `components/providers/`). |
+| `lib/` | Utilities, `nextServerFetch`, canvas helpers. |
+| `hooks/` | Shared hooks. |
+| `proxy.ts` | Middleware-style route protection. |

@@ -1,21 +1,44 @@
-import { DashboardPage } from "@/components/shared/dashboard-page";
+"use client";
+import { DataTable } from "@/components/common/data-table";
+import { SectionHeading } from "@/components/common/section-heading";
+import { adminColumns, type AdminRow } from "./_components/admin-column";
+
+const Admins: AdminRow[] = [
+  {
+    id: "a-001",
+    name: "সুপার অ্যাডমিন",
+    email: "super@mouzamappro.com",
+    role: "SUPER_ADMIN",
+  },
+  {
+    id: "a-002",
+    name: "মো. রফিক",
+    email: "rafiq@mouzamappro.com",
+    role: "ADMIN",
+  },
+  {
+    id: "a-003",
+    name: "সালমা খাতুন",
+    email: "salma@mouzamappro.com",
+    role: "MODERATOR",
+  },
+];
 
 export default function Page() {
   return (
-    <DashboardPage
-      title="অ্যাডমিন ম্যানেজমেন্ট"
-      description="প্ল্যাটফর্ম অ্যাডমিন, তাদের ভূমিকা এবং অ্যাক্সেস অনুমতি পরিচালনা করুন।"
-      cards={[
-        {
-          label: "সক্রিয় অ্যাডমিন",
-          value: "0",
-          description: "অ্যাডমিন অ্যাকাউন্ট এবং রোল অ্যাসাইনমেন্ট এখানে দেখাবে।",
-        },
-        {
-          label: "রোল ম্যানেজমেন্ট",
-          description: "অ্যাডমিন রোল এবং অনুমতি তৈরি ও পরিচালনা করুন।",
-        },
-      ]}
-    />
+    <div className="space-y-6">
+      <SectionHeading
+        title="Admin Management"
+        description="Manage platform admins, their roles and access permissions."
+        as="h3"
+        alignment="left"
+      />
+      <DataTable
+        data={Admins}
+        columns={adminColumns}
+        searchKey="name"
+        searchPlaceholder="Search admins..."
+      />
+    </div>
   );
 }

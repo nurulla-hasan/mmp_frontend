@@ -2,7 +2,7 @@ import { ArrowRight, Briefcase, FileText } from "lucide-react";
 import Link from "next/link";
 
 import { SectionHeading } from "@/components/home/section-heading";
-import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
+import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -12,7 +12,7 @@ export function FinalCtaSection() {
       {/* Ambient Glows */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute top-0 right-1/4 h-125 w-125 -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" />
-        <div className="absolute bottom-0 left-1/4 h-100 w-100 translate-y-1/2 -translate-x-1/2 rounded-full bg-blue-500/15 blur-[100px]" />
+        <div className="absolute bottom-0 left-1/4 h-100 w-100 translate-y-1/2 -translate-x-1/2 rounded-full bg-yellow-500/15 blur-[100px]" />
       </div>
 
       <SectionWrapper id="get-started">

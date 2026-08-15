@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { PageWrapper } from "@/components/ui/custom/page-wrapper";
+import { PageWrapper } from "@/components/common/page-wrapper";
 
 export default function Page() {
   return (

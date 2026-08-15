@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Hind_Siliguri, Noto_Sans_Bengali, Space_Grotesk } from "next/font/google";
 
-import { ThemeProvider } from "@/components/providers/theme-provider";
+import { ThemeProvider } from "@/provider/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 

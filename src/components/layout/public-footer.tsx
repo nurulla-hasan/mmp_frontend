@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { Logo } from "@/components/shared/logo";
-import { SectionWrapper } from "@/components/ui/custom/section-wrapper";
+import { Logo } from "@/components/common/logo";
+import { SectionWrapper } from "@/components/common/section-wrapper";
 
 export function PublicFooter() {
   return (

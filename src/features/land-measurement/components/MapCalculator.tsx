@@ -7,7 +7,7 @@ import { HardDrive, Ruler, Upload } from 'lucide-react';
 import { useShallow } from 'zustand/shallow';
 
 import { Button } from '@/components/ui/button';
-import { CONTAINER_MAX_WIDTH } from '@/components/ui/custom/page-wrapper';
+import { CONTAINER_MAX_WIDTH } from '@/components/common/page-wrapper';
 import { ToolEmptyState, ToolTopNav } from '@/components/tools/tool-workspace-ui';
 import { cn } from '@/lib/utils';
 import { DistanceModal } from '@/features/land-measurement/components/DistanceModal';

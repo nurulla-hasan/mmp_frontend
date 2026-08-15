@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn, getInitials } from "@/lib/utils";
-import type { TAuthUser } from "@/types/auth.types";
+import type { TAuthUser } from "@/interface/auth";
 
 const user: TAuthUser = {
   id: "1",

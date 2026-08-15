@@ -1,6 +1,6 @@
 import { PublicFooter } from "@/components/layout/public-footer";
-import { PublicHeader } from "@/components/layout/public-header";
-import { MobileBottomNav } from "@/components/ui/custom/mobile-bottom-nav";
+import { Navbar } from "@/components/layout/navbar/navbar";
+import { MobileBottomNav } from "@/components/common/mobile-bottom-nav";
 
 export default function PublicLayout({
   children,
@@ -9,7 +9,7 @@ export default function PublicLayout({
 }) {
   return (
     <>
-      <PublicHeader />
+      <Navbar />
       <div className="pb-14 lg:pb-0">
         {children}
       <PublicFooter />
