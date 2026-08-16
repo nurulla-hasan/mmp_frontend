@@ -11,6 +11,23 @@ type NextServerFetchOptions = Omit<RequestInit, "body"> & {
   next?: NextFetchRequestConfig;
 };
 
+// nextServerFetch returns these verbatim, so callers see the same shape as Postman.
+export type ApiSuccess<T> = {
+  success: true;
+  statusCode: number;
+  message: string;
+  data: T;
+  meta?: { page: number; limit: number; total: number };
+};
+
+export type ApiFailure = {
+  success: false;
+  statusCode: number;
+  message: string;
+};
+
+export type ApiResult<T> = ApiSuccess<T> | ApiFailure;
+
 type RefreshResponse = {
   data?: {
     accessToken?: string;
@@ -50,7 +67,7 @@ const getRequestTokens = async () => {
 const refreshAccessToken = async (
   refreshToken: string,
 ): Promise<string | null> => {
-  const response = await fetch(`${getBaseUrl()}/auth/refresh-token`, {
+  const response = await fetch(`${getBaseUrl()}/api/auth/refresh-token`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken }),
@@ -94,61 +111,57 @@ const prepareBody = (
   return body as BodyInit;
 };
 
-/**
- * Thin server-side wrapper around Next.js fetch.
- * Returns the backend JSON response unchanged.
- *
- * auth: "auth"
- * - Requires an access token.
- * - Refreshes it when missing or expired if a refresh token is available.
- * - Throws before the backend request when no valid access token can be resolved.
- *
- * auth: "none"
- * - Skips all auth token handling.
- *
- * The auth mode is intentionally required so every call site must explicitly
- * decide whether the request is authenticated or public.
- *
- * Network, runtime, JSON parsing, and Next.js errors may throw.
- */
 export const nextServerFetch = async <T = unknown>(
   endpoint: string,
   options: NextServerFetchOptions,
-): Promise<T> => {
-  const {
-    auth,
-    body: rawBody,
-    headers: customHeaders,
-    next,
-    ...requestOptions
-  } = options;
+): Promise<ApiResult<T>> => {
+  try {
+    const {
+      auth,
+      body: rawBody,
+      headers: customHeaders,
+      next,
+      ...requestOptions
+    } = options;
 
-  const headers = new Headers(customHeaders);
-  const body = prepareBody(rawBody, headers);
+    const headers = new Headers(customHeaders);
+    const body = prepareBody(rawBody, headers);
 
-  if (auth === "auth") {
-    const tokens = await getRequestTokens();
-    let accessToken = tokens.accessToken;
+    if (auth === "auth") {
+      const tokens = await getRequestTokens();
+      let accessToken = tokens.accessToken;
 
-    if (!accessToken || isExpired(accessToken)) {
-      accessToken = tokens.refreshToken
-        ? await refreshAccessToken(tokens.refreshToken)
-        : null;
+      if (!accessToken || isExpired(accessToken)) {
+        accessToken = tokens.refreshToken
+          ? await refreshAccessToken(tokens.refreshToken)
+          : null;
+      }
+
+      if (!accessToken) {
+        return {
+          success: false,
+          statusCode: 401,
+          message: "Authentication required",
+        };
+      }
+
+      headers.set("Authorization", `Bearer ${accessToken}`);
     }
 
-    if (!accessToken) {
-      throw new Error("Authentication required");
-    }
+    const response = await fetch(`${getBaseUrl()}${endpoint}`, {
+      ...requestOptions,
+      headers,
+      ...(body !== undefined ? { body } : {}),
+      ...(next ? { next } : {}),
+    });
 
-    headers.set("Authorization", `Bearer ${accessToken}`);
+    return (await response.json()) as ApiResult<T>;
+  } catch (error) {
+    return {
+      success: false,
+      statusCode: 500,
+      message:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
   }
-
-  const response = await fetch(`${getBaseUrl()}${endpoint}`, {
-    ...requestOptions,
-    headers,
-    ...(body !== undefined ? { body } : {}),
-    ...(next ? { next } : {}),
-  });
-
-  return response.json() as Promise<T>;
 };
