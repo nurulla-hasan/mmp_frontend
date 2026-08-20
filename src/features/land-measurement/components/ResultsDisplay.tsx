@@ -1,4 +1,4 @@
-﻿import { memo, useState } from 'react';
+﻿import { memo, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -19,9 +19,6 @@ type SideLengthsListProps = {
   showPerimeter?: boolean;
   diagonals?: { p1Index: number; p2Index: number; lengthFt: number; }[];
 };
-
-// Removed ResultsDisplayProps
-
 
 export const ReportTable = memo(function ReportTable({ results }: ReportTableProps) {
   return (
@@ -84,9 +81,8 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 
 export const ResultsDisplay = memo(function ResultsDisplay({ onPrint }: { onPrint: () => void }) {
-  const { results, plots, reportInfo, setReportInfo } = useMapStore(
+  const { plots, reportInfo, setReportInfo } = useMapStore(
     useShallow((s) => ({
-      results: s.results,
       plots: s.plots,
       reportInfo: s.reportInfo,
       setReportInfo: s.setReportInfo,
@@ -94,9 +90,22 @@ export const ResultsDisplay = memo(function ResultsDisplay({ onPrint }: { onPrin
   );
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
-  if (!results || plots.length === 0) {
+  const totals = useMemo(
+    () => plots.reduce(
+      (acc, plot) => ({
+        shotok: acc.shotok + plot.results.shotok,
+        katha: acc.katha + plot.results.katha,
+        sqft: acc.sqft + plot.results.sqft,
+      }),
+      { shotok: 0, katha: 0, sqft: 0 },
+    ),
+    [plots],
+  );
+
+  if (plots.length === 0) {
     return null;
   }
+
   return (
     <div id="step-results" className="mt-6 bg-muted/50 p-4 rounded-lg border border-border">
       <div className="flex flex-row justify-between items-center mb-4 gap-2">
@@ -108,26 +117,26 @@ export const ResultsDisplay = memo(function ResultsDisplay({ onPrint }: { onPrin
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <Card className="col-span-1 py-3 gap-3 sm:py-6 sm:gap-6">
           <CardHeader className="px-3 sm:px-6">
-            <CardTitle className="text-xs sm:text-base font-medium text-foreground truncate" title="শতক">শতক</CardTitle>
+            <CardTitle className="text-xs sm:text-base font-medium text-foreground truncate" title="মোট শতক">মোট শতক</CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-6">
-            <p className="text-base sm:text-xl font-bold text-primary truncate">{results.shotok.toFixed(DECIMALS)}</p>
+            <p className="text-base sm:text-xl font-bold text-primary truncate">{totals.shotok.toFixed(DECIMALS)}</p>
           </CardContent>
         </Card>
         <Card className="col-span-1 py-3 gap-3 sm:py-6 sm:gap-6">
           <CardHeader className="px-3 sm:px-6">
-            <CardTitle className="text-xs sm:text-base font-medium text-muted-foreground truncate" title="কাঠা">কাঠা</CardTitle>
+            <CardTitle className="text-xs sm:text-base font-medium text-muted-foreground truncate" title="মোট কাঠা">মোট কাঠা</CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-6">
-            <p className="text-base sm:text-xl font-bold text-primary truncate">{results.katha.toFixed(DECIMALS)}</p>
+            <p className="text-base sm:text-xl font-bold text-primary truncate">{totals.katha.toFixed(DECIMALS)}</p>
           </CardContent>
         </Card>
         <Card className="col-span-1 py-3 gap-3 sm:py-6 sm:gap-6">
           <CardHeader className="px-3 sm:px-6">
-            <CardTitle className="text-xs sm:text-base font-medium text-muted-foreground truncate" title="বর্গফুট">বর্গফুট</CardTitle>
+            <CardTitle className="text-xs sm:text-base font-medium text-muted-foreground truncate" title="মোট বর্গফুট">মোট বর্গফুট</CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-6">
-            <p className="text-base sm:text-xl font-bold text-primary truncate">{results.sqft.toFixed(DECIMALS)}</p>
+            <p className="text-base sm:text-xl font-bold text-primary truncate">{totals.sqft.toFixed(DECIMALS)}</p>
           </CardContent>
         </Card>
       </div>
@@ -200,5 +209,3 @@ export const ResultsDisplay = memo(function ResultsDisplay({ onPrint }: { onPrin
     </div>
   );
 });
-
-

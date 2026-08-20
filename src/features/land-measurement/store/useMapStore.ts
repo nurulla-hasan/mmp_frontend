@@ -12,7 +12,6 @@ import { createCalibrationSlice, type CalibrationSlice } from './slices/calibrat
 import { createUISlice, type UISlice } from './slices/uiSlice';
 import { createPlotSlice, type PlotSlice } from './slices/plotSlice';
 import { createDivideSlice, type DivideSlice } from './slices/divideSlice';
-import { createMeasurementSlice, type MeasurementSlice } from './slices/measurementSlice';
 import { createSavedPlotsSlice, type SavedPlotsSlice } from './slices/savedPlotsSlice';
 
 // Re-export for convenience
@@ -24,7 +23,6 @@ export type MapStore = ImageSlice &
   UISlice &
   Omit<PlotSlice, 'finishPlot' | 'startPlotDrawing'> &
   Omit<DivideSlice, 'executeManualDivide' | 'startManualDivide' | 'cancelManualDivide'> &
-  MeasurementSlice &
   SavedPlotsSlice & {
     // High-level orchestration actions
     resetState: (fullReset?: boolean) => void;
@@ -71,7 +69,6 @@ export const useMapStore = create<MapStore>((set, get, store) => {
     ...createUISlice(set as never, get as never, store as never),
     ...plotSlice,
     ...divideSlice,
-    ...createMeasurementSlice(set as never, get as never, store as never),
     ...createSavedPlotsSlice(set as never, get as never, store as never),
 
     // High-level orchestration actions that coordinate multiple slices
@@ -88,7 +85,6 @@ export const useMapStore = create<MapStore>((set, get, store) => {
       state.clearPlot();
       state.setCalibrationLine([]);
       state.setIsDrawing(false);
-      state.clearMeasurementLines();
       state.cancelManualDivide();
       state.setMode('none');
       state.setReportImage(null);
@@ -146,7 +142,7 @@ export const useMapStore = create<MapStore>((set, get, store) => {
           const yLast = state.calibrationLine[len - 1];
           const dist = Math.hypot(pt.x - xLast, pt.y - yLast);
           if (dist < 1e-3) return; // Prevent duplicate points
-          
+
           set({ calibrationLine: [...state.calibrationLine, pt.x, pt.y], isDrawing: true });
         }
       } else if (state.mode === 'drawing_plot' && !state.isPlotFinished) {
@@ -175,8 +171,6 @@ export const useMapStore = create<MapStore>((set, get, store) => {
         }
 
         set({ plotPoints: [...state.plotPoints, pt], plotPointsFuture: [], snapHint: false });
-      } else if (state.mode === 'measuring') {
-        get().addMeasurementPoint(pt, state.scale, state.plots);
       }
     },
 
@@ -205,7 +199,6 @@ export const useMapStore = create<MapStore>((set, get, store) => {
       set({ mode: 'none' });
     },
 
-
     startManualDivide: () => {
       set({ mode: 'manual_divide_plot', manualDividePlotId: null, manualCutLine: null });
     },
@@ -233,5 +226,3 @@ export const useMapStore = create<MapStore>((set, get, store) => {
     },
   };
 });
-
-

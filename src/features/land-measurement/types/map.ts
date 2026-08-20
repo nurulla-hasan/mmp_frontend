@@ -19,13 +19,6 @@ export type PolygonResults = {
   diagonals?: { p1Index: number; p2Index: number; lengthFt: number; }[];
 };
 
-export type MeasurementLine = {
-  id: string;
-  start: Point;
-  end: Point;
-  dashed: boolean;
-};
-
 export type PlotRecord = {
   id: string;
   name: string;
@@ -53,7 +46,6 @@ export type SavedMapData = {
   scale?: number;
   plotPoints: Point[];
   plots?: PlotRecord[];
-  measurementLines?: MeasurementLine[];
 };
 
 export type PinchStart = {

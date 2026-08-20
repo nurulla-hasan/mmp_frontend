@@ -1,4 +1,4 @@
-﻿import React, { memo, useRef, useCallback } from 'react';
+﻿import React, { memo, useRef, useCallback, useEffect } from 'react';
 import { Stage, Layer } from 'react-konva';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,6 @@ import { StageBackground } from './StageBackground';
 import { StageCalibration } from './StageCalibration';
 import { StagePlots } from './StagePlots';
 import { StageActivePlot } from './StageActivePlot';
-import { StageMeasurements } from './StageMeasurements';
 import { StageMagnifier } from './StageMagnifier';
 import { StageManualCut } from './StageManualCut';
 import { clamp, cn } from "@/lib/utils";
@@ -41,7 +40,7 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
             }))
         );
 
-    // Refs for wheel handler — always fresh, no stale closures, no re-render on change
+    // Refs for wheel handler — always fresh, no stale closures, no re-render on change.
     const stageScaleRef = useRef(stageScale);
     stageScaleRef.current = stageScale;
     const stagePosRef = useRef(stagePos);
@@ -49,11 +48,15 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
     const wheelRafRef = useRef(0);
     const wheelAccumRef = useRef(0);
 
-    const { setStageScale, setStagePos } = useMapStore(
-        useShallow(s => ({ setStageScale: s.setStageScale, setStagePos: s.setStagePos }))
-    );
+    const setStageTransform = useMapStore(s => s.setStageTransform);
 
-    // Stable wheel handler — never recreated, reads fresh values from refs
+    useEffect(() => {
+        return () => {
+            if (wheelRafRef.current) cancelAnimationFrame(wheelRafRef.current);
+        };
+    }, []);
+
+    // Stable wheel handler. Scale + position are committed in one store update.
     const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
         e.evt.preventDefault();
         const stage = e.target.getStage();
@@ -74,14 +77,16 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                 wheelAccumRef.current = 0;
                 const factor = Math.pow(STAGE_ZOOM_SPEED_FACTOR, -delta);
                 const newScale = clamp(oldScale * factor, STAGE_MIN_ZOOM, STAGE_MAX_ZOOM);
-                setStageScale(newScale);
-                setStagePos({
+                const pos = {
                     x: pointer.x - mousePointTo.x * newScale,
                     y: pointer.y - mousePointTo.y * newScale,
-                });
+                };
+                setStageTransform({ scale: newScale, pos });
+                stageScaleRef.current = newScale;
+                stagePosRef.current = pos;
             });
         }
-    }, [setStageScale, setStagePos]);
+    }, [setStageTransform]);
 
     const events = useStageEvents();
 
@@ -97,7 +102,7 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
     return (
         <div id="step-map-stage" className={cn(
             "absolute inset-0 touch-none select-none",
-            (mode === 'drawing_plot' || mode === 'calibrating' || mode === 'measuring') ? "cursor-crosshair" : "cursor-grab"
+            (mode === 'drawing_plot' || mode === 'calibrating') ? "cursor-crosshair" : "cursor-grab"
         )}>
             <Stage
                 ref={stageRef}
@@ -130,7 +135,6 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                 <Layer id="dynamic-layer">
                     <StageManualCut />
                     <StageActivePlot />
-                    <StageMeasurements />
                     <StageMagnifier />
                 </Layer>
             </Stage>
@@ -168,7 +172,7 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
             )}
 
             {/* UI Overlays */}
-            {!isProcessingFile && (mode === 'calibrating' || mode === 'measuring' || (mode === 'drawing_plot' && !isPlotFinished)) && (
+            {!isProcessingFile && (mode === 'calibrating' || (mode === 'drawing_plot' && !isPlotFinished)) && (
                 <>
                     <div
                         className="pointer-events-none absolute z-50 size-6 -translate-x-1/2 -translate-y-1/2"
@@ -219,4 +223,3 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
 });
 
 KonvaStage.displayName = 'KonvaStage';
-

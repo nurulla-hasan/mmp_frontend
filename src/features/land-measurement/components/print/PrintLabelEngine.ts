@@ -1,11 +1,11 @@
-﻿import { groupPolygonSegments } from '@/features/land-measurement/utils/geometry';
+import {
+  getVisualCenter,
+  groupPolygonSegments,
+  isPointInPolygon,
+} from '@/features/land-measurement/utils/geometry';
 import { getReadableRotation } from '@/features/land-measurement/utils/component-helpers';
-import { formatFeetInches, MIN_EDGE_LABEL_FT } from '@/features/land-measurement/utils/canvas';
-import type { PlotRecord } from '@/features/land-measurement/types/map';
-
-// ──────────────────────────────────────────────
-// Types
-// ──────────────────────────────────────────────
+import { formatFeetInches } from '@/features/land-measurement/utils/canvas';
+import type { Point, PlotRecord } from '@/features/land-measurement/types/map';
 
 export interface LabelDatum {
   plotId: string;
@@ -16,6 +16,7 @@ export interface LabelDatum {
   labelText: string;
   width: number;
   height: number;
+  fontSize: number;
 }
 
 export interface PlotPolygonInfo {
@@ -32,139 +33,176 @@ export interface PrintLabelConfig {
   labelOffset: number;
 }
 
-// ──────────────────────────────────────────────
-// Label computation
-// ──────────────────────────────────────────────
+const getPathMidpoint = (segments: ReturnType<typeof groupPolygonSegments>[number]) => {
+  const totalDistPx = segments.reduce((sum, segment) => sum + segment.distPx, 0);
+  const halfDist = totalDistPx / 2;
+  let walked = 0;
+  let midX = segments[0]?.point.x ?? 0;
+  let midY = segments[0]?.point.y ?? 0;
+  let midDx = segments[0]?.dx ?? 1;
+  let midDy = segments[0]?.dy ?? 0;
+
+  for (const segment of segments) {
+    const distance = segment.distPx || 1e-5;
+    if (walked + distance >= halfDist) {
+      const ratio = (halfDist - walked) / distance;
+      midX = segment.point.x + ratio * segment.dx;
+      midY = segment.point.y + ratio * segment.dy;
+      midDx = segment.dx;
+      midDy = segment.dy;
+      break;
+    }
+    walked += distance;
+  }
+
+  return { midX, midY, midDx, midDy, totalDistPx };
+};
+
+const getInwardNormal = (
+  midpoint: Point,
+  dx: number,
+  dy: number,
+  plotPoints: Point[],
+  testDistance: number,
+) => {
+  const distance = Math.hypot(dx, dy) || 1;
+  const normalA = { x: -dy / distance, y: dx / distance };
+  const normalB = { x: dy / distance, y: -dx / distance };
+
+  const testA = {
+    x: midpoint.x + normalA.x * testDistance,
+    y: midpoint.y + normalA.y * testDistance,
+  };
+  if (isPointInPolygon(testA, plotPoints)) return normalA;
+
+  const testB = {
+    x: midpoint.x + normalB.x * testDistance,
+    y: midpoint.y + normalB.y * testDistance,
+  };
+  if (isPointInPolygon(testB, plotPoints)) return normalB;
+
+  const center = getVisualCenter(plotPoints);
+  const centerDx = center.x - midpoint.x;
+  const centerDy = center.y - midpoint.y;
+  const centerDistance = Math.hypot(centerDx, centerDy) || 1;
+  return { x: centerDx / centerDistance, y: centerDy / centerDistance };
+};
+
+const labelFitsInside = (
+  center: Point,
+  rotation: number,
+  width: number,
+  height: number,
+  plotPoints: Point[],
+) => {
+  const radians = rotation * (Math.PI / 180);
+  const along = { x: Math.cos(radians), y: Math.sin(radians) };
+  const across = { x: -Math.sin(radians), y: Math.cos(radians) };
+  const halfWidth = width / 2;
+  const halfHeight = height / 2;
+
+  const corners = [
+    { x: center.x + along.x * halfWidth + across.x * halfHeight, y: center.y + along.y * halfWidth + across.y * halfHeight },
+    { x: center.x + along.x * halfWidth - across.x * halfHeight, y: center.y + along.y * halfWidth - across.y * halfHeight },
+    { x: center.x - along.x * halfWidth + across.x * halfHeight, y: center.y - along.y * halfWidth + across.y * halfHeight },
+    { x: center.x - along.x * halfWidth - across.x * halfHeight, y: center.y - along.y * halfWidth - across.y * halfHeight },
+  ];
+
+  return corners.every((corner) => isPointInPolygon(corner, plotPoints));
+};
 
 /**
- * Compute edge label data for all plots in a print layout.
- * Returns sorted plot polygons and an array of non-overlapping label data.
+ * Compute one dimension label for every logical plot edge.
+ * Shared boundaries keep one label on each plot side. In print, edge labels use
+ * the same base font size as the centered area label; positioning moves inward
+ * before any size reduction is considered.
  */
 export function computePrintLabels(
   plots: PlotRecord[],
   config: PrintLabelConfig,
 ): { allLabels: LabelDatum[]; plotPolygons: PlotPolygonInfo[] } {
   const { baseScale, fontSize, labelPad, labelOffset } = config;
-  const drawnLabelCenters: { x: number; y: number }[] = [];
-  const allLabels: LabelDatum[] = [];
 
   const plotPolygons = plots
     .map((plot) => ({
       id: plot.id,
-      pointsStr: plot.points.map((p) => `${p.x},${p.y}`).join(' '),
+      pointsStr: plot.points.map((point) => `${point.x},${point.y}`).join(' '),
       plot,
       area: plot.results?.shotok ?? 0,
     }))
     .sort((a, b) => a.area - b.area);
 
+  const allLabels: LabelDatum[] = [];
+
   for (const { plot } of plotPolygons) {
-    const rawGroups = groupPolygonSegments(plot.points);
-    const groups = rawGroups.map((rawGroup) => {
-      const segments = rawGroup.map((seg) => ({
-        ...seg,
-        lengthFt: plot.results.lengths[seg.i],
-      }));
-      return {
-        segments,
-        totalDistPx: segments.reduce((sum, s) => sum + s.distPx, 0),
-        totalLengthFt: segments.reduce((sum, s) => sum + s.lengthFt, 0),
-      };
-    });
+    const groups = groupPolygonSegments(plot.points);
 
-    // Winding order (signed area via shoelace)
-    let signedArea = 0;
-    for (let i = 0; i < plot.points.length; i++) {
-      const p1 = plot.points[i];
-      const p2 = plot.points[(i + 1) % plot.points.length];
-      signedArea += (p2.x - p1.x) * (p2.y + p1.y);
-    }
-    const isClockwise = signedArea < 0;
+    groups.forEach((segments, groupIndex) => {
+      if (segments.length === 0) return;
 
-    for (const [groupIdx, group] of groups.entries()) {
-      if (group.totalLengthFt < MIN_EDGE_LABEL_FT) continue;
+      const { midX, midY, midDx, midDy, totalDistPx } = getPathMidpoint(segments);
+      if (totalDistPx <= 0) return;
 
-      const labelText = formatFeetInches(group.totalLengthFt);
-      // Use first→last point of the entire group for true angle & normal
-      const firstPt = group.segments[0].point;
-      const lastPt = group.segments[group.segments.length - 1].nextPoint;
-      
-      // Find the physical midpoint ALONG the boundary path (not the chord)
-      const totalDistPx = group.segments.reduce((s, seg) => s + seg.distPx, 0);
-      const halfDist = totalDistPx / 2;
-      let walked = 0;
-      let midX = firstPt.x;
-      let midY = firstPt.y;
-      let midDx = lastPt.x - firstPt.x;
-      let midDy = lastPt.y - firstPt.y;
+      const totalLengthFt = segments.reduce(
+        (sum, segment) => sum + (plot.results.lengths[segment.i] ?? 0),
+        0,
+      );
+      const labelText = formatFeetInches(totalLengthFt);
+      const rotation = getReadableRotation(Math.atan2(midDy, midDx) * (180 / Math.PI));
 
-      for (const seg of group.segments) {
-        const d = seg.distPx || 1e-5; // avoid div by 0
-        if (walked + d >= halfDist) {
-          const ratio = (halfDist - walked) / d;
-          midX = seg.point.x + ratio * seg.dx;
-          midY = seg.point.y + ratio * seg.dy;
-          midDx = seg.dx;
-          midDy = seg.dy;
-          break;
+      // Normal print dimensions stay exactly the same size as the area label.
+      // Only genuinely short edges can fall back to 90% so text remains inside.
+      const naturalPad = labelPad * 0.65;
+      const naturalWidth = labelText.length * fontSize * 0.62 + naturalPad * 2;
+      const maxEdgeWidth = totalDistPx * 0.96;
+      const edgeFontSize = naturalWidth <= maxEdgeWidth ? fontSize : fontSize * 0.9;
+      const edgePad = naturalWidth <= maxEdgeWidth ? naturalPad : naturalPad * 0.9;
+      const labelWidth = labelText.length * edgeFontSize * 0.62 + edgePad * 2;
+      const labelHeight = edgeFontSize + edgePad * 2;
+
+      const midpoint = { x: midX, y: midY };
+      const inward = getInwardNormal(
+        midpoint,
+        midDx,
+        midDy,
+        plot.points,
+        Math.max(baseScale * 0.006, totalDistPx * 0.03),
+      );
+
+      let chosen: LabelDatum | null = null;
+
+      // Keep the font fixed; try progressively deeper positions instead.
+      for (let attempt = 0; attempt < 6; attempt += 1) {
+        const inset = Math.max(
+          labelOffset * 0.2,
+          labelHeight * (0.46 + attempt * 0.13),
+        );
+        const center = {
+          x: midX + inward.x * inset,
+          y: midY + inward.y * inset,
+        };
+
+        if (!labelFitsInside(center, rotation, labelWidth, labelHeight, plot.points) && attempt < 5) {
+          continue;
         }
-        walked += d;
+
+        chosen = {
+          plotId: plot.id,
+          i: groupIndex,
+          lx: center.x,
+          ly: center.y,
+          rotation,
+          labelText,
+          width: labelWidth,
+          height: labelHeight,
+          fontSize: edgeFontSize,
+        };
+        break;
       }
 
-      const dx = midDx;
-      const dy = midDy;
-      const dist = Math.hypot(dx, dy) > 0.001 ? Math.hypot(dx, dy) : 1;
-      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-      const rotation = getReadableRotation(angle);
-
-      // Outward normal — always points away from polygon interior
-      const perpX = isClockwise ?  dy / dist : -dy / dist;
-      const perpY = isClockwise ? -dx / dist :  dx / dist;
-
-      const lx = midX + perpX * labelOffset;
-      const ly = midY + perpY * labelOffset;
-      const labelWidth = labelText.length * fontSize * 0.62 + labelPad * 2;
-      const labelHeight = fontSize + labelPad * 2;
-
-      // Discard if two groups share the same center (degenerate)
-      const isDuplicate = drawnLabelCenters.some(
-        (c) => Math.hypot(c.x - midX, c.y - midY) < baseScale * 0.001,
-      );
-      if (isDuplicate) continue;
-
-      // Overlap check against already-placed labels
-      const overlapsExistingLabel = allLabels.some((existing) => {
-        const angleDiff = Math.abs(rotation - existing.rotation);
-        const normalizedAngleDiff = Math.min(angleDiff, 180 - angleDiff);
-        if (normalizedAngleDiff > 12) return false;
-
-        const radians = rotation * (Math.PI / 180);
-        const dx = lx - existing.lx;
-        const dy = ly - existing.ly;
-        const along = Math.abs(dx * Math.cos(radians) + dy * Math.sin(radians));
-        const perpendicular = Math.abs(-dx * Math.sin(radians) + dy * Math.cos(radians));
-
-        return (
-          along < (labelWidth + existing.width) / 2 + labelPad &&
-          perpendicular < (labelHeight + existing.height) / 2 + labelPad
-        );
-      });
-      if (overlapsExistingLabel) continue;
-
-      drawnLabelCenters.push({ x: midX, y: midY });
-
-      allLabels.push({
-        plotId: plot.id,
-        i: groupIdx,
-        lx,
-        ly,
-        rotation,
-        labelText,
-        width: labelWidth,
-        height: labelHeight,
-      });
-    }
+      if (chosen) allLabels.push(chosen);
+    });
   }
 
   return { allLabels, plotPolygons };
 }
-

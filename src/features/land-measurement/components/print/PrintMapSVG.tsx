@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { getVisualCenter, isPointInPolygon } from '@/features/land-measurement/utils/geometry';
+import { getVisualCenter } from '@/features/land-measurement/utils/geometry';
 import {
   formatFeetInches,
   MIN_EDGE_LABEL_FT,
@@ -7,40 +7,21 @@ import {
 import { computePrintLabels } from './PrintLabelEngine';
 import type { PlotRecord } from '@/features/land-measurement/types/map';
 
-// ──────────────────────────────────────────────
-// Props
-// ──────────────────────────────────────────────
-
 interface PrintMapSVGProps {
   plots: PlotRecord[];
   isShowDiagonals: boolean;
-  /** View‑box origin X */
   viewBoxMinX: number;
-  /** View‑box origin Y */
   viewBoxMinY: number;
-  /** View‑box width */
   viewBoxWidth: number;
-  /** View‑box height */
   viewBoxHeight: number;
-  /** Base scale (max of viewBox w/h) used for proportional sizing */
   baseScale: number;
-  /** Stroke width for polygon outlines */
   strokeW: number;
-  /** Font size for edge labels */
   fontSize: number;
-  /** Padding around label text */
   labelPad: number;
-  /** Perpendicular offset from segments for edge labels */
   labelOffset: number;
-  /** Font size for area labels */
   areaFontSize: number;
-  /** Padding around area label text */
   areaLabelPad: number;
 }
-
-// ──────────────────────────────────────────────
-// Component
-// ──────────────────────────────────────────────
 
 export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
   plots,
@@ -55,11 +36,13 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
   labelPad,
   labelOffset,
   areaFontSize,
-  areaLabelPad,
 }) => {
+  // Edge and area labels share the exact same base size in print.
+  const reportLabelFontSize = areaFontSize * 1.1;
+
   const { allLabels, plotPolygons } = computePrintLabels(plots, {
     baseScale,
-    fontSize,
+    fontSize: reportLabelFontSize,
     labelPad,
     labelOffset,
   });
@@ -70,7 +53,7 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
       preserveAspectRatio="xMidYMid meet"
       viewBox={`${viewBoxMinX} ${viewBoxMinY} ${viewBoxWidth} ${viewBoxHeight}`}
     >
-      {/* ── Polygons ────────────────────────── */}
+      {/* Polygons */}
       {plotPolygons.map((p) => (
         <polygon
           key={p.id}
@@ -83,7 +66,7 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
         />
       ))}
 
-      {/* ── Diagonals ───────────────────────── */}
+      {/* Diagonals */}
       {isShowDiagonals &&
         plots.map((plot) =>
           plot.results.diagonals?.map((d, dIdx) => {
@@ -118,7 +101,7 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
                     <text
                       x={0}
                       y={0}
-                      fontSize={fontSize * 0.85}
+                      fontSize={reportLabelFontSize * 0.85}
                       fontWeight="bold"
                       fill="#0F766E"
                       textAnchor="middle"
@@ -133,7 +116,7 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
           }),
         )}
 
-      {/* ── Edge labels ─────────────────────── */}
+      {/* Edge labels */}
       {allLabels.map((lbl) => (
         <g
           key={`lbl-${lbl.plotId}-${lbl.i}`}
@@ -142,9 +125,13 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
           <text
             x={0}
             y={0}
-            fontSize={fontSize}
-            fontWeight="bold"
+            fontSize={lbl.fontSize}
+            fontWeight="700"
             fill="#0F766E"
+            stroke="rgba(255,255,255,0.96)"
+            strokeWidth={baseScale * 0.0022}
+            strokeLinejoin="round"
+            paintOrder="stroke"
             textAnchor="middle"
             dominantBaseline="central"
           >
@@ -153,60 +140,29 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
         </g>
       ))}
 
-      {/* ── Area labels ─────────────────────── */}
+      {/* Area labels — centered, compact, and integrated with the drawing. */}
       {plotPolygons.map((p) => {
         if (!p.plot.results) return null;
 
         const center = getVisualCenter(p.plot.points);
         const areaText = `${p.plot.results.shotok.toFixed(2)} শতক`;
-        const areaWidth = areaText.length * areaFontSize * 0.55 + areaLabelPad * 1.5;
-        const areaHeight = areaFontSize + areaLabelPad * 1.5;
-
-        // Try candidate offsets to avoid overlapping edge labels
-        const candidateOffsets = [
-          { x: 0, y: 0 },
-          { x: 0, y: -areaHeight * 1.6 },
-          { x: -areaWidth * 1.2, y: 0 },
-          { x: areaWidth * 1.2, y: 0 },
-          { x: 0, y: areaHeight * 1.6 },
-          { x: -areaWidth * 1.2, y: -areaHeight * 1.3 },
-          { x: areaWidth * 1.2, y: -areaHeight * 1.3 },
-        ];
-
-        const areaPosition =
-          candidateOffsets
-            .map((offset) => ({ x: center.x + offset.x, y: center.y + offset.y }))
-            .find((candidate) => {
-              if (!isPointInPolygon(candidate, p.plot.points)) return false;
-              return !allLabels.some(
-                (label) =>
-                  Math.abs(candidate.x - label.lx) <
-                    (areaWidth + label.width) / 2 + labelPad &&
-                  Math.abs(candidate.y - label.ly) <
-                    (areaHeight + label.height) / 2 + labelPad,
-              );
-            }) ?? center;
+        const areaColor = p.plot.color || '#0F766E';
 
         return (
           <g
             key={`area-${p.id}`}
-            transform={`translate(${areaPosition.x}, ${areaPosition.y})`}
+            transform={`translate(${center.x}, ${center.y})`}
           >
-            <rect
-              x={-areaWidth / 2}
-              y={-areaHeight / 2}
-              width={areaWidth}
-              height={areaHeight}
-              fill={p.plot.color || '#0F766E'}
-              rx={baseScale * 0.005}
-              opacity={0.9}
-            />
             <text
               x={0}
               y={0}
-              fontSize={areaFontSize}
-              fontWeight="bold"
-              fill="white"
+              fontSize={reportLabelFontSize}
+              fontWeight="700"
+              fill={areaColor}
+              stroke="rgba(255,255,255,0.96)"
+              strokeWidth={baseScale * 0.003}
+              strokeLinejoin="round"
+              paintOrder="stroke"
               textAnchor="middle"
               dominantBaseline="central"
             >
@@ -218,4 +174,3 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
     </svg>
   );
 };
-
