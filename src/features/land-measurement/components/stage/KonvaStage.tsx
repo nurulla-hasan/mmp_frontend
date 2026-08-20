@@ -14,7 +14,6 @@ import { StageBackground } from './StageBackground';
 import { StageCalibration } from './StageCalibration';
 import { StagePlots } from './StagePlots';
 import { StageActivePlot } from './StageActivePlot';
-import { StageMeasurements } from './StageMeasurements';
 import { StageMagnifier } from './StageMagnifier';
 import { StageManualCut } from './StageManualCut';
 import { clamp, cn } from "@/lib/utils";
@@ -97,7 +96,7 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
     return (
         <div id="step-map-stage" className={cn(
             "absolute inset-0 touch-none select-none",
-            (mode === 'drawing_plot' || mode === 'calibrating' || mode === 'measuring') ? "cursor-crosshair" : "cursor-grab"
+            (mode === 'drawing_plot' || mode === 'calibrating') ? "cursor-crosshair" : "cursor-grab"
         )}>
             <Stage
                 ref={stageRef}
@@ -130,7 +129,6 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                 <Layer id="dynamic-layer">
                     <StageManualCut />
                     <StageActivePlot />
-                    <StageMeasurements />
                     <StageMagnifier />
                 </Layer>
             </Stage>
@@ -168,7 +166,7 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
             )}
 
             {/* UI Overlays */}
-            {!isProcessingFile && (mode === 'calibrating' || mode === 'measuring' || (mode === 'drawing_plot' && !isPlotFinished)) && (
+            {!isProcessingFile && (mode === 'calibrating' || (mode === 'drawing_plot' && !isPlotFinished)) && (
                 <>
                     <div
                         className="pointer-events-none absolute z-50 size-6 -translate-x-1/2 -translate-y-1/2"
@@ -219,4 +217,3 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
 });
 
 KonvaStage.displayName = 'KonvaStage';
-
