@@ -46,7 +46,6 @@ export default function MapCalculator() {
     savedPlots,
     deleteSavedPlot,
     setStageSize,
-    setReportImage,
     mode,
     plotPoints,
     image,
@@ -56,7 +55,6 @@ export default function MapCalculator() {
       savedPlots: s.savedPlots,
       deleteSavedPlot: s.deleteSavedPlot,
       setStageSize: s.setStageSize,
-      setReportImage: s.setReportImage,
       mode: s.mode,
       plotPoints: s.plotPoints,
       image: s.image,
@@ -104,11 +102,10 @@ export default function MapCalculator() {
     };
   }, [setStageSize]);
 
+  // The printable report is SVG-based; generating a 2x canvas snapshot here only
+  // added CPU/RAM cost on large maps and was not used by the current print layout.
   const handlePrint = () => {
-    if (stageRef.current) {
-      setReportImage(stageRef.current.toDataURL({ pixelRatio: 2 }));
-    }
-    setTimeout(() => window.print(), 100);
+    window.print();
   };
 
   useEffect(() => {
@@ -117,7 +114,6 @@ export default function MapCalculator() {
 
     const wasEditingMap =
       previousMode === 'drawing_plot' ||
-      previousMode === 'measuring' ||
       previousMode === 'calibrating' ||
       previousMode === 'manual_divide_plot';
     if (!wasEditingMap || mode !== 'none') return;
