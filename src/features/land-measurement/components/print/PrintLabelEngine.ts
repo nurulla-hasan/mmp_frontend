@@ -113,9 +113,9 @@ const labelFitsInside = (
 
 /**
  * Compute one dimension label for every logical plot edge.
- * Labels are moved inward, so a shared boundary naturally gets one label on
- * each side — each label belonging to its own plot. Print dimensions use the
- * report's area-label size by default and only shrink when an edge cannot fit it.
+ * Shared boundaries keep one label on each plot side. In print, edge labels use
+ * the same base font size as the centered area label; positioning moves inward
+ * before any size reduction is considered.
  */
 export function computePrintLabels(
   plots: PlotRecord[],
@@ -150,19 +150,15 @@ export function computePrintLabels(
       const labelText = formatFeetInches(totalLengthFt);
       const rotation = getReadableRotation(Math.atan2(midDy, midDx) * (180 / Math.PI));
 
-      // Keep dimensions visually consistent with the centered shotok labels.
-      // Only reduce the size when the text physically cannot fit on a short edge.
-      let dynamicFontSize = fontSize;
-      let dynamicPad = labelPad;
-      let width = labelText.length * dynamicFontSize * 0.62 + dynamicPad * 2;
-      const maxWidth = Math.max(fontSize * 2.4, totalDistPx * 0.8);
-
-      if (width > maxWidth) {
-        const fitRatio = maxWidth / width;
-        dynamicFontSize = Math.max(fontSize * 0.72, dynamicFontSize * fitRatio);
-        dynamicPad = Math.max(labelPad * 0.6, dynamicPad * fitRatio);
-        width = labelText.length * dynamicFontSize * 0.62 + dynamicPad * 2;
-      }
+      // Normal print dimensions stay exactly the same size as the area label.
+      // Only genuinely short edges can fall back to 90% so text remains inside.
+      const naturalPad = labelPad * 0.65;
+      const naturalWidth = labelText.length * fontSize * 0.62 + naturalPad * 2;
+      const maxEdgeWidth = totalDistPx * 0.96;
+      const edgeFontSize = naturalWidth <= maxEdgeWidth ? fontSize : fontSize * 0.9;
+      const edgePad = naturalWidth <= maxEdgeWidth ? naturalPad : naturalPad * 0.9;
+      const labelWidth = labelText.length * edgeFontSize * 0.62 + edgePad * 2;
+      const labelHeight = edgeFontSize + edgePad * 2;
 
       const midpoint = { x: midX, y: midY };
       const inward = getInwardNormal(
@@ -175,25 +171,18 @@ export function computePrintLabels(
 
       let chosen: LabelDatum | null = null;
 
-      for (let attempt = 0; attempt < 5; attempt += 1) {
-        const shrink = Math.pow(0.92, attempt);
-        const attemptFontSize = Math.max(fontSize * 0.68, dynamicFontSize * shrink);
-        const attemptPad = Math.max(labelPad * 0.55, dynamicPad * shrink);
-        const attemptWidth = labelText.length * attemptFontSize * 0.62 + attemptPad * 2;
-        const attemptHeight = attemptFontSize + attemptPad * 2;
-
-        // Sit close to the measured boundary. If the label cannot fit there,
-        // later attempts progressively move it farther inward while shrinking.
+      // Keep the font fixed; try progressively deeper positions instead.
+      for (let attempt = 0; attempt < 6; attempt += 1) {
         const inset = Math.max(
-          labelOffset * 0.22,
-          attemptHeight * (0.42 + attempt * 0.07),
+          labelOffset * 0.2,
+          labelHeight * (0.46 + attempt * 0.13),
         );
         const center = {
           x: midX + inward.x * inset,
           y: midY + inward.y * inset,
         };
 
-        if (!labelFitsInside(center, rotation, attemptWidth, attemptHeight, plot.points) && attempt < 4) {
+        if (!labelFitsInside(center, rotation, labelWidth, labelHeight, plot.points) && attempt < 5) {
           continue;
         }
 
@@ -204,9 +193,9 @@ export function computePrintLabels(
           ly: center.y,
           rotation,
           labelText,
-          width: attemptWidth,
-          height: attemptHeight,
-          fontSize: attemptFontSize,
+          width: labelWidth,
+          height: labelHeight,
+          fontSize: edgeFontSize,
         };
         break;
       }
