@@ -149,11 +149,11 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
             <text
               x={0}
               y={0}
-              fontSize={areaFontSize * 0.9}
+              fontSize={areaFontSize * 1.1}
               fontWeight="700"
               fill={areaColor}
               stroke="rgba(255,255,255,0.96)"
-              strokeWidth={baseScale * 0.0042}
+              strokeWidth={baseScale * 0.003}
               strokeLinejoin="round"
               paintOrder="stroke"
               textAnchor="middle"
