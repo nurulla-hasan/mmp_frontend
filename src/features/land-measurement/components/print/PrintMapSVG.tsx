@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { getVisualCenter, isPointInPolygon } from '@/features/land-measurement/utils/geometry';
+import { getVisualCenter } from '@/features/land-measurement/utils/geometry';
 import {
   formatFeetInches,
   MIN_EDGE_LABEL_FT,
@@ -157,40 +157,17 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
       {plotPolygons.map((p) => {
         if (!p.plot.results) return null;
 
+        // Area is the primary identity of each block in the report, so keep it
+        // anchored at the visual center. Edge dimensions already sit near edges.
         const center = getVisualCenter(p.plot.points);
         const areaText = `${p.plot.results.shotok.toFixed(2)} শতক`;
         const areaWidth = areaText.length * areaFontSize * 0.55 + areaLabelPad * 1.5;
         const areaHeight = areaFontSize + areaLabelPad * 1.5;
 
-        // Try candidate offsets to avoid overlapping edge labels
-        const candidateOffsets = [
-          { x: 0, y: 0 },
-          { x: 0, y: -areaHeight * 1.6 },
-          { x: -areaWidth * 1.2, y: 0 },
-          { x: areaWidth * 1.2, y: 0 },
-          { x: 0, y: areaHeight * 1.6 },
-          { x: -areaWidth * 1.2, y: -areaHeight * 1.3 },
-          { x: areaWidth * 1.2, y: -areaHeight * 1.3 },
-        ];
-
-        const areaPosition =
-          candidateOffsets
-            .map((offset) => ({ x: center.x + offset.x, y: center.y + offset.y }))
-            .find((candidate) => {
-              if (!isPointInPolygon(candidate, p.plot.points)) return false;
-              return !allLabels.some(
-                (label) =>
-                  Math.abs(candidate.x - label.lx) <
-                    (areaWidth + label.width) / 2 + labelPad &&
-                  Math.abs(candidate.y - label.ly) <
-                    (areaHeight + label.height) / 2 + labelPad,
-              );
-            }) ?? center;
-
         return (
           <g
             key={`area-${p.id}`}
-            transform={`translate(${areaPosition.x}, ${areaPosition.y})`}
+            transform={`translate(${center.x}, ${center.y})`}
           >
             <rect
               x={-areaWidth / 2}
