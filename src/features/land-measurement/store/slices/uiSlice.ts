@@ -24,6 +24,7 @@ export interface UIActions {
   setIsModalOpen: (isOpen: boolean) => void;
   setStagePos: (pos: { x: number; y: number } | ((prev: { x: number; y: number }) => { x: number; y: number })) => void;
   setStageScale: (scale: number | ((prev: number) => number)) => void;
+  setStageTransform: (transform: { scale: number; pos: { x: number; y: number } }) => void;
   setStageSize: (size: { width: number; height: number }) => void;
   setIsPinching: (isPinching: boolean) => void;
   setPendingAction: (action: { type: 'clearMap' | 'clearPlot'; callback?: () => void } | null) => void;
@@ -71,6 +72,7 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set, get, 
     set((state) => ({
       stageScale: typeof scale === 'function' ? scale(state.stageScale) : scale,
     })),
+  setStageTransform: ({ scale, pos }) => set({ stageScale: scale, stagePos: pos }),
   setStageSize: (stageSize) => set({ stageSize }),
   setIsPinching: (isPinching) => set({ isPinching }),
   setPendingAction: (action) => set({ pendingAction: action }),
