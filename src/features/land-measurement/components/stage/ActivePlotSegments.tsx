@@ -1,15 +1,11 @@
-﻿import { memo, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { Group, Label as KonvaLabel, Tag, Text } from 'react-konva';
+import { Text } from 'react-konva';
 import { formatFeetInches, LABEL_OFFSET_DRAWING_SEGMENT, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
 import { getReadableRotation } from '@/features/land-measurement/utils/component-helpers';
 import { GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import type { PlotSegment, PlotSegmentGroup, ActivePlotLabelData } from '@/features/land-measurement/types/stage';
-
-// ──────────────────────────────────────────────
-// Component
-// ──────────────────────────────────────────────
 
 export const ActivePlotSegments = memo(() => {
   const { plotPoints, isPlotFinished, stageScale, scale } = useMapStore(
@@ -24,7 +20,6 @@ export const ActivePlotSegments = memo(() => {
   const labelData = useMemo((): ActivePlotLabelData[] => {
     if (plotPoints.length < 2) return [];
 
-    // Build segments
     const segments: PlotSegment[] = plotPoints
       .map((point, i) => {
         if (i === plotPoints.length - 1 && !isPlotFinished) return null;
@@ -39,7 +34,6 @@ export const ActivePlotSegments = memo(() => {
       })
       .filter((d): d is PlotSegment => d !== null);
 
-    // Group co-linear segments
     const groups: PlotSegmentGroup[] = [];
     let currentGroup: PlotSegmentGroup = { segments: [], totalLengthFt: 0 };
     segments.forEach((seg) => {
@@ -61,7 +55,6 @@ export const ActivePlotSegments = memo(() => {
     });
     if (currentGroup.segments.length > 0) groups.push(currentGroup);
 
-    // Compute winding once for all groups
     let signedArea = 0;
     for (let i = 0; i < plotPoints.length; i++) {
       const p1 = plotPoints[i];
@@ -76,11 +69,9 @@ export const ActivePlotSegments = memo(() => {
         if (totalDistPx < 15 / stageScale) return null;
 
         const labelText = formatFeetInches(group.totalLengthFt);
-        // Use first→last point of the entire group for true angle & normal
         const firstPt = group.segments[0].point;
         const lastPt = group.segments[group.segments.length - 1].nextPoint;
-        
-        // Find the physical midpoint ALONG the boundary path (not the chord)
+
         const halfDist = totalDistPx / 2;
         let walked = 0;
         let midX = firstPt.x;
@@ -89,7 +80,7 @@ export const ActivePlotSegments = memo(() => {
         let midDy = lastPt.y - firstPt.y;
 
         for (const seg of group.segments) {
-          const d = seg.distPx || 1e-5; // avoid div by 0
+          const d = seg.distPx || 1e-5;
           if (walked + d >= halfDist) {
             const ratio = (halfDist - walked) / d;
             midX = seg.point.x + ratio * seg.dx;
@@ -105,10 +96,10 @@ export const ActivePlotSegments = memo(() => {
         const dy = midDy;
         const totalDist = Math.hypot(dx, dy) || 1;
         const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-        const fontSize = UI_CONFIG.fontSize.medium / stageScale;
-        const padding = UI_CONFIG.padding.small / stageScale;
-        const estWidth = labelText.length * fontSize * 0.6 + padding * 2;
-        const estHeight = fontSize + padding * 2;
+        const fontSize = UI_CONFIG.fontSize.small / stageScale;
+        const padding = 0;
+        const estWidth = labelText.length * fontSize * 0.58;
+        const estHeight = fontSize * 1.08;
 
         let perpX: number;
         let perpY: number;
@@ -155,33 +146,25 @@ export const ActivePlotSegments = memo(() => {
   return (
     <>
       {labelData.map((d) => (
-        <Group key={`length-label-group-${d.i}`}>
-          <KonvaLabel
-            x={d.midX + d.perpX * (LABEL_OFFSET_DRAWING_SEGMENT / stageScale)}
-            y={d.midY + d.perpY * (LABEL_OFFSET_DRAWING_SEGMENT / stageScale)}
-            offsetX={d.estWidth / 2}
-            offsetY={d.estHeight / 2}
-            rotation={d.rotation}
-            opacity={0.95}
-          >
-            <Tag
-              fill={UI_CONFIG.colors.drawBg}
-              stroke={UI_CONFIG.colors.drawLight}
-              strokeWidth={UI_CONFIG.strokeWidth.medium / stageScale}
-              cornerRadius={UI_CONFIG.radius.small / stageScale}
-            />
-            <Text
-              text={d.labelText}
-              fontSize={d.fontSize}
-              fill={UI_CONFIG.colors.drawPrimary}
-              padding={d.padding}
-              fontStyle="bold"
-            />
-          </KonvaLabel>
-        </Group>
+        <Text
+          key={`length-label-${d.i}`}
+          x={d.midX + d.perpX * (LABEL_OFFSET_DRAWING_SEGMENT / stageScale)}
+          y={d.midY + d.perpY * (LABEL_OFFSET_DRAWING_SEGMENT / stageScale)}
+          offsetX={d.estWidth / 2}
+          offsetY={d.estHeight / 2}
+          rotation={d.rotation}
+          text={d.labelText}
+          fontSize={d.fontSize}
+          fontStyle="bold"
+          fill={UI_CONFIG.colors.drawPrimary}
+          stroke="rgba(255,255,255,0.95)"
+          strokeWidth={2.2 / stageScale}
+          fillAfterStrokeEnabled
+          opacity={0.95}
+          listening={false}
+        />
       ))}
     </>
   );
 });
 ActivePlotSegments.displayName = 'ActivePlotSegments';
-
