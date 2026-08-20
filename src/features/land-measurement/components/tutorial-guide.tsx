@@ -77,14 +77,6 @@ const STEPS: TutorialStep[] = [
         highlight: true,
     },
     {
-        targetId: 'step-save',
-        title: "প্রজেক্ট সেভ",
-        content: "আপনার কাজ শেষে প্রজেক্টটি সেভ করতে এখানে ক্লিক করুন।",
-        position: 'bottom',
-        highlight: true,
-    },
-
-    {
         targetId: 'step-theme',
         title: "থিম পরিবর্তন",
         content: "আপনার সুবিধামতো ডার্ক (Dark) বা লাইট (Light) থিম বেছে নিতে এখানে ক্লিক করুন।",
@@ -102,8 +94,8 @@ const STEPS: TutorialStep[] = [
         targetId: 'step-map-stage',
         title: "ম্যাপ স্টেজ",
         content: "এটি হলো আপনার ম্যাপ স্টেজ। এখানে আপনি ড্রয়িং করতে পারবেন। মাউসের চাকা ঘুরিয়ে জুম করতে পারেন।",
-        position: 'center', // popover: centered on screen
-        highlight: true, // but still spotlight the canvas
+        position: 'center',
+        highlight: true,
     },
     {
         targetId: 'step-results',
@@ -195,7 +187,6 @@ export const TutorialGuide = () => {
         localStorage.setItem('hasSeenTutorial', 'true');
     };
 
-    // Popover position
     const popoverStyle = (): React.CSSProperties => {
         if (step.position === 'center' || !targetRect) {
             return {
@@ -208,7 +199,6 @@ export const TutorialGuide = () => {
         }
 
         let actualPosition = step.position;
-        // Auto-flip if it would overflow the screen vertically
         if (actualPosition === 'bottom' && targetRect.bottom + 250 > window.innerHeight) {
             actualPosition = 'top';
         } else if (actualPosition === 'top' && targetRect.top - 250 < 0) {
@@ -227,7 +217,7 @@ export const TutorialGuide = () => {
                 width: '360px',
             };
         }
-        // top
+
         return {
             top: Math.max(20, targetRect.top - 20),
             left: Math.min(
@@ -244,8 +234,6 @@ export const TutorialGuide = () => {
 
     return (
         <div className="fixed inset-0 z-200 pointer-events-none">
-
-            {/* ── Dark overlay with optional spotlight cutout ── */}
             <svg className="absolute inset-0 w-full h-full pointer-events-auto">
                 <defs>
                     <mask id="tutorial-mask">
@@ -270,7 +258,6 @@ export const TutorialGuide = () => {
                 />
             </svg>
 
-            {/* ── Glowing border on top of canvas (separate from SVG) ── */}
             {showHighlight && (
                 <div
                     className="absolute pointer-events-none rounded-[10px]"
@@ -286,13 +273,11 @@ export const TutorialGuide = () => {
                 />
             )}
 
-            {/* ── Popover card ── */}
             <div
                 className="absolute pointer-events-auto"
                 style={popoverStyle()}
             >
                 <div className="bg-background border border-border rounded-xl shadow-2xl p-5 relative w-full overflow-hidden">
-                    {/* Decorative glow */}
                     <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full pointer-events-none" />
 
                     <button
@@ -302,7 +287,6 @@ export const TutorialGuide = () => {
                         <X size={18} />
                     </button>
 
-                    {/* Welcome image (step 0 only) */}
                     {currentStep === 0 && (
                         <div className="relative mb-4 rounded-lg overflow-hidden h-36 flex items-center justify-center">
                             <Image
@@ -326,7 +310,6 @@ export const TutorialGuide = () => {
                     </p>
 
                     <div className="flex items-center justify-between">
-                        {/* Progress dots */}
                         <div className="flex gap-1">
                             {STEPS.map((_, i) => (
                                 <div
