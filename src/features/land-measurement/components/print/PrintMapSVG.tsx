@@ -142,7 +142,7 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
           <text
             x={0}
             y={0}
-            fontSize={fontSize}
+            fontSize={lbl.fontSize}
             fontWeight="bold"
             fill="#0F766E"
             textAnchor="middle"
