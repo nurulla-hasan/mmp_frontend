@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useRef, useMemo, useCallback, memo } from 'react';
 import {
@@ -8,7 +8,6 @@ import {
 import { useTheme } from 'next-themes';
 import { useShallow } from 'zustand/shallow';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
-import { SaveProjectDialog } from '@/features/land-measurement/components/SaveProjectDialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
@@ -282,7 +281,6 @@ export function FloatingToolbar() {
                 {commonTools.diagonals()}
                 {commonTools.magnifier()}
                 <VDivider />
-                <span id="step-save"><SaveProjectDialog iconOnly /></span>
                 {commonTools.help()}
                 <VDivider />
                 {commonTools.reset()}
@@ -300,7 +298,7 @@ export function FloatingToolbar() {
                 {commonTools.calibrate('sm')}
                 {commonTools.draw('sm')}
                 {commonTools.divide('sm')}
-                <span id="step-save"><SaveProjectDialog iconOnly size="sm" /></span>
+                {commonTools.magnifier('sm')}
                 <DropdownMenu>
                     <DropdownMenuTrigger nativeButton={false} render={<div className="inline-flex" />} className="focus-visible:outline-none focus:outline-none">
                         <ToolBtn
@@ -317,7 +315,6 @@ export function FloatingToolbar() {
                         className="w-fit"
                     >
                         <div>
-                            {commonTools.magnifier('sm')}
                             {commonTools.diagonals('sm')}
                             {commonTools.themeToggle('sm')}
                             {commonTools.help('sm')}
