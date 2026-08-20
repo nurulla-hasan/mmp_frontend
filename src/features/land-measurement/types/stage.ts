@@ -1,4 +1,4 @@
-import type { MapMode, Point, PlotRecord, MeasurementLine } from './map';
+import type { MapMode, Point, PlotRecord } from './map';
 import type Konva from 'konva';
 
 export type StageBackgroundProps = {
@@ -10,17 +10,6 @@ export type StageCalibrationProps = {
   calibrationLine: number[];
   stageScale: number;
   stagePos: Point;
-  getStageCenterPoint: () => Point;
-};
-
-export type StageMeasurementsProps = {
-  mode: MapMode;
-  measurementLines: MeasurementLine[];
-  measurementDraft: number[];
-  measurementDashed: boolean;
-  stageScale: number;
-  stagePos: Point;
-  scale: number | null;
   getStageCenterPoint: () => Point;
 };
 
