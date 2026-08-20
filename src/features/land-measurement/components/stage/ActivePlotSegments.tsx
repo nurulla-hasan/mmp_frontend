@@ -55,13 +55,15 @@ export const ActivePlotSegments = memo(() => {
     });
     if (currentGroup.segments.length > 0) groups.push(currentGroup);
 
-    let signedArea = 0;
-    for (let i = 0; i < plotPoints.length; i++) {
-      const p1 = plotPoints[i];
-      const p2 = plotPoints[(i + 1) % plotPoints.length];
-      signedArea += (p2.x - p1.x) * (p2.y + p1.y);
-    }
-    const isClockwise = signedArea < 0;
+    // During drawing the polygon is open, so winding is not a reliable way to
+    // decide which side of an edge is "inside". A single center point gives us
+    // a stable, very cheap direction test for every completed segment.
+    const center = plotPoints.reduce(
+      (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
+      { x: 0, y: 0 },
+    );
+    center.x /= plotPoints.length;
+    center.y /= plotPoints.length;
 
     return groups
       .map((group, groupIdx): ActivePlotLabelData | null => {
@@ -101,23 +103,15 @@ export const ActivePlotSegments = memo(() => {
         const estWidth = labelText.length * fontSize * 0.58;
         const estHeight = fontSize * 1.08;
 
-        let perpX: number;
-        let perpY: number;
-        if (plotPoints.length >= 3) {
-          if (isClockwise) {
-            perpX = dy / totalDist;
-            perpY = -dx / totalDist;
-          } else {
-            perpX = -dy / totalDist;
-            perpY = dx / totalDist;
-          }
-        } else {
-          perpX = -dy / totalDist;
-          perpY = dx / totalDist;
-        }
+        const normalAX = -dy / totalDist;
+        const normalAY = dx / totalDist;
+        const towardCenterX = center.x - midX;
+        const towardCenterY = center.y - midY;
+        const normalFacesCenter = normalAX * towardCenterX + normalAY * towardCenterY >= 0;
+        const perpX = normalFacesCenter ? normalAX : -normalAX;
+        const perpY = normalFacesCenter ? normalAY : -normalAY;
 
-        const staggeredOffset = [75, 100, 125][groupIdx % 3];
-        const lineLen = staggeredOffset / stageScale;
+        const lineLen = LABEL_OFFSET_DRAWING_SEGMENT / stageScale;
         const lineEndX = midX + perpX * lineLen;
         const lineEndY = midY + perpY * lineLen;
 
