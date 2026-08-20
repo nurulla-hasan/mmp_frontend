@@ -44,11 +44,15 @@ export const useStageEvents = () => {
     startClient: { x: 0, y: 0 },
     startTime: 0,
   });
+
+  // rAF refs keep high-frequency pointer/pinch/drag work to at most once per frame.
   const pinchRafRef = useRef<number>(0);
-  // rAF refs keep high-frequency pointer work to at most once per frame.
   const snapRafRef = useRef<number>(0);
   const pointerRafRef = useRef<number>(0);
-  // Track if mouse dragged to avoid click-after-drag
+  const dragRafRef = useRef<number>(0);
+  const pendingDragPosRef = useRef<Point | null>(null);
+
+  // Track if mouse dragged to avoid click-after-drag.
   const mouseDownPosRef = useRef<{ x: number; y: number } | null>(null);
   const CLICK_MOVE_THRESHOLD = 5;
 
@@ -70,7 +74,7 @@ export const useStageEvents = () => {
     stageScale,
     stagePos,
     setStagePos,
-    setStageScale,
+    setStageTransform,
   } = useMapStore(useShallow((s) => ({
     mode: s.mode,
     isPlotFinished: s.isPlotFinished,
@@ -81,13 +85,10 @@ export const useStageEvents = () => {
     stageScale: s.stageScale,
     stagePos: s.stagePos,
     setStagePos: s.setStagePos,
-    getStageCenterPoint: s.getStageCenterPoint,
-    setStageScale: s.setStageScale,
+    setStageTransform: s.setStageTransform,
   })));
 
   // Keep latest values in refs so callbacks don't go stale and don't need to be recreated.
-  // useLayoutEffect runs synchronously after every render, before the browser paints,
-  // so refs are always fresh when event handlers fire.
   const modeRef = useRef(mode);
   const isPlotFinishedRef = useRef(isPlotFinished);
   const plotPointsRef = useRef(plotPoints);
@@ -108,14 +109,14 @@ export const useStageEvents = () => {
     return () => {
       if (pointerRafRef.current) cancelAnimationFrame(pointerRafRef.current);
       if (snapRafRef.current) cancelAnimationFrame(snapRafRef.current);
+      if (pinchRafRef.current) cancelAnimationFrame(pinchRafRef.current);
+      if (dragRafRef.current) cancelAnimationFrame(dragRafRef.current);
     };
   }, []);
 
-
-
-  // Helper: check snap and update only if changed (throttled via rAF)
+  // Helper: check snap and update only if changed (throttled via rAF).
   const checkSnapThrottled = useCallback(() => {
-    if (snapRafRef.current) return; // already queued
+    if (snapRafRef.current) return;
     snapRafRef.current = requestAnimationFrame(() => {
       snapRafRef.current = 0;
       const curMode = modeRef.current;
@@ -136,16 +137,14 @@ export const useStageEvents = () => {
     });
   }, [setSnapHint]);
 
-  // onMouseMove — stable reference, no plotPoints in deps
   const onMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-    // Ignore compatibility mousemove events emitted immediately after touch;
-    // otherwise the mobile preview line jumps from the center crosshair to the tap.
+    // Ignore compatibility mousemove events emitted immediately after touch.
     if (Date.now() - lastTouchAtRef.current < TOUCH_COMPATIBILITY_WINDOW_MS) return;
 
     lastDeviceRef.current = 'mouse';
     const store = useMapStore.getState();
     if (store.deviceType !== 'mouse') store.setDeviceType('mouse');
-    
+
     const stage = e.target.getStage();
     if (stage) {
       const pointer = stage.getPointerPosition();
@@ -157,9 +156,7 @@ export const useStageEvents = () => {
         lastPointerPosRef.current = pos;
 
         if (
-          (modeRef.current === 'drawing_plot' ||
-            modeRef.current === 'measuring' ||
-            modeRef.current === 'calibrating') &&
+          (modeRef.current === 'drawing_plot' || modeRef.current === 'calibrating') &&
           !pointerRafRef.current
         ) {
           pointerRafRef.current = requestAnimationFrame(() => {
@@ -182,6 +179,7 @@ export const useStageEvents = () => {
       const store = useMapStore.getState();
       if (store.deviceType !== 'touch') store.setDeviceType('touch');
       const touches = e.evt.touches;
+
       if (touches && touches.length >= 2) {
         isPinchingRef.current = true;
         setIsPinching(true);
@@ -190,7 +188,7 @@ export const useStageEvents = () => {
         const centerClient = getMidpoint(touches[0], touches[1]);
         const stage = document.querySelector('.konvajs-content')?.parentElement;
         let mousePointTo = { x: 0, y: 0 };
-        
+
         if (stage) {
           const rect = stage.getBoundingClientRect();
           const pointerX = centerClient.x - rect.left;
@@ -231,12 +229,14 @@ export const useStageEvents = () => {
     (e: Konva.KonvaEventObject<TouchEvent>) => {
       lastTouchAtRef.current = Date.now();
       const touches = e.evt.touches;
+
       if (isPinchingRef.current && touches && touches.length >= 2) {
         blockTapRef.current = true;
         const newDist = getDistance(touches[0], touches[1]);
         const start = pinchStartRef.current;
         const delta = Math.abs(newDist - (lastPinchDistRef.current || 0));
         if (delta < 0.5) return;
+
         if (!pinchRafRef.current) {
           pinchRafRef.current = requestAnimationFrame(() => {
             pinchRafRef.current = 0;
@@ -245,16 +245,20 @@ export const useStageEvents = () => {
               const clamped = clamp(rawScale, STAGE_MIN_ZOOM, STAGE_MAX_ZOOM);
               const centerClient = getMidpoint(touches[0], touches[1]);
               const stage = document.querySelector('.konvajs-content')?.parentElement;
+
               if (stage && start.mousePointTo) {
                 const rect = stage.getBoundingClientRect();
                 const pointerX = centerClient.x - rect.left;
                 const pointerY = centerClient.y - rect.top;
-                
-                setStageScale(clamped);
-                setStagePos({
+                const pos = {
                   x: pointerX - start.mousePointTo.x * clamped,
                   y: pointerY - start.mousePointTo.y * clamped,
-                });
+                };
+
+                // One Zustand write/notification instead of separate scale + position writes.
+                setStageTransform({ scale: clamped, pos });
+                stageScaleRef.current = clamped;
+                stagePosRef.current = pos;
               }
             }
             lastPinchDistRef.current = newDist;
@@ -262,39 +266,42 @@ export const useStageEvents = () => {
         }
       } else if (touches && touches.length === 1 && touchSessionRef.current?.active) {
         const start = touchSessionRef.current.startClient;
-        const moved =
-          Math.hypot(
-            touches[0].clientX - start.x,
-            touches[0].clientY - start.y,
-          ) > TOUCH_MOVE_THRESHOLD;
+        const moved = Math.hypot(
+          touches[0].clientX - start.x,
+          touches[0].clientY - start.y,
+        ) > TOUCH_MOVE_THRESHOLD;
         if (moved) touchSessionRef.current.moved = true;
       }
 
-      // Throttled snap check for touch too
       if (touches && touches.length === 1) {
         checkSnapThrottled();
       } else if (modeRef.current === "drawing_plot" && snapHintRef.current) {
         setSnapHint(false);
       }
     },
-    [checkSnapThrottled, setSnapHint, setStageScale, setStagePos],
+    [checkSnapThrottled, setSnapHint, setStageTransform],
   );
+
+  const resetPinchState = useCallback(() => {
+    isPinchingRef.current = false;
+    setIsPinching(false);
+    lastPinchDistRef.current = 0;
+    pinchStartRef.current = {
+      distance: 0,
+      scale: stageScaleRef.current,
+      stagePos: { ...stagePosRef.current },
+      centerClient: { x: 0, y: 0 },
+    };
+  }, [setIsPinching]);
 
   const onTouchEnd = useCallback(
     (e: Konva.KonvaEventObject<TouchEvent>) => {
       lastTouchAtRef.current = Date.now();
       const touches = e.evt.touches;
+
       if (isPinchingRef.current) {
         if (touches && touches.length === 1) {
-          isPinchingRef.current = false;
-          setIsPinching(false);
-          lastPinchDistRef.current = 0;
-          pinchStartRef.current = {
-            distance: 0,
-            scale: stageScaleRef.current,
-            stagePos: { ...stagePosRef.current },
-            centerClient: { x: 0, y: 0 },
-          };
+          resetPinchState();
           blockTapRef.current = false;
           touchSessionRef.current = {
             active: true,
@@ -305,35 +312,21 @@ export const useStageEvents = () => {
           };
           return;
         }
-        isPinchingRef.current = false;
-        setIsPinching(false);
-        lastPinchDistRef.current = 0;
-        pinchStartRef.current = {
-          distance: 0,
-          scale: stageScaleRef.current,
-          stagePos: { ...stagePosRef.current },
-          centerClient: { x: 0, y: 0 },
-        };
+
+        resetPinchState();
         blockTapRef.current = false;
         touchSessionRef.current.active = false;
         return;
       }
 
       if (!touches || touches.length < 2) {
-        isPinchingRef.current = false;
-        setIsPinching(false);
-        lastPinchDistRef.current = 0;
-        pinchStartRef.current = {
-          distance: 0,
-          scale: stageScaleRef.current,
-          stagePos: { ...stagePosRef.current },
-          centerClient: { x: 0, y: 0 },
-        };
+        resetPinchState();
         if (blockTapRef.current) {
           blockTapRef.current = false;
           touchSessionRef.current.active = false;
           return;
         }
+
         if (
           touchSessionRef.current?.active &&
           touchSessionRef.current?.single &&
@@ -353,14 +346,25 @@ export const useStageEvents = () => {
         touchSessionRef.current.active = false;
       }
     },
-    [setIsPinching, TAP_GRACE_MS, TAP_MIN_MS],
+    [resetPinchState],
   );
 
   const onDragMove = useCallback(
     (e: Konva.KonvaEventObject<DragEvent>) => {
       if (e.target !== e.currentTarget) return;
-      setStagePos(e.target.position());
-      checkSnapThrottled();
+      pendingDragPosRef.current = e.target.position();
+      if (dragRafRef.current) return;
+
+      dragRafRef.current = requestAnimationFrame(() => {
+        dragRafRef.current = 0;
+        const pending = pendingDragPosRef.current;
+        pendingDragPosRef.current = null;
+        if (!pending) return;
+
+        setStagePos(pending);
+        stagePosRef.current = pending;
+        checkSnapThrottled();
+      });
     },
     [setStagePos, checkSnapThrottled],
   );
@@ -368,14 +372,21 @@ export const useStageEvents = () => {
   const onDragEnd = useCallback(
     (e: Konva.KonvaEventObject<DragEvent>) => {
       if (e.target !== e.currentTarget) return;
-      setStagePos(e.target.position());
+      if (dragRafRef.current) {
+        cancelAnimationFrame(dragRafRef.current);
+        dragRafRef.current = 0;
+      }
+      pendingDragPosRef.current = null;
+      const pos = e.target.position();
+      setStagePos(pos);
+      stagePosRef.current = pos;
+      checkSnapThrottled();
     },
-    [setStagePos],
+    [setStagePos, checkSnapThrottled],
   );
 
   const onMouseDown = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
-      // Only track left button on the stage itself (not on shapes)
       if (e.evt.button !== 0) return;
       if (e.target !== e.currentTarget) return;
       mouseDownPosRef.current = { x: e.evt.clientX, y: e.evt.clientY };
@@ -385,24 +396,18 @@ export const useStageEvents = () => {
 
   const onClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
-      // Only left click, only on stage background (not shapes)
       if (e.evt.button !== 0) return;
 
-      // Konva/browser compatibility events can emit mousemove + click after a
-      // touch. Device type alone is therefore not enough; also suppress clicks
-      // inside the touch compatibility window. Mobile points are added only by
-      // the dedicated button at the crosshair.
       const isTouchGeneratedClick =
         lastDeviceRef.current !== 'mouse' ||
         Date.now() - lastTouchAtRef.current < TOUCH_COMPATIBILITY_WINDOW_MS;
       if (isTouchGeneratedClick) return;
 
-      // Allow clicks on stage or on layers (background), but block clicks on named shapes
       const targetName = (e.target as Konva.Node).name?.() || '';
-      const isStageOrLayer = e.target === e.currentTarget || targetName === '' || targetName === 'background-layer';
+      const isStageOrLayer =
+        e.target === e.currentTarget || targetName === '' || targetName === 'background-layer';
       if (!isStageOrLayer) return;
 
-      // Ignore if user dragged (panned)
       if (mouseDownPosRef.current) {
         const dx = Math.abs(e.evt.clientX - mouseDownPosRef.current.x);
         const dy = Math.abs(e.evt.clientY - mouseDownPosRef.current.y);
@@ -420,22 +425,23 @@ export const useStageEvents = () => {
       if (curMode === 'drawing_plot' && !curFinished) {
         const SNAP_DISTANCE = 20 / stageScaleRef.current;
         let pos = store.getStageCenterPoint();
-        
-        // If clicking with a mouse, use the exact click position
+
         if (lastDeviceRef.current === 'mouse') {
-           const pointer = stage.getPointerPosition();
-           if (pointer) {
-             pos = {
-               x: (pointer.x - store.stagePos.x) / store.stageScale,
-               y: (pointer.y - store.stagePos.y) / store.stageScale,
-             };
-           }
+          const pointer = stage.getPointerPosition();
+          if (pointer) {
+            pos = {
+              x: (pointer.x - store.stagePos.x) / store.stageScale,
+              y: (pointer.y - store.stagePos.y) / store.stageScale,
+            };
+          }
         }
 
         const first = curPoints[0];
-        // Use snapHint (already computed in checkSnapThrottled) OR distance check for safety
-        const isNearFirst = (snapHintRef.current && curPoints.length >= 3) ||
-          (first && Math.hypot(pos.x - first.x, pos.y - first.y) <= SNAP_DISTANCE && curPoints.length >= 3);
+        const isNearFirst =
+          (snapHintRef.current && curPoints.length >= 3) ||
+          (first &&
+            Math.hypot(pos.x - first.x, pos.y - first.y) <= SNAP_DISTANCE &&
+            curPoints.length >= 3);
 
         if (isNearFirst) {
           store.finishPlot();
@@ -445,21 +451,19 @@ export const useStageEvents = () => {
       } else if (curMode === 'calibrating') {
         let pos = store.getStageCenterPoint();
         if (lastDeviceRef.current === 'mouse') {
-           const pointer = stage.getPointerPosition();
-           if (pointer) {
-             pos = {
-               x: (pointer.x - store.stagePos.x) / store.stageScale,
-               y: (pointer.y - store.stagePos.y) / store.stageScale,
-             };
-           }
+          const pointer = stage.getPointerPosition();
+          if (pointer) {
+            pos = {
+              x: (pointer.x - store.stagePos.x) / store.stageScale,
+              y: (pointer.y - store.stagePos.y) / store.stageScale,
+            };
+          }
         }
-        // Anchor the preview to the exact first click immediately. The rAF
-        // pointer update may not have committed yet when the click fires.
         store.setPointerPos(pos);
         store.addPointAt(pos);
       }
     },
-    [CLICK_MOVE_THRESHOLD],
+    [],
   );
 
   return {
@@ -473,4 +477,3 @@ export const useStageEvents = () => {
     onDragEnd,
   };
 };
-
