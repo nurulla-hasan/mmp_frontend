@@ -70,7 +70,7 @@ export const createDivideSlice: StateCreator<DivideSlice, [], [], DivideSlice> =
 
     const newPlot1: PlotRecord = {
       id: crypto.randomUUID(),
-      name: `Plot ${plots.length + 1}`,
+      name: '',
       points: splitA,
       results: resultsA,
       color: plot.color,
@@ -78,7 +78,7 @@ export const createDivideSlice: StateCreator<DivideSlice, [], [], DivideSlice> =
 
     const newPlot2: PlotRecord = {
       id: crypto.randomUUID(),
-      name: `Plot ${plots.length + 2}`,
+      name: '',
       points: splitB,
       results: resultsB,
       color: PLOT_COLOR_PALETTE[(plotIndex + 1) % PLOT_COLOR_PALETTE.length],
@@ -87,9 +87,15 @@ export const createDivideSlice: StateCreator<DivideSlice, [], [], DivideSlice> =
     const newPlots = [...plots];
     newPlots.splice(plotIndex, 1, newPlot1, newPlot2);
 
+    // Re-index after every split so repeated divisions can never create duplicate names.
+    const renamedPlots = newPlots.map((item, index) => ({
+      ...item,
+      name: `Plot ${index + 1}`,
+    }));
+
     set({ manualDividePlotId: null, manualCutLine: null });
     toast.success('ম্যানুয়াল কাট সফলভাবে সম্পন্ন হয়েছে!');
 
-    return newPlots;
+    return renamedPlots;
   },
 });
