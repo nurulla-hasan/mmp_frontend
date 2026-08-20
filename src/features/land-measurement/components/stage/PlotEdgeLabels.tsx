@@ -10,10 +10,8 @@ import {
 } from '@/features/land-measurement/utils/geometry';
 import { getReadableRotation } from '@/features/land-measurement/utils/component-helpers';
 import type { Point } from '@/features/land-measurement/types/map';
-import type { PlotsLabelData } from '@/features/land-measurement/types/stage';
 
 interface PlotEdgeLabelsProps {
-  allLabels: PlotsLabelData[];
   stageScale: number;
 }
 
