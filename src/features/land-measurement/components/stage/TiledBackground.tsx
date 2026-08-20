@@ -1,4 +1,4 @@
-﻿import { memo, useState, useEffect, useRef } from 'react';
+﻿import { memo, useMemo, useState, useEffect, useRef } from 'react';
 import { Image as KonvaImage } from 'react-konva';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import { useShallow } from 'zustand/shallow';
@@ -19,24 +19,40 @@ interface TileRender {
   element: HTMLImageElement;
 }
 
+const VIEWPORT_POSITION_STEP_PX = 24;
+const quantizePosition = (value: number) =>
+  Math.round(value / VIEWPORT_POSITION_STEP_PX) * VIEWPORT_POSITION_STEP_PX;
+const quantizeScale = (value: number) => {
+  const safe = Math.max(value, 0.0001);
+  return Math.exp(Math.round(Math.log(safe) * 32) / 32);
+};
+
 /**
  * Renders a background image using tiling.
- * Only visible tiles at the appropriate pyramid level are rendered,
- * dramatically reducing GPU memory for large images.
+ * Only visible tiles at the appropriate pyramid level are rendered.
  */
 export const TiledBackground = memo(() => {
-  const { tilePyramidInfo, stagePos, stageScale, stageSize } = useMapStore(
+  // Tile selection does not need every pixel of stage movement. Selecting
+  // quantized primitives here prevents this component from re-rendering for
+  // every raw pan/zoom store update while the Konva stage itself still moves smoothly.
+  const { tilePyramidInfo, viewportX, viewportY, viewportScale, stageSize } = useMapStore(
     useShallow((s) => ({
       tilePyramidInfo: s.tilePyramidInfo,
-      stagePos: s.stagePos,
-      stageScale: s.stageScale,
+      viewportX: quantizePosition(s.stagePos.x),
+      viewportY: quantizePosition(s.stagePos.y),
+      viewportScale: quantizeScale(s.stageScale),
       stageSize: s.stageSize,
     }))
   );
 
-  // Debounce stage values so we don't recompute tiles on every pixel of pan
+  const stagePos = useMemo(
+    () => ({ x: viewportX, y: viewportY }),
+    [viewportX, viewportY],
+  );
+
+  // Debounce viewport changes so tile lookup/loading does not chase interaction frames.
   const debouncedPos = useDebounce(stagePos, 80);
-  const debouncedScale = useDebounce(stageScale, 80);
+  const debouncedScale = useDebounce(viewportScale, 80);
   const debouncedSize = useDebounce(stageSize, 200);
 
   const [tileImages, setTileImages] = useState<TileRender[]>([]);
@@ -48,7 +64,6 @@ export const TiledBackground = memo(() => {
     return () => { mountedRef.current = false; };
   }, []);
 
-  // Recompute visible tiles when debounced viewport changes
   useEffect(() => {
     if (!tilePyramidInfo) {
       setTileImages([]);
@@ -56,7 +71,6 @@ export const TiledBackground = memo(() => {
     }
 
     const hash = tilePyramidInfo.imageHash;
-    // Use debounced values for computation
     const viewport = {
       x: -debouncedPos.x / debouncedScale,
       y: -debouncedPos.y / debouncedScale,
@@ -82,7 +96,7 @@ export const TiledBackground = memo(() => {
           setTileImages(results);
         }
       } catch {
-        // Tile not yet cached (generation still in progress) — keep previous set
+        // Tile not yet cached (generation still in progress) — keep previous set.
       }
     })();
   }, [tilePyramidInfo, debouncedPos, debouncedScale, debouncedSize]);
@@ -110,4 +124,3 @@ export const TiledBackground = memo(() => {
 });
 
 TiledBackground.displayName = 'TiledBackground';
-
