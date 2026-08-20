@@ -37,8 +37,7 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
   labelOffset,
   areaFontSize,
 }) => {
-  // Keep plot-area and boundary dimensions in the same visual size family.
-  // The label engine may still shrink a short edge just enough to keep it inside.
+  // Edge and area labels share the exact same base size in print.
   const reportLabelFontSize = areaFontSize * 1.1;
 
   const { allLabels, plotPolygons } = computePrintLabels(plots, {
@@ -127,8 +126,12 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
             x={0}
             y={0}
             fontSize={lbl.fontSize}
-            fontWeight="bold"
+            fontWeight="700"
             fill="#0F766E"
+            stroke="rgba(255,255,255,0.96)"
+            strokeWidth={baseScale * 0.0022}
+            strokeLinejoin="round"
+            paintOrder="stroke"
             textAnchor="middle"
             dominantBaseline="central"
           >
