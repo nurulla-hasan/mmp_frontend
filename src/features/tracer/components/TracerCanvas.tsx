@@ -56,7 +56,7 @@ const TracerCanvas = memo(function TracerCanvas() {
 
   // ── Store ───────────────────────────────────────────────────────────────────
   const {
-    backgroundImage, imageLoading,
+    backgroundImage,
     layers, activeLayerId,
     mode,
     pendingPoints,
@@ -68,7 +68,6 @@ const TracerCanvas = memo(function TracerCanvas() {
     setLabelPosition, setLabelText,
   } = useTracerStore(useShallow(s => ({
     backgroundImage: s.backgroundImage,
-    imageLoading: s.imageLoading,
     layers: s.layers,
     activeLayerId: s.activeLayerId,
     mode: s.mode,
@@ -586,23 +585,6 @@ const TracerCanvas = memo(function TracerCanvas() {
             ? ' · Enter বা ✓ দিয়ে লাইন শেষ করুন'
             : ' · আরেকটি পয়েন্ট দিন'}
           {' · Esc = বাতিল'}
-        </div>
-      )}
-
-      {/* ── Hint when canvas is empty ─────────────────────────────────────── */}
-      {!imageLoading
-        && !backgroundImage
-        && layers.every(layer => layer.polygons.length === 0 && layer.labels.length === 0)
-        && pendingPoints.length === 0 && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-          <div className="text-center bg-background/50 backdrop-blur-sm rounded-2xl px-8 py-6 border border-border/30 shadow-sm max-w-sm">
-            <div className="text-4xl mb-3 drop-shadow-sm">✏️</div>
-            <p className="text-sm font-semibold text-foreground mb-1 font-heading">ডিজিটাল ম্যাপ ট্রেসিং</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              ডান পাশের সাইডবার থেকে পুরানো ম্যাপ আপলোড করুন<br />
-              তারপর ক্লিক করে দাগের সীমানা আঁকুন
-            </p>
-          </div>
         </div>
       )}
 

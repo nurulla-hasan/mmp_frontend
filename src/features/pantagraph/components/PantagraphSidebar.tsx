@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { memo, useCallback, useRef, useState } from 'react';
 import { PantagraphCropDialog } from './PantagraphCropDialog';
@@ -42,11 +42,23 @@ const MapUploadSection = memo(function MapUploadSection() {
   // Crop dialog state
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [cropTarget, setCropTarget] = useState<'former' | 'current' | null>(null);
+  const [pendingFileName, setPendingFileName] = useState<string | null>(null);
 
-  const { formerMap, currentMap, setFormerMap, setCurrentMap, imageLoading, setImageLoading } = usePantagraphStore(
+  const {
+    formerMap,
+    currentMap,
+    formerMapName,
+    currentMapName,
+    setFormerMap,
+    setCurrentMap,
+    imageLoading,
+    setImageLoading,
+  } = usePantagraphStore(
     useShallow((s) => ({
       formerMap: s.formerMap,
       currentMap: s.currentMap,
+      formerMapName: s.formerMapName,
+      currentMapName: s.currentMapName,
       setFormerMap: s.setFormerMap,
       setCurrentMap: s.setCurrentMap,
       imageLoading: s.imageLoading,
@@ -60,6 +72,7 @@ const MapUploadSection = memo(function MapUploadSection() {
     target: 'former' | 'current',
   ) => {
     setImageLoading(true);
+    setPendingFileName(file.name);
     if (file.type === 'application/pdf') {
       try {
         const img = await extractImageFromPDF(file);
@@ -112,13 +125,17 @@ const MapUploadSection = memo(function MapUploadSection() {
 
   // ── When crop is done ────────────────────────────────────────────────────────
   const handleCropDone = useCallback((img: HTMLImageElement) => {
-    if (cropTarget === 'former') setFormerMap(img);
-    else if (cropTarget === 'current') setCurrentMap(img);
-  }, [cropTarget, setFormerMap, setCurrentMap]);
+    if (cropTarget === 'former') setFormerMap(img, pendingFileName);
+    else if (cropTarget === 'current') setCurrentMap(img, pendingFileName);
+    setCropSrc(null);
+    setCropTarget(null);
+    setPendingFileName(null);
+  }, [cropTarget, pendingFileName, setFormerMap, setCurrentMap]);
 
   const handleCropClose = useCallback(() => {
     setCropSrc(null);
     setCropTarget(null);
+    setPendingFileName(null);
   }, []);
 
   return (
@@ -127,40 +144,100 @@ const MapUploadSection = memo(function MapUploadSection() {
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-heading">
           ম্যাপ আপলোড
         </h3>
+
         {/* Former Map */}
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-destructive" />
-            সাবেক ম্যাপ
-          </Label>
-          <input ref={formerInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFormerUpload} />
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <Label className="text-xs text-muted-foreground flex items-center gap-1.5 shrink-0">
+              <span className="w-2 h-2 rounded-full bg-destructive shrink-0" />
+              <span>সাবেক ম্যাপ</span>
+            </Label>
+            {formerMap && (
+              <span
+                className="text-[11px] text-foreground/80 font-mono truncate max-w-33.75 sm:max-w-40 text-right"
+                title={formerMapName || "সাবেক_ম্যাপ.png"}
+              >
+                {formerMapName || "সাবেক_ম্যাপ.png"}
+              </span>
+            )}
+          </div>
+
+          <input
+            ref={formerInputRef}
+            type="file"
+            accept="image/*,application/pdf"
+            className="hidden"
+            onChange={handleFormerUpload}
+          />
+
           <div className="flex gap-1.5">
-            <Button variant="outline" onClick={() => formerInputRef.current?.click()} disabled={imageLoading}>
-              <ImageUp className="w-4 h-4 mr-1.5" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => formerInputRef.current?.click()}
+              disabled={imageLoading}
+              className="flex-1"
+            >
+              <ImageUp className="w-3.5 h-3.5 mr-1.5 shrink-0" />
               {imageLoading ? 'লোড হচ্ছে...' : (formerMap ? 'পরিবর্তন' : 'আপলোড')}
             </Button>
             {formerMap && (
-              <Button variant="ghost" size="icon" onClick={() => setFormerMap(null)}>
-                <Trash2 className="w-4 h-4" />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setFormerMap(null)}
+                title="সাবেক ম্যাপ মুছুন"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-destructive" />
               </Button>
             )}
           </div>
         </div>
+
         {/* Current Map */}
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-primary" />
-            হাল ম্যাপ
-          </Label>
-          <input ref={currentInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleCurrentUpload} />
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <Label className="text-xs text-muted-foreground flex items-center gap-1.5 shrink-0">
+              <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+              <span>হাল ম্যাপ</span>
+            </Label>
+            {currentMap && (
+              <span
+                className="text-[11px] text-foreground/80 font-mono truncate max-w-33.75 sm:max-w-40 text-right"
+                title={currentMapName || "হাল_ম্যাপ.png"}
+              >
+                {currentMapName || "হাল_ম্যাপ.png"}
+              </span>
+            )}
+          </div>
+
+          <input
+            ref={currentInputRef}
+            type="file"
+            accept="image/*,application/pdf"
+            className="hidden"
+            onChange={handleCurrentUpload}
+          />
+
           <div className="flex gap-1.5">
-            <Button variant="outline" onClick={() => currentInputRef.current?.click()} disabled={imageLoading}>
-              <ImageUp className="w-4 h-4 mr-1.5" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => currentInputRef.current?.click()}
+              disabled={imageLoading}
+              className="flex-1"
+            >
+              <ImageUp className="w-3.5 h-3.5 mr-1.5 shrink-0" />
               {imageLoading ? 'লোড হচ্ছে...' : (currentMap ? 'পরিবর্তন' : 'আপলোড')}
             </Button>
             {currentMap && (
-              <Button variant="ghost" size="icon" onClick={() => setCurrentMap(null)}>
-                <Trash2 className="w-4 h-4" />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setCurrentMap(null)}
+                title="হাল ম্যাপ মুছুন"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-destructive" />
               </Button>
             )}
           </div>
