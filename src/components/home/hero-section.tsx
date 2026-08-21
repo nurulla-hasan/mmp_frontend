@@ -47,7 +47,7 @@ export function HeroSection() {
         <div className="grid gap-12 lg:grid-cols-[1.05fr_1fr] lg:items-center xl:gap-16 min-w-0">
           {/* ─── Left Hero Content ────────────────────────────────── */}
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3.5 py-1.5 text-xs font-medium text-primary shadow-2xs backdrop-blur-xs">
+            <div className="inline-flex items-center gap-2 rounded-md border border-primary/25 bg-primary/10 px-3.5 py-1.5 text-xs font-medium text-primary shadow-2xs backdrop-blur-xs">
               <span className="size-2 rounded-full bg-primary animate-pulse" />
               <span>বাংলাদেশের প্রথম পূর্ণাঙ্গ ডিজিটাল মৌজা ও ভূমি প্ল্যাটফর্ম</span>
             </div>
