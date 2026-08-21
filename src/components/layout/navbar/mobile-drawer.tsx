@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Home, MapPin, Menu, Ruler, Tag, X } from "lucide-react";
+import { FileText, Home, MapPin, Menu, Ruler, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -18,7 +18,6 @@ const mobileLinks = [
   { label: "হোম", href: "/", icon: Home },
   { label: "ল্যান্ড টুলস", href: "/tools", icon: Ruler },
   { label: "সার্ভেয়ার খুঁজুন", href: "/surveyors", icon: MapPin },
-  { label: "প্রাইসিং", href: "/pricing", icon: Tag },
 ];
 
 const userMobileLinks = [
