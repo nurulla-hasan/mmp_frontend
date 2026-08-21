@@ -1,4 +1,4 @@
-import type { MapMode, Point, PlotRecord, MeasurementLine } from './map';
+import type { MapMode, Point, PlotRecord } from './map';
 import type React from 'react';
 
 export type SidebarControlsProps = {
@@ -16,8 +16,6 @@ export type SidebarControlsProps = {
   plotPoints: Point[];
   setPlotPoints: React.Dispatch<React.SetStateAction<Point[]>>;
   plots: PlotRecord[];
-  measurementLines: MeasurementLine[];
-  measurementDraft: number[];
   plotSaveName: string;
   setPlotSaveName: (s: string) => void;
   setIsDrawing: (d: boolean) => void;
@@ -32,8 +30,6 @@ export type SidebarControlsProps = {
   handleClearFile: () => void;
   handleManualScaleSubmit: (e: React.FormEvent) => void;
   handlePrint: () => void;
-  undoMeasurementLine: () => void;
-  clearMeasurementLines: () => void;
   resetCalibClick: () => void;
 };
 
@@ -78,17 +74,6 @@ export type SidebarPlottingPanelProps = {
   confirmClearPlot: (callback?: () => void) => void;
   finishPlot: () => void;
   savePlotsToLibrary: () => void;
-};
-
-export type SidebarMeasurementPanelProps = {
-  mode: MapMode;
-  setMode: (mode: MapMode) => void;
-  image: HTMLImageElement | null;
-  scale: number | null;
-  measurementLines: MeasurementLine[];
-  undoMeasurementLine: () => void;
-  clearMeasurementLines: () => void;
-  confirmClearPlot: (callback?: () => void) => void;
 };
 
 export type SidebarActionsPanelProps = {
