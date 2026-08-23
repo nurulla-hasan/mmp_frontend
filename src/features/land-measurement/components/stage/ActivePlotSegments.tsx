@@ -1,11 +1,14 @@
 import { memo, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Text } from 'react-konva';
-import { formatFeetInches, LABEL_OFFSET_DRAWING_SEGMENT, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
+import { formatFeetInches, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
 import { getReadableRotation } from '@/features/land-measurement/utils/component-helpers';
 import { GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import type { PlotSegment, PlotSegmentGroup, ActivePlotLabelData } from '@/features/land-measurement/types/stage';
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 export const ActivePlotSegments = memo(() => {
   const { plotPoints, isPlotFinished, stageScale, scale } = useMapStore(
@@ -55,9 +58,6 @@ export const ActivePlotSegments = memo(() => {
     });
     if (currentGroup.segments.length > 0) groups.push(currentGroup);
 
-    // During drawing the polygon is open, so winding is not a reliable way to
-    // decide which side of an edge is "inside". A single center point gives us
-    // a stable, very cheap direction test for every completed segment.
     const center = plotPoints.reduce(
       (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
       { x: 0, y: 0 },
@@ -68,7 +68,8 @@ export const ActivePlotSegments = memo(() => {
     return groups
       .map((group, groupIdx): ActivePlotLabelData | null => {
         const totalDistPx = group.segments.reduce((sum, seg) => sum + seg.distPx, 0);
-        if (totalDistPx < 15 / stageScale) return null;
+        const edgeScreenPx = totalDistPx * stageScale;
+        if (edgeScreenPx < 34) return null;
 
         const labelText = formatFeetInches(group.totalLengthFt);
         const firstPt = group.segments[0].point;
@@ -98,10 +99,18 @@ export const ActivePlotSegments = memo(() => {
         const dy = midDy;
         const totalDist = Math.hypot(dx, dy) || 1;
         const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-        const fontSize = UI_CONFIG.fontSize.small / stageScale;
-        const padding = 0;
-        const estWidth = labelText.length * fontSize * 0.58;
-        const estHeight = fontSize * 1.08;
+
+        let fontPx = clamp(edgeScreenPx * 0.13, 7.5, UI_CONFIG.fontSize.small);
+        let widthPx = labelText.length * fontPx * 0.58;
+        const maxWidthPx = edgeScreenPx * 0.74;
+        if (widthPx > maxWidthPx) {
+          fontPx = Math.max(6.75, fontPx * (maxWidthPx / widthPx));
+          widthPx = labelText.length * fontPx * 0.58;
+        }
+
+        const fontSize = fontPx / stageScale;
+        const estWidth = widthPx / stageScale;
+        const estHeight = (fontPx * 1.08) / stageScale;
 
         const normalAX = -dy / totalDist;
         const normalAY = dx / totalDist;
@@ -111,25 +120,24 @@ export const ActivePlotSegments = memo(() => {
         const perpX = normalFacesCenter ? normalAX : -normalAX;
         const perpY = normalFacesCenter ? normalAY : -normalAY;
 
-        const lineLen = LABEL_OFFSET_DRAWING_SEGMENT / stageScale;
-        const lineEndX = midX + perpX * lineLen;
-        const lineEndY = midY + perpY * lineLen;
+        const insetPx = Math.max(7, fontPx * 0.95);
+        const labelDist = insetPx / stageScale;
 
         return {
           i: groupIdx,
           midX,
           midY,
           rotation: getReadableRotation(angle),
-          lineEndX,
-          lineEndY,
-          labelDist: lineLen,
+          lineEndX: midX + perpX * labelDist,
+          lineEndY: midY + perpY * labelDist,
+          labelDist,
           perpX,
           perpY,
           estWidth,
           estHeight,
           labelText,
           fontSize,
-          padding,
+          padding: 0,
         };
       })
       .filter((d): d is ActivePlotLabelData => d !== null);
@@ -142,8 +150,8 @@ export const ActivePlotSegments = memo(() => {
       {labelData.map((d) => (
         <Text
           key={`length-label-${d.i}`}
-          x={d.midX + d.perpX * (LABEL_OFFSET_DRAWING_SEGMENT / stageScale)}
-          y={d.midY + d.perpY * (LABEL_OFFSET_DRAWING_SEGMENT / stageScale)}
+          x={d.midX + d.perpX * d.labelDist}
+          y={d.midY + d.perpY * d.labelDist}
           offsetX={d.estWidth / 2}
           offsetY={d.estHeight / 2}
           rotation={d.rotation}

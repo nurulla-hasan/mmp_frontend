@@ -1,12 +1,16 @@
 import { memo, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Group, Line, Circle, Text } from 'react-konva';
-import { formatFeetInches, LABEL_OFFSET_DRAWING_LIVE, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
-import { getSnappedPoint, isPointInPolygon, clipLineToPolygon, GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
+import { formatFeetInches, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
+import { getSnappedPoint, clipLineToPolygon, GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
+import { getDirectionalContainingPlot } from '@/features/land-measurement/utils/directionalPlot';
 import { getReadableRotation } from '@/features/land-measurement/utils/component-helpers';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import { ActivePlotSegments } from './ActivePlotSegments';
 import { ActivePlotDiagonals } from './ActivePlotDiagonals';
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 const SnapHintCircle = memo(() => {
   const snapHint = useMapStore(s => s.snapHint);
@@ -56,8 +60,6 @@ const StaticLines = memo(() => {
 });
 StaticLines.displayName = 'StaticLines';
 
-// Dashed preview from the last fixed point to the current target. This path is
-// intentionally lightweight because it updates during pan/pointer movement.
 const LiveDashedLine = memo(() => {
   const { plotPoints, snapHint, stageScale, stagePos, stageSize, scale, isPlotFinished, plots, pointerPos, deviceType } = useMapStore(
     useShallow(s => ({
@@ -106,6 +108,8 @@ const LiveDashedLine = memo(() => {
         perpX: undefined,
         perpY: undefined,
         fontSize: undefined,
+        labelDist: undefined,
+        showLabel: false,
         rotation: undefined,
       };
     }
@@ -116,23 +120,20 @@ const LiveDashedLine = memo(() => {
 
     if (!snapHint && plotPoints.length > 0) {
       const firstPt = plotPoints[0];
-      for (const plot of plots) {
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        for (const p of plot.points) {
-          if (p.x < minX) minX = p.x;
-          if (p.x > maxX) maxX = p.x;
-          if (p.y < minY) minY = p.y;
-          if (p.y > maxY) maxY = p.y;
-        }
+      const directionPoint = plotPoints.length >= 2
+        ? plotPoints[1]
+        : { x: targetX, y: targetY };
+      const containingPlot = getDirectionalContainingPlot(
+        plots,
+        firstPt,
+        directionPoint,
+        stageScale,
+      );
 
-        if (firstPt.x >= minX && firstPt.x <= maxX && firstPt.y >= minY && firstPt.y <= maxY) {
-          if (isPointInPolygon(firstPt, plot.points)) {
-            const clipped = clipLineToPolygon(lastPt, { x: targetX, y: targetY }, plot.points);
-            targetX = clipped.x;
-            targetY = clipped.y;
-            break;
-          }
-        }
+      if (containingPlot) {
+        const clipped = clipLineToPolygon(lastPt, { x: targetX, y: targetY }, containingPlot.points);
+        targetX = clipped.x;
+        targetY = clipped.y;
       }
     }
 
@@ -142,23 +143,48 @@ const LiveDashedLine = memo(() => {
     const labelText = scale ? formatFeetInches(distPx / scale) : "0'-00\"";
     const midX = (lastPt.x + targetX) / 2;
     const midY = (lastPt.y + targetY) / 2;
-    const fontSize = UI_CONFIG.fontSize.small / stageScale;
-    const estWidth = labelText.length * fontSize * 0.58;
-    const estHeight = fontSize * 1.08;
+
+    const edgeScreenPx = distPx * stageScale;
+    let fontPx = clamp(edgeScreenPx * 0.13, 7.5, UI_CONFIG.fontSize.small);
+    let widthPx = labelText.length * fontPx * 0.58;
+    const maxWidthPx = edgeScreenPx * 0.74;
+    if (widthPx > maxWidthPx && maxWidthPx > 0) {
+      fontPx = Math.max(6.75, fontPx * (maxWidthPx / widthPx));
+      widthPx = labelText.length * fontPx * 0.58;
+    }
+    const fontSize = fontPx / stageScale;
+    const estWidth = widthPx / stageScale;
+    const estHeight = (fontPx * 1.08) / stageScale;
+    const normalLabelDist = Math.max(7, fontPx * 0.95) / stageScale;
+    const showLabel = edgeScreenPx >= 34;
 
     const normalAX = distPx >= 1 ? -dy / distPx : 0;
     const normalAY = distPx >= 1 ? dx / distPx : 0;
-    const plotCenter = plotPoints.reduce(
-      (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
-      { x: 0, y: 0 },
-    );
-    plotCenter.x /= plotPoints.length;
-    plotCenter.y /= plotPoints.length;
-    const towardCenterX = plotCenter.x - midX;
-    const towardCenterY = plotCenter.y - midY;
-    const normalFacesCenter = normalAX * towardCenterX + normalAY * towardCenterY >= 0;
-    const perpX = normalFacesCenter ? normalAX : -normalAX;
-    const perpY = normalFacesCenter ? normalAY : -normalAY;
+
+    // With only point #1 committed there is no polygon interior yet. Trying to
+    // infer an "inside" side makes the label jump left/right while the user
+    // swings the first segment around. Keep that first live label centered on
+    // the segment; side-aware placement starts after point #2 is committed.
+    const isFirstSegment = plotPoints.length === 1;
+    let perpX = 0;
+    let perpY = 0;
+    let labelDist = 0;
+
+    if (!isFirstSegment) {
+      const plotCenter = plotPoints.reduce(
+        (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
+        { x: 0, y: 0 },
+      );
+      plotCenter.x /= plotPoints.length;
+      plotCenter.y /= plotPoints.length;
+      const towardCenterX = plotCenter.x - midX;
+      const towardCenterY = plotCenter.y - midY;
+      const normalFacesCenter = normalAX * towardCenterX + normalAY * towardCenterY >= 0;
+      perpX = normalFacesCenter ? normalAX : -normalAX;
+      perpY = normalFacesCenter ? normalAY : -normalAY;
+      labelDist = normalLabelDist;
+    }
+
     const rotation = getReadableRotation(Math.atan2(dy, dx) * 180 / Math.PI);
 
     return {
@@ -177,6 +203,8 @@ const LiveDashedLine = memo(() => {
       centerX: center.x,
       centerY: center.y,
       fontSize,
+      labelDist,
+      showLabel,
       rotation,
     };
   }, [isPlotFinished, plotPoints, stageSize, stagePos, stageScale, snapHint, scale, plots, pointerPos, deviceType]);
@@ -199,6 +227,8 @@ const LiveDashedLine = memo(() => {
     isEdgeSnapped,
     centerX,
     centerY,
+    labelDist,
+    showLabel,
     rotation,
   } = derived;
 
@@ -214,10 +244,10 @@ const LiveDashedLine = memo(() => {
             opacity={0.8}
             listening={false}
           />
-          {distPx > 20 / stageScale && (
+          {showLabel && (
             <Text
-              x={midX! + perpX! * (LABEL_OFFSET_DRAWING_LIVE / stageScale)}
-              y={midY! + perpY! * (LABEL_OFFSET_DRAWING_LIVE / stageScale)}
+              x={midX! + perpX! * labelDist!}
+              y={midY! + perpY! * labelDist!}
               offsetX={estWidth! / 2}
               offsetY={estHeight! / 2}
               rotation={rotation!}

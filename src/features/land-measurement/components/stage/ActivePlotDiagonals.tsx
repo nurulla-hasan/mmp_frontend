@@ -1,6 +1,6 @@
 ﻿import { memo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { Group, Line, Label as KonvaLabel, Tag, Text } from 'react-konva';
+import { Group, Line, Text } from 'react-konva';
 import { formatFeetInches, MIN_DIAGONAL_DRAW_PX, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
 import { getLogicalCorners, triangulatePolygon } from '@/features/land-measurement/utils/geometry';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
@@ -42,41 +42,35 @@ export const ActivePlotDiagonals = memo(() => {
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;
         const labelText = formatFeetInches(lengthFt);
-        const fontSize = UI_CONFIG.fontSize.medium / stageScale;
-        const padding = UI_CONFIG.padding.small / stageScale;
-        const estWidth = labelText.length * fontSize * 0.6 + padding * 2;
-        const estHeight = fontSize + padding * 2;
+        const fontSize = UI_CONFIG.fontSize.small / stageScale;
+        const estWidth = labelText.length * fontSize * 0.58;
+        const estHeight = fontSize * 1.08;
 
         return (
-          <Group key={`diag-group-${i}`}>
+          <Group key={`diag-group-${i}`} listening={false}>
             <Line
               points={[p1.x, p1.y, p2.x, p2.y]}
-              stroke="#94A3B8"
+              stroke={UI_CONFIG.colors.drawPrimary}
               strokeWidth={1 / stageScale}
               dash={[6 / stageScale, 6 / stageScale]}
               opacity={0.6}
+              listening={false}
             />
-            <KonvaLabel
+            <Text
               x={midX}
               y={midY}
               offsetX={estWidth / 2}
               offsetY={estHeight / 2}
-              opacity={0.9}
-            >
-              <Tag
-                fill={UI_CONFIG.colors.textWhite}
-                stroke={UI_CONFIG.colors.gray}
-                strokeWidth={UI_CONFIG.strokeWidth.thin / stageScale}
-                cornerRadius={UI_CONFIG.padding.small / stageScale}
-              />
-              <Text
-                text={labelText}
-                fontSize={fontSize}
-                fill={UI_CONFIG.colors.gray}
-                padding={padding}
-                fontStyle="bold"
-              />
-            </KonvaLabel>
+              text={labelText}
+              fontSize={fontSize}
+              fontStyle="bold"
+              fill={UI_CONFIG.colors.drawPrimary}
+              stroke="rgba(255,255,255,0.95)"
+              strokeWidth={2.2 / stageScale}
+              fillAfterStrokeEnabled
+              opacity={0.95}
+              listening={false}
+            />
           </Group>
         );
       })}
@@ -84,4 +78,3 @@ export const ActivePlotDiagonals = memo(() => {
   );
 });
 ActivePlotDiagonals.displayName = 'ActivePlotDiagonals';
-
