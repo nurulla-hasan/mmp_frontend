@@ -1,13 +1,16 @@
 import { memo, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Group, Line, Circle, Text } from 'react-konva';
-import { formatFeetInches, LABEL_OFFSET_DRAWING_LIVE, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
+import { formatFeetInches, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
 import { getSnappedPoint, clipLineToPolygon, GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
 import { getDirectionalContainingPlot } from '@/features/land-measurement/utils/directionalPlot';
 import { getReadableRotation } from '@/features/land-measurement/utils/component-helpers';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import { ActivePlotSegments } from './ActivePlotSegments';
 import { ActivePlotDiagonals } from './ActivePlotDiagonals';
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 const SnapHintCircle = memo(() => {
   const snapHint = useMapStore(s => s.snapHint);
@@ -105,6 +108,8 @@ const LiveDashedLine = memo(() => {
         perpX: undefined,
         perpY: undefined,
         fontSize: undefined,
+        labelDist: undefined,
+        showLabel: false,
         rotation: undefined,
       };
     }
@@ -138,9 +143,22 @@ const LiveDashedLine = memo(() => {
     const labelText = scale ? formatFeetInches(distPx / scale) : "0'-00\"";
     const midX = (lastPt.x + targetX) / 2;
     const midY = (lastPt.y + targetY) / 2;
-    const fontSize = UI_CONFIG.fontSize.small / stageScale;
-    const estWidth = labelText.length * fontSize * 0.58;
-    const estHeight = fontSize * 1.08;
+
+    // Match the finished plot label engine: size by on-screen edge length and
+    // keep the text close to the line instead of using the old large offset.
+    const edgeScreenPx = distPx * stageScale;
+    let fontPx = clamp(edgeScreenPx * 0.13, 7.5, UI_CONFIG.fontSize.small);
+    let widthPx = labelText.length * fontPx * 0.58;
+    const maxWidthPx = edgeScreenPx * 0.74;
+    if (widthPx > maxWidthPx && maxWidthPx > 0) {
+      fontPx = Math.max(6.75, fontPx * (maxWidthPx / widthPx));
+      widthPx = labelText.length * fontPx * 0.58;
+    }
+    const fontSize = fontPx / stageScale;
+    const estWidth = widthPx / stageScale;
+    const estHeight = (fontPx * 1.08) / stageScale;
+    const labelDist = Math.max(7, fontPx * 0.95) / stageScale;
+    const showLabel = edgeScreenPx >= 34;
 
     const normalAX = distPx >= 1 ? -dy / distPx : 0;
     const normalAY = distPx >= 1 ? dx / distPx : 0;
@@ -173,6 +191,8 @@ const LiveDashedLine = memo(() => {
       centerX: center.x,
       centerY: center.y,
       fontSize,
+      labelDist,
+      showLabel,
       rotation,
     };
   }, [isPlotFinished, plotPoints, stageSize, stagePos, stageScale, snapHint, scale, plots, pointerPos, deviceType]);
@@ -195,6 +215,8 @@ const LiveDashedLine = memo(() => {
     isEdgeSnapped,
     centerX,
     centerY,
+    labelDist,
+    showLabel,
     rotation,
   } = derived;
 
@@ -210,10 +232,10 @@ const LiveDashedLine = memo(() => {
             opacity={0.8}
             listening={false}
           />
-          {distPx > 20 / stageScale && (
+          {showLabel && (
             <Text
-              x={midX! + perpX! * (LABEL_OFFSET_DRAWING_LIVE / stageScale)}
-              y={midY! + perpY! * (LABEL_OFFSET_DRAWING_LIVE / stageScale)}
+              x={midX! + perpX! * labelDist!}
+              y={midY! + perpY! * labelDist!}
               offsetX={estWidth! / 2}
               offsetY={estHeight! / 2}
               rotation={rotation!}
