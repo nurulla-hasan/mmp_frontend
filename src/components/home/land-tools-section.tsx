@@ -59,8 +59,8 @@ export function LandToolsSection() {
     <div className="relative overflow-hidden bg-background">
       {/* Ambient Glows */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-1/2 left-1/4 h-125 w-125 -translate-y-1/2 -translate-x-1/2 rounded-full bg-primary/20 blur-[100px]" />
-        <div className="absolute top-1/2 right-1/4 h-125 w-125 -translate-y-1/2 translate-x-1/2 rounded-full bg-blue-500/10 blur-[100px]" />
+        <div className="absolute top-1/2 left-1/4 h-125 w-125 -translate-y-1/2 -translate-x-1/2 rounded-full bg-primary/15 blur-[100px]" />
+        <div className="absolute top-1/2 right-1/4 h-125 w-125 -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/10 blur-[100px]" />
       </div>
 
       <SectionWrapper id="tools">
@@ -75,7 +75,7 @@ export function LandToolsSection() {
             href="/tools/land-measurement"
             className="group sm:col-span-2 lg:col-span-3"
           >
-            <Card className="h-full border-primary/10 bg-card/60 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:ring-1 hover:ring-primary/30">
+            <Card className="h-full border-primary/10 bg-card/60 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:ring-1 hover:ring-primary/30">
               <CardContent className="flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="flex-1">
                   <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -83,7 +83,7 @@ export function LandToolsSection() {
                   </div>
                   <div className="mt-4 flex items-center gap-3">
                     <h3 className="text-xl font-semibold">জমির ক্ষেত্রফল</h3>
-                    <Badge className="bg-primary/10 text-primary hover:bg-primary/20 text-[10px] px-1.5 py-0.5 gap-1">
+                    <Badge variant="default" className="text-[10px] gap-1">
                       <Sparkles className="size-3" /> Pro
                     </Badge>
                   </div>
@@ -98,9 +98,18 @@ export function LandToolsSection() {
 
                 {/* Mini visual */}
                 <div className="w-full md:w-1/3 grid grid-cols-3 gap-2">
-                  <div className="h-16 rounded-lg border-2 border-primary/20 bg-primary/5 transition-all duration-500 group-hover:h-20" />
-                  <div className="h-24 rounded-lg border-2 border-primary/30 bg-primary/10 transition-all duration-500 group-hover:h-28" />
-                  <div className="h-12 rounded-lg border-2 border-primary/20 bg-primary/5 transition-all duration-500 group-hover:h-16" />
+                  <div className="flex flex-col justify-end p-2.5 rounded-lg border border-primary/20 bg-primary/5 h-20 transition-all duration-300 group-hover:border-primary/40 group-hover:bg-primary/10">
+                    <span className="text-[10px] font-mono font-medium text-primary">১ শতক</span>
+                    <span className="text-[9px] text-muted-foreground">৪৩৫.৬ ব.ফুট</span>
+                  </div>
+                  <div className="flex flex-col justify-end p-2.5 rounded-lg border border-primary/30 bg-primary/10 h-24 transition-all duration-300 group-hover:border-primary/50 group-hover:bg-primary/15">
+                    <span className="text-[10px] font-mono font-bold text-primary">১ কাঠা</span>
+                    <span className="text-[9px] text-muted-foreground">৭২০ ব.ফুট</span>
+                  </div>
+                  <div className="flex flex-col justify-end p-2.5 rounded-lg border border-primary/20 bg-primary/5 h-16 transition-all duration-300 group-hover:border-primary/40 group-hover:bg-primary/10">
+                    <span className="text-[10px] font-mono font-medium text-primary">১ বিঘা</span>
+                    <span className="text-[9px] text-muted-foreground">২০ কাঠা</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -109,7 +118,7 @@ export function LandToolsSection() {
             const Icon = tool.icon;
             return (
               <Link key={tool.href} href={tool.href} className="group">
-                <Card className="h-full border-primary/10 bg-card/60 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:ring-1 hover:ring-primary/30">
+                <Card className="h-full border-primary/10 bg-card/60 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:ring-1 hover:ring-primary/30">
                   <CardContent className="flex items-start gap-4">
                     <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                       <Icon className="size-5" />
@@ -137,7 +146,7 @@ export function LandToolsSection() {
           })}
         </div>
         {/* Benefits + CTA */}
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-6 rounded-xl border border-primary/10 bg-card/60 p-5 backdrop-blur-xl shadow-lg transition-all duration-500 hover:shadow-xl">
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-6 rounded-xl border border-primary/10 bg-card/60 p-5 shadow-lg transition-all duration-500 hover:shadow-xl">
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             {benefits.map((b) => (
               <div

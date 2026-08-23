@@ -1,4 +1,4 @@
-import { BadgeCheck, FileCheck, Lock, Save } from "lucide-react";
+import { BadgeCheck, MessageCircle, Save } from "lucide-react";
 
 import { SectionWrapper } from "@/components/common/section-wrapper";
 
@@ -9,19 +9,14 @@ const highlights = [
     description: "Surveyor-এর পরিচয় ও verification status দেখুন।",
   },
   {
-    icon: FileCheck,
-    label: "স্বচ্ছ কোটেশন",
-    description: "একাধিক প্রস্তাব তুলনা করে সিদ্ধান্ত নিন।",
+    icon: MessageCircle,
+    label: "সরাসরি যোগাযোগ",
+    description: "সার্ভেয়ারের সাথে সরাসরি WhatsApp-এ যোগাযোগ করুন।",
   },
   {
     icon: Save,
     label: "সংরক্ষিত হিসাব",
     description: "ক্যালকুলেশন প্রজেক্ট সেভ করে পরে আবার কাজ করুন।",
-  },
-  {
-    icon: Lock,
-    label: "নিরাপদ Account Access",
-    description: "Subscription ও device-based account protection।",
   },
 ];
 
@@ -29,7 +24,7 @@ export function TrustHighlightsSection() {
   return (
     <SectionWrapper id="trust-highlights" asSection>
       <div className="rounded-2xl bg-primary/5 py-10 sm:py-12">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {highlights.map((item) => {
             const Icon = item.icon;
             return (
