@@ -14,6 +14,64 @@ function getSegmentIntersection(p1: Point, p2: Point, p3: Point, p4: Point): (Po
 
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 
+const INTERSECTION_EPSILON_PX = 1e-4;
+
+type BoundaryIntersection = Point & {
+  dist: number;
+  edgeIdx: number;
+};
+
+const canonicalizeBoundaryIntersection = (
+  intersection: BoundaryIntersection,
+  polygon: Point[],
+): BoundaryIntersection => {
+  let nearestVertexIndex = -1;
+  let nearestDistance = DIVISION_VERTEX_SNAP_PX;
+
+  for (let i = 0; i < polygon.length; i++) {
+    const dist = distance(intersection, polygon[i]);
+    if (dist <= nearestDistance) {
+      nearestDistance = dist;
+      nearestVertexIndex = i;
+    }
+  }
+
+  if (nearestVertexIndex === -1) return intersection;
+
+  const vertex = polygon[nearestVertexIndex];
+  return {
+    ...intersection,
+    x: vertex.x,
+    y: vertex.y,
+    // A polygon vertex belongs to two adjacent edges. Always represent it as
+    // the start of its own edge so corner cuts have one deterministic edge.
+    edgeIdx: nearestVertexIndex,
+  };
+};
+
+const dedupeBoundaryIntersections = (
+  intersections: BoundaryIntersection[],
+  polygon: Point[],
+): BoundaryIntersection[] => {
+  const canonical = intersections
+    .map((intersection) => canonicalizeBoundaryIntersection(intersection, polygon))
+    .sort((a, b) => a.dist - b.dist);
+
+  const deduped: BoundaryIntersection[] = [];
+
+  for (const intersection of canonical) {
+    const previous = deduped[deduped.length - 1];
+    const isSameBoundaryHit =
+      previous &&
+      distance(previous, intersection) <= INTERSECTION_EPSILON_PX &&
+      Math.abs(previous.dist - intersection.dist) <= INTERSECTION_EPSILON_PX;
+
+    if (!isSameBoundaryHit) deduped.push(intersection);
+  }
+
+  return deduped;
+};
+
 const snapToNearbyPolygonVertex = (point: Point, polygon: Point[]): Point => {
   let nearest = point;
   let nearestDistance = DIVISION_VERTEX_SNAP_PX;
@@ -96,7 +154,7 @@ export function splitPolygonByPolyline(polygon: Point[], polyline: Point[]): { p
     currentDist += len;
   }
   
-  const intersections: Array<{ x: number; y: number; dist: number; edgeIdx: number }> = [];
+  const rawIntersections: BoundaryIntersection[] = [];
   
   for (let i = 0; i < polygon.length; i++) {
     const e1 = polygon[i];
@@ -105,7 +163,7 @@ export function splitPolygonByPolyline(polygon: Point[], polyline: Point[]): { p
     for (const seg of segments) {
       const inter = getSegmentIntersection(seg.p1, seg.p2, e1, e2);
       if (inter) {
-        intersections.push({
+        rawIntersections.push({
           x: inter.x,
           y: inter.y,
           dist: seg.baseDist + inter.t * seg.len,
@@ -114,13 +172,18 @@ export function splitPolygonByPolyline(polygon: Point[], polyline: Point[]): { p
       }
     }
   }
+
+  // A cut through a polygon corner intersects both edges that meet there.
+  // Canonicalize those hits to the exact vertex and remove the duplicate so
+  // corner→corner / corner→edge cuts are treated like ordinary boundary cuts.
+  const intersections = dedupeBoundaryIntersections(rawIntersections, polygon);
   
   if (intersections.length < 2) return null;
   
-  intersections.sort((a, b) => a.dist - b.dist);
-  
   const enter = intersections[0];
   const exit = intersections[intersections.length - 1];
+
+  if (distance(enter, exit) <= INTERSECTION_EPSILON_PX) return null;
   
   const polylinePath: Point[] = [];
   polylinePath.push({ x: enter.x, y: enter.y });
