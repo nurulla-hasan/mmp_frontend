@@ -1,9 +1,64 @@
 import type { Point } from '../types/map';
-import { getLogicalCorners } from './geometry';
+import { getLogicalCorners, getVisualCenter, isPointInPolygon } from './geometry';
 import { getReadableRotation } from './component-helpers';
 
 const EPSILON = 1e-8;
 const MIN_AXIS_ANISOTROPY = 0.08;
+
+export type PolygonAreaLabelLayout = {
+  center: Point;
+  rotation: number;
+};
+
+const getAveragePoint = (points: Point[]): Point => {
+  if (points.length === 0) return { x: 0, y: 0 };
+
+  const sum = points.reduce(
+    (acc, point) => ({ x: acc.x + point.x, y: acc.y + point.y }),
+    { x: 0, y: 0 },
+  );
+
+  return {
+    x: sum.x / points.length,
+    y: sum.y / points.length,
+  };
+};
+
+/** Area-weighted polygon centroid (shoelace formula). */
+export const getPolygonAreaCentroid = (points: Point[]): Point => {
+  if (points.length < 3) return getAveragePoint(points);
+
+  let twiceArea = 0;
+  let centroidX = 0;
+  let centroidY = 0;
+
+  for (let i = 0; i < points.length; i += 1) {
+    const current = points[i];
+    const next = points[(i + 1) % points.length];
+    const cross = current.x * next.y - next.x * current.y;
+    twiceArea += cross;
+    centroidX += (current.x + next.x) * cross;
+    centroidY += (current.y + next.y) * cross;
+  }
+
+  if (Math.abs(twiceArea) <= EPSILON) return getAveragePoint(points);
+
+  return {
+    x: centroidX / (3 * twiceArea),
+    y: centroidY / (3 * twiceArea),
+  };
+};
+
+/**
+ * Prefer the true area centroid. Concave polygons can place that point outside
+ * the visible shape, so only those uncommon cases use the more expensive safe
+ * visual-center fallback.
+ */
+export const getPolygonAreaLabelCenter = (points: Point[]): Point => {
+  const centroid = getPolygonAreaCentroid(points);
+  if (points.length < 3 || isPointInPolygon(centroid, points)) return centroid;
+  return getVisualCenter(points);
+};
 
 const getLongestEdgeAngle = (points: Point[]): number => {
   if (points.length < 2) return 0;
@@ -41,12 +96,7 @@ export const getPolygonAreaLabelRotation = (points: Point[]): number => {
   const logicalCorners = getLogicalCorners(points);
   const axisPoints = logicalCorners.length >= 2 ? logicalCorners : points;
 
-  const mean = axisPoints.reduce(
-    (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
-    { x: 0, y: 0 },
-  );
-  mean.x /= axisPoints.length;
-  mean.y /= axisPoints.length;
+  const mean = getAveragePoint(axisPoints);
 
   let covXX = 0;
   let covYY = 0;
@@ -72,3 +122,9 @@ export const getPolygonAreaLabelRotation = (points: Point[]): number => {
 
   return getReadableRotation(rawAngle);
 };
+
+/** Shared map/print area-label geometry. */
+export const getPolygonAreaLabelLayout = (points: Point[]): PolygonAreaLabelLayout => ({
+  center: getPolygonAreaLabelCenter(points),
+  rotation: getPolygonAreaLabelRotation(points),
+});
