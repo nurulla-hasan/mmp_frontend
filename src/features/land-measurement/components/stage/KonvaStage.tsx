@@ -56,6 +56,25 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
         };
     }, []);
 
+    // Konva owns an inner stage container, so relying only on the outer
+    // Tailwind cursor class is not reliable. Keep the actual canvas cursor in
+    // sync with drawing modes and clear the inline override everywhere else.
+    useEffect(() => {
+        const container = stageRef.current?.container();
+        if (!container) return;
+
+        const shouldUseCrosshair = mode === 'drawing_plot' || mode === 'calibrating';
+        if (shouldUseCrosshair) {
+            container.style.cursor = 'crosshair';
+        } else {
+            container.style.removeProperty('cursor');
+        }
+
+        return () => {
+            container.style.removeProperty('cursor');
+        };
+    }, [mode, stageRef]);
+
     // Stable wheel handler. Scale + position are committed in one store update.
     const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
         e.evt.preventDefault();
