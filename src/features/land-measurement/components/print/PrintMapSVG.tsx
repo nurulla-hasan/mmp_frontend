@@ -7,6 +7,7 @@ import {
   formatFeetInches,
   MIN_EDGE_LABEL_FT,
 } from '@/features/land-measurement/utils/canvas';
+import { getPolygonAreaLabelRotation } from '@/features/land-measurement/utils/polygon-label';
 import { computePrintLabels } from './PrintLabelEngine';
 import type { Point, PlotRecord } from '@/features/land-measurement/types/map';
 
@@ -192,18 +193,19 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
         </g>
       ))}
 
-      {/* Area labels — true geometric area centroid, text stays horizontal. */}
+      {/* Area labels — geometric center with x-axis aligned to the plot's long direction. */}
       {plotPolygons.map((p) => {
         if (!p.plot.results) return null;
 
         const center = getPrintAreaLabelCenter(p.plot.points);
+        const rotation = getPolygonAreaLabelRotation(p.plot.points);
         const areaText = `${p.plot.results.shotok.toFixed(2)} শতক`;
         const areaColor = p.plot.color || '#0F766E';
 
         return (
           <g
             key={`area-${p.id}`}
-            transform={`translate(${center.x}, ${center.y})`}
+            transform={`translate(${center.x}, ${center.y}) rotate(${rotation})`}
           >
             <text
               x={0}
