@@ -8,7 +8,7 @@ import {
 
 import { AskQuestionModal } from "./_components/ask-question-modal";
 import { FaqAccordion } from "./_components/faq-accordion";
-import { SectionHeading } from "@/components/home/section-heading";
+import { SectionHeading } from "@/components/common/section-heading";
 import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

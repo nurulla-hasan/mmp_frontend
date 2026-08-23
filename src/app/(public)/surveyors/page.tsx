@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { PageWrapper } from "@/components/common/page-wrapper";
-import { SectionHeading } from "@/components/home/section-heading";
+import { SectionHeading } from "@/components/common/section-heading";
 import { SearchInput } from "@/components/common/search-input";
 import {
   SurveyorCard,

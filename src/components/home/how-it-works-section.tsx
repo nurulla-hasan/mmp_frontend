@@ -1,7 +1,7 @@
 import { ClipboardCheck, MessageCircle, UserCheck } from "lucide-react";
 import Link from "next/link";
 
-import { SectionHeading } from "@/components/home/section-heading";
+import { SectionHeading } from "@/components/common/section-heading";
 import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Button } from "@/components/ui/button";
 
