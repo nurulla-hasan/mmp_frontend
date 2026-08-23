@@ -1,15 +1,14 @@
-﻿import { memo, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { Group, Label as KonvaLabel, Tag, Text } from 'react-konva';
-import { formatFeetInches, LABEL_OFFSET_DRAWING_SEGMENT, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
+import { Text } from 'react-konva';
+import { formatFeetInches, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
 import { getReadableRotation } from '@/features/land-measurement/utils/component-helpers';
 import { GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import type { PlotSegment, PlotSegmentGroup, ActivePlotLabelData } from '@/features/land-measurement/types/stage';
 
-// ──────────────────────────────────────────────
-// Component
-// ──────────────────────────────────────────────
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 export const ActivePlotSegments = memo(() => {
   const { plotPoints, isPlotFinished, stageScale, scale } = useMapStore(
@@ -24,7 +23,6 @@ export const ActivePlotSegments = memo(() => {
   const labelData = useMemo((): ActivePlotLabelData[] => {
     if (plotPoints.length < 2) return [];
 
-    // Build segments
     const segments: PlotSegment[] = plotPoints
       .map((point, i) => {
         if (i === plotPoints.length - 1 && !isPlotFinished) return null;
@@ -39,7 +37,6 @@ export const ActivePlotSegments = memo(() => {
       })
       .filter((d): d is PlotSegment => d !== null);
 
-    // Group co-linear segments
     const groups: PlotSegmentGroup[] = [];
     let currentGroup: PlotSegmentGroup = { segments: [], totalLengthFt: 0 };
     segments.forEach((seg) => {
@@ -61,26 +58,23 @@ export const ActivePlotSegments = memo(() => {
     });
     if (currentGroup.segments.length > 0) groups.push(currentGroup);
 
-    // Compute winding once for all groups
-    let signedArea = 0;
-    for (let i = 0; i < plotPoints.length; i++) {
-      const p1 = plotPoints[i];
-      const p2 = plotPoints[(i + 1) % plotPoints.length];
-      signedArea += (p2.x - p1.x) * (p2.y + p1.y);
-    }
-    const isClockwise = signedArea < 0;
+    const center = plotPoints.reduce(
+      (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
+      { x: 0, y: 0 },
+    );
+    center.x /= plotPoints.length;
+    center.y /= plotPoints.length;
 
     return groups
       .map((group, groupIdx): ActivePlotLabelData | null => {
         const totalDistPx = group.segments.reduce((sum, seg) => sum + seg.distPx, 0);
-        if (totalDistPx < 15 / stageScale) return null;
+        const edgeScreenPx = totalDistPx * stageScale;
+        if (edgeScreenPx < 34) return null;
 
         const labelText = formatFeetInches(group.totalLengthFt);
-        // Use first→last point of the entire group for true angle & normal
         const firstPt = group.segments[0].point;
         const lastPt = group.segments[group.segments.length - 1].nextPoint;
-        
-        // Find the physical midpoint ALONG the boundary path (not the chord)
+
         const halfDist = totalDistPx / 2;
         let walked = 0;
         let midX = firstPt.x;
@@ -89,7 +83,7 @@ export const ActivePlotSegments = memo(() => {
         let midDy = lastPt.y - firstPt.y;
 
         for (const seg of group.segments) {
-          const d = seg.distPx || 1e-5; // avoid div by 0
+          const d = seg.distPx || 1e-5;
           if (walked + d >= halfDist) {
             const ratio = (halfDist - walked) / d;
             midX = seg.point.x + ratio * seg.dx;
@@ -105,46 +99,45 @@ export const ActivePlotSegments = memo(() => {
         const dy = midDy;
         const totalDist = Math.hypot(dx, dy) || 1;
         const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-        const fontSize = UI_CONFIG.fontSize.medium / stageScale;
-        const padding = UI_CONFIG.padding.small / stageScale;
-        const estWidth = labelText.length * fontSize * 0.6 + padding * 2;
-        const estHeight = fontSize + padding * 2;
 
-        let perpX: number;
-        let perpY: number;
-        if (plotPoints.length >= 3) {
-          if (isClockwise) {
-            perpX = dy / totalDist;
-            perpY = -dx / totalDist;
-          } else {
-            perpX = -dy / totalDist;
-            perpY = dx / totalDist;
-          }
-        } else {
-          perpX = -dy / totalDist;
-          perpY = dx / totalDist;
+        let fontPx = clamp(edgeScreenPx * 0.13, 7.5, UI_CONFIG.fontSize.small);
+        let widthPx = labelText.length * fontPx * 0.58;
+        const maxWidthPx = edgeScreenPx * 0.74;
+        if (widthPx > maxWidthPx) {
+          fontPx = Math.max(6.75, fontPx * (maxWidthPx / widthPx));
+          widthPx = labelText.length * fontPx * 0.58;
         }
 
-        const staggeredOffset = [75, 100, 125][groupIdx % 3];
-        const lineLen = staggeredOffset / stageScale;
-        const lineEndX = midX + perpX * lineLen;
-        const lineEndY = midY + perpY * lineLen;
+        const fontSize = fontPx / stageScale;
+        const estWidth = widthPx / stageScale;
+        const estHeight = (fontPx * 1.08) / stageScale;
+
+        const normalAX = -dy / totalDist;
+        const normalAY = dx / totalDist;
+        const towardCenterX = center.x - midX;
+        const towardCenterY = center.y - midY;
+        const normalFacesCenter = normalAX * towardCenterX + normalAY * towardCenterY >= 0;
+        const perpX = normalFacesCenter ? normalAX : -normalAX;
+        const perpY = normalFacesCenter ? normalAY : -normalAY;
+
+        const insetPx = Math.max(7, fontPx * 0.95);
+        const labelDist = insetPx / stageScale;
 
         return {
           i: groupIdx,
           midX,
           midY,
           rotation: getReadableRotation(angle),
-          lineEndX,
-          lineEndY,
-          labelDist: lineLen,
+          lineEndX: midX + perpX * labelDist,
+          lineEndY: midY + perpY * labelDist,
+          labelDist,
           perpX,
           perpY,
           estWidth,
           estHeight,
           labelText,
           fontSize,
-          padding,
+          padding: 0,
         };
       })
       .filter((d): d is ActivePlotLabelData => d !== null);
@@ -155,33 +148,25 @@ export const ActivePlotSegments = memo(() => {
   return (
     <>
       {labelData.map((d) => (
-        <Group key={`length-label-group-${d.i}`}>
-          <KonvaLabel
-            x={d.midX + d.perpX * (LABEL_OFFSET_DRAWING_SEGMENT / stageScale)}
-            y={d.midY + d.perpY * (LABEL_OFFSET_DRAWING_SEGMENT / stageScale)}
-            offsetX={d.estWidth / 2}
-            offsetY={d.estHeight / 2}
-            rotation={d.rotation}
-            opacity={0.95}
-          >
-            <Tag
-              fill={UI_CONFIG.colors.drawBg}
-              stroke={UI_CONFIG.colors.drawLight}
-              strokeWidth={UI_CONFIG.strokeWidth.medium / stageScale}
-              cornerRadius={UI_CONFIG.radius.small / stageScale}
-            />
-            <Text
-              text={d.labelText}
-              fontSize={d.fontSize}
-              fill={UI_CONFIG.colors.drawPrimary}
-              padding={d.padding}
-              fontStyle="bold"
-            />
-          </KonvaLabel>
-        </Group>
+        <Text
+          key={`length-label-${d.i}`}
+          x={d.midX + d.perpX * d.labelDist}
+          y={d.midY + d.perpY * d.labelDist}
+          offsetX={d.estWidth / 2}
+          offsetY={d.estHeight / 2}
+          rotation={d.rotation}
+          text={d.labelText}
+          fontSize={d.fontSize}
+          fontStyle="bold"
+          fill={UI_CONFIG.colors.drawPrimary}
+          stroke="rgba(255,255,255,0.95)"
+          strokeWidth={2.2 / stageScale}
+          fillAfterStrokeEnabled
+          opacity={0.95}
+          listening={false}
+        />
       ))}
     </>
   );
 });
 ActivePlotSegments.displayName = 'ActivePlotSegments';
-
