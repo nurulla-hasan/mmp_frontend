@@ -1,6 +1,7 @@
-"use client";
+
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
+import { SearchInput } from "@/components/common/search-input";
 import {
   calculationColumns,
   type CalculationRow,
@@ -30,18 +31,20 @@ const Calculations: CalculationRow[] = [
 export default function Page() {
   return (
     <div className="space-y-6">
-      <SectionHeading
-        title="Saved Calculations"
-        description="Review saved land measurement, division and conversion records."
-        as="h3"
-        alignment="left"
-      />
-      <DataTable
-        data={Calculations}
-        columns={calculationColumns}
-        searchKey="projectName"
-        searchPlaceholder="Search calculations..."
-      />
+      <div className="flex flex-col justify-between items-end sm:flex-row">
+        <SectionHeading
+          title="Saved Calculations"
+          description="Review saved land measurement, division and conversion records."
+          as="h3"
+          alignment="left"
+          constrain={false}
+        />
+        <SearchInput
+          filterKey="projectName"
+          placeholder="Search calculations..."
+        />
+      </div>
+      <DataTable data={Calculations} columns={calculationColumns} />
     </div>
   );
 }

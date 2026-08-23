@@ -1,49 +1,10 @@
-"use client";
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
-import { Badge } from "@/components/ui/badge";
-import type { ColumnDef } from "@tanstack/react-table";
-
-interface ActivityRow {
-  id: string;
-  entity: string;
-  action: string;
-  status: "success" | "pending" | "rejected";
-  at: string;
-}
-
-const activityColumns: ColumnDef<ActivityRow>[] = [
-  {
-    accessorKey: "entity",
-    header: "Entity",
-    cell: ({ row }) => (
-      <div className="font-medium text-foreground">{row.original.entity}</div>
-    ),
-  },
-  {
-    accessorKey: "action",
-    header: "Action",
-    cell: ({ row }) => (
-      <span className="text-sm">{row.original.action}</span>
-    ),
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <Badge variant={row.original.status}>{row.original.status}</Badge>
-    ),
-  },
-  {
-    accessorKey: "at",
-    header: "Time",
-    cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground">
-        {new Date(row.original.at).toLocaleDateString("en-US")}
-      </span>
-    ),
-  },
-];
+import { SearchInput } from "@/components/common/search-input";
+import {
+  activityColumns,
+  type ActivityRow,
+} from "./_components/activity-column";
 
 const Activity: ActivityRow[] = [
   {
@@ -110,18 +71,17 @@ export default function Page() {
         </div>
       </div>
 
-      <SectionHeading
-        title="Recent Activity"
-        description="Latest platform events."
-        as="h3"
-        alignment="left"
-      />
-      <DataTable
-        data={Activity}
-        columns={activityColumns}
-        searchKey="entity"
-        searchPlaceholder="Search activity..."
-      />
+      <div className="flex flex-col justify-between items-end sm:flex-row">
+        <SectionHeading
+          title="Recent Activity"
+          description="Latest platform events."
+          as="h3"
+          alignment="left"
+          constrain={false}
+        />
+        <SearchInput filterKey="entity" placeholder="Search activity..." />
+      </div>
+      <DataTable data={Activity} columns={activityColumns} />
     </div>
   );
 }

@@ -32,13 +32,8 @@ export const publicNavigation: NavigationItem[] = [
 
 export const userNavigation: NavigationItem[] = [
   {
-    title: "ওভারভিউ",
-    href: "/dashboard",
-    icon: House,
-  },
-  {
     title: "আমার ক্যালকুলেশন",
-    href: "/dashboard/calculations",
+    href: "/calculations",
     icon: Calculator,
   },
   {
@@ -49,14 +44,10 @@ export const userNavigation: NavigationItem[] = [
 ];
 
 export const surveyorNavigation: NavigationItem[] = [
-  {
-    title: "ওভারভিউ",
-    href: "/surveyor/dashboard",
-    icon: House,
-  },
+
   {
     title: "আমার ক্যালকুলেশন",
-    href: "/surveyor/calculations",
+    href: "/calculations",
     icon: Calculator,
   },
 

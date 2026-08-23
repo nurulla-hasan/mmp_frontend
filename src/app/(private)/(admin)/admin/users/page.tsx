@@ -1,6 +1,7 @@
-"use client";
+
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
+import { SearchInput } from "@/components/common/search-input";
 import { userColumns, type UserRow } from "./_components/user-column";
 
 const Users: UserRow[] = [
@@ -57,18 +58,17 @@ const Users: UserRow[] = [
 export default function Page() {
   return (
     <div className="space-y-6">
-      <SectionHeading
-        title="Users"
-        description="Review general user accounts and platform activity."
-        as="h3"
-        alignment="left"
-      />
-      <DataTable
-        data={Users}
-        columns={userColumns}
-        searchKey="name"
-        searchPlaceholder="Search users..."
-      />
+      <div className="flex flex-col justify-between items-end sm:flex-row">
+        <SectionHeading
+          title="Users"
+          description="Review general user accounts and platform activity."
+          as="h3"
+          alignment="left"
+          constrain={false}
+        />
+        <SearchInput filterKey="name" placeholder="Search users..." />
+      </div>
+      <DataTable data={Users} columns={userColumns} />
     </div>
   );
 }

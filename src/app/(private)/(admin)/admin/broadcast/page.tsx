@@ -1,6 +1,6 @@
-"use client";
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
+import { SearchInput } from "@/components/common/search-input";
 import {
   broadcastColumns,
   type BroadcastRow,
@@ -30,18 +30,17 @@ const Broadcasts: BroadcastRow[] = [
 export default function Page() {
   return (
     <div className="space-y-6">
-      <SectionHeading
-        title="Broadcast"
-        description="Send announcements and notifications to users."
-        as="h3"
-        alignment="left"
-      />
-      <DataTable
-        data={Broadcasts}
-        columns={broadcastColumns}
-        searchKey="title"
-        searchPlaceholder="Search broadcasts..."
-      />
+      <div className="flex flex-col justify-between items-end sm:flex-row">
+        <SectionHeading
+          title="Broadcast"
+          description="Send announcements and notifications to users."
+          as="h3"
+          alignment="left"
+          constrain={false}
+        />
+        <SearchInput filterKey="title" placeholder="Search broadcasts..." />
+      </div>
+      <DataTable data={Broadcasts} columns={broadcastColumns} />
     </div>
   );
 }

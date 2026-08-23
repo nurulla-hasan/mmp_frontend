@@ -1,6 +1,6 @@
-"use client";
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
+import { SearchInput } from "@/components/common/search-input";
 import { planColumns, type PlanRow } from "./_components/plan-column";
 
 const Plans: PlanRow[] = [
@@ -39,18 +39,17 @@ const Plans: PlanRow[] = [
 export default function Page() {
   return (
     <div className="space-y-6">
-      <SectionHeading
-        title="Plans"
-        description="Configure subscription plans and pricing tiers."
-        as="h3"
-        alignment="left"
-      />
-      <DataTable
-        data={Plans}
-        columns={planColumns}
-        searchKey="name"
-        searchPlaceholder="Search plans..."
-      />
+      <div className="flex flex-col justify-between items-end sm:flex-row">
+        <SectionHeading
+          title="Plans"
+          description="Configure subscription plans and pricing tiers."
+          as="h3"
+          alignment="left"
+          constrain={false}
+        />
+        <SearchInput filterKey="name" placeholder="Search plans..." />
+      </div>
+      <DataTable data={Plans} columns={planColumns} />
     </div>
   );
 }
