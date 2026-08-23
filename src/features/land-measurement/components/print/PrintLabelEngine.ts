@@ -1,4 +1,5 @@
 import {
+  getLogicalCorners,
   getVisualCenter,
   groupPolygonSegments,
   isPointInPolygon,
@@ -24,6 +25,7 @@ export interface PlotPolygonInfo {
   pointsStr: string;
   plot: PlotRecord;
   area: number;
+  areaLabelCenter: Point;
 }
 
 export interface PrintLabelConfig {
@@ -32,6 +34,112 @@ export interface PrintLabelConfig {
   labelPad: number;
   labelOffset: number;
 }
+
+const EPSILON = 1e-8;
+
+const getPolygonCentroid = (points: Point[]): Point => {
+  if (points.length === 0) return { x: 0, y: 0 };
+  if (points.length < 3) {
+    const sum = points.reduce(
+      (acc, point) => ({ x: acc.x + point.x, y: acc.y + point.y }),
+      { x: 0, y: 0 },
+    );
+    return { x: sum.x / points.length, y: sum.y / points.length };
+  }
+
+  let twiceArea = 0;
+  let centroidX = 0;
+  let centroidY = 0;
+
+  for (let i = 0; i < points.length; i += 1) {
+    const current = points[i];
+    const next = points[(i + 1) % points.length];
+    const cross = current.x * next.y - next.x * current.y;
+    twiceArea += cross;
+    centroidX += (current.x + next.x) * cross;
+    centroidY += (current.y + next.y) * cross;
+  }
+
+  if (Math.abs(twiceArea) <= EPSILON) {
+    const sum = points.reduce(
+      (acc, point) => ({ x: acc.x + point.x, y: acc.y + point.y }),
+      { x: 0, y: 0 },
+    );
+    return { x: sum.x / points.length, y: sum.y / points.length };
+  }
+
+  return {
+    x: centroidX / (3 * twiceArea),
+    y: centroidY / (3 * twiceArea),
+  };
+};
+
+/**
+ * Find the plot's dominant direction in O(n), project it into that local
+ * coordinate system, and use the center of the oriented bounds. This keeps
+ * long/slanted plots visually centered without rotating the printed area text.
+ *
+ * Intermediate points on otherwise straight edges are reduced to logical
+ * corners first so dense tracing on one side cannot bias the principal axis.
+ */
+const getOrientedAreaLabelCenter = (points: Point[]): Point => {
+  if (points.length < 3) return getPolygonCentroid(points);
+
+  const logicalCorners = getLogicalCorners(points);
+  const axisPoints = logicalCorners.length >= 3 ? logicalCorners : points;
+
+  const mean = axisPoints.reduce(
+    (acc, point) => ({ x: acc.x + point.x, y: acc.y + point.y }),
+    { x: 0, y: 0 },
+  );
+  mean.x /= axisPoints.length;
+  mean.y /= axisPoints.length;
+
+  let covXX = 0;
+  let covYY = 0;
+  let covXY = 0;
+  for (const point of axisPoints) {
+    const dx = point.x - mean.x;
+    const dy = point.y - mean.y;
+    covXX += dx * dx;
+    covYY += dy * dy;
+    covXY += dx * dy;
+  }
+
+  const angle = 0.5 * Math.atan2(2 * covXY, covXX - covYY);
+  const axisX = { x: Math.cos(angle), y: Math.sin(angle) };
+  const axisY = { x: -axisX.y, y: axisX.x };
+
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+
+  for (const point of points) {
+    const localX = point.x * axisX.x + point.y * axisX.y;
+    const localY = point.x * axisY.x + point.y * axisY.y;
+    if (localX < minX) minX = localX;
+    if (localX > maxX) maxX = localX;
+    if (localY < minY) minY = localY;
+    if (localY > maxY) maxY = localY;
+  }
+
+  const localCenterX = (minX + maxX) / 2;
+  const localCenterY = (minY + maxY) / 2;
+  const orientedCenter = {
+    x: localCenterX * axisX.x + localCenterY * axisY.x,
+    y: localCenterX * axisX.y + localCenterY * axisY.y,
+  };
+
+  if (isPointInPolygon(orientedCenter, points)) return orientedCenter;
+
+  const centroid = getPolygonCentroid(points);
+  if (isPointInPolygon(centroid, points)) return centroid;
+
+  // Concave/irregular edge case only. This grid-based fallback is intentionally
+  // last so the normal print path remains linear in the number of vertices.
+  return getVisualCenter(points);
+};
 
 const getPathMidpoint = (segments: ReturnType<typeof groupPolygonSegments>[number]) => {
   const totalDistPx = segments.reduce((sum, segment) => sum + segment.distPx, 0);
@@ -129,6 +237,7 @@ export function computePrintLabels(
       pointsStr: plot.points.map((point) => `${point.x},${point.y}`).join(' '),
       plot,
       area: plot.results?.shotok ?? 0,
+      areaLabelCenter: getOrientedAreaLabelCenter(plot.points),
     }))
     .sort((a, b) => a.area - b.area);
 
