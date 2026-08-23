@@ -1,10 +1,14 @@
 ﻿import React from 'react';
 import {
+  getVisualCenter,
+  isPointInPolygon,
+} from '@/features/land-measurement/utils/geometry';
+import {
   formatFeetInches,
   MIN_EDGE_LABEL_FT,
 } from '@/features/land-measurement/utils/canvas';
 import { computePrintLabels } from './PrintLabelEngine';
-import type { PlotRecord } from '@/features/land-measurement/types/map';
+import type { Point, PlotRecord } from '@/features/land-measurement/types/map';
 
 interface PrintMapSVGProps {
   plots: PlotRecord[];
@@ -21,6 +25,55 @@ interface PrintMapSVGProps {
   areaFontSize: number;
   areaLabelPad: number;
 }
+
+const CENTROID_EPSILON = 1e-8;
+
+const getPolygonAreaCentroid = (points: Point[]): Point => {
+  if (points.length === 0) return { x: 0, y: 0 };
+
+  if (points.length < 3) {
+    const sum = points.reduce(
+      (acc, point) => ({ x: acc.x + point.x, y: acc.y + point.y }),
+      { x: 0, y: 0 },
+    );
+    return { x: sum.x / points.length, y: sum.y / points.length };
+  }
+
+  let twiceArea = 0;
+  let centroidX = 0;
+  let centroidY = 0;
+
+  for (let i = 0; i < points.length; i += 1) {
+    const current = points[i];
+    const next = points[(i + 1) % points.length];
+    const cross = current.x * next.y - next.x * current.y;
+    twiceArea += cross;
+    centroidX += (current.x + next.x) * cross;
+    centroidY += (current.y + next.y) * cross;
+  }
+
+  if (Math.abs(twiceArea) <= CENTROID_EPSILON) {
+    const sum = points.reduce(
+      (acc, point) => ({ x: acc.x + point.x, y: acc.y + point.y }),
+      { x: 0, y: 0 },
+    );
+    return { x: sum.x / points.length, y: sum.y / points.length };
+  }
+
+  return {
+    x: centroidX / (3 * twiceArea),
+    y: centroidY / (3 * twiceArea),
+  };
+};
+
+const getPrintAreaLabelCenter = (points: Point[]): Point => {
+  const centroid = getPolygonAreaCentroid(points);
+  if (isPointInPolygon(centroid, points)) return centroid;
+
+  // Concave polygons can have a mathematical centroid outside the visible
+  // shape. Only those uncommon cases pay for the grid-based safe fallback.
+  return getVisualCenter(points);
+};
 
 export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
   plots,
@@ -139,11 +192,11 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
         </g>
       ))}
 
-      {/* Area labels — centered along each plot's dominant axis, text stays horizontal. */}
+      {/* Area labels — true geometric area centroid, text stays horizontal. */}
       {plotPolygons.map((p) => {
         if (!p.plot.results) return null;
 
-        const center = p.areaLabelCenter;
+        const center = getPrintAreaLabelCenter(p.plot.points);
         const areaText = `${p.plot.results.shotok.toFixed(2)} শতক`;
         const areaColor = p.plot.color || '#0F766E';
 
