@@ -1,5 +1,12 @@
 import type { Point, SavedPlotRecord } from '../types/map';
-import { boundsOfPoints, clampNumber } from './geometry';
+import {
+  boundsOfPoints,
+  clampNumber,
+  getClosestPointOnSegment,
+  isPointInPolygon,
+} from './geometry';
+import { getReadableRotation } from './component-helpers';
+import type { LabelBox, PlacedScratchLabel, PlotSheetLayout } from '../types/scratch';
 
 /** A4 page width in SVG units (px @ 96 DPI). */
 export const PAGE_WIDTH = 794;
@@ -19,8 +26,6 @@ export const SNAP_DISTANCE = 5;
 export const SNAP_SCREEN_DISTANCE = 14;
 /** Y-offset from top margin for the writing area start. */
 export const WRITING_AREA_HEIGHT = MARGIN / 2;
-
-import type { LabelBox, PlacedScratchLabel, PlotSheetLayout } from '../types/scratch';
 
 /**
  * Divide the printable A4 area into slots for each plot.
@@ -67,8 +72,7 @@ export const createPlotSlots = (count: number): LabelBox[] => {
 
 /**
  * Compute scale and offset for each plot to fit into its slot on the
- * scratch print page.  Plots are scaled uniformly (preserving aspect
- * ratio) and centred within their slot.
+ * scratch print page. Plots are scaled uniformly and centred within the slot.
  */
 export const createPlotLayouts = (plots: SavedPlotRecord[]): PlotSheetLayout[] => {
   const slots = createPlotSlots(plots.length);
@@ -93,45 +97,23 @@ export const createPlotLayouts = (plots: SavedPlotRecord[]): PlotSheetLayout[] =
   });
 };
 
-/**
- * Ray-casting point-in-polygon test (scratch page coordinates).
- * Returns `true` if the point is inside or on an edge.
- *
- * NOTE: This is a scratch-specific copy; prefer `isPointInPolygon`
- * from `geometry.ts` for new code.
- */
-export const pointInPolygon = (point: Point, polygon: Point[]) => {
-  let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const current = polygon[i];
-    const previous = polygon[j];
-    const intersects = ((current.y > point.y) !== (previous.y > point.y))
-      && (point.x < (previous.x - current.x) * (point.y - current.y) / (previous.y - current.y || 1) + current.x);
-    if (intersects) inside = !inside;
-  }
-  return inside;
-};
+/** Backward-compatible scratch wrapper around the shared polygon test. */
+export const pointInPolygon = (point: Point, polygon: Point[]) =>
+  isPointInPolygon(point, polygon);
 
 /**
- * Return the closest point on a segment and its distance (scratch coords).
- *
- * NOTE: This is a scratch-specific variant returning an object with
- * `point` and `distance`. Prefer `getClosestPointOnSegment` from
- * `geometry.ts` for new code.
+ * Backward-compatible scratch wrapper around the shared closest-point helper.
+ * Scratch callers also need the computed distance, so this adapter adds it.
  */
 export const closestPointOnSegment = (point: Point, start: Point, end: Point) => {
-  const dx = end.x - start.x;
-  const dy = end.y - start.y;
-  const lengthSq = dx * dx + dy * dy;
-  if (lengthSq === 0) return { point: start, distance: Math.hypot(point.x - start.x, point.y - start.y) };
-  const t = clampNumber(((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSq, 0, 1);
-  const projected = { x: start.x + dx * t, y: start.y + dy * t };
-  return { point: projected, distance: Math.hypot(point.x - projected.x, point.y - projected.y) };
+  const projected = getClosestPointOnSegment(point, start, end);
+  return {
+    point: projected,
+    distance: Math.hypot(point.x - projected.x, point.y - projected.y),
+  };
 };
 
-/**
- * Return the closest point on an open or closed polyline.
- */
+/** Return the closest point on an open or closed polyline. */
 export const closestPointOnPolyline = (point: Point, polyline: Point[], closed = false) => {
   let closest = { point, distance: Number.POSITIVE_INFINITY };
   const segmentCount = closed ? polyline.length : polyline.length - 1;
@@ -154,8 +136,8 @@ export const overlaps = (a: LabelBox, b: LabelBox) => (
 
 /**
  * Place a label near a segment midpoint, avoiding overlaps with already
- * used boxes.  Tries multiple anchor positions on both sides of the
- * segment and falls back to the first candidate if nothing fits.
+ * used boxes. Tries multiple anchor positions on both sides of the segment
+ * and falls back to the first candidate if nothing fits.
  */
 export const placeScratchLabel = (start: Point, end: Point, text: string, usedBoxes: LabelBox[], index = 0): PlacedScratchLabel => {
   const dx = end.x - start.x;
@@ -164,8 +146,7 @@ export const placeScratchLabel = (start: Point, end: Point, text: string, usedBo
   const normal = { x: -dy / length, y: dx / length };
   const tangent = { x: dx / length, y: dy / length };
   const side = index % 2 === 0 ? 1 : -1;
-  const rawAngle = Math.atan2(dy, dx) * 180 / Math.PI;
-  const readableAngle = rawAngle > 90 || rawAngle < -90 ? rawAngle + 180 : rawAngle;
+  const readableAngle = getReadableRotation(Math.atan2(dy, dx) * 180 / Math.PI);
   const anchorPositions = index % 2 === 0
     ? [0.32, 0.68, 0.22, 0.78, 0.5]
     : [0.68, 0.32, 0.78, 0.22, 0.5];

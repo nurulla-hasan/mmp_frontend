@@ -5,6 +5,10 @@ import {
 } from '@/features/land-measurement/utils/geometry';
 import { getReadableRotation } from '@/features/land-measurement/utils/component-helpers';
 import { formatFeetInches } from '@/features/land-measurement/utils/canvas';
+import {
+  getPolygonAreaLabelLayout,
+  type PolygonAreaLabelLayout,
+} from '@/features/land-measurement/utils/polygon-label';
 import type { Point, PlotRecord } from '@/features/land-measurement/types/map';
 
 export interface LabelDatum {
@@ -24,6 +28,7 @@ export interface PlotPolygonInfo {
   pointsStr: string;
   plot: PlotRecord;
   area: number;
+  areaLabelLayout: PolygonAreaLabelLayout;
 }
 
 export interface PrintLabelConfig {
@@ -112,10 +117,8 @@ const labelFitsInside = (
 };
 
 /**
- * Compute one dimension label for every logical plot edge.
- * Shared boundaries keep one label on each plot side. In print, edge labels use
- * the same base font size as the centered area label; positioning moves inward
- * before any size reduction is considered.
+ * Compute print geometry once per plot: area-label layout plus one dimension
+ * label for every logical edge. Shared boundaries keep one label on each side.
  */
 export function computePrintLabels(
   plots: PlotRecord[],
@@ -129,6 +132,7 @@ export function computePrintLabels(
       pointsStr: plot.points.map((point) => `${point.x},${point.y}`).join(' '),
       plot,
       area: plot.results?.shotok ?? 0,
+      areaLabelLayout: getPolygonAreaLabelLayout(plot.points),
     }))
     .sort((a, b) => a.area - b.area);
 
@@ -171,7 +175,6 @@ export function computePrintLabels(
 
       let chosen: LabelDatum | null = null;
 
-      // Keep the font fixed; try progressively deeper positions instead.
       for (let attempt = 0; attempt < 6; attempt += 1) {
         const inset = Math.max(
           labelOffset * 0.2,

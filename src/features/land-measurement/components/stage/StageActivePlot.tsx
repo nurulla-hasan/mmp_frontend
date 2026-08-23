@@ -2,15 +2,12 @@ import { memo, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Group, Line, Circle, Text } from 'react-konva';
 import { formatFeetInches, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
-import { getSnappedPoint, clipLineToPolygon, GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
+import { clampNumber, getSnappedPoint, clipLineToPolygon, GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
 import { getDirectionalContainingPlot } from '@/features/land-measurement/utils/directionalPlot';
 import { getReadableRotation } from '@/features/land-measurement/utils/component-helpers';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import { ActivePlotSegments } from './ActivePlotSegments';
 import { ActivePlotDiagonals } from './ActivePlotDiagonals';
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
 
 const SnapHintCircle = memo(() => {
   const snapHint = useMapStore(s => s.snapHint);
@@ -145,7 +142,7 @@ const LiveDashedLine = memo(() => {
     const midY = (lastPt.y + targetY) / 2;
 
     const edgeScreenPx = distPx * stageScale;
-    let fontPx = clamp(edgeScreenPx * 0.13, 7.5, UI_CONFIG.fontSize.small);
+    let fontPx = clampNumber(edgeScreenPx * 0.13, 7.5, UI_CONFIG.fontSize.small);
     let widthPx = labelText.length * fontPx * 0.58;
     const maxWidthPx = edgeScreenPx * 0.74;
     if (widthPx > maxWidthPx && maxWidthPx > 0) {

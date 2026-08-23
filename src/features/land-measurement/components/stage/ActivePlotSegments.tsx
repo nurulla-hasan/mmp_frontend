@@ -3,12 +3,9 @@ import { useShallow } from 'zustand/shallow';
 import { Text } from 'react-konva';
 import { formatFeetInches, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
 import { getReadableRotation } from '@/features/land-measurement/utils/component-helpers';
-import { GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
+import { clampNumber, GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import type { PlotSegment, PlotSegmentGroup, ActivePlotLabelData } from '@/features/land-measurement/types/stage';
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
 
 export const ActivePlotSegments = memo(() => {
   const { plotPoints, isPlotFinished, stageScale, scale } = useMapStore(
@@ -100,7 +97,7 @@ export const ActivePlotSegments = memo(() => {
         const totalDist = Math.hypot(dx, dy) || 1;
         const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
-        let fontPx = clamp(edgeScreenPx * 0.13, 7.5, UI_CONFIG.fontSize.small);
+        let fontPx = clampNumber(edgeScreenPx * 0.13, 7.5, UI_CONFIG.fontSize.small);
         let widthPx = labelText.length * fontPx * 0.58;
         const maxWidthPx = edgeScreenPx * 0.74;
         if (widthPx > maxWidthPx) {

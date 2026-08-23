@@ -16,9 +16,9 @@ import {
 } from '@/features/land-measurement/utils/canvas';
 import {
   getLineIntersection,
-  getVisualCenter,
   groupPolygonSegments,
 } from '@/features/land-measurement/utils/geometry';
+import { getPolygonAreaLabelLayout } from '@/features/land-measurement/utils/polygon-label';
 import { hexToRgba } from '@/features/land-measurement/utils/component-helpers';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import type { Point, MapMode, PlotRecord } from '@/features/land-measurement/types/map';
@@ -67,6 +67,7 @@ type PreparedPlot = {
   points: number[];
   first: Point;
   areaCenter: Point;
+  areaRotation: number;
   plotIndex: number;
   color: string;
   groups: PlotSegmentGroup[];
@@ -95,7 +96,7 @@ const SinglePlot = memo(({
   plotData,
   isShowDiagonals,
 }: SinglePlotProps) => {
-  const { id, points, first, areaCenter, color, groups } = plot;
+  const { id, points, first, areaCenter, areaRotation, color, groups } = plot;
   const isManualSelected = mode === 'manual_divide_plot' && manualDividePlotId === id;
   const plotFill = hexToRgba(color, isManualSelected ? 0.18 : 0.10);
   const hoverFill = hexToRgba(color, 0.15);
@@ -170,6 +171,7 @@ const SinglePlot = memo(({
           y={areaCenter.y}
           offsetX={areaWidth / 2}
           offsetY={areaHeight / 2}
+          rotation={areaRotation}
           opacity={0.95}
           listening={false}
         >
@@ -296,7 +298,7 @@ export const StagePlots = memo(() => {
     return plots.map((plot, plotIndex) => {
       const points = plot.points.flatMap((point) => [point.x, point.y]);
       const first = plot.points[0];
-      const areaCenter = getVisualCenter(plot.points);
+      const areaLabelLayout = getPolygonAreaLabelLayout(plot.points);
       const rawGroups = groupPolygonSegments(plot.points);
 
       const groups: PlotSegmentGroup[] = rawGroups.map((rawGroup) => {
@@ -315,7 +317,8 @@ export const StagePlots = memo(() => {
         id: plot.id,
         points,
         first,
-        areaCenter,
+        areaCenter: areaLabelLayout.center,
+        areaRotation: areaLabelLayout.rotation,
         plotIndex,
         color: plot.color || '#0F766E',
         groups,

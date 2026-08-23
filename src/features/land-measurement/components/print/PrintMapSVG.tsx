@@ -1,5 +1,4 @@
 ﻿import React from 'react';
-import { getVisualCenter } from '@/features/land-measurement/utils/geometry';
 import {
   formatFeetInches,
   MIN_EDGE_LABEL_FT,
@@ -140,18 +139,18 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
         </g>
       ))}
 
-      {/* Area labels — centered, compact, and integrated with the drawing. */}
+      {/* Area labels — one shared map/print layout: center + dominant-axis rotation. */}
       {plotPolygons.map((p) => {
         if (!p.plot.results) return null;
 
-        const center = getVisualCenter(p.plot.points);
+        const { center, rotation } = p.areaLabelLayout;
         const areaText = `${p.plot.results.shotok.toFixed(2)} শতক`;
         const areaColor = p.plot.color || '#0F766E';
 
         return (
           <g
             key={`area-${p.id}`}
-            transform={`translate(${center.x}, ${center.y})`}
+            transform={`translate(${center.x}, ${center.y}) rotate(${rotation})`}
           >
             <text
               x={0}
