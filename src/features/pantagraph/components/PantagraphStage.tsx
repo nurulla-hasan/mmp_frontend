@@ -46,7 +46,6 @@ export const PantagraphStage = memo(function PantagraphStage() {
     formerSkewX,
     formerSkewY,
     isLocked,
-    imageLoading,
     setStageViewport,
   } = usePantagraphStore(
     useShallow((s) => ({
@@ -278,8 +277,6 @@ export const PantagraphStage = memo(function PantagraphStage() {
     [blockTapRef, isAligning]
   );
 
-  const hasBothMaps = formerMap || currentMap;
-
   const renderCurrentMap = () =>
     currentMap && (
       <KonvaImage
@@ -363,19 +360,6 @@ export const PantagraphStage = memo(function PantagraphStage() {
         backgroundSize: '20px 20px',
       }}
     >
-      {!hasBothMaps && !imageLoading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none px-6">
-          <div className="text-center bg-background/50 backdrop-blur-sm rounded-2xl px-8 py-6 border border-border/30 shadow-sm max-w-sm">
-            <div className="text-4xl mb-3 drop-shadow-sm">🗺️</div>
-            <p className="text-sm font-semibold text-foreground mb-1 font-heading">ম্যাপ তুলনা (Pantagraph)</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              সাইডবার থেকে সাবেক ও হাল ম্যাপ আপলোড করুন<br />
-              তারপর পয়েন্ট মিলিয়ে তুলনা শুরু করুন
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Color picking mode indicator */}
       {isPickingColor && (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none">

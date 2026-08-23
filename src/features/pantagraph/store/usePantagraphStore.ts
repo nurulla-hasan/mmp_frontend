@@ -13,6 +13,8 @@ export interface PantagraphState {
   // Images
   formerMap: HTMLImageElement | null;
   currentMap: HTMLImageElement | null;
+  formerMapName: string | null;
+  currentMapName: string | null;
   formerMapOriginal: HTMLImageElement | null;
   currentMapOriginal: HTMLImageElement | null;
   formerBgRemoved: boolean;
@@ -98,8 +100,10 @@ type AlignmentParams =
 
 export interface PantagraphActions {
   // Image actions
-  setFormerMap: (img: HTMLImageElement | null) => void;
-  setCurrentMap: (img: HTMLImageElement | null) => void;
+  setFormerMap: (img: HTMLImageElement | null, name?: string | null) => void;
+  setCurrentMap: (img: HTMLImageElement | null, name?: string | null) => void;
+  setFormerMapName: (name: string | null) => void;
+  setCurrentMapName: (name: string | null) => void;
   applyCroppedMap: (
     target: 'former' | 'current',
     img: HTMLImageElement,
@@ -171,6 +175,8 @@ export type PantagraphStore = PantagraphState & PantagraphActions;
 const initialState: PantagraphState = {
   formerMap: null,
   currentMap: null,
+  formerMapName: null,
+  currentMapName: null,
   formerMapOriginal: null,
   currentMapOriginal: null,
   formerBgRemoved: false,
@@ -385,26 +391,30 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => {
   return {
     ...initialState,
 
-  setFormerMap: (formerMap) => {
+  setFormerMap: (formerMap, name) => {
     invalidateMapProcessing('former');
-    set({
+    set((state) => ({
       formerMap,
       formerMapOriginal: formerMap,
       formerMapClean: formerMap,
+      formerMapName: formerMap ? (name !== undefined ? name : state.formerMapName) : null,
       formerBgRemoved: false,
       isRemovingFormerBg: false,
-    });
+    }));
   },
-  setCurrentMap: (currentMap) => {
+  setCurrentMap: (currentMap, name) => {
     invalidateMapProcessing('current');
-    set({
+    set((state) => ({
       currentMap,
       currentMapOriginal: currentMap,
       currentMapClean: currentMap,
+      currentMapName: currentMap ? (name !== undefined ? name : state.currentMapName) : null,
       currentBgRemoved: false,
       isRemovingCurrentBg: false,
-    });
+    }));
   },
+  setFormerMapName: (formerMapName) => set({ formerMapName }),
+  setCurrentMapName: (currentMapName) => set({ currentMapName }),
   applyCroppedMap: (target, img, crop) => {
     invalidateMapProcessing(target);
     set((state) => {

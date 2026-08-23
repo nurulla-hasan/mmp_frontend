@@ -1,138 +1,84 @@
-"use client";
-
-import { useState } from "react";
 import {
+  CheckCircle2,
   Compass,
   Layers,
   MapPin,
+  PenLine,
   Ruler,
-  Search,
+  Scaling,
   ShieldCheck,
+  Sparkles,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 
-import { Badge } from "@/components/ui/badge";
 import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-const serviceOptions = [
-  "জমি পরিমাপ",
-  "জমি ভাগ",
-  "সীমানা নির্ধারণ",
-  "ডিজিটাল সার্ভে",
-  "মৌজা ম্যাপ সহায়তা",
+const heroStats = [
+  { value: "৫০০+", label: "ভেরিফায়েড সার্ভেয়ার", icon: Users },
+  { value: "১০,০০০+", label: "মৌজা দাগ পরিমাপ", icon: Ruler },
+  { value: "৬৪ জেলা", label: "সারাদেশে সেবা", icon: MapPin },
+  { value: "১০০%", label: "ডিজিটাল স্কেলিং", icon: ShieldCheck },
+];
+
+const heroBenefits = [
+  { title: "এলাকাভিত্তিক সার্ভেয়ার", icon: MapPin },
+  { title: "ডিজিটাল ল্যান্ড টুলস", icon: Layers },
+  { title: "ম্যাপ ট্রেস ও তুলনা", icon: Compass },
 ];
 
 export function HeroSection() {
-  const [service, setService] = useState("");
-  const [district, setDistrict] = useState("");
-
   return (
-    <div className="relative overflow-hidden">
-      {/* Ambient Glows */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-0 right-1/4 h-200 w-200 -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" />
-        <div className="absolute bottom-0 left-0 h-200 w-200 translate-y-1/3 -translate-x-1/3 rounded-full bg-yellow-500/10 blur-[100px]" />
+    <div className="relative overflow-hidden w-full min-h-[calc(100dvh-4.5rem)] flex flex-col justify-between">
+      {/* Background ambient glow effects */}
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-0 right-1/4 h-160 w-160 -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/15 blur-[130px]" />
+        <div className="absolute bottom-10 left-0 h-160 w-160 translate-y-1/3 -translate-x-1/3 rounded-full bg-primary/10 blur-[110px]" />
+        <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-chart-1/5 blur-[100px]" />
       </div>
 
       <SectionWrapper
         id="hero"
         asSection
-        padding="xl"
+        padding="none"
+        className="w-full flex-1 flex flex-col justify-center py-10 sm:py-14 lg:py-16"
       >
-        <div className="grid gap-10 lg:grid-cols-[1.2fr_0.9fr] lg:items-center">
-          {/* Left: Text and CTA */}
-          <div>
-            <Badge className="bg-primary/10 text-primary p-3 rounded-sm">
-              জমির হিসাব নিয়ে আর কোনো দুশ্চিন্তা নয়
-            </Badge>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl leading-[1.2] font-heading">
+        <div className="grid gap-12 lg:grid-cols-[1.05fr_1fr] lg:items-center xl:gap-16 min-w-0">
+          {/* ─── Left Hero Content ────────────────────────────────── */}
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-2 rounded-md border border-primary/25 bg-primary/10 px-3.5 py-1.5 text-xs font-medium text-primary shadow-2xs backdrop-blur-xs">
+              <span className="size-2 rounded-full bg-primary animate-pulse" />
+              <span>বাংলাদেশের প্রথম পূর্ণাঙ্গ ডিজিটাল মৌজা ও ভূমি প্ল্যাটফর্ম</span>
+            </div>
+
+            <h1 className="mt-5 font-heading text-3xl leading-[1.2] font-semibold tracking-tight sm:text-4xl lg:text-5xl xl:text-[3.5rem]">
               জমির সীমানা ও পরিমাপ নিয়ে
               <br />
               <span className="text-primary">থাকুন সম্পূর্ণ নিশ্চিন্ত</span>
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-              অভিজ্ঞ সার্ভেয়ার খুঁজুন, কাজের অনুরোধ পোস্ট করুন এবং আধুনিক ডিজিটাল টুল দিয়ে জমি পরিমাপ, ম্যাপ তুলনা ও ট্রেস করুন।
+
+            <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+              অভিজ্ঞ সার্ভেয়ার খুঁজুন এবং আধুনিক ডিজিটাল টুল দিয়ে মৌজা ম্যাপের দাগ
+              পরিমাপ, C.S ও B.S ম্যাপ তুলনা এবং ভেক্টর ট্রেসিং করুন নির্ভুলভাবে।
             </p>
 
-            {/* Surveyor Search Form */}
-            <div className="mt-6 rounded-xl border bg-card p-4">
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <div className="flex-1">
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                    প্রয়োজনীয় সেবা
-                  </label>
-                  <Select
-                    value={service}
-                    onValueChange={(v) => setService(v ?? "")}
-                  >
-                    <SelectTrigger className="w-full">
-                      <Search className="size-4 shrink-0 text-muted-foreground" />
-                      <SelectValue placeholder="সেবা নির্বাচন করুন" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {serviceOptions.map((opt) => (
-                        <SelectItem key={opt} value={opt}>
-                          {opt}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex-1">
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                    জেলা নির্বাচন
-                  </label>
-                  <Select
-                    value={district}
-                    onValueChange={(v) => setDistrict(v ?? "")}
-                  >
-                    <SelectTrigger className="w-full">
-                      <MapPin className="size-4 shrink-0 text-muted-foreground" />
-                      <SelectValue placeholder="জেলা নির্বাচন করুন" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="dinajpur">দিনাজপুর</SelectItem>
-                      <SelectItem value="rangpur">রংপুর</SelectItem>
-                      <SelectItem value="bogura">বগুড়া</SelectItem>
-                      <SelectItem value="rajshahi">রাজশাহী</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-end">
-                  <Button
-                    className="w-full sm:w-auto"
-                    nativeButton={false}
-                    render={<Link href="/surveyors" />}
-                  >
-                    <Search className="size-4" />
-                    খুঁজুন
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            {/* CTA Buttons */}
+            <div className="mt-7 flex flex-wrap items-center gap-3.5">
               <Button
                 size="lg"
-                className="gap-2"
+                className="gap-2 shadow-lg shadow-primary/20"
                 nativeButton={false}
                 render={<Link href="/surveyors" />}
               >
-                <Compass className="size-4" />
+                <MapPin className="size-4" />
                 সার্ভেয়ার খুঁজুন
               </Button>
+
               <Button
                 size="lg"
                 variant="outline"
+                className="gap-2 border-border/80 bg-background/80 backdrop-blur-xs hover:bg-muted"
                 nativeButton={false}
                 render={<Link href="/tools" />}
               >
@@ -141,201 +87,324 @@ export function HeroSection() {
               </Button>
             </div>
 
-            {/* Benefit Items */}
-            <div className="mt-8 flex flex-wrap gap-3 sm:grid sm:grid-cols-3 sm:gap-4">
-              {[
-                { title: "এলাকাভিত্তিক সার্ভেয়ার খুঁজুন", icon: MapPin },
-                { title: "একাধিক কোটেশন তুলনা করুন", icon: Layers },
-                { title: "নিরাপদে কাজের অনুরোধ পোস্ট করুন", icon: ShieldCheck },
-              ].map((item, i) => (
-                <div key={i} className="flex items-start sm:items-center gap-2 rounded-lg border bg-card/50 p-2.5 sm:px-3 sm:py-2 text-sm text-muted-foreground shadow-sm">
-                  <item.icon className="size-4 text-primary shrink-0 mt-0.5 sm:mt-0" />
-                  <span className="leading-snug">{item.title}</span>
+            {/* Key Value Pills */}
+            <div className="mt-8 flex flex-wrap gap-2.5 sm:gap-3">
+              {heroBenefits.map((item) => (
+                <div
+                  key={item.title}
+                  className="flex items-center gap-2 rounded-xl border border-border/80 bg-card/70 px-3 py-2 text-xs sm:text-sm text-muted-foreground shadow-2xs backdrop-blur-sm"
+                >
+                  <item.icon className="size-4 shrink-0 text-primary" />
+                  <span>{item.title}</span>
                 </div>
               ))}
             </div>
 
-            <div className="mt-3">
+            {/* Trust Sub-text */}
+            <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="size-3.5 text-primary" />
+                <span>C.S, S.A, R.S ও B.S স্কেল সমর্থিত</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="size-3.5 text-primary" />
+                <span>শতক, কাঠা ও বিঘা হিসাব</span>
+              </div>
               <Link
                 href="/join-as-surveyor"
-                className="text-sm text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
+                className="font-medium text-primary underline-offset-4 hover:underline"
               >
                 সার্ভেয়ার হিসেবে যোগ দিন &rarr;
               </Link>
             </div>
           </div>
 
-          {/* Right: Product ecosystem preview */}
-          <div className="relative">
-            {/* Decorative grid lines */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl opacity-[0.04] dark:opacity-[0.08]">
-              <svg className="h-full w-full" viewBox="0 0 400 500">
-                <defs>
-                  <pattern
-                    id="grid"
-                    width="40"
-                    height="40"
-                    patternUnits="userSpaceOnUse"
+          {/* ─── Right Hero Interactive Showcase ─────────────────── */}
+          <div className="relative mx-auto w-full min-w-0 max-w-lg lg:max-w-none lg:pr-14 xl:pr-20">
+            <div className="pointer-events-none absolute -inset-4 -z-10 rounded-3xl bg-primary/10 blur-2xl" />
+
+            {/* Primary Tool: Clean Canvas Plot Measurement Mockup */}
+            <Link
+              href="/tools/land-measurement"
+              className="group relative block w-full min-w-0 focus:outline-hidden"
+            >
+              <div className="overflow-hidden rounded-2xl border border-border/80 bg-card/90 shadow-2xl ring-1 ring-primary/15 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/40 group-hover:ring-primary/30 group-hover:shadow-primary/10">
+                <div className="relative aspect-4/3 sm:aspect-16/11 min-h-72 sm:min-h-88 w-full overflow-hidden bg-muted/10">
+                  {/* Grid Pattern */}
+                  <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[24px_24px] opacity-40" />
+
+                  {/* Top Floating Header Pill inside Canvas */}
+                  <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-3.5 z-10 flex items-center gap-1.5 sm:gap-2 rounded-xl border border-border/80 bg-background/90 px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-sm backdrop-blur-md">
+                    <span className="flex size-2 shrink-0 rounded-full bg-primary animate-pulse" />
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-semibold">
+                      <Ruler className="size-3 sm:size-3.5 text-primary shrink-0" />
+                      <span className="font-heading truncate">মৌজা জমি পরিমাপ</span>
+                    </div>
+                    <span className="hidden sm:inline-block text-[10px] text-muted-foreground border-l pl-2">
+                      ১৬″ = ১ মাইল
+                    </span>
+                  </div>
+
+                  {/* Cadastral & Plot SVG */}
+                  <svg
+                    className="absolute inset-0 h-full w-full"
+                    viewBox="0 0 400 300"
+                    aria-hidden="true"
                   >
-                    <path
-                      d="M 40 0 L 0 0 0 40"
+                    {/* Surrounding cadastral plot lines */}
+                    <g
                       fill="none"
                       stroke="currentColor"
-                      strokeWidth="0.5"
+                      strokeWidth="0.8"
+                      className="text-muted-foreground/30"
+                    >
+                      <path d="M 0 45 L 105 32 L 210 52 L 310 24 L 400 48" />
+                      <path d="M 0 115 L 88 105 L 170 122 L 280 102 L 400 126" />
+                      <path d="M 0 215 L 102 195 L 195 220 L 310 198 L 400 218" />
+                      <path d="M 62 0 L 72 300" strokeDasharray="3 3" />
+                      <path d="M 172 0 L 162 300" strokeDasharray="3 3" />
+                      <path d="M 298 0 L 312 300" strokeDasharray="3 3" />
+                    </g>
+
+                    {/* Neighboring plot numbers */}
+                    <g fill="currentColor" className="text-muted-foreground/40 font-mono text-[10px]">
+                      <text x="35" y="80">দাগ ৪২৬</text>
+                      <text x="320" y="80">দাগ ৪২৭</text>
+                      <text x="45" y="260">দাগ ৪২৯</text>
+                    </g>
+
+                    {/* Active Plot Polygon */}
+                    <polygon
+                      points="90,75 275,60 295,195 210,222 78,208"
+                      fill="var(--color-primary)"
+                      fillOpacity="0.14"
+                      stroke="var(--color-primary)"
+                      strokeWidth="2.4"
+                      strokeLinejoin="round"
                     />
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#grid)" />
-                <path
-                  d="M 0 250 L 400 250 M 200 0 L 200 500"
-                  stroke="currentColor"
-                  strokeWidth="0.3"
-                  opacity="0.5"
-                />
-              </svg>
+
+                    {/* Vertex Handle Points */}
+                    {[
+                      [90, 75],
+                      [275, 60],
+                      [295, 195],
+                      [210, 222],
+                      [78, 208],
+                    ].map(([cx, cy]) => (
+                      <g key={`${cx}-${cy}`}>
+                        <circle
+                          cx={cx}
+                          cy={cy}
+                          r="6.5"
+                          fill="var(--color-primary)"
+                          fillOpacity="0.25"
+                        />
+                        <circle
+                          cx={cx}
+                          cy={cy}
+                          r="3.5"
+                          fill="var(--color-background)"
+                          stroke="var(--color-primary)"
+                          strokeWidth="2"
+                        />
+                      </g>
+                    ))}
+                  </svg>
+
+                  {/* HTML Overlay Badges for dynamic font-safe auto-sizing */}
+                  {/* Top dimension */}
+                  <div className="pointer-events-none absolute top-[15%] left-[46%] -translate-x-1/2">
+                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-[10px] font-mono font-medium text-foreground shadow-2xs backdrop-blur-xs">
+                      ১২০ ফুট
+                    </span>
+                  </div>
+
+                  {/* Right dimension */}
+                  <div className="pointer-events-none absolute top-[42%] right-[14%] sm:right-[16%]">
+                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-[10px] font-mono font-medium text-foreground shadow-2xs backdrop-blur-xs">
+                      ৮০ ফুট
+                    </span>
+                  </div>
+
+                  {/* Bottom dimension */}
+                  <div className="pointer-events-none absolute bottom-[22%] left-[36%] -translate-x-1/2">
+                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-[10px] font-mono font-medium text-foreground shadow-2xs backdrop-blur-xs">
+                      ১১৫ ফুট
+                    </span>
+                  </div>
+
+                  {/* Left dimension */}
+                  <div className="pointer-events-none absolute top-[46%] left-[8%] sm:left-[10%]">
+                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-[10px] font-mono font-medium text-foreground shadow-2xs backdrop-blur-xs">
+                      ৭৫ ফুট
+                    </span>
+                  </div>
+
+                  {/* Center Plot Tag */}
+                  <div className="pointer-events-none absolute top-[43%] left-[46%] -translate-x-1/2 -translate-y-1/2">
+                    <span className="inline-flex items-center rounded-md border border-primary/30 bg-primary/10 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-medium text-primary shadow-2xs backdrop-blur-xs">
+                      দাগ নং ৪২৮
+                    </span>
+                  </div>
+
+                  {/* Floating Area Calculation Badge */}
+                  <div className="absolute bottom-2.5 left-2.5 sm:bottom-3.5 sm:left-3.5 z-10">
+                    <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl border border-primary/25 bg-background/95 px-2.5 sm:px-3 py-1.5 sm:py-2 shadow-lg backdrop-blur-md">
+                      <div className="flex size-6 sm:size-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                        <Sparkles className="size-3 sm:size-3.5" />
+                      </div>
+                      <div>
+                        <div className="text-[8.5px] sm:text-[10px] font-medium text-muted-foreground truncate">
+                          মোট জমি (দাগ ৪২৮)
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                          <span className="font-heading text-xs sm:text-base font-bold text-primary">
+                            ৪২.৭৫
+                          </span>
+                          <span className="text-[9px] sm:text-xs font-semibold text-primary">
+                            শতাংশ
+                          </span>
+                          <span className="hidden text-[10px] text-muted-foreground sm:inline">
+                            • ২.৫৮ কাঠা
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Zoom Controls */}
+                  <div className="absolute right-2.5 bottom-2.5 sm:right-3.5 sm:bottom-3.5 z-10 flex flex-col overflow-hidden rounded-lg border bg-background/90 shadow-xs backdrop-blur-sm">
+                    <span className="flex size-5.5 sm:size-6.5 items-center justify-center text-xs font-semibold hover:bg-muted transition-colors">
+                      +
+                    </span>
+                    <span className="flex size-5.5 sm:size-6.5 items-center justify-center border-t text-xs font-semibold hover:bg-muted transition-colors">
+                      −
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Supporting Tools: Floating on Desktop, Clean Grid on Mobile */}
+            <div className="mt-3.5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:mt-0 min-w-0">
+              {/* Satellite Tool 1: Pantagraph */}
+              <Link
+                href="/tools/pantagraph"
+                className="group block min-w-0 lg:absolute lg:-top-6 lg:-right-8 xl:-right-10 lg:w-48 xl:w-52 z-20"
+              >
+                <div className="flex flex-col gap-1.5 sm:gap-2 rounded-xl border border-border/80 bg-card/95 p-2.5 sm:p-3 shadow-xl ring-1 ring-primary/15 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/40 group-hover:ring-primary/30 group-hover:shadow-primary/10 min-w-0">
+                  <div className="flex items-center justify-between gap-1 min-w-0">
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-semibold truncate min-w-0">
+                      <Scaling className="size-3.5 shrink-0 text-primary" />
+                      <span className="font-heading truncate">ম্যাপ তুলনা</span>
+                    </div>
+                    <span className="shrink-0 rounded bg-primary/10 px-1 py-0.5 text-[8.5px] sm:text-[9px] font-semibold text-primary">
+                      C.S ⇄ B.S
+                    </span>
+                  </div>
+
+                  <div className="relative h-16 sm:h-20 overflow-hidden rounded-lg border bg-muted/15">
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[10px_10px] opacity-30" />
+                    <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 60" aria-hidden="true">
+                      {/* Former map polygon */}
+                      <polygon
+                        points="15,14 62,8 78,44 26,52"
+                        fill="none"
+                        stroke="var(--color-primary)"
+                        strokeWidth="1.8"
+                      />
+                      {/* Current map polygon */}
+                      <polygon
+                        points="22,12 68,18 64,52 18,40"
+                        fill="var(--color-primary)"
+                        fillOpacity="0.08"
+                        stroke="currentColor"
+                        strokeWidth="1.4"
+                        strokeDasharray="3 2"
+                        className="text-muted-foreground"
+                      />
+                      {/* Match Point Pins */}
+                      <circle cx="22" cy="12" r="2" fill="var(--color-primary)" />
+                      <circle cx="68" cy="18" r="2" fill="var(--color-primary)" />
+                    </svg>
+                  </div>
+                  <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground truncate">
+                    সাবেক ও হাল মিলান
+                  </p>
+                </div>
+              </Link>
+
+              {/* Satellite Tool 2: Map Tracer */}
+              <Link
+                href="/tools/tracer"
+                className="group block min-w-0 lg:absolute lg:-bottom-6 lg:-right-6 xl:-right-8 lg:w-48 xl:w-52 z-20"
+              >
+                <div className="flex flex-col gap-1.5 sm:gap-2 rounded-xl border border-border/80 bg-card/95 p-2.5 sm:p-3 shadow-xl ring-1 ring-primary/15 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/40 group-hover:ring-primary/30 group-hover:shadow-primary/10 min-w-0">
+                  <div className="flex items-center justify-between gap-1 min-w-0">
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-semibold truncate min-w-0">
+                      <PenLine className="size-3.5 shrink-0 text-primary" />
+                      <span className="font-heading truncate">ম্যাপ ট্রেসার</span>
+                    </div>
+                    <span className="size-2 shrink-0 rounded-full bg-primary animate-pulse" />
+                  </div>
+
+                  <div className="relative h-16 sm:h-20 overflow-hidden rounded-lg border bg-muted/15">
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[10px_10px] opacity-30" />
+                    <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 60" aria-hidden="true">
+                      {/* Traced polygon */}
+                      <polygon
+                        points="16,38 48,14 82,24 68,48 30,52"
+                        fill="var(--color-primary)"
+                        fillOpacity="0.12"
+                        stroke="var(--color-primary)"
+                        strokeWidth="1.8"
+                      />
+                      {/* Active trace line */}
+                      <polyline
+                        points="16,38 48,14 82,24"
+                        fill="none"
+                        stroke="var(--color-primary)"
+                        strokeWidth="1.2"
+                        strokeDasharray="2 2"
+                      />
+                      <circle cx="48" cy="14" r="2.2" fill="var(--color-primary)" />
+                      <circle cx="82" cy="24" r="2.2" fill="var(--color-primary)" />
+                      <circle cx="68" cy="48" r="2.2" fill="var(--color-primary)" />
+                    </svg>
+                  </div>
+                  <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground truncate">
+                    ভেক্টর বাউন্ডারি ট্রেস
+                  </p>
+                </div>
+              </Link>
             </div>
+          </div>
+        </div>
 
-            <div className="relative grid gap-4">
-              {/* Saved calculation card */}
-              <Link href="/tools/land-measurement" className="block group">
-                <Card className="rounded-xl ring-1 ring-primary/10 bg-card/60 backdrop-blur-xl shadow-2xl transition-all hover:-translate-y-1 hover:ring-primary/30 duration-500">
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
-                        <Ruler className="size-3.5" />
-                        ডিজিটাল ল্যান্ড মেজারমেন্ট
-                      </div>
-                      <Badge variant="active" size="sm" className="rounded-md">
-                        অ্যাডভান্সড টুল
-                      </Badge>
+        {/* ─── Bottom Stats Bar (Social Proof & Full Screen Anchor) ── */}
+        <div className="mt-12 lg:mt-16 pt-8 border-t border-border/60">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
+            {heroStats.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <div
+                  key={stat.label}
+                  className="flex items-center gap-3 rounded-xl border border-border/50 bg-card/40 px-3.5 py-3 backdrop-blur-xs transition-all hover:bg-card/70 hover:border-primary/25"
+                >
+                  <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Icon className="size-4 sm:size-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-heading text-lg sm:text-xl font-bold tracking-tight text-foreground">
+                      {stat.value}
                     </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      মৌজা ম্যাপ আপলোড করে স্কেল নির্ধারণ, জমির সীমানা আঁকা, ভাগ করা এবং নির্ভুল ক্ষেত্রফল হিসাব করুন।
-                    </p>
-                    {/* Mini plot visualization */}
-                    <div className="mt-3 relative h-24 w-full rounded border border-border/50 bg-muted/20 flex items-center justify-center overflow-hidden">
-                      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[8px_8px]" />
-                      <svg className="relative w-full h-full" viewBox="0 0 100 60">
-                        <path
-                          d="M 25 15 L 85 10 L 75 50 L 15 45 Z"
-                          fill="var(--color-primary)"
-                          fillOpacity="0.1"
-                          stroke="var(--color-primary)"
-                          strokeWidth="1.5"
-                          strokeLinejoin="round"
-                        />
-                        <text x="55" y="11" fontSize="4.5" fill="currentColor" className="text-muted-foreground" textAnchor="middle">১২০ ফুট</text>
-                        <text x="82" y="32" fontSize="4.5" fill="currentColor" className="text-muted-foreground" textAnchor="middle" transform="rotate(75, 82, 32)">৮০ ফুট</text>
-                        <text x="45" y="53" fontSize="4.5" fill="currentColor" className="text-muted-foreground" textAnchor="middle">১১৫ ফুট</text>
-                        <text x="18" y="30" fontSize="4.5" fill="currentColor" className="text-muted-foreground" textAnchor="middle" transform="rotate(-70, 18, 30)">৭৫ ফুট</text>
-
-                        <text x="50" y="32" fontSize="6.5" fontWeight="bold" fill="var(--color-primary)" textAnchor="middle">৪২.৭৫</text>
-                        <text x="50" y="39" fontSize="4.5" fill="var(--color-primary)" textAnchor="middle">শতাংশ</text>
-                      </svg>
+                    <div className="text-[11px] sm:text-xs text-muted-foreground truncate">
+                      {stat.label}
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
-
-              {/* Pantagraph Tool Card */}
-              <Link href="/tools/pantagraph" className="block group">
-                <Card className="rounded-xl ring-1 ring-primary/10 bg-card/60 backdrop-blur-xl shadow-2xl transition-all hover:-translate-y-1 hover:ring-purple-500/30 duration-500 delay-75">
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
-                        <Layers className="size-3.5" />
-                        Digital Pantagraph
-                      </div>
-                      <Badge variant="admin" size="sm" className="rounded-md">
-                        অ্যাডভান্সড টুল
-                      </Badge>
-                    </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      সাবেক ও হাল ম্যাপের মিলযুক্ত পয়েন্ট নির্বাচন করে দুটি ম্যাপ নির্ভুলভাবে align ও তুলনা করুন।
-                    </p>
-                    {/* Mini Pantagraph Visualization */}
-                    <div className="mt-3 relative h-20 w-full overflow-hidden rounded border border-border/50 bg-muted/20 flex items-center justify-center">
-                      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[8px_8px]" />
-                      <svg className="relative w-full h-full" viewBox="0 0 100 60">
-                        {/* Map 1 (e.g. C.S Map in Red) */}
-                        <path
-                          d="M 25 20 L 65 15 L 75 45 L 30 50 Z"
-                          fill="none"
-                          stroke="#ef4444"
-                          strokeWidth="1"
-                          strokeDasharray="2 2"
-                          className="opacity-70"
-                        />
-                        <text x="50" y="25" fontSize="4.5" fill="#ef4444" opacity="0.8">সি.এস</text>
-
-                        {/* Map 2 (e.g. B.S Map in Blue/Primary) - slightly offset/rotated to show comparison */}
-                        <path
-                          d="M 28 22 L 68 18 L 72 48 L 32 52 Z"
-                          fill="var(--color-primary)"
-                          fillOpacity="0.1"
-                          stroke="var(--color-primary)"
-                          strokeWidth="1.5"
-                        />
-                        <text x="50" y="45" fontSize="4.5" fill="var(--color-primary)">বি.এস</text>
-
-                        {/* Alignment crosshairs/match points */}
-                        <circle cx="28" cy="22" r="1.5" fill="var(--color-primary)" />
-                        <circle cx="68" cy="18" r="1.5" fill="var(--color-primary)" />
-
-                        {/* Connection lines showing alignment matching */}
-                        <path d="M 25 20 L 28 22" stroke="currentColor" strokeWidth="0.5" className="text-muted-foreground" />
-                        <path d="M 65 15 L 68 18" stroke="currentColor" strokeWidth="0.5" className="text-muted-foreground" />
-                      </svg>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-
-              {/* Map Tracer Tool Card */}
-              <Link href="/tools/tracer" className="block group">
-                <Card className="rounded-xl ring-1 ring-primary/10 bg-card/60 backdrop-blur-xl shadow-2xl transition-all hover:-translate-y-1 hover:ring-blue-500/30 duration-500 delay-150">
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
-                        <Compass className="size-3.5" />
-                        Digital Map Tracer
-                      </div>
-                      <Badge variant="processing" size="sm" className="rounded-md">
-                        অ্যাডভান্সড টুল
-                      </Badge>
-                    </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      পুরোনো মৌজা ম্যাপের C.S, S.A ও B.S দাগ আলাদা layer-এ trace করে পরিষ্কার ডিজিটাল ম্যাপ তৈরি করুন।
-                    </p>
-                    {/* Mini Tracer Visualization */}
-                    <div className="mt-3 relative h-16 w-full overflow-hidden rounded border border-border/50 bg-muted/20">
-                      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[8px_8px]" />
-                      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 60">
-                        <path
-                          d="M 20 15 L 60 10 L 80 40 L 35 50 Z"
-                          fill="var(--color-primary)"
-                          fillOpacity="0.15"
-                          stroke="var(--color-primary)"
-                          strokeWidth="1.5"
-                          strokeLinejoin="round"
-                        />
-                        <circle cx="20" cy="15" r="2" fill="var(--color-primary)" />
-                        <circle cx="60" cy="10" r="2" fill="var(--color-primary)" />
-                        <circle cx="80" cy="40" r="2" fill="var(--color-primary)" />
-                        <circle cx="35" cy="50" r="2" fill="var(--color-primary)" />
-                        <path
-                          d="M 35 50 L 15 40"
-                          stroke="var(--color-primary)"
-                          strokeWidth="1"
-                          strokeDasharray="2 2"
-                        />
-                        <circle cx="15" cy="40" r="1.5" fill="none" stroke="var(--color-primary)" />
-                      </svg>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </SectionWrapper>

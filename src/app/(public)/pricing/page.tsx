@@ -1,23 +1,5 @@
-import {
-  FreeVsPro,
-  PlanComparison,
-  PricingCards,
-  PricingCta,
-  PricingFaq,
-  PricingHero,
-  PricingPolicies,
-} from "./_components";
+import { redirect } from "next/navigation";
 
 export default function PricingPage() {
-  return (
-    <main>
-      <PricingHero />
-      <PricingCards />
-      <PlanComparison />
-      <FreeVsPro />
-      <PricingPolicies />
-      <PricingFaq />
-      <PricingCta />
-    </main>
-  );
+  redirect("/");
 }
