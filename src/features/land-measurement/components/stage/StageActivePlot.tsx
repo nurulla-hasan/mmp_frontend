@@ -144,8 +144,6 @@ const LiveDashedLine = memo(() => {
     const midX = (lastPt.x + targetX) / 2;
     const midY = (lastPt.y + targetY) / 2;
 
-    // Match the finished plot label engine: size by on-screen edge length and
-    // keep the text close to the line instead of using the old large offset.
     const edgeScreenPx = distPx * stageScale;
     let fontPx = clamp(edgeScreenPx * 0.13, 7.5, UI_CONFIG.fontSize.small);
     let widthPx = labelText.length * fontPx * 0.58;
@@ -157,22 +155,36 @@ const LiveDashedLine = memo(() => {
     const fontSize = fontPx / stageScale;
     const estWidth = widthPx / stageScale;
     const estHeight = (fontPx * 1.08) / stageScale;
-    const labelDist = Math.max(7, fontPx * 0.95) / stageScale;
+    const normalLabelDist = Math.max(7, fontPx * 0.95) / stageScale;
     const showLabel = edgeScreenPx >= 34;
 
     const normalAX = distPx >= 1 ? -dy / distPx : 0;
     const normalAY = distPx >= 1 ? dx / distPx : 0;
-    const plotCenter = plotPoints.reduce(
-      (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
-      { x: 0, y: 0 },
-    );
-    plotCenter.x /= plotPoints.length;
-    plotCenter.y /= plotPoints.length;
-    const towardCenterX = plotCenter.x - midX;
-    const towardCenterY = plotCenter.y - midY;
-    const normalFacesCenter = normalAX * towardCenterX + normalAY * towardCenterY >= 0;
-    const perpX = normalFacesCenter ? normalAX : -normalAX;
-    const perpY = normalFacesCenter ? normalAY : -normalAY;
+
+    // With only point #1 committed there is no polygon interior yet. Trying to
+    // infer an "inside" side makes the label jump left/right while the user
+    // swings the first segment around. Keep that first live label centered on
+    // the segment; side-aware placement starts after point #2 is committed.
+    const isFirstSegment = plotPoints.length === 1;
+    let perpX = 0;
+    let perpY = 0;
+    let labelDist = 0;
+
+    if (!isFirstSegment) {
+      const plotCenter = plotPoints.reduce(
+        (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
+        { x: 0, y: 0 },
+      );
+      plotCenter.x /= plotPoints.length;
+      plotCenter.y /= plotPoints.length;
+      const towardCenterX = plotCenter.x - midX;
+      const towardCenterY = plotCenter.y - midY;
+      const normalFacesCenter = normalAX * towardCenterX + normalAY * towardCenterY >= 0;
+      perpX = normalFacesCenter ? normalAX : -normalAX;
+      perpY = normalFacesCenter ? normalAY : -normalAY;
+      labelDist = normalLabelDist;
+    }
+
     const rotation = getReadableRotation(Math.atan2(dy, dx) * 180 / Math.PI);
 
     return {
