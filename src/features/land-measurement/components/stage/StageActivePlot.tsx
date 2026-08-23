@@ -1,15 +1,14 @@
-﻿import { memo, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { Group, Line, Circle, Label as KonvaLabel, Tag, Text } from 'react-konva';
+import { Group, Line, Circle, Text } from 'react-konva';
 import { formatFeetInches, LABEL_OFFSET_DRAWING_LIVE, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
-import { getSnappedPoint, isPointInPolygon, clipLineToPolygon, GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
+import { getSnappedPoint, clipLineToPolygon, GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
+import { getDirectionalContainingPlot } from '@/features/land-measurement/utils/directionalPlot';
 import { getReadableRotation } from '@/features/land-measurement/utils/component-helpers';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import { ActivePlotSegments } from './ActivePlotSegments';
 import { ActivePlotDiagonals } from './ActivePlotDiagonals';
 
-// ----- Sub-component: snap hint circle -----
-// Re-renders only when: snapHint, isPlotFinished, plotPoints[0], stageScale change
 const SnapHintCircle = memo(() => {
   const snapHint = useMapStore(s => s.snapHint);
   const isPlotFinished = useMapStore(s => s.isPlotFinished);
@@ -31,8 +30,6 @@ const SnapHintCircle = memo(() => {
 });
 SnapHintCircle.displayName = 'SnapHintCircle';
 
-// ----- Sub-component: the static drawn polyline -----
-// Re-renders only when: plotPoints, isPlotFinished, stageScale change — NOT stagePos
 const StaticLines = memo(() => {
   const { plotPoints, isPlotFinished, stageScale } = useMapStore(
     useShallow(s => ({ plotPoints: s.plotPoints, isPlotFinished: s.isPlotFinished, stageScale: s.stageScale }))
@@ -60,8 +57,6 @@ const StaticLines = memo(() => {
 });
 StaticLines.displayName = 'StaticLines';
 
-// ----- Sub-component: dashed preview line from last point to crosshair -----
-// Re-renders on stagePos/stageSize changes (expected — this IS position-dependent)
 const LiveDashedLine = memo(() => {
   const { plotPoints, snapHint, stageScale, stagePos, stageSize, scale, isPlotFinished, plots, pointerPos, deviceType } = useMapStore(
     useShallow(s => ({
@@ -88,106 +83,150 @@ const LiveDashedLine = memo(() => {
     if (deviceType === 'mouse' && pointerPos) {
       rawCenter = pointerPos;
     }
+
     const snapThreshold = 10 / stageScale;
     const center = getSnappedPoint(rawCenter, plots.map(p => p.points), snapThreshold);
     const isEdgeSnapped = center.x !== rawCenter.x || center.y !== rawCenter.y;
-    
+
     if (plotPoints.length === 0) {
-      return { 
-        isEdgeSnapped, centerX: center.x, centerY: center.y,
-        lastPt: undefined, targetX: undefined, targetY: undefined, distPx: undefined,
-        labelText: undefined, midX: undefined, midY: undefined, estWidth: undefined, estHeight: undefined,
-        perpX: undefined, perpY: undefined, lineLen: undefined, labelDist: undefined,
-        fontSize: undefined, padding: undefined
+      return {
+        isEdgeSnapped,
+        centerX: center.x,
+        centerY: center.y,
+        lastPt: undefined,
+        targetX: undefined,
+        targetY: undefined,
+        distPx: undefined,
+        labelText: undefined,
+        midX: undefined,
+        midY: undefined,
+        estWidth: undefined,
+        estHeight: undefined,
+        perpX: undefined,
+        perpY: undefined,
+        fontSize: undefined,
+        rotation: undefined,
       };
     }
-    
+
     const lastPt = plotPoints[plotPoints.length - 1];
     let targetX = snapHint ? plotPoints[0].x : center.x;
     let targetY = snapHint ? plotPoints[0].y : center.y;
 
-    // Clip line if starting inside an existing plot
     if (!snapHint && plotPoints.length > 0) {
       const firstPt = plotPoints[0];
-      for (const plot of plots) {
-        // Fast bounding box pre-check
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        for (const p of plot.points) {
-          if (p.x < minX) minX = p.x;
-          if (p.x > maxX) maxX = p.x;
-          if (p.y < minY) minY = p.y;
-          if (p.y > maxY) maxY = p.y;
-        }
-        
-        if (firstPt.x >= minX && firstPt.x <= maxX && firstPt.y >= minY && firstPt.y <= maxY) {
-          if (isPointInPolygon(firstPt, plot.points)) {
-            const clipped = clipLineToPolygon(lastPt, { x: targetX, y: targetY }, plot.points);
-            targetX = clipped.x;
-            targetY = clipped.y;
-            break;
-          }
-        }
+      const directionPoint = plotPoints.length >= 2
+        ? plotPoints[1]
+        : { x: targetX, y: targetY };
+      const containingPlot = getDirectionalContainingPlot(
+        plots,
+        firstPt,
+        directionPoint,
+        stageScale,
+      );
+
+      if (containingPlot) {
+        const clipped = clipLineToPolygon(lastPt, { x: targetX, y: targetY }, containingPlot.points);
+        targetX = clipped.x;
+        targetY = clipped.y;
       }
     }
 
     const dx = targetX - lastPt.x;
     const dy = targetY - lastPt.y;
     const distPx = Math.hypot(dx, dy);
-    
-    // We still return everything even if distPx < 1, but we might not render the line
     const labelText = scale ? formatFeetInches(distPx / scale) : "0'-00\"";
     const midX = (lastPt.x + targetX) / 2;
     const midY = (lastPt.y + targetY) / 2;
-    const fontSize = UI_CONFIG.fontSize.medium / stageScale;
-    const padding = UI_CONFIG.padding.small / stageScale;
-    const estWidth = (labelText.length * fontSize * 0.6) + padding * 2;
-    const estHeight = fontSize + padding * 2;
-    const perpX = distPx >= 1 ? -dy / distPx : 0;
-    const perpY = distPx >= 1 ? dx / distPx : 0;
-    const lineLen = 40 / stageScale;
-    const labelDist = 40 / stageScale;
+    const fontSize = UI_CONFIG.fontSize.small / stageScale;
+    const estWidth = labelText.length * fontSize * 0.58;
+    const estHeight = fontSize * 1.08;
+
+    const normalAX = distPx >= 1 ? -dy / distPx : 0;
+    const normalAY = distPx >= 1 ? dx / distPx : 0;
+    const plotCenter = plotPoints.reduce(
+      (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
+      { x: 0, y: 0 },
+    );
+    plotCenter.x /= plotPoints.length;
+    plotCenter.y /= plotPoints.length;
+    const towardCenterX = plotCenter.x - midX;
+    const towardCenterY = plotCenter.y - midY;
+    const normalFacesCenter = normalAX * towardCenterX + normalAY * towardCenterY >= 0;
+    const perpX = normalFacesCenter ? normalAX : -normalAX;
+    const perpY = normalFacesCenter ? normalAY : -normalAY;
     const rotation = getReadableRotation(Math.atan2(dy, dx) * 180 / Math.PI);
 
     return {
-      lastPt, targetX, targetY, distPx,
-      labelText, midX, midY, estWidth, estHeight,
-      perpX, perpY, lineLen, labelDist,
-      isEdgeSnapped, centerX: center.x, centerY: center.y,
-      fontSize, padding, rotation
+      lastPt,
+      targetX,
+      targetY,
+      distPx,
+      labelText,
+      midX,
+      midY,
+      estWidth,
+      estHeight,
+      perpX,
+      perpY,
+      isEdgeSnapped,
+      centerX: center.x,
+      centerY: center.y,
+      fontSize,
+      rotation,
     };
   }, [isPlotFinished, plotPoints, stageSize, stagePos, stageScale, snapHint, scale, plots, pointerPos, deviceType]);
 
   if (!derived) return null;
 
-  const { lastPt, targetX, targetY, distPx, midX, midY,
-    labelText, fontSize, padding, estWidth, estHeight,
-    isEdgeSnapped, centerX, centerY, rotation } = derived;
+  const {
+    lastPt,
+    targetX,
+    targetY,
+    distPx,
+    midX,
+    midY,
+    labelText,
+    fontSize,
+    estWidth,
+    estHeight,
+    perpX,
+    perpY,
+    isEdgeSnapped,
+    centerX,
+    centerY,
+    rotation,
+  } = derived;
 
   return (
-    <Group>
+    <Group listening={false}>
       {lastPt && targetX !== undefined && targetY !== undefined && distPx !== undefined && distPx >= 1 && (
         <>
           <Line
             points={[lastPt.x, lastPt.y, targetX, targetY]}
             stroke={UI_CONFIG.colors.drawPrimary}
-            strokeWidth={UI_CONFIG.strokeWidth.xxthick / stageScale!}
-            dash={[8 / stageScale!, 6 / stageScale!]}
+            strokeWidth={UI_CONFIG.strokeWidth.xxthick / stageScale}
+            dash={[8 / stageScale, 6 / stageScale]}
             opacity={0.8}
+            listening={false}
           />
-          {distPx > 20 / stageScale! && (
-            <>
-              <KonvaLabel
-                x={midX!}
-                y={midY!}
-                offsetX={estWidth! / 2}
-                offsetY={estHeight! / 2 + LABEL_OFFSET_DRAWING_LIVE / stageScale!}
-                rotation={rotation!}
-                opacity={0.9}
-              >
-                <Tag fill={UI_CONFIG.colors.textWhite} stroke={UI_CONFIG.colors.drawPrimary} strokeWidth={UI_CONFIG.strokeWidth.thin / stageScale!} cornerRadius={UI_CONFIG.radius.small / stageScale!} />
-                <Text text={labelText!} fontSize={fontSize!} fill={UI_CONFIG.colors.drawPrimary} padding={padding!} fontStyle="bold" />
-              </KonvaLabel>
-            </>
+          {distPx > 20 / stageScale && (
+            <Text
+              x={midX! + perpX! * (LABEL_OFFSET_DRAWING_LIVE / stageScale)}
+              y={midY! + perpY! * (LABEL_OFFSET_DRAWING_LIVE / stageScale)}
+              offsetX={estWidth! / 2}
+              offsetY={estHeight! / 2}
+              rotation={rotation!}
+              text={labelText!}
+              fontSize={fontSize!}
+              fontStyle="bold"
+              fill={UI_CONFIG.colors.drawPrimary}
+              stroke="rgba(255,255,255,0.95)"
+              strokeWidth={2.2 / stageScale}
+              fillAfterStrokeEnabled
+              opacity={0.95}
+              listening={false}
+            />
           )}
         </>
       )}
@@ -195,10 +234,11 @@ const LiveDashedLine = memo(() => {
         <Circle
           x={centerX}
           y={centerY}
-          radius={UI_CONFIG.radius.xlarge / stageScale!}
+          radius={UI_CONFIG.radius.xlarge / stageScale}
           stroke={UI_CONFIG.colors.drawPrimary}
-          strokeWidth={UI_CONFIG.strokeWidth.xthick / stageScale!}
-          dash={[5 / stageScale!, 4 / stageScale!]}
+          strokeWidth={UI_CONFIG.strokeWidth.xthick / stageScale}
+          dash={[5 / stageScale, 4 / stageScale]}
+          listening={false}
         />
       )}
     </Group>
@@ -206,19 +246,12 @@ const LiveDashedLine = memo(() => {
 });
 LiveDashedLine.displayName = 'LiveDashedLine';
 
-// Segment labels extracted → ./ActivePlotSegments.tsx
-
-// Diagonals extracted → ./ActivePlotDiagonals.tsx
-
-// ----- Sub-component: corner dots -----
-// Re-renders only when: plotPoints, isPlotFinished, stageScale change
 const PlotDots = memo(() => {
   const { plotPoints, isPlotFinished, stageScale } = useMapStore(
     useShallow(s => ({ plotPoints: s.plotPoints, isPlotFinished: s.isPlotFinished, stageScale: s.stageScale }))
   );
   const handlePointDragEnd = useMapStore(s => s.handlePointDragEnd);
 
-  // Memoize corner detection result
   const dotData = useMemo(() => {
     return plotPoints.map((point, i) => {
       let isCorner = true;
@@ -278,7 +311,6 @@ const PlotDots = memo(() => {
 });
 PlotDots.displayName = 'PlotDots';
 
-// ----- Root component -----
 export const StageActivePlot = memo(() => {
   const mode = useMapStore(s => s.mode);
 
@@ -296,4 +328,3 @@ export const StageActivePlot = memo(() => {
   );
 });
 StageActivePlot.displayName = 'StageActivePlot';
-
