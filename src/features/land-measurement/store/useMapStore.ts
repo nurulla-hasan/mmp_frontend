@@ -4,7 +4,7 @@ import {
   getSnappedPoint,
 } from '../utils/geometry';
 import { getDirectionalContainingPlot } from '../utils/directionalPlot';
-import type { PlotRecord, Point } from '../types/map';
+import type { Point } from '../types/map';
 
 // Import all slices
 import { createImageSlice, type ImageSlice } from './slices/imageSlice';
