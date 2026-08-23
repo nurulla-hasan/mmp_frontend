@@ -3,20 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { AuthDropdown } from "@/components/auth/auth-dropdown";
+import { AuthDropdown } from "@/components/layout/navbar/auth-dropdown";
 import { Logo } from "@/components/common/logo";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import { cn } from "@/lib/utils";
 
 import { CONTAINER_MAX_WIDTH } from "@/components/common/page-wrapper";
+import { publicNavigation } from "@/constants/nav-links";
 import { MobileDrawer } from "./mobile-drawer";
 
-const desktopLinks = [
-  { label: "হোম", href: "/" },
-  { label: "ল্যান্ড টুলস", href: "/tools" },
-  { label: "সার্ভেয়ার খুঁজুন", href: "/surveyors" },
-  // { label: "প্রাইসিং", href: "/pricing" },
-];
+const desktopLinks = publicNavigation;
 
 export function Navbar() {
   const pathname = usePathname();
@@ -59,7 +55,7 @@ export function Navbar() {
                   : "text-muted-foreground border-b-2 border-transparent",
               )}
             >
-              {item.label}
+              {item.title}
             </Link>
           ))}
         </nav>

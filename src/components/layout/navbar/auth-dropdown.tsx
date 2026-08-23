@@ -21,7 +21,7 @@ const user: TAuthUser = {
   id: "1",
   name: "John Doe",
   email: "john.doe@example.com",
-  role: "SURVEYOR",
+  role: "USER",
   isSubscribed: true,
 };
 

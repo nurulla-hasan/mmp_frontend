@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Home, MapPin, Menu, Ruler, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -13,24 +13,15 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
+import {
+  publicNavigation,
+  surveyorNavigation,
+  userNavigation,
+} from "@/constants/nav-links";
 
-const mobileLinks = [
-  { label: "হোম", href: "/", icon: Home },
-  { label: "ল্যান্ড টুলস", href: "/tools", icon: Ruler },
-  { label: "সার্ভেয়ার খুঁজুন", href: "/surveyors", icon: MapPin },
-];
-
-const userMobileLinks = [
-  { label: "ড্যাশবোর্ড", href: "/dashboard", icon: Home },
-  { label: "ক্যালকুলেশন", href: "/dashboard/calculations", icon: Ruler },
-  { label: "প্রোফাইল", href: "/dashboard/profile", icon: FileText },
-];
-
-const surveyorMobileLinks = [
-  { label: "ড্যাশবোর্ড", href: "/surveyor/dashboard", icon: Home },
-  { label: "ক্যালকুলেশন", href: "/surveyor/calculations", icon: Ruler },
-  { label: "প্রোফাইল", href: "/surveyor/profile", icon: FileText },
-];
+const mobileLinks = publicNavigation;
+const userMobileLinks = userNavigation;
+const surveyorMobileLinks = surveyorNavigation;
 
 export function MobileDrawer({
   isAuthenticated,
@@ -66,7 +57,7 @@ export function MobileDrawer({
       <DrawerContent>
         {/* Header */}
         <div className="flex items-center justify-between border-b px-5 py-4">
-          <Logo />
+          <Logo showText showTextOnMobile/>
           <DrawerClose
             render={
               <Button
@@ -113,7 +104,7 @@ export function MobileDrawer({
                         isActive && "text-primary",
                       )}
                     />
-                    <span>{item.label}</span>
+                    <span>{item.title}</span>
                     {isActive && (
                       <span className="ml-auto size-1.5 rounded-full bg-primary" />
                     )}
@@ -150,7 +141,7 @@ export function MobileDrawer({
                           )}
                         >
                           <Icon className="size-4 shrink-0" />
-                          <span>{item.label}</span>
+                          <span>{item.title}</span>
                         </Link>
                       }
                     />

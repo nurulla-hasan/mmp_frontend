@@ -1,9 +1,12 @@
 import {
   Calculator,
-  CircleUserRound,
+  FileText,
+  Home,
   House,
+  MapPin,
   Megaphone,
   MonitorSmartphone,
+  Ruler,
   ShieldCheck,
   ShieldUser,
   Star,
@@ -17,8 +20,15 @@ import type { LucideIcon } from "lucide-react";
 export interface NavigationItem {
   title: string;
   href: string;
-  icon?: LucideIcon;
+  icon: LucideIcon;
 }
+
+/** Public header / mobile drawer — shared single source of truth */
+export const publicNavigation: NavigationItem[] = [
+  { title: "হোম", href: "/", icon: Home },
+  { title: "ল্যান্ড টুলস", href: "/tools", icon: Ruler },
+  { title: "সার্ভেয়ার খুঁজুন", href: "/surveyors", icon: MapPin },
+];
 
 export const userNavigation: NavigationItem[] = [
   {
@@ -34,7 +44,7 @@ export const userNavigation: NavigationItem[] = [
   {
     title: "প্রোফাইল",
     href: "/dashboard/profile",
-    icon: CircleUserRound,
+    icon: FileText,
   },
 ];
 
@@ -53,7 +63,7 @@ export const surveyorNavigation: NavigationItem[] = [
   {
     title: "পেশাদার প্রোফাইল",
     href: "/surveyor/profile",
-    icon: CircleUserRound,
+    icon: FileText,
   },
 
 ];
