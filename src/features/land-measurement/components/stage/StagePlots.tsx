@@ -16,10 +16,9 @@ import {
 } from '@/features/land-measurement/utils/canvas';
 import {
   getLineIntersection,
-  getVisualCenter,
   groupPolygonSegments,
 } from '@/features/land-measurement/utils/geometry';
-import { getPolygonAreaLabelRotation } from '@/features/land-measurement/utils/polygon-label';
+import { getPolygonAreaLabelLayout } from '@/features/land-measurement/utils/polygon-label';
 import { hexToRgba } from '@/features/land-measurement/utils/component-helpers';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import type { Point, MapMode, PlotRecord } from '@/features/land-measurement/types/map';
@@ -299,8 +298,7 @@ export const StagePlots = memo(() => {
     return plots.map((plot, plotIndex) => {
       const points = plot.points.flatMap((point) => [point.x, point.y]);
       const first = plot.points[0];
-      const areaCenter = getVisualCenter(plot.points);
-      const areaRotation = getPolygonAreaLabelRotation(plot.points);
+      const areaLabelLayout = getPolygonAreaLabelLayout(plot.points);
       const rawGroups = groupPolygonSegments(plot.points);
 
       const groups: PlotSegmentGroup[] = rawGroups.map((rawGroup) => {
@@ -319,8 +317,8 @@ export const StagePlots = memo(() => {
         id: plot.id,
         points,
         first,
-        areaCenter,
-        areaRotation,
+        areaCenter: areaLabelLayout.center,
+        areaRotation: areaLabelLayout.rotation,
         plotIndex,
         color: plot.color || '#0F766E',
         groups,
