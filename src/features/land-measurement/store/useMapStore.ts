@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import {
   clipLineToPolygon,
   getSnappedPoint,
-  isPointInPolygon,
 } from '../utils/geometry';
+import { getDirectionalContainingPlot } from '../utils/directionalPlot';
 import type { PlotRecord, Point } from '../types/map';
 
 // Import all slices
@@ -148,12 +148,21 @@ export const useMapStore = create<MapStore>((set, get, store) => {
       } else if (state.mode === 'drawing_plot' && !state.isPlotFinished) {
         const SNAP_THRESHOLD = 20 / state.stageScale;
 
-        let containingPlot: PlotRecord | null = null;
-
         if (state.plotPoints.length > 0) {
           const firstPoint = state.plotPoints[0];
           const lastPoint = state.plotPoints[state.plotPoints.length - 1];
-          containingPlot = state.plots.find((plot) => isPointInPolygon(firstPoint, plot.points)) ?? null;
+          // Lock the intended side from the first segment. While placing the
+          // second point we use its current target; afterwards the committed
+          // second point keeps the same plot choice for the rest of the draw.
+          const directionPoint = state.plotPoints.length >= 2
+            ? state.plotPoints[1]
+            : pt;
+          const containingPlot = getDirectionalContainingPlot(
+            state.plots,
+            firstPoint,
+            directionPoint,
+            state.stageScale,
+          );
 
           if (containingPlot) {
             pt = clipLineToPolygon(lastPoint, pt, containingPlot.points);
