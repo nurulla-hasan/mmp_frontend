@@ -2,7 +2,8 @@ import { memo, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Group, Line, Circle, Text } from 'react-konva';
 import { formatFeetInches, LABEL_OFFSET_DRAWING_LIVE, UI_CONFIG } from '@/features/land-measurement/utils/canvas';
-import { getSnappedPoint, isPointInPolygon, clipLineToPolygon, GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
+import { getSnappedPoint, clipLineToPolygon, GROUP_ANGLE_THRESHOLD_DEG } from '@/features/land-measurement/utils/geometry';
+import { getDirectionalContainingPlot } from '@/features/land-measurement/utils/directionalPlot';
 import { getReadableRotation } from '@/features/land-measurement/utils/component-helpers';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 import { ActivePlotSegments } from './ActivePlotSegments';
@@ -116,23 +117,23 @@ const LiveDashedLine = memo(() => {
 
     if (!snapHint && plotPoints.length > 0) {
       const firstPt = plotPoints[0];
-      for (const plot of plots) {
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        for (const p of plot.points) {
-          if (p.x < minX) minX = p.x;
-          if (p.x > maxX) maxX = p.x;
-          if (p.y < minY) minY = p.y;
-          if (p.y > maxY) maxY = p.y;
-        }
+      // Use the first segment to establish which side of a shared corner/edge
+      // the drawing belongs to. Before point #2 is committed, the live target
+      // itself provides the direction; afterwards point #2 keeps it stable.
+      const directionPoint = plotPoints.length >= 2
+        ? plotPoints[1]
+        : { x: targetX, y: targetY };
+      const containingPlot = getDirectionalContainingPlot(
+        plots,
+        firstPt,
+        directionPoint,
+        stageScale,
+      );
 
-        if (firstPt.x >= minX && firstPt.x <= maxX && firstPt.y >= minY && firstPt.y <= maxY) {
-          if (isPointInPolygon(firstPt, plot.points)) {
-            const clipped = clipLineToPolygon(lastPt, { x: targetX, y: targetY }, plot.points);
-            targetX = clipped.x;
-            targetY = clipped.y;
-            break;
-          }
-        }
+      if (containingPlot) {
+        const clipped = clipLineToPolygon(lastPt, { x: targetX, y: targetY }, containingPlot.points);
+        targetX = clipped.x;
+        targetY = clipped.y;
       }
     }
 
