@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormProvider, useForm } from "react-hook-form";
-import { Loader2, Save } from "lucide-react";
+import { Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -20,8 +19,6 @@ import { WhatsAppSection } from "./whatsapp-section";
 import { ServicesSection } from "./services-section";
 
 export function SurveyorProfileForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const form = useForm<SurveyorProfileFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(surveyorProfileSchema) as any,
@@ -41,7 +38,6 @@ export function SurveyorProfileForm() {
   });
 
   async function onSubmit(data: SurveyorProfileFormValues) {
-    setIsSubmitting(true);
     try {
       // TODO: Replace with actual API call
       console.log("Surveyor profile data:", data);
@@ -53,17 +49,12 @@ export function SurveyorProfileForm() {
           ? error.message
           : "কিছু সমস্যা হয়েছে। আবার চেষ্টা করুন।",
       );
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
   return (
     <FormProvider {...form}>
-      <form
-        className="space-y-6"
-        onSubmit={form.handleSubmit(onSubmit)}
-      >
+      <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
         <PersonalInfoSection />
         <ProfessionalInfoSection />
         <ServiceAreasSection />
@@ -73,18 +64,14 @@ export function SurveyorProfileForm() {
         <Separator />
 
         <div className="flex justify-end">
-          <Button type="submit" size="lg" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                সংরক্ষণ হচ্ছে...
-              </>
-            ) : (
-              <>
-                <Save className="size-4" />
-                প্রোফাইল সংরক্ষণ
-              </>
-            )}
+          <Button
+            type="submit"
+            size="lg"
+            loading={form.formState.isSubmitting}
+            loadingText="সংরক্ষণ হচ্ছে..."
+          >
+            <Save className="size-4" />
+            প্রোফাইল সংরক্ষণ
           </Button>
         </div>
       </form>

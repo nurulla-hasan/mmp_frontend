@@ -2,19 +2,17 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
   Field,
-  FieldError,
   FieldGroup,
-  FieldLabel,
   FieldSeparator,
   FieldSet,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/common/form-input";
 
 const formSchema = z.object({
   email: z.string().email("একটি বৈধ ইমেইল ঠিকানা দিন।"),
@@ -22,7 +20,11 @@ const formSchema = z.object({
 });
 
 export default function Page() {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const {
+    handleSubmit,
+    control,
+    formState: { isSubmitting },
+  } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
@@ -37,7 +39,7 @@ export default function Page() {
   return (
     <form
       className="w-full max-w-md rounded-xl border bg-card p-6 sm:p-8"
-      onSubmit={form.handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(onSubmit)}
     >
       <FieldSet>
         <div>
@@ -48,46 +50,26 @@ export default function Page() {
         </div>
 
         <FieldGroup>
-          <Controller
+          <FormInput
+            control={control}
             name="email"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>ইমেইল ঠিকানা</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="email"
-                  aria-invalid={fieldState.invalid}
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
+            label="ইমেইল ঠিকানা"
+            placeholder="you@example.com"
+            type="email"
+            autoComplete="email"
           />
 
-          <Controller
+          <FormInput
+            control={control}
             name="password"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>পাসওয়ার্ড</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="password"
-                  aria-invalid={fieldState.invalid}
-                  autoComplete="current-password"
-                  placeholder="আপনার পাসওয়ার্ড দিন"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
+            label="পাসওয়ার্ড"
+            placeholder="আপনার পাসওয়ার্ড দিন"
+            type="password"
+            autoComplete="current-password"
           />
 
           <Field>
-            <Button type="submit" size="lg" className="w-full">
+            <Button type="submit" size="lg" className="w-full" loading={isSubmitting}>
               সাইন ইন
             </Button>
           </Field>

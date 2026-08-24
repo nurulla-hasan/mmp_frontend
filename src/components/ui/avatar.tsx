@@ -10,7 +10,7 @@ function Avatar({
   size = "default",
   ...props
 }: AvatarPrimitive.Root.Props & {
-  size?: "default" | "sm" | "lg";
+  size?: "default" | "sm" | "lg" | "xl" | "2xl";
 }) {
   return (
     <AvatarPrimitive.Root
@@ -18,7 +18,10 @@ function Avatar({
       data-size={size}
       className={cn(
         "group/avatar relative flex size-8 shrink-0 rounded-full select-none",
-        "data-[size=lg]:size-10 data-[size=sm]:size-6",
+        "data-[size=sm]:size-6",
+        "data-[size=lg]:size-10",
+        "data-[size=xl]:size-20",
+        "data-[size=2xl]:size-24",
         className,
       )}
       {...props}
@@ -53,8 +56,10 @@ function AvatarFallback({
       data-slot="avatar-fallback"
       className={cn(
         "flex size-full items-center justify-center rounded-full",
-        "bg-muted text-sm text-muted-foreground",
+        "bg-muted text-sm font-semibold text-muted-foreground",
         "group-data-[size=sm]/avatar:text-xs",
+        "group-data-[size=xl]/avatar:text-xl",
+        "group-data-[size=2xl]/avatar:text-2xl",
         className,
       )}
       {...props}
