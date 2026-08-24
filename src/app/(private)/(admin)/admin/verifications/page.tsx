@@ -1,6 +1,6 @@
-"use client";
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
+import { SearchInput } from "@/components/common/search-input";
 import {
   verificationColumns,
   type VerificationRow,
@@ -33,18 +33,17 @@ const Verifications: VerificationRow[] = [
 export default function Page() {
   return (
     <div className="space-y-6">
-      <SectionHeading
-        title="Verification Requests"
-        description="Review identity and professional document submissions."
-        as="h3"
-        alignment="left"
-      />
-      <DataTable
-        data={Verifications}
-        columns={verificationColumns}
-        searchKey="name"
-        searchPlaceholder="Search requests..."
-      />
+      <div className="flex flex-col justify-between items-end sm:flex-row">
+        <SectionHeading
+          title="Verification Requests"
+          description="Review identity and professional document submissions."
+          as="h3"
+          alignment="left"
+          constrain={false}
+        />
+        <SearchInput filterKey="name" placeholder="Search requests..." />
+      </div>
+      <DataTable data={Verifications} columns={verificationColumns} />
     </div>
   );
 }

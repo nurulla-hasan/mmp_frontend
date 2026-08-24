@@ -1,4 +1,4 @@
-"use client";
+
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
 import { reviewColumns, type ReviewRow } from "./_components/review-column";

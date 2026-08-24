@@ -1,6 +1,7 @@
-"use client";
+
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
+import { SearchInput } from "@/components/common/search-input";
 import {
   deviceLockColumns,
   type DeviceLockRow,
@@ -36,18 +37,17 @@ const DeviceLocks: DeviceLockRow[] = [
 export default function Page() {
   return (
     <div className="space-y-6">
-      <SectionHeading
-        title="Device Locks"
-        description="Monitor and manage device-based access restrictions."
-        as="h3"
-        alignment="left"
-      />
-      <DataTable
-        data={DeviceLocks}
-        columns={deviceLockColumns}
-        searchKey="user"
-        searchPlaceholder="Search devices..."
-      />
+      <div className="flex flex-col justify-between items-end sm:flex-row">
+        <SectionHeading
+          title="Device Locks"
+          description="Monitor and manage device-based access restrictions."
+          as="h3"
+          alignment="left"
+          constrain={false}
+        />
+        <SearchInput filterKey="user" placeholder="Search devices..." />
+      </div>
+      <DataTable data={DeviceLocks} columns={deviceLockColumns} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Briefcase, MapPin } from "lucide-react";
+import { BadgeInfo, BookOpen, Briefcase, MapPin } from "lucide-react";
 import { Controller, useFormContext } from "react-hook-form";
 
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,32 @@ export function ProfessionalInfoSection() {
       </CardHeader>
       <CardContent>
         <div className="grid gap-5 sm:grid-cols-2">
+          {/* ── Headline ── */}
+          <Controller
+            name="headline"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid} className="sm:col-span-2">
+                <FieldLabel htmlFor={field.name}>
+                  <BadgeInfo className="size-3.5" />
+                  পেশাদার শিরোনাম
+                </FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  placeholder="যেমন: প্রত্যয়িত জরিপকারী"
+                />
+                <FieldDescription>
+                  প্রোফাইলে আপনার নামের নিচে এই শিরোনাম দেখানো হবে।
+                </FieldDescription>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+
           {/* ── Experience ── */}
           <Controller
             name="experienceYears"

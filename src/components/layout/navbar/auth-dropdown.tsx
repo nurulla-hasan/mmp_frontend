@@ -16,17 +16,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn, getInitials } from "@/lib/utils";
 import type { TAuthUser } from "@/interface/auth";
+import { surveyorNavigation, userNavigation } from "@/constants/nav-links";
 
 const user: TAuthUser = {
   id: "1",
   name: "John Doe",
   email: "john.doe@example.com",
-  role: "SURVEYOR",
+  role: "USER",
   isSubscribed: true,
 };
 
 // Logged in — show avatar + dropdown
 const isSurveyor = user.role === "SURVEYOR";
+const dropdownLinks = isSurveyor ? surveyorNavigation : userNavigation;
 
 export function AuthDropdown({
   isAuthenticated,
@@ -139,45 +141,21 @@ export function AuthDropdown({
           {user.name && <DropdownMenuSeparator />}
 
           <DropdownMenuGroup>
-            <DropdownMenuItem
-              nativeButton={false}
-              render={
-                <Link
-                  href={isSurveyor ? "/surveyor/dashboard" : "/dashboard"}
-                  className="flex items-center gap-2"
-                />
-              }
-            >
-              ড্যাশবোর্ড
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              nativeButton={false}
-              render={
-                <Link
-                  href={
-                    isSurveyor
-                      ? "/surveyor/calculations"
-                      : "/dashboard/calculations"
+            {dropdownLinks.map((item) => {
+              const Icon = item.icon;
+              return (
+                <DropdownMenuItem
+                  key={item.href}
+                  nativeButton={false}
+                  render={
+                    <Link href={item.href} className="flex items-center gap-2" />
                   }
-                  className="flex items-center gap-2"
-                />
-              }
-            >
-              ক্যালকুলেশন
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              nativeButton={false}
-              render={
-                <Link
-                  href={isSurveyor ? "/surveyor/profile" : "/dashboard/profile"}
-                  className="flex items-center gap-2"
-                />
-              }
-            >
-              প্রোফাইল
-            </DropdownMenuItem>
+                >
+                  {Icon && <Icon className="size-4 text-muted-foreground" />}
+                  {item.title}
+                </DropdownMenuItem>
+              );
+            })}
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />

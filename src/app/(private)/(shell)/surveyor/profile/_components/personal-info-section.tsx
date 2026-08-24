@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Phone, BadgeInfo } from "lucide-react";
+import { User, Phone } from "lucide-react";
 import { Controller, useFormContext } from "react-hook-form";
 
 import { Input } from "@/components/ui/input";
@@ -103,32 +103,6 @@ export function PersonalInfoSection() {
                   aria-invalid={fieldState.invalid}
                 />
                 <FieldDescription>ইমেইল পরিবর্তন করা যাবে না।</FieldDescription>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          {/* ── Headline ── */}
-          <Controller
-            name="headline"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>
-                  <BadgeInfo className="size-3.5" />
-                  পেশাদার শিরোনাম
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="যেমন: প্রত্যয়িত জরিপকারী"
-                />
-                <FieldDescription>
-                  প্রোফাইলে আপনার নামের নিচে এই শিরোনাম দেখানো হবে।
-                </FieldDescription>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}

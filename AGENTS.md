@@ -82,7 +82,7 @@ npm run lint -- --fix  # Auto-fix lint issues
 - **`DataTable`** (`src/components/common/data-table.tsx`) — TanStack Table wrapper with URL-driven search via `useSmartFilter` (debounced 500ms), server/client pagination, and an internal `React.Suspense` boundary for `useSearchParams()`. Props: `columns`, `data`, `limit`, `meta`, `searchKey`, `searchPlaceholder`.
 - **`SearchInput`** (`src/components/common/search-input.tsx`) — connects to URL params via `useNextFilter`. Debounced 300ms, `filterKey` defaults to `"searchTerm"`.
 - **`Button`** (`src/components/ui/button.tsx`) — uses `@base-ui/react` `render` prop for polymorphic composition: `<Button nativeButton={false} render={<Link href="..." />} />`. Variants via `cva`: `default`, `outline`, `secondary`, `ghost`, `destructive`, `link`. Sizes: `default`, `xs`, `sm`, `lg`, `icon`, `icon-xs`, `icon-sm`, `icon-lg`.
-- **`Field` component system** — use `Field`, `FieldLabel`, `FieldGroup`, `FieldError` from `@/components/ui/field` for all forms (from shadcn).
+- **`Field` component system** — use `Field`, `FieldLabel`, `FieldGroup`, `FieldError` from `@/components/ui/field.tsx` for all forms (from shadcn).
 - **Toast helpers** — `SuccessToast(msg)`, `ErrorToast(msg)`, `WarningToast(msg)`, `InfoToast(msg)` from `@/lib/utils` (wrap `sonner` toast).
 - **Utility helpers** from `@/lib/utils`: `getInitials(name)`, `formatDate(dateString)`, `timeAgo(createdAt)`, `generateSlug(title)`, `clamp(value, min, max)`.
 - **`Spinner`** (`src/components/ui/spinner.tsx`) — renders `Loader2Icon` with `animate-spin`, `size-4`, `role="status"`.
@@ -93,19 +93,27 @@ npm run lint -- --fix  # Auto-fix lint issues
 ## Component Architecture
 
 - **Server components by default** — only add `"use client"` when using hooks, browser APIs, or interactivity.
-- **Page shell components** (`dashboard-page.tsx`): server components (no `"use client"`). Note: `public-page.tsx` does NOT exist.
-- **Interactive components** (`dashboard-shell.tsx`, `dashboard-header.tsx`): `"use client"`.
-- **`DashboardPage`** (`src/components/common/dashboard-page.tsx`) — server component with title, description, cards (4-column grid), optional `showBack`.
-- **`PublicDynamicPage` / `DashboardDynamicPage`** (`src/components/common/dynamic-page.tsx`) — generic route content components.
 - **`SectionWrapper`** (`src/components/common/section-wrapper.tsx`) — configurable container: `padding` (none/sm/md/lg/xl), `bg` (white/muted/primary), `container`, `asSection`.
 - **`PageWrapper`** (`src/components/common/page-wrapper.tsx`) — layout container with configurable padding and optional screen-height handling.
-- **`RouteCard`** (`src/components/common/route-card.tsx`) — link card with hover arrow animation.
 - **`LoadingView`** (`src/components/common/loading-view.tsx`) — centered `Spinner` + label.
 - **`Logo`** (`src/components/common/logo.tsx`) — image (`/assets/logo.png`) with optional text, 3 sizes.
 - **`ImageCropDialog`** (`src/components/common/image-crop-dialog.tsx`) — `react-easy-crop` integration for avatar/profile cropping.
 - **`render` prop pattern** for polymorphic composition (e.g., `<Button nativeButton={false} render={<Link href="..." />} />`).
 - **`ConfirmationModal`** (`src/components/common/confirmation-modal.tsx`) for confirm dialogs.
 - **`ModalWrapper`** (`src/components/common/modal-wrapper.tsx`) for generic dialogs.
+
+## Server/Client Boundary Convention (CRITICAL)
+
+`DataTable` (`src/components/common/data-table.tsx`) is a Client Component that receives `columns: ColumnDef<T>[]`. Because `ColumnDef` contains **functions** (`header`, `cell`, `meta`), they cannot be passed from a Server Component page to a Client Component — Next.js throws *"Functions cannot be passed directly to Client Components"*.
+
+**Rule (enforced across all admin/shell table pages):**
+- **`page.tsx` stays a Server Component** — never add `"use client"` to a table page.
+- **Column definitions live in a separate `_components/*-column.tsx` file** that starts with `"use client";` and exports both the row `interface` and `columns: ColumnDef<...>[]`.
+- The Server `page.tsx` imports `columns` (and the row type) from that column file and passes them to `<DataTable>`.
+- **Search** is NOT done via `DataTable`'s `searchKey`/`searchPlaceholder` props on these pages. Instead render `<SectionHeading>` + `<SearchInput filterKey="..." />` in a `<div className="flex flex-col justify-between items-end sm:flex-row">` row above the table, and pass only `data` + `columns` to `DataTable`.
+- If a page needs inline columns (e.g. dashboard "Recent Activity"), extract them to a `_components/activity-column.tsx` client file rather than keeping `"use client"` on the page.
+
+Reference example: `src/app/(private)/(shell)/calculations/page.tsx` (Server) + `src/app/(private)/(shell)/calculations/_components/calculation-column.tsx` (Client).
 
 ## Styling & Theming
 
@@ -134,7 +142,7 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token is stored in `httpOnly` cookies.
 `alert-dialog`, `button`, `calendar`, `collapsible`, `dialog`, `drawer`, `dropdown-menu`, `field`, `input-otp`, `input`, `label`, `pagination`, `scroll-area`, `separator`, `sonner`, `spinner`, `table`, `tooltip`.
 
 **Custom components** (`src/components/common/`):
-`back-button`, `confirmation-modal`, `custom-breadcrumb`, `custom-calender` (note: filename typo — "calender" vs "calendar"), `custom-pagination`, `dashboard-page-header`, `data-table-pagination`, `data-table`, `image-crop-dialog`, `mobile-bottom-nav`, `modal-wrapper`, `page-wrapper`, `search-input`, `section-wrapper`, `star-rating`, `theme-toggle`.
+`back-button`, `confirmation-modal`, `custom-breadcrumb`, `custom-calender` (note: filename typo — "calender" vs "calendar"), `custom-pagination`, `data-table-pagination`, `data-table`, `image-crop-dialog`, `mobile-bottom-nav`, `modal-wrapper`, `page-wrapper`, `search-input`, `section-wrapper`, `star-rating`, `theme-toggle`.
 
 ## State Management
 
@@ -200,8 +208,7 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token is stored in `httpOnly` cookies.
 
 ## Server Actions & API Routes
 
-- **`src/app/api/drive/proxy/route.ts`** — `GET?id=fileId` — proxies image files from Google Drive (streams response).
-- Route-specific server actions live in a `_actions/` co-located folder inside each route directory (e.g. `src/app/(auth)/_actions/auth.actions.ts`). There is currently no global `src/actions/` folder.
+- Route-specific server actions live in a `_actions/` co-located folder inside each route directory. There is currently no global `src/actions/` folder and no `src/app/api/` directory.
 
 ## Key Dependencies Not in Standard Stack
 

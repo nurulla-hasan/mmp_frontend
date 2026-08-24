@@ -1,7 +1,7 @@
-import { ArrowRight, Calculator, Compass, PencilRuler } from "lucide-react";
+import { ArrowRight, Calculator, Compass, PencilRuler, Table2 } from "lucide-react";
 import Link from "next/link";
 
-import { SectionHeading } from "@/components/home/section-heading";
+import { SectionHeading } from "@/components/common/section-heading";
 import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -24,6 +24,12 @@ const actions = [
     title: "সার্ভেয়ার হিসেবে যোগ দিন",
     description: "পেশাদার প্রোফাইল তৈরি করে নতুন ক্লায়েন্ট-এর সঙ্গে যুক্ত হন।",
     href: "/join-as-surveyor",
+  },
+  {
+    icon: Table2,
+    title: "আমার ক্যালকুলেশন",
+    description: "সংরক্ষিত হিসাব ও প্রজেক্ট দেখুন এবং নতুন কাজ শুরু করুন।",
+    href: "/calculations",
   },
 ];
 

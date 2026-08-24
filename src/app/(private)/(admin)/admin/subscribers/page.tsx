@@ -1,6 +1,7 @@
-"use client";
+
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
+import { SearchInput } from "@/components/common/search-input";
 import {
   subscriberColumns,
   type SubscriberRow,
@@ -47,18 +48,17 @@ const Subscribers: SubscriberRow[] = [
 export default function Page() {
   return (
     <div className="space-y-6">
-      <SectionHeading
-        title="Subscribers"
-        description="Manage platform subscribers and their subscription status."
-        as="h3"
-        alignment="left"
-      />
-      <DataTable
-        data={Subscribers}
-        columns={subscriberColumns}
-        searchKey="name"
-        searchPlaceholder="Search subscribers..."
-      />
+      <div className="flex flex-col justify-between items-end sm:flex-row">
+        <SectionHeading
+          title="Subscribers"
+          description="Manage platform subscribers and their subscription status."
+          as="h3"
+          alignment="left"
+          constrain={false}
+        />
+        <SearchInput filterKey="name" placeholder="Search subscribers..." />
+      </div>
+      <DataTable data={Subscribers} columns={subscriberColumns} />
     </div>
   );
 }

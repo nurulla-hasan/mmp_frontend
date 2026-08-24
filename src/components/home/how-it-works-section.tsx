@@ -1,32 +1,26 @@
-import { ClipboardCheck, FileEdit, MessageCircle, UserCheck } from "lucide-react";
+import { ClipboardCheck, MessageCircle, UserCheck } from "lucide-react";
 import Link from "next/link";
 
-import { SectionHeading } from "@/components/home/section-heading";
+import { SectionHeading } from "@/components/common/section-heading";
 import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Button } from "@/components/ui/button";
 
 const steps = [
   {
-    icon: FileEdit,
-    step: "১",
-    title: "প্রয়োজন জানান",
-    description: "সেবা, জমির অবস্থান ও প্রয়োজনীয় তথ্য দিয়ে রিকোয়েস্ট তৈরি করুন।",
-  },
-  {
     icon: ClipboardCheck,
-    step: "২",
-    title: "কোটেশন গ্রহণ করুন",
-    description: "আপনার এলাকার সার্ভেয়ারদের প্রস্তাব ও আনুমানিক খরচ দেখুন।",
+    step: "১",
+    title: "সার্ভেয়ার দেখুন",
+    description: "এলাকার সার্ভেয়ারদের প্রোফাইল, সেবা ও ভেরিফিকেশন status দেখুন।",
   },
   {
     icon: UserCheck,
-    step: "৩",
+    step: "২",
     title: "সার্ভেয়ার নির্বাচন করুন",
-    description: "অভিজ্ঞতা, ভেরিফিকেশন এবং কোটেশন তুলনা করুন।",
+    description: "অভিজ্ঞতা ও ভেরিফিকেশন দেখে সঠিক পেশাজীবী বেছে নিন।",
   },
   {
     icon: MessageCircle,
-    step: "৪",
+    step: "৩",
     title: "কাজ ট্র্যাক করুন",
     description: "WhatsApp-এর মাধ্যমে সরাসরি সার্ভেয়ারের সাথে যোগাযোগ করে কাজের অগ্রগতি দেখুন।",
   },
@@ -37,17 +31,17 @@ export function HowItWorksSection() {
     <SectionWrapper id="how-it-works" padding="md">
       <SectionHeading
         badge="কীভাবে কাজ করে"
-        title="চার ধাপে জমির কাজ এগিয়ে নিন"
-        description="রিকোয়েস্ট পোস্ট করা থেকে কাজ শেষ হওয়া পর্যন্ত পুরো ওয়ার্কফ্লো এক জায়গায় পরিচালনা করুন。"
+        title="তিন ধাপে জমির কাজ এগিয়ে নিন"
+        description="সার্ভেয়ার খোঁজা থেকে কাজ শেষ হওয়া পর্যন্ত পুরো ওয়ার্কফ্লো এক জায়গায় পরিচালনা করুন।"
       />
-      <div className="mt-12 grid gap-8 md:grid-cols-4">
+      <div className="mt-12 grid gap-8 md:grid-cols-3">
         {steps.map((item, i) => {
           const Icon = item.icon;
           return (
             <div key={item.step} className="relative">
-              {/* Connector line - desktop */}
+              {/* Connector line - desktop (column layout, circle centered) */}
               {i < steps.length - 1 && (
-                <div className="absolute left-14 top-6 hidden h-0.5 w-[calc(100%-60px)] bg-border md:block" />
+                <div className="absolute left-[calc(50%+1.5rem)] top-6 hidden h-0.5 w-[calc(100%-3rem)] bg-border md:block" />
               )}
               <div className="flex items-start gap-4 md:flex-col md:items-center md:text-center">
                 <div className="relative shrink-0">
@@ -71,7 +65,7 @@ export function HowItWorksSection() {
       </div>
       <div className="mt-10 text-center">
         <Button size="lg" nativeButton={false} render={<Link href="/surveyors" />}>
-          কাজ পোস্ট করুন
+          সার্ভেয়ার খুঁজুন
         </Button>
       </div>
     </SectionWrapper>

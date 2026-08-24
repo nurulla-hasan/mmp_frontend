@@ -10,6 +10,6 @@ export { ProfessionalReportSection } from "./professional-report-section";
 export { QuickActionsSection } from "./quick-actions-section";
 export { RoleBenefitsSection } from "./role-benefits-section";
 export { SavedCalculationsSection } from "./saved-calculations-section";
-export { SectionHeading } from "./section-heading";
+export { SectionHeading } from "@/components/common/section-heading";
 export { TestimonialsSection } from "./testimonials-section";
 export { TrustHighlightsSection } from "./trust-highlights-section";
