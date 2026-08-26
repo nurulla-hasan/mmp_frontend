@@ -14,9 +14,13 @@ export type ApiSuccess<T> = {
   statusCode: number;
   message: string;
   data: T;
-  meta?: { page: number; limit: number; total: number };
+  meta?: { page: number; limit: number; total: number; totalPages: number };
 };
-export type ApiFailure = { success: false; statusCode: number; message: string };
+export type ApiFailure = {
+  success: false;
+  statusCode: number;
+  message: string;
+};
 export type ApiResult<T> = ApiSuccess<T> | ApiFailure;
 type RefreshResponse = { data?: { accessToken?: string } };
 
@@ -29,7 +33,9 @@ const isExpired = (token: string): boolean => {
   try {
     const { exp } = jwtDecode<{ exp?: number }>(token);
     return typeof exp !== "number" || exp * 1000 <= Date.now();
-  } catch { return true; }
+  } catch {
+    return true;
+  }
 };
 const getRequestTokens = async () => {
   const cookieStore = await cookies();
@@ -38,7 +44,9 @@ const getRequestTokens = async () => {
     refreshToken: cookieStore.get("refreshToken")?.value ?? null,
   };
 };
-const refreshAccessToken = async (refreshToken: string): Promise<string | null> => {
+const refreshAccessToken = async (
+  refreshToken: string,
+): Promise<string | null> => {
   const response = await fetch(`${getBaseUrl()}/api/v1/auth/refresh-token`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -46,7 +54,9 @@ const refreshAccessToken = async (refreshToken: string): Promise<string | null> 
     cache: "no-store",
   });
   const result = (await response.json()) as RefreshResponse;
-  return typeof result.data?.accessToken === "string" ? result.data.accessToken : null;
+  return typeof result.data?.accessToken === "string"
+    ? result.data.accessToken
+    : null;
 };
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   if (typeof value !== "object" || value === null) return false;
@@ -60,7 +70,8 @@ const prepareBody = (body: unknown, headers: Headers): BodyInit | undefined => {
     return body;
   }
   if (isPlainObject(body) || Array.isArray(body)) {
-    if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+    if (!headers.has("Content-Type"))
+      headers.set("Content-Type", "application/json");
     return JSON.stringify(body);
   }
   return body as BodyInit;
@@ -71,16 +82,29 @@ export const nextServerFetch = async <T = unknown>(
   options: NextServerFetchOptions,
 ): Promise<ApiResult<T>> => {
   try {
-    const { auth, body: rawBody, headers: customHeaders, next, ...requestOptions } = options;
+    const {
+      auth,
+      body: rawBody,
+      headers: customHeaders,
+      next,
+      ...requestOptions
+    } = options;
     const headers = new Headers(customHeaders);
     const body = prepareBody(rawBody, headers);
     if (auth === "auth") {
       const tokens = await getRequestTokens();
       let accessToken = tokens.accessToken;
       if (!accessToken || isExpired(accessToken)) {
-        accessToken = tokens.refreshToken ? await refreshAccessToken(tokens.refreshToken) : null;
+        accessToken = tokens.refreshToken
+          ? await refreshAccessToken(tokens.refreshToken)
+          : null;
       }
-      if (!accessToken) return { success: false, statusCode: 401, message: "Authentication required" };
+      if (!accessToken)
+        return {
+          success: false,
+          statusCode: 401,
+          message: "Authentication required",
+        };
       headers.set("Authorization", `Bearer ${accessToken}`);
     }
     const response = await fetch(`${getBaseUrl()}${endpoint}`, {
@@ -94,7 +118,8 @@ export const nextServerFetch = async <T = unknown>(
     return {
       success: false,
       statusCode: 500,
-      message: error instanceof Error ? error.message : "An unexpected error occurred",
+      message:
+        error instanceof Error ? error.message : "An unexpected error occurred",
     };
   }
 };

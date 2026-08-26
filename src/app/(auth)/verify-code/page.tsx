@@ -18,12 +18,11 @@ import {
 } from "@/components/ui/field";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { ErrorToast, SuccessToast } from "@/lib/utils";
+import { resendOtpAction, verifyEmailAction } from "../_actions/auth.action";
 
 const formSchema = z.object({
-  otp: z.string().regex(/^\d{6}$/, "কোডটি ৬ সংখ্যার হতে হবে।"),
+  otp: z.string().regex(/^\d{6}$/, "কোডটি ৬ সংখ্যার হতে হবে।")
 });
-
-type ApiResult = { success: boolean; message: string };
 
 function VerifyCodeForm() {
   const router = useRouter();
@@ -39,23 +38,13 @@ function VerifyCodeForm() {
       ErrorToast("ইমেইল ঠিকানা পাওয়া যায়নি। আবার রেজিস্টার করুন।");
       return;
     }
-    try {
-      const response = await fetch("/api/auth/verify-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: data.otp }),
-      });
-      const result = (await response.json()) as ApiResult;
-      if (!response.ok) {
-        ErrorToast(result.message || "কোড ভেরিফাই করা যায়নি।");
-        return;
-      }
-      SuccessToast("ইমেইল সফলভাবে ভেরিফাই হয়েছে।");
-      router.replace("/dashboard");
-      router.refresh();
-    } catch (error: unknown) {
-      ErrorToast(error instanceof Error ? error.message : "কোড ভেরিফাই করা যায়নি।");
+    const result = await verifyEmailAction({ email, otp: data.otp });
+    if (!result.success) {
+      ErrorToast(result.message || "কোড ভেরিফাই করা যায়নি।");
+      return;
     }
+    SuccessToast("ইমেইল সফলভাবে ভেরিফাই হয়েছে।");
+    router.refresh();
   }
 
   async function resendOtp() {
@@ -63,22 +52,13 @@ function VerifyCodeForm() {
       ErrorToast("ইমেইল ঠিকানা পাওয়া যায়নি।");
       return;
     }
-    try {
-      const response = await fetch("/api/auth/resend-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const result = (await response.json()) as ApiResult;
-      if (!response.ok) {
-        ErrorToast(result.message || "নতুন কোড পাঠানো যায়নি।");
-        return;
-      }
-      SuccessToast("নতুন কোড পাঠানো হয়েছে।");
-      form.reset();
-    } catch (error: unknown) {
-      ErrorToast(error instanceof Error ? error.message : "নতুন কোড পাঠানো যায়নি।");
+    const result = await resendOtpAction({ email });
+    if (!result.success) {
+      ErrorToast(result.message || "নতুন কোড পাঠানো যায়নি।");
+      return;
     }
+    SuccessToast("নতুন কোড পাঠানো হয়েছে।");
+    form.reset();
   }
 
   return (
@@ -122,6 +102,6 @@ function VerifyCodeForm() {
   );
 }
 
-export default function Page() {
+export default function VerificationPage() {
   return <Suspense fallback={null}><VerifyCodeForm /></Suspense>;
 }
