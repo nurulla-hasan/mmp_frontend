@@ -49,7 +49,10 @@ export default function Page() {
       }
       SuccessToast("সফলভাবে লগইন হয়েছে।");
       const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-      router.replace(callbackUrl || roleHome[result.data.user.role]);
+      const safeCallbackUrl = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
+        ? callbackUrl
+        : null;
+      router.replace(safeCallbackUrl || roleHome[result.data.user.role]);
       router.refresh();
     } catch (error: unknown) {
       ErrorToast(error instanceof Error ? error.message : "লগইন করা যায়নি।");
