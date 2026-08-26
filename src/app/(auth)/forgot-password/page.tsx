@@ -2,19 +2,17 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
   Field,
-  FieldError,
   FieldGroup,
-  FieldLabel,
   FieldSeparator,
   FieldSet,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/common/form-input";
 
 const formSchema = z.object({
   email: z.string().email("একটি বৈধ ইমেইল ঠিকানা দিন।"),
@@ -44,23 +42,13 @@ export default function Page() {
         </div>
 
         <FieldGroup>
-          <Controller
-            name="email"
+          <FormInput
             control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>ইমেইল ঠিকানা</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="email"
-                  aria-invalid={fieldState.invalid}
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
+            name="email"
+            label="ইমেইল ঠিকানা"
+            placeholder="you@example.com"
+            type="email"
+            autoComplete="email"
           />
 
           <Field>

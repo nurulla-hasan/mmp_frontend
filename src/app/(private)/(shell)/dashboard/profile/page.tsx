@@ -1,6 +1,6 @@
 import { PageWrapper } from "@/components/common/page-wrapper";
 import { SectionHeading } from "@/components/common/section-heading";
-import { ProfileHeader } from "./_components/profile-header";
+import { ProfileHeaderCard } from "./_components/profile-header-card";
 import { PersonalInfoCard } from "./_components/personal-info-card";
 import { ActivityCard } from "./_components/activity-card";
 import { AccountSettingsCard } from "./_components/account-settings-card";
@@ -32,12 +32,23 @@ export default function Page() {
           alignment="left"
           constrain={false}
         />
-        <ProfileHeader user={user} />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <PersonalInfoCard user={user} />
-          <ActivityCard user={user} />
+
+        {/* Modern 2-Column Dashboard Profile Layout */}
+        <div className="grid gap-6 lg:grid-cols-12">
+          {/* Left Column: User Identity & Profile Summary */}
+          <div className="lg:col-span-4">
+            <ProfileHeaderCard user={user} />
+          </div>
+
+          {/* Right Column: Detailed Personal Info & Activities */}
+          <div className="space-y-6 lg:col-span-8">
+            <PersonalInfoCard user={user} />
+            <div className="grid gap-6 sm:grid-cols-2">
+              <ActivityCard user={user} />
+              <AccountSettingsCard />
+            </div>
+          </div>
         </div>
-        <AccountSettingsCard />
       </div>
     </PageWrapper>
   );

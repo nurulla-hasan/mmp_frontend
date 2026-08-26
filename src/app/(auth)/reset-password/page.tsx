@@ -2,18 +2,16 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
   Field,
-  FieldError,
   FieldGroup,
-  FieldLabel,
   FieldSet,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/common/form-input";
 
 const formSchema = z
   .object({
@@ -52,42 +50,22 @@ export default function Page() {
         </div>
 
         <FieldGroup>
-          <Controller
-            name="password"
+          <FormInput
             control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>পাসওয়ার্ড</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="password"
-                  aria-invalid={fieldState.invalid}
-                  autoComplete="new-password"
-                  placeholder="আপনার পাসওয়ার্ড দিন"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
+            name="password"
+            label="পাসওয়ার্ড"
+            placeholder="আপনার পাসওয়ার্ড দিন"
+            type="password"
+            autoComplete="new-password"
           />
 
-          <Controller
-            name="confirmPassword"
+          <FormInput
             control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>পাসওয়ার্ড নিশ্চিত করুন</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="password"
-                  aria-invalid={fieldState.invalid}
-                  autoComplete="new-password"
-                  placeholder="আপনার পাসওয়ার্ড নিশ্চিত করুন"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
+            name="confirmPassword"
+            label="পাসওয়ার্ড নিশ্চিত করুন"
+            placeholder="আপনার পাসওয়ার্ড নিশ্চিত করুন"
+            type="password"
+            autoComplete="new-password"
           />
 
           <Field>

@@ -6,6 +6,7 @@ import {
   Field,
   FieldLabel,
   FieldContent,
+  FieldDescription,
   FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ interface FormInputProps<T extends FieldValues> {
   placeholder: string;
   type?: string;
   autoComplete?: string;
+  description?: string;
 }
 
 export function FormInput<T extends FieldValues>({
@@ -28,6 +30,7 @@ export function FormInput<T extends FieldValues>({
   placeholder,
   type,
   autoComplete,
+  description,
 }: FormInputProps<T>) {
   return (
     <Controller
@@ -43,9 +46,15 @@ export function FormInput<T extends FieldValues>({
                 id={field.name}
                 placeholder={placeholder}
                 autoComplete={autoComplete}
+                aria-invalid={fieldState.invalid}
               />
             ) : type === "textarea" ? (
-              <Textarea {...field} id={field.name} placeholder={placeholder} />
+              <Textarea
+                {...field}
+                id={field.name}
+                placeholder={placeholder}
+                aria-invalid={fieldState.invalid}
+              />
             ) : (
               <Input
                 {...field}
@@ -53,8 +62,10 @@ export function FormInput<T extends FieldValues>({
                 type={type || "text"}
                 placeholder={placeholder}
                 autoComplete={autoComplete}
+                aria-invalid={fieldState.invalid}
               />
             )}
+            {description && <FieldDescription>{description}</FieldDescription>}
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </FieldContent>
         </Field>
