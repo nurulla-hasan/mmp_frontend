@@ -7,7 +7,6 @@ export type RegisterPayload = {
   name: string;
   email: string;
   password: string;
-  role: "USER" | "SURVEYOR";
 };
 
 export type VerifyEmailPayload = {

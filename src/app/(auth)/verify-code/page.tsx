@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
@@ -21,13 +21,11 @@ import { ErrorToast, SuccessToast } from "@/lib/utils";
 import { resendOtpAction, verifyEmailAction } from "../_actions/auth.action";
 
 const formSchema = z.object({
-  otp: z.string().regex(/^\d{6}$/, "কোডটি ৬ সংখ্যার হতে হবে।")
+  otp: z.string().regex(/^\d{6}$/, "কোডটি ৬ সংখ্যার হতে হবে।"),
 });
 
 function VerifyCodeForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email") ?? "";
+  const email = useSearchParams().get("email") ?? "";
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { otp: "" },
@@ -41,10 +39,7 @@ function VerifyCodeForm() {
     const result = await verifyEmailAction({ email, otp: data.otp });
     if (!result.success) {
       ErrorToast(result.message || "কোড ভেরিফাই করা যায়নি।");
-      return;
     }
-    SuccessToast("ইমেইল সফলভাবে ভেরিফাই হয়েছে।");
-    router.refresh();
   }
 
   async function resendOtp() {
@@ -66,7 +61,9 @@ function VerifyCodeForm() {
       <FieldSet>
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">আপনার ইমেইল ভেরিফাই করুন</h1>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">{email || "আপনার ইমেইল"}-এ পাঠানো ৬ সংখ্যার কোডটি লিখুন।</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            {email || "আপনার ইমেইল"}-এ পাঠানো ৬ সংখ্যার কোডটি লিখুন।
+          </p>
         </div>
         <FieldGroup>
           <Controller

@@ -1,84 +1,52 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { updateTag } from "next/cache";
-import { login, logout, register, resendOtp, verifyEmail, exchangeGoogleCode } from "@/services/auth.service";
-import { decodeJwtPayload } from "@/lib/jwt";
+import { redirect } from "next/navigation";
+
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import { decodeJwtPayload } from "@/lib/jwt";
+import {
+  clearAuthCookies,
+  getRoleHome,
+  setAuthCookies,
+} from "@/lib/server-auth";
+import {
+  login,
+  logout,
+  register,
+  resendOtp,
+  verifyEmail,
+} from "@/services/auth.service";
 
 type AuthResult =
   | { success: true }
   | { success: false; message?: string; errors?: Record<string, string[]> };
 
-async function setAccessTokenCookie(token: string) {
-  const cookieStore = await cookies();
-  cookieStore.set("accessToken", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-  });
-}
-
-async function setRefreshTokenCookie(token: string) {
-  const cookieStore = await cookies();
-  cookieStore.set("refreshToken", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-  });
-}
-
-function redirectByRole(role: string): never {
-  if (role === "ADMIN") redirect("/admin/dashboard");
-  if (role === "SURVEYOR") redirect("/surveyor/dashboard");
-  redirect("/"); // USER
-}
-
 export async function loginAction(
   data: { email: string; password: string },
-  callbackUrl?: string
+  callbackUrl?: string,
 ): Promise<AuthResult> {
   const result = await login(data);
-
   if (!result.success) return result;
 
-  await setAccessTokenCookie(result.data.accessToken);
-  if (result.data.refreshToken) {
-    await setRefreshTokenCookie(result.data.refreshToken);
-  }
-
+  await setAuthCookies(result.data);
   updateTag(CACHE_TAGS.user);
 
+  const safeCallbackUrl =
+    callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
+      ? callbackUrl
+      : null;
   const payload = decodeJwtPayload(result.data.accessToken);
-  
-  if (callbackUrl && callbackUrl.startsWith("/")) {
-    redirect(callbackUrl);
-  } else {
-    redirectByRole(payload?.role ?? "USER");
-  }
+  redirect(safeCallbackUrl ?? getRoleHome(payload?.role));
 }
 
 export async function registerAction(data: {
   name: string;
   email: string;
   password: string;
-  role: "USER" | "SURVEYOR";
 }): Promise<AuthResult> {
   const result = await register(data);
-
-  if (!result.success) return result;
-
-  await setAccessTokenCookie(result.data.accessToken);
-  if (result.data.refreshToken) {
-    await setRefreshTokenCookie(result.data.refreshToken);
-  }
-
-  updateTag(CACHE_TAGS.user);
-
-  redirectByRole(data.role);
+  return result.success ? { success: true } : result;
 }
 
 export async function verifyEmailAction(data: {
@@ -86,49 +54,25 @@ export async function verifyEmailAction(data: {
   otp: string;
 }): Promise<AuthResult> {
   const result = await verifyEmail(data);
-
   if (!result.success) return result;
 
-  await setAccessTokenCookie(result.data.accessToken);
-  if (result.data.refreshToken) {
-    await setRefreshTokenCookie(result.data.refreshToken);
-  }
-
+  await setAuthCookies(result.data);
   updateTag(CACHE_TAGS.user);
 
   const payload = decodeJwtPayload(result.data.accessToken);
-  redirectByRole(payload?.role ?? "USER");
+  redirect(getRoleHome(payload?.role));
 }
 
 export async function resendOtpAction(data: {
   email: string;
 }): Promise<AuthResult> {
   const result = await resendOtp(data);
-  if (!result.success) return result;
-  return { success: true };
+  return result.success ? { success: true } : result;
 }
 
 export async function logoutAction(): Promise<void> {
   await logout();
-  const cookieStore = await cookies();
-  cookieStore.delete("accessToken");
-  cookieStore.delete("refreshToken");
+  await clearAuthCookies();
   updateTag(CACHE_TAGS.user);
   redirect("/login");
-}
-
-export async function exchangeGoogleCodeAction(code: string): Promise<AuthResult> {
-  const result = await exchangeGoogleCode(code);
-
-  if (!result.success) return result;
-
-  await setAccessTokenCookie(result.data.accessToken);
-  if (result.data.refreshToken) {
-    await setRefreshTokenCookie(result.data.refreshToken);
-  }
-
-  updateTag(CACHE_TAGS.user);
-
-  const payload = decodeJwtPayload(result.data.accessToken);
-  redirectByRole(payload?.role ?? "USER");
 }

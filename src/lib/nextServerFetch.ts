@@ -47,7 +47,7 @@ const getRequestTokens = async () => {
 const refreshAccessToken = async (
   refreshToken: string,
 ): Promise<string | null> => {
-  const response = await fetch(`${getBaseUrl()}/api/v1/auth/refresh-token`, {
+  const response = await fetch(`${getBaseUrl()}/auth/refresh-token`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken }),

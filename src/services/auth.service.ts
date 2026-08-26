@@ -1,17 +1,13 @@
 import "server-only";
 
-import { nextServerFetch } from "@/lib/nextServerFetch";
 import type {
   LoginPayload,
   RegisterPayload,
   ResendOtpPayload,
   VerifyEmailPayload,
 } from "@/interface/auth";
-
-export type AuthTokens = {
-  accessToken: string;
-  refreshToken: string;
-};
+import { nextServerFetch } from "@/lib/nextServerFetch";
+import type { AuthTokens } from "@/lib/server-auth";
 
 export const login = (payload: LoginPayload) =>
   nextServerFetch<AuthTokens>("/auth/login", {
@@ -21,7 +17,7 @@ export const login = (payload: LoginPayload) =>
   });
 
 export const register = (payload: RegisterPayload) =>
-  nextServerFetch<AuthTokens>("/auth/register", {
+  nextServerFetch<{ email: string }>("/auth/register", {
     method: "POST",
     body: payload,
     auth: "none",

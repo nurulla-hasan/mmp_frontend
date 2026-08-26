@@ -2,13 +2,17 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { FormInput } from "@/components/common/form-input";
 import { Button } from "@/components/ui/button";
-import { Field, FieldGroup, FieldSeparator, FieldSet } from "@/components/ui/field";
+import {
+  Field,
+  FieldGroup,
+  FieldSeparator,
+  FieldSet,
+} from "@/components/ui/field";
 import { ErrorToast } from "@/lib/utils";
 import { loginAction } from "../_actions/auth.action";
 
@@ -18,39 +22,80 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
-  const router = useRouter();
-  const { handleSubmit, control, formState: { isSubmitting } } = useForm<z.infer<typeof formSchema>>({
+  const {
+    handleSubmit,
+    control,
+    formState: { isSubmitting },
+  } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { email: "", password: "" },
   });
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl") ?? undefined;
+    const callbackUrl =
+      new URLSearchParams(window.location.search).get("callbackUrl") ??
+      undefined;
     const result = await loginAction(data, callbackUrl);
     if (!result.success) {
       ErrorToast(result.message || "লগইন করা যায়নি।");
+    }
+  }
+
+  function startGoogleLogin() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) {
+      ErrorToast("API URL configure করা হয়নি।");
       return;
     }
-    router.refresh();
+    window.location.href = `${apiUrl.replace(/\/$/, "")}/auth/google`;
   }
 
   return (
-    <form className="w-full max-w-md rounded-xl border bg-card p-6 sm:p-8" onSubmit={handleSubmit(onSubmit)}>
+    <form
+      className="w-full max-w-md rounded-xl border bg-card p-6 sm:p-8"
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <FieldSet>
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">স্বাগতম</h1>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">Mouza Map Pro-তে সাইন ইন করুন।</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Mouza Map Pro-তে সাইন ইন করুন।
+          </p>
         </div>
         <FieldGroup>
-          <FormInput control={control} name="email" label="ইমেইল ঠিকানা" placeholder="you@example.com" type="email" autoComplete="email" />
-          <FormInput control={control} name="password" label="পাসওয়ার্ড" placeholder="আপনার পাসওয়ার্ড দিন" type="password" autoComplete="current-password" />
+          <FormInput
+            control={control}
+            name="email"
+            label="ইমেইল ঠিকানা"
+            placeholder="you@example.com"
+            type="email"
+            autoComplete="email"
+          />
+          <FormInput
+            control={control}
+            name="password"
+            label="পাসওয়ার্ড"
+            placeholder="আপনার পাসওয়ার্ড দিন"
+            type="password"
+            autoComplete="current-password"
+          />
           <Field>
-            <div className="w-full [&>button]:w-full"><Button type="submit" size="lg" loading={isSubmitting}>সাইন ইন</Button></div>
+            <div className="w-full [&>button]:w-full">
+              <Button type="submit" size="lg" loading={isSubmitting}>
+                সাইন ইন
+              </Button>
+            </div>
           </Field>
           <FieldSeparator>অথবা</FieldSeparator>
           <Field>
             <div className="w-full [&>button]:w-full">
-              <Button type="button" variant="outline" size="lg" className="gap-3" onClick={() => { window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/google`; }}>
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="gap-3"
+                onClick={startGoogleLogin}
+              >
                 <svg className="size-5" viewBox="0 0 24 24" aria-hidden="true">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -62,8 +107,12 @@ export default function LoginPage() {
             </div>
           </Field>
           <Field orientation="horizontal" className="flex-wrap justify-between">
-            <Link href="/register" className="text-sm text-muted-foreground hover:text-foreground">অ্যাকাউন্ট তৈরি করুন</Link>
-            <Link href="/forgot-password" className="text-sm text-muted-foreground hover:text-foreground">পাসওয়ার্ড ভুলে গেছেন?</Link>
+            <Link href="/register" className="text-sm text-muted-foreground hover:text-foreground">
+              অ্যাকাউন্ট তৈরি করুন
+            </Link>
+            <Link href="/forgot-password" className="text-sm text-muted-foreground hover:text-foreground">
+              পাসওয়ার্ড ভুলে গেছেন?
+            </Link>
           </Field>
         </FieldGroup>
       </FieldSet>

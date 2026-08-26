@@ -49,7 +49,7 @@ const refreshTokens = async (refreshToken: string): Promise<RefreshResult["data"
   const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
   if (!baseUrl) return null;
   try {
-    const response = await fetch(`${baseUrl}/api/v1/auth/refresh-token`, {
+    const response = await fetch(`${baseUrl}/auth/refresh-token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
