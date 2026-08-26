@@ -102,7 +102,7 @@ function VerifyCodeForm() {
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
-                <FieldDescription className="text-center">কোডটির মেয়াদ ২ মিনিট।</FieldDescription>
+                <FieldDescription className="text-center">কোডটির মেয়াদ ৫ মিনিট।</FieldDescription>
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
             )}
