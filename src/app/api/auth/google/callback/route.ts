@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { callAuthApi, setAuthCookies } from '@/lib/auth-api';
+import { callAuthApi, isAuthData, setAuthCookies } from '@/lib/auth-api';
 
 const roleHome = {
   USER: '/dashboard',
@@ -14,7 +14,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   try {
     const { response, result } = await callAuthApi('/google/exchange', { code });
-    if (!response.ok || !result.data) {
+    if (!response.ok || !isAuthData(result.data)) {
       return NextResponse.redirect(new URL('/login?error=google_auth_failed', request.url));
     }
     const destination = roleHome[result.data.user.role] ?? '/dashboard';

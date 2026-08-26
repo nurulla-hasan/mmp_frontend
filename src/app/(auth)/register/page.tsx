@@ -17,7 +17,7 @@ const formSchema = z.object({
   password: z.string().min(8, "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।"),
 });
 
-type RegisterResult = { success: boolean; message: string };
+type RegisterResult = { success: boolean; message: string; data?: { email: string } };
 
 export default function Page() {
   const router = useRouter();
@@ -34,13 +34,12 @@ export default function Page() {
         body: JSON.stringify(data),
       });
       const result = (await response.json()) as RegisterResult;
-      if (!response.ok) {
+      if (!response.ok || !result.data?.email) {
         ErrorToast(result.message || "অ্যাকাউন্ট তৈরি করা যায়নি।");
         return;
       }
-      SuccessToast("অ্যাকাউন্ট তৈরি হয়েছে।");
-      router.replace("/dashboard");
-      router.refresh();
+      SuccessToast("ভেরিফিকেশন কোড পাঠানো হয়েছে।");
+      router.replace(`/verify-code?email=${encodeURIComponent(result.data.email)}`);
     } catch (error: unknown) {
       ErrorToast(error instanceof Error ? error.message : "অ্যাকাউন্ট তৈরি করা যায়নি।");
     }

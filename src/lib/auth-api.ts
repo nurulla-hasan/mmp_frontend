@@ -18,8 +18,17 @@ export type AuthApiResponse = {
   success: boolean;
   statusCode: number;
   message: string;
-  data?: AuthData;
+  data?: AuthData | { email: string } | null;
 };
+
+export const isAuthData = (data: AuthApiResponse['data']): data is AuthData =>
+  Boolean(
+    data &&
+      typeof data === 'object' &&
+      'accessToken' in data &&
+      'refreshToken' in data &&
+      'user' in data,
+  );
 
 export const getApiUrl = (): string => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
