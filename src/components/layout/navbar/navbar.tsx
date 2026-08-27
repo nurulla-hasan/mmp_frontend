@@ -64,7 +64,7 @@ export function Navbar() {
         <div className="flex flex-1 items-center justify-end gap-2">
           <ThemeToggle />
           <div className="hidden lg:block">
-            <AuthDropdown isAuthenticated={true} />
+            <AuthDropdown isAuthenticated={false} />
           </div>
           <MobileDrawer />
         </div>

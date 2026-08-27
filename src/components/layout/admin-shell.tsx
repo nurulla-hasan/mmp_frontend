@@ -33,10 +33,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { adminNavigation } from "@/constants/nav-links";
-import { getInitials } from "@/lib/utils";
+import { logoutAction } from "@/app/(auth)/_actions/auth.action";
 
-// MMP has no getMe()/logoutAction() yet — use a placeholder admin user
-// and a placeholder logout until the auth server actions are wired up.
+// MMP has no getMe() yet — use a placeholder admin user until wired up.
 const placeholderUser = {
   name: "অ্যাডমিন",
   email: "admin@mouzamappro.com",
@@ -91,15 +90,9 @@ function AdminSidebar() {
 }
 
 function AdminHeader() {
-  const fallback = placeholderUser.name ? (
-    getInitials(placeholderUser.name)
-  ) : (
-    <UserRound className="size-4" />
-  );
 
   const handleLogout = () => {
-    // TODO: wire up logoutAction() once auth server actions exist
-    console.log("logout clicked");
+    logoutAction();
   };
 
   return (
@@ -116,7 +109,7 @@ function AdminHeader() {
         <DropdownMenu>
           <DropdownMenuTrigger className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
             <Avatar className="size-8 cursor-pointer">
-              <AvatarFallback>{fallback}</AvatarFallback>
+              <AvatarFallback>{"fallback"}</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">

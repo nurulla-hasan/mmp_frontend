@@ -17,6 +17,7 @@ import {
 import { cn, getInitials } from "@/lib/utils";
 import type { TAuthUser } from "@/interface/auth";
 import { surveyorNavigation, userNavigation } from "@/constants/nav-links";
+import { logoutAction } from "@/app/(auth)/_actions/auth.action";
 
 const user: TAuthUser = {
   id: "1",
@@ -160,7 +161,12 @@ export function AuthDropdown({
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem variant="destructive">
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => {
+              logoutAction();
+            }}
+          >
             <LogOut />
             লগআউট
           </DropdownMenuItem>
