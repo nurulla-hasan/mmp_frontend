@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { decodeJwtPayload } from "@/lib/jwt";
-import { getRoleHome, setAuthCookies } from "@/lib/server-auth";
+import { setAuthCookies } from "@/services/auth.service";
 import { exchangeGoogleCode } from "@/services/auth.service";
 
 export async function GET(request: Request): Promise<NextResponse> {
@@ -21,7 +21,6 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   await setAuthCookies(result.data);
   const payload = decodeJwtPayload(result.data.accessToken);
-  return NextResponse.redirect(
-    new URL(getRoleHome(payload?.role), request.url),
-  );
+  const homePath = payload?.role === "ADMIN" ? "/admin/dashboard" : "/";
+  return NextResponse.redirect(new URL(homePath, request.url));
 }

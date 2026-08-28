@@ -23,15 +23,14 @@ export type TAuthUser = {
   name: string;
   email: string;
   role: "USER" | "SURVEYOR" | "ADMIN";
-  isSubscribed: boolean;
-  imageUrl: string;
-  phone?: string;
-  whatsappNumber?: string;
-  location?: {
-    district: string;
-    upazila: string;
-  };
-  joinedAt?: string;
-  savedCalculationsCount?: number;
-  savedSurveyorsCount?: number;
+  status: "ACTIVE" | "BLOCKED";
+  email_verified: boolean;
+  is_subscribed: boolean;
+  image_url: string;
+  phone: string;
+  whatsapp_number: string;
+  district: string;
+  upazila: string;
+  created_at: string;
+  updated_at: string;
 };

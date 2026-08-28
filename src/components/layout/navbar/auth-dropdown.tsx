@@ -81,7 +81,7 @@ export function AuthDropdown({
               className={cn("lg:hidden")}
             >
               <AvatarImage
-                src={user?.imageUrl || "/assets/fallback-avatar.png"}
+                src={user?.image_url || "/assets/fallback-avatar.png"}
               />
               <AvatarFallback>
                 {getInitials(user?.name || "") || <UserRound />}
@@ -94,7 +94,7 @@ export function AuthDropdown({
               className={cn("hidden lg:flex")}
             >
               <AvatarImage
-                src={user?.imageUrl || "/assets/fallback-avatar.png"}
+                src={user?.image_url || "/assets/fallback-avatar.png"}
               />
               <AvatarFallback>
                 {getInitials(user?.name || "") || <UserRound />}

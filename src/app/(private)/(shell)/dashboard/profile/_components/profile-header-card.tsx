@@ -16,7 +16,6 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import type { TAuthUser } from "@/interface/auth";
 import { cn, formatDate, getInitials } from "@/lib/utils";
 
@@ -29,14 +28,14 @@ export function ProfileHeaderCard({ user }: { user: TAuthUser }) {
             <div
               className={cn(
                 "rounded-full",
-                user.isSubscribed
+                user.is_subscribed
                   ? "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5"
                   : "ring-1 ring-border p-1",
               )}
             >
               <div className="rounded-full bg-card p-1">
                 <Avatar size="xl">
-                  <AvatarImage src={user.profilePhoto} alt={user.name} />
+                  <AvatarImage src={user.image_url} alt={user.name} />
                   <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                 </Avatar>
               </div>
@@ -55,7 +54,7 @@ export function ProfileHeaderCard({ user }: { user: TAuthUser }) {
               <ShieldCheck className="size-3 text-muted-foreground" />
               <span>{user.role}</span>
             </Badge>
-            {user.isSubscribed ? (
+            {user.is_subscribed ? (
               <Badge variant="secondary">
                 <Sparkles className="size-3 text-primary" />
                 <span>সাবস্ক্রাইবড</span>
@@ -69,39 +68,23 @@ export function ProfileHeaderCard({ user }: { user: TAuthUser }) {
 
       <CardContent>
         <div className="space-y-3">
-          {user.location && (
+          {user.upazila || user.district ? (
             <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
               <MapPin className="size-3.5 shrink-0 text-primary" />
               <span className="truncate">
-                {user.location.upazila}, {user.location.district}
+                {user.upazila}
+                {user.upazila && user.district ? ", " : ""}
+                {user.district}
               </span>
             </div>
-          )}
+          ) : null}
 
-          {user.joinedAt && (
+          {user.created_at && (
             <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
               <CalendarDays className="size-3.5 shrink-0 text-primary" />
-              <span>যোগদান: {formatDate(user.joinedAt)}</span>
+              <span>যোগদান: {formatDate(user.created_at)}</span>
             </div>
           )}
-
-          <Separator />
-
-          {/* Quick Metrics */}
-          <div className="grid grid-cols-2 gap-2 text-center">
-            <div className="rounded-lg bg-muted/50 p-2.5">
-              <p className="font-heading text-base font-bold text-foreground">
-                {user.savedCalculationsCount ?? 0}
-              </p>
-              <p className="text-xs text-muted-foreground">ক্যালকুলেশন</p>
-            </div>
-            <div className="rounded-lg bg-muted/50 p-2.5">
-              <p className="font-heading text-base font-bold text-foreground">
-                {user.savedSurveyorsCount ?? 0}
-              </p>
-              <p className="text-xs text-muted-foreground">সার্ভেয়ার</p>
-            </div>
-          </div>
         </div>
       </CardContent>
 

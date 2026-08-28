@@ -5,11 +5,7 @@ import { redirect } from "next/navigation";
 
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { decodeJwtPayload } from "@/lib/jwt";
-import {
-  clearAuthCookies,
-  getRoleHome,
-  setAuthCookies,
-} from "@/lib/server-auth";
+import { clearAuthCookies, setAuthCookies } from "@/services/auth.service";
 import {
   login,
   logout,
@@ -32,12 +28,9 @@ export async function loginAction(
   await setAuthCookies(result.data);
   updateTag(CACHE_TAGS.user);
 
-  const safeCallbackUrl =
-    callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
-      ? callbackUrl
-      : null;
   const payload = decodeJwtPayload(result.data.accessToken);
-  redirect(safeCallbackUrl ?? getRoleHome(payload?.role));
+  const homePath = payload?.role === "ADMIN" ? "/admin/dashboard" : "/";
+  redirect(callbackUrl ?? homePath);
 }
 
 export async function registerAction(data: {
@@ -60,7 +53,8 @@ export async function verifyEmailAction(data: {
   updateTag(CACHE_TAGS.user);
 
   const payload = decodeJwtPayload(result.data.accessToken);
-  redirect(getRoleHome(payload?.role));
+  const homePath = payload?.role === "ADMIN" ? "/admin/dashboard" : "/";
+  redirect(homePath);
 }
 
 export async function resendOtpAction(data: {

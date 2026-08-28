@@ -52,26 +52,26 @@ export function PersonalInfoCard({ user }: { user: TAuthUser }) {
           <InfoItem
             icon={Phone}
             label="ফোন নম্বর"
-            value={user.phone ?? "যুক্ত করা হয়নি"}
+            value={user.phone || "যুক্ত করা হয়নি"}
           />
           <InfoItem
             icon={MessageCircle}
             label="WhatsApp নম্বর"
-            value={user.whatsappNumber ?? "যুক্ত করা হয়নি"}
+            value={user.whatsapp_number || "যুক্ত করা হয়নি"}
           />
           <InfoItem
             icon={MapPin}
             label="বর্তমান ঠিকানা"
             value={
-              user.location
-                ? `${user.location.upazila}, ${user.location.district}`
+              user.upazila || user.district
+                ? `${user.upazila}, ${user.district}`
                 : "যুক্ত করা হয়নি"
             }
           />
           <InfoItem
             icon={CalendarDays}
             label="অ্যাকাউন্ট তৈরি"
-            value={user.joinedAt ? formatDate(user.joinedAt) : "N/A"}
+            value={user.created_at ? formatDate(user.created_at) : "N/A"}
           />
         </div>
       </CardContent>

@@ -8,9 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { TAuthUser } from "@/interface/auth";
 
-export function ActivityCard({ user }: { user: TAuthUser }) {
+export function ActivityCard() {
   return (
     <Card>
       <CardHeader>
@@ -28,7 +27,7 @@ export function ActivityCard({ user }: { user: TAuthUser }) {
                   সেভ করা ক্যালকুলেশন
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {user.savedCalculationsCount ?? 0} টি সংরক্ষিত
+                  সংরক্ষিত ক্যালকুলেশন দেখুন
                 </p>
               </div>
             </div>
@@ -53,7 +52,7 @@ export function ActivityCard({ user }: { user: TAuthUser }) {
                   পছন্দের সার্ভেয়ার
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {user.savedSurveyorsCount ?? 0} জন ফেভারিট
+                  ফেভারিট সার্ভেয়ার দেখুন
                 </p>
               </div>
             </div>

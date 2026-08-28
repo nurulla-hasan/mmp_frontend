@@ -4,24 +4,19 @@ import { ProfileHeaderCard } from "./_components/profile-header-card";
 import { PersonalInfoCard } from "./_components/personal-info-card";
 import { ActivityCard } from "./_components/activity-card";
 import { AccountSettingsCard } from "./_components/account-settings-card";
-import type { TAuthUser } from "@/interface/auth";
+import { getMe } from "@/services/auth.service";
 
-// TODO: replace with nextServerFetch("/auth/me", { auth: "auth" })
-const user: TAuthUser = {
-  id: "1",
-  name: "রহিম উদ্দিন",
-  email: "rahim@example.com",
-  role: "USER",
-  isSubscribed: true,
-  phone: "০১৭১২৩৪৫৬৭৮",
-  whatsappNumber: "০১৭১২৩৪৫৬৭৮",
-  location: { district: "ঢাকা", upazila: "সাভার" },
-  joinedAt: "2025-01-15T10:00:00.000Z",
-  savedCalculationsCount: 3,
-  savedSurveyorsCount: 5,
-};
+export default async function Page() {
+  const result = await getMe();
+  const user = result.success ? result.data.user : null;
 
-export default function Page() {
+  if (!user) {
+    return (
+      <PageWrapper paddingSize="small">
+        <p className="text-sm text-muted-foreground">প্রোফাইল লোড করা যায়নি।</p>
+      </PageWrapper>
+    );
+  }
   return (
     <PageWrapper paddingSize="small">
       <div className="space-y-6">
@@ -44,7 +39,7 @@ export default function Page() {
           <div className="space-y-6 lg:col-span-8">
             <PersonalInfoCard user={user} />
             <div className="grid gap-6 sm:grid-cols-2">
-              <ActivityCard user={user} />
+              <ActivityCard />
               <AccountSettingsCard />
             </div>
           </div>
