@@ -57,7 +57,7 @@ export function PersonalInfoCard({ user }: { user: TAuthUser }) {
           <InfoItem
             icon={MessageCircle}
             label="WhatsApp নম্বর"
-            value={user.whatsapp_number || "যুক্ত করা হয়নি"}
+            value={user.whatsappNumber || "যুক্ত করা হয়নি"}
           />
           <InfoItem
             icon={MapPin}
@@ -71,7 +71,7 @@ export function PersonalInfoCard({ user }: { user: TAuthUser }) {
           <InfoItem
             icon={CalendarDays}
             label="অ্যাকাউন্ট তৈরি"
-            value={user.created_at ? formatDate(user.created_at) : "N/A"}
+              value={user.createdAt ? formatDate(user.createdAt) : "N/A"}
           />
         </div>
       </CardContent>

@@ -28,14 +28,14 @@ export function ProfileHeaderCard({ user }: { user: TAuthUser }) {
             <div
               className={cn(
                 "rounded-full",
-                user.is_subscribed
+                user.isSubscribed
                   ? "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5"
                   : "ring-1 ring-border p-1",
               )}
             >
               <div className="rounded-full bg-card p-1">
                 <Avatar size="xl">
-                  <AvatarImage src={user.image_url} alt={user.name} />
+                  <AvatarImage src={user.imageUrl} alt={user.name} />
                   <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                 </Avatar>
               </div>
@@ -54,7 +54,7 @@ export function ProfileHeaderCard({ user }: { user: TAuthUser }) {
               <ShieldCheck className="size-3 text-muted-foreground" />
               <span>{user.role}</span>
             </Badge>
-            {user.is_subscribed ? (
+            {user.isSubscribed ? (
               <Badge variant="secondary">
                 <Sparkles className="size-3 text-primary" />
                 <span>সাবস্ক্রাইবড</span>
@@ -79,10 +79,10 @@ export function ProfileHeaderCard({ user }: { user: TAuthUser }) {
             </div>
           ) : null}
 
-          {user.created_at && (
+          {user.createdAt && (
             <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
               <CalendarDays className="size-3.5 shrink-0 text-primary" />
-              <span>যোগদান: {formatDate(user.created_at)}</span>
+              <span>যোগদান: {formatDate(user.createdAt)}</span>
             </div>
           )}
         </div>
