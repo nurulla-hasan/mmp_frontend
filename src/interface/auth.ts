@@ -24,7 +24,7 @@ export type TAuthUser = {
   email: string;
   role: "USER" | "SURVEYOR" | "ADMIN";
   isSubscribed: boolean;
-  profilePhoto?: string;
+  imageUrl: string;
   phone?: string;
   whatsappNumber?: string;
   location?: {

@@ -4,10 +4,12 @@ import type {
   LoginPayload,
   RegisterPayload,
   ResendOtpPayload,
+  TAuthUser,
   VerifyEmailPayload,
 } from "@/interface/auth";
 import { nextServerFetch } from "@/lib/nextServerFetch";
 import type { AuthTokens } from "@/lib/server-auth";
+import { CACHE_TAGS, CACHE_TIME } from "@/lib/cache-tags";
 
 export const login = (payload: LoginPayload) =>
   nextServerFetch<AuthTokens>("/auth/login", {
@@ -48,4 +50,11 @@ export const exchangeGoogleCode = (code: string) =>
     method: "POST",
     body: { code },
     auth: "none",
+  });
+
+export const getMe = () =>
+  nextServerFetch<{ user: TAuthUser }>("/auth/me", {
+    method: "GET",
+    auth: "auth",
+     next: { tags: [CACHE_TAGS.user], revalidate: CACHE_TIME.day },
   });

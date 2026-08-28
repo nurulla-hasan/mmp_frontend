@@ -11,10 +11,9 @@ import { cn } from "@/lib/utils";
 import { CONTAINER_MAX_WIDTH } from "@/components/common/page-wrapper";
 import { publicNavigation } from "@/constants/nav-links";
 import { MobileDrawer } from "./mobile-drawer";
+import type { TAuthUser } from "@/interface/auth";
 
-const desktopLinks = publicNavigation;
-
-export function Navbar() {
+export function Navbar({user}: {user?: TAuthUser}) {
   const pathname = usePathname();
 
   function isActive(href: string) {
@@ -44,7 +43,7 @@ export function Navbar() {
           className="hidden items-center gap-5 lg:flex"
           aria-label="প্রধান নেভিগেশন"
         >
-          {desktopLinks.map((item) => (
+          {publicNavigation.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -64,7 +63,7 @@ export function Navbar() {
         <div className="flex flex-1 items-center justify-end gap-2">
           <ThemeToggle />
           <div className="hidden lg:block">
-            <AuthDropdown isAuthenticated={false} />
+            <AuthDropdown isAuthenticated={!!user} user={user} />
           </div>
           <MobileDrawer />
         </div>

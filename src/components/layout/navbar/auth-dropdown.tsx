@@ -16,23 +16,25 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn, getInitials } from "@/lib/utils";
 import type { TAuthUser } from "@/interface/auth";
-import { surveyorNavigation, userNavigation } from "@/constants/nav-links";
+import {
+  surveyorNavigation,
+  userNavigation,
+  type NavigationItem,
+} from "@/constants/nav-links";
 import { logoutAction } from "@/app/(auth)/_actions/auth.action";
 
-const user: TAuthUser = {
-  id: "1",
-  name: "John Doe",
-  email: "john.doe@example.com",
-  role: "USER",
-  isSubscribed: true,
+const getNavigationByRole = (role: TAuthUser["role"]): NavigationItem[] => {
+  switch (role) {
+    case "SURVEYOR":
+      return surveyorNavigation;
+    default:
+      return userNavigation;
+  }
 };
-
-// Logged in — show avatar + dropdown
-const isSurveyor = user.role === "SURVEYOR";
-const dropdownLinks = isSurveyor ? surveyorNavigation : userNavigation;
 
 export function AuthDropdown({
   isAuthenticated,
+  user,
 }: {
   isAuthenticated?: boolean;
   user?: TAuthUser;
@@ -76,53 +78,33 @@ export function AuthDropdown({
           <>
             {/* Mobile Avatar (Default Size) */}
             <Avatar
-              className={cn(
-                "lg:hidden",
-                user.isSubscribed &&
-                  "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5",
-              )}
+              className={cn("lg:hidden")}
             >
               <AvatarImage
-                src={user.profilePhoto || "/assets/fallback-avatar.png"}
-                className={cn(user.isSubscribed && "border-2 border-sidebar")}
+                src={user?.imageUrl || "/assets/fallback-avatar.png"}
               />
-              <AvatarFallback 
-                className={cn(
-                  "size-full", 
-                  user.isSubscribed && "border-2 border-sidebar"
-                )}
-              >
-                {getInitials(user.name || "") || <UserRound />}
+              <AvatarFallback>
+                {getInitials(user?.name || "") || <UserRound />}
               </AvatarFallback>
             </Avatar>
 
             {/* Desktop Avatar (Large Size) */}
             <Avatar
               size="lg"
-              className={cn(
-                "hidden lg:flex",
-                user.isSubscribed &&
-                  "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5",
-              )}
+              className={cn("hidden lg:flex")}
             >
               <AvatarImage
-                src={user.profilePhoto || "/assets/fallback-avatar.png"}
-                className={cn(user.isSubscribed && "border-2 border-sidebar")}
+                src={user?.imageUrl || "/assets/fallback-avatar.png"}
               />
-              <AvatarFallback 
-                className={cn(
-                  "size-full", 
-                  user.isSubscribed && "border-2 border-sidebar"
-                )}
-              >
-                {getInitials(user.name || "") || <UserRound />}
+              <AvatarFallback>
+                {getInitials(user?.name || "") || <UserRound />}
               </AvatarFallback>
             </Avatar>
           </>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="w-56">
-          {user.name && (
+          {user?.name && (
             <DropdownMenuGroup>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col">
@@ -139,10 +121,10 @@ export function AuthDropdown({
             </DropdownMenuGroup>
           )}
 
-          {user.name && <DropdownMenuSeparator />}
+          {user?.name && <DropdownMenuSeparator />}
 
           <DropdownMenuGroup>
-            {dropdownLinks.map((item) => {
+            {getNavigationByRole(user?.role ?? "USER").map((item) => {
               const Icon = item.icon;
               return (
                 <DropdownMenuItem

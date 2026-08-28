@@ -37,7 +37,7 @@ export function PublicFooter() {
             <strong className="font-semibold">নোট:</strong> Mouza Map Pro একটি ডিজিটাল পরিমাপ সহায়ক টুল। এর পরিমাপ আইনি বা সরকারি চূড়ান্ত পরিমাপের বিকল্প নয়। যেকোনো চূড়ান্ত আইনি কাজে অনুমোদিত সরকারি জরিপ ও কর্তৃপক্ষের যাচাই বাধ্যতামূলক।
           </p>
           <p className="font-medium text-foreground">
-            &copy; {new Date().getFullYear()} Mouza Map Pro. সর্বস্বত্ত্ব সংরক্ষিত।
+            &copy; 2026 Mouza Map Pro. সর্বস্বত্ত্ব সংরক্ষিত।
           </p>
         </SectionWrapper>
       </div>

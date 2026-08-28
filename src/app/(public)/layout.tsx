@@ -1,6 +1,7 @@
 import { PublicFooter } from "@/components/layout/public-footer";
-import { Navbar } from "@/components/layout/navbar/navbar";
 import { MobileBottomNav } from "@/components/common/mobile-bottom-nav";
+import { Suspense } from "react";
+import UserNavbar from "@/components/layout/navbar/user-navbar";
 
 export default function PublicLayout({
   children,
@@ -9,10 +10,12 @@ export default function PublicLayout({
 }) {
   return (
     <>
-      <Navbar />
+      <Suspense fallback={<div className="h-16" />}>
+        <UserNavbar />
+      </Suspense>
       <div className="pb-14 lg:pb-0">
         {children}
-      <PublicFooter />
+        <PublicFooter />
       </div>
       <MobileBottomNav />
     </>
