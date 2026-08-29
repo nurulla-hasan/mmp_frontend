@@ -410,7 +410,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
       </Stage>
 
       {/* ── Zoom indicator ─────────────────────────────────────────────────── */}
-      <div className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-md px-2 py-1 text-[10px] font-mono text-muted-foreground pointer-events-none z-20">
+      <div className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-md px-2 py-1 text-xs font-mono text-muted-foreground pointer-events-none z-20">
         {Math.round(stageScale * 100)}%
       </div>
     </div>

@@ -185,7 +185,7 @@ export default function CommunityPage() {
  {person.name}
  </p>
  {person.verified && (
- <Badge className="shrink-0 bg-primary/10 p-1.5 text-[10px] leading-none text-primary">
+ <Badge className="shrink-0 bg-primary/10 p-1.5 text-xs leading-none text-primary">
  ✓
  </Badge>
  )}

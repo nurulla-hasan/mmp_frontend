@@ -96,7 +96,7 @@ export function PlanComparison() {
                   <span className="inline-flex items-center gap-1.5">
                     {plan.name}
                     {plan.recommended && (
-                      <Badge className="bg-primary p-2 text-[10px] leading-none text-primary-foreground">
+                      <Badge className="bg-primary p-2 text-xs leading-none text-primary-foreground">
                         সেরা
                       </Badge>
                     )}

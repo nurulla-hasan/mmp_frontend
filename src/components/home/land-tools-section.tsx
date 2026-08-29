@@ -83,7 +83,7 @@ export function LandToolsSection() {
                   </div>
                   <div className="mt-4 flex items-center gap-3">
                     <h3 className="text-xl font-semibold">জমির ক্ষেত্রফল</h3>
-                    <Badge variant="default" className="text-[10px] gap-1">
+                    <Badge variant="default" className="text-xs gap-1">
                       <Sparkles className="size-3" /> Pro
                     </Badge>
                   </div>
@@ -99,15 +99,15 @@ export function LandToolsSection() {
                 {/* Mini visual */}
                 <div className="w-full md:w-1/3 grid grid-cols-3 gap-2">
                   <div className="flex flex-col justify-end p-2.5 rounded-lg border border-primary/20 bg-primary/5 h-20 transition-all duration-300 group-hover:border-primary/40 group-hover:bg-primary/10">
-                    <span className="text-[10px] font-mono font-medium text-primary">১ শতক</span>
+                    <span className="text-xs font-mono font-medium text-primary">১ শতক</span>
                     <span className="text-[9px] text-muted-foreground">৪৩৫.৬ ব.ফুট</span>
                   </div>
                   <div className="flex flex-col justify-end p-2.5 rounded-lg border border-primary/30 bg-primary/10 h-24 transition-all duration-300 group-hover:border-primary/50 group-hover:bg-primary/15">
-                    <span className="text-[10px] font-mono font-bold text-primary">১ কাঠা</span>
+                    <span className="text-xs font-mono font-bold text-primary">১ কাঠা</span>
                     <span className="text-[9px] text-muted-foreground">৭২০ ব.ফুট</span>
                   </div>
                   <div className="flex flex-col justify-end p-2.5 rounded-lg border border-primary/20 bg-primary/5 h-16 transition-all duration-300 group-hover:border-primary/40 group-hover:bg-primary/10">
-                    <span className="text-[10px] font-mono font-medium text-primary">১ বিঘা</span>
+                    <span className="text-xs font-mono font-medium text-primary">১ বিঘা</span>
                     <span className="text-[9px] text-muted-foreground">২০ কাঠা</span>
                   </div>
                 </div>
@@ -129,7 +129,7 @@ export function LandToolsSection() {
                         {tool.badge && (
                           <Badge
                             variant={tool.badge.variant}
-                            className="text-[10px] px-1.5 py-0.5 leading-none"
+                            className="text-xs px-1.5 py-0.5 leading-none"
                           >
                             {tool.badge.label}
                           </Badge>

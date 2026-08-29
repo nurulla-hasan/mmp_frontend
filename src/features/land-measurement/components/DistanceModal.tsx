@@ -93,7 +93,7 @@ export const DistanceModal = () => {
             >
               {preset.label}
               {preset.recommended && (
-                <span className="ml-1 text-[10px] opacity-70">&#9733;</span>
+                <span className="ml-1 text-xs opacity-70">&#9733;</span>
               )}
             </button>
           ))}

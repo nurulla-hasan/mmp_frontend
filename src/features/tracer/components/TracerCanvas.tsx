@@ -589,7 +589,7 @@ const TracerCanvas = memo(function TracerCanvas() {
       )}
 
       {/* ── Zoom indicator ─────────────────────────────────────────────────── */}
-      <div className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-md px-2 py-1 text-[10px] font-mono text-muted-foreground pointer-events-none">
+      <div className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-md px-2 py-1 text-xs font-mono text-muted-foreground pointer-events-none">
         {Math.round(stageScale * 100)}%
       </div>
     </div>

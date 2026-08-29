@@ -152,7 +152,7 @@ export default function ToolsPage() {
                         <Icon className="size-6" />
                       </div>
                       {"badge" in tool && tool.badge && (
-                        <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] px-1.5 py-0.5">
+                        <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs px-1.5 py-0.5">
                           {tool.badge}
                         </Badge>
                       )}

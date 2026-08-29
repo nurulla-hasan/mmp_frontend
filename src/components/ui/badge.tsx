@@ -63,7 +63,7 @@ const badgeVariants = cva(
         default: "h-5 px-2 py-0.5 text-xs",
         lg: "h-6 px-2.5 py-1 text-sm",
         xl: "h-7 px-3 py-1.5 text-sm",
-        sm: "h-4 px-1.5 text-[10px]",
+        sm: "h-4 px-1.5 text-xs",
       },
     },
     defaultVariants: {

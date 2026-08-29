@@ -448,7 +448,7 @@ export function PantagraphCropDialog({
         </div>
 
         {/* Size info bar */}
-        <div className="px-5 py-2 border-t border-border bg-muted/30 text-[10px] font-mono text-muted-foreground flex items-center justify-between">
+        <div className="px-5 py-2 border-t border-border bg-muted/30 text-xs font-mono text-muted-foreground flex items-center justify-between">
           <span>
             {layout
               ? `${Math.round(sel.w / layout.scale)} × ${Math.round(sel.h / layout.scale)} px`

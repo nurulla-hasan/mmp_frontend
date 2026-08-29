@@ -310,10 +310,10 @@ const FormerBgSection = memo(function FormerBgSection() {
       {formerBgRemoved && (
         <div className="space-y-2 pt-1">
           <div className="flex items-center justify-between">
-            <Label className="text-[10px] text-muted-foreground">
+            <Label className="text-xs text-muted-foreground">
               লাইন ধরার মাত্রা
             </Label>
-            <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+            <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
               {formerBlackSensitivity}%
             </span>
           </div>
@@ -329,7 +329,7 @@ const FormerBgSection = memo(function FormerBgSection() {
             aria-label="সাবেক ম্যাপের লাইন ধরার মাত্রা"
             className={sliderCls('destructive')}
           />
-          <p className="text-[10px] leading-4 text-muted-foreground">
+          <p className="text-xs leading-4 text-muted-foreground">
             কমালে শুধু গাঢ় কালো, বাড়ালে ফিকে ও পুরোনো line-ও থাকবে।
             C.S line লাল দেখাবে।
           </p>
@@ -391,10 +391,10 @@ const CurrentBgSection = memo(function CurrentBgSection() {
       {currentBgRemoved && (
         <div className="space-y-2 pt-1">
           <div className="flex items-center justify-between">
-            <Label className="text-[10px] text-muted-foreground">
+            <Label className="text-xs text-muted-foreground">
               লাইন ধরার মাত্রা
             </Label>
-            <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+            <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
               {currentBlackSensitivity}%
             </span>
           </div>
@@ -410,7 +410,7 @@ const CurrentBgSection = memo(function CurrentBgSection() {
             aria-label="হাল ম্যাপের লাইন ধরার মাত্রা"
             className={sliderCls('primary')}
           />
-          <p className="text-[10px] leading-4 text-muted-foreground">
+          <p className="text-xs leading-4 text-muted-foreground">
             কমালে শুধু গাঢ় কালো, বাড়ালে ফিকে ও পুরোনো line-ও থাকবে।
             B.S line সবুজ দেখাবে।
           </p>
@@ -447,7 +447,7 @@ const OpacitySection = memo(function OpacitySection() {
             <span className="h-2 w-2 rounded-full bg-destructive" />
             সাবেক
           </Label>
-          <span className="font-mono text-[10px] text-muted-foreground">
+          <span className="font-mono text-xs text-muted-foreground">
             {Math.round(formerOpacity * 100)}%
           </span>
         </div>
@@ -468,7 +468,7 @@ const OpacitySection = memo(function OpacitySection() {
             <span className="h-2 w-2 rounded-full bg-primary" />
             হাল
           </Label>
-          <span className="font-mono text-[10px] text-muted-foreground">
+          <span className="font-mono text-xs text-muted-foreground">
             {Math.round(currentOpacity * 100)}%
           </span>
         </div>
@@ -506,7 +506,7 @@ const LineSmoothingSection = memo(function LineSmoothingSection() {
         <Label className="text-xs text-muted-foreground font-semibold">
           লাইন মসৃণতা
         </Label>
-        <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+        <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
           {lineSmoothing === 0 ? 'বন্ধ' : `${lineSmoothing}/10`}
         </span>
       </div>
@@ -574,7 +574,7 @@ const MatchPointsSection = memo(function MatchPointsSection() {
           <div key={point.id} className="flex items-center justify-between bg-muted/50 rounded px-2 py-1.5">
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-foreground">পয়েন্ট #{index + 1}</span>
-              {point.current === null && <span className="text-[10px] text-destructive">(অসম্পূর্ণ)</span>}
+              {point.current === null && <span className="text-xs text-destructive">(অসম্পূর্ণ)</span>}
             </div>
             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeMatchPoint(point.id)}>
               <X className="w-3 h-3" />
@@ -610,7 +610,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-muted/50 rounded px-2.5 py-2">
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5">
               <RotateCw className="w-3 h-3" />রোটেশন
             </div>
             <p className="text-sm font-semibold text-foreground">
@@ -620,34 +620,34 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
           {alignmentType === 'affine' ? (
             <>
               <div className="bg-muted/50 rounded px-2.5 py-2">
-                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5"><ZoomIn className="w-3 h-3" />স্কেল X</div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5"><ZoomIn className="w-3 h-3" />স্কেল X</div>
                 <p className="text-sm font-semibold text-foreground">{alignmentResult.a!.toFixed(4)}×</p>
               </div>
               <div className="bg-muted/50 rounded px-2.5 py-2">
-                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5"><ZoomIn className="w-3 h-3" />স্কেল Y</div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5"><ZoomIn className="w-3 h-3" />স্কেল Y</div>
                 <p className="text-sm font-semibold text-foreground">{alignmentResult.d!.toFixed(4)}×</p>
               </div>
               <div className="bg-muted/50 rounded px-2.5 py-2">
-                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5"><RotateCw className="w-3 h-3" />স্কিউ X</div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5"><RotateCw className="w-3 h-3" />স্কিউ X</div>
                 <p className="text-sm font-semibold text-foreground">{alignmentResult.b!.toFixed(4)}</p>
               </div>
               <div className="bg-muted/50 rounded px-2.5 py-2">
-                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5"><RotateCw className="w-3 h-3" />স্কিউ Y</div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5"><RotateCw className="w-3 h-3" />স্কিউ Y</div>
                 <p className="text-sm font-semibold text-foreground">{alignmentResult.c!.toFixed(4)}</p>
               </div>
             </>
           ) : (
             <div className="bg-muted/50 rounded px-2.5 py-2">
-              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5"><ZoomIn className="w-3 h-3" />স্কেল</div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5"><ZoomIn className="w-3 h-3" />স্কেল</div>
               <p className="text-sm font-semibold text-foreground">{alignmentResult.scale!.toFixed(4)}×</p>
             </div>
           )}
           <div className="bg-muted/50 rounded px-2.5 py-2">
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5"><Move className="w-3 h-3" />ট্রান্সলেশন X</div>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5"><Move className="w-3 h-3" />ট্রান্সলেশন X</div>
             <p className="text-sm font-semibold text-foreground">{alignmentResult.tx.toFixed(1)}px</p>
           </div>
           <div className="bg-muted/50 rounded px-2.5 py-2">
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5"><Move className="w-3 h-3" />ট্রান্সলেশন Y</div>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5"><Move className="w-3 h-3" />ট্রান্সলেশন Y</div>
             <p className="text-sm font-semibold text-foreground">{alignmentResult.ty.toFixed(1)}px</p>
           </div>
         </div>

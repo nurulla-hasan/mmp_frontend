@@ -177,7 +177,7 @@ const LayersSection = memo(function LayersSection() {
                   </span>
                 )}
 
-                <span className="text-[10px] text-muted-foreground shrink-0">
+                <span className="text-xs text-muted-foreground shrink-0">
                   {layer.polygons.length} লাইন · {layer.labels.length} দাগ
                 </span>
 
@@ -203,13 +203,13 @@ const LayersSection = memo(function LayersSection() {
                 <div className="px-2 pb-2 space-y-2 border-t border-border/40 pt-2">
                   {/* Line width */}
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-muted-foreground">লাইন</span>
+                    <span className="text-xs text-muted-foreground">লাইন</span>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map(w => (
                         <button
                           key={w}
                           onClick={() => setLayerLineWidth(layer.id, w)}
-                          className={`w-7 h-6 rounded text-[10px] font-medium transition-colors border ${
+                          className={`w-7 h-6 rounded text-xs font-medium transition-colors border ${
                             layer.lineWidth === w
                               ? 'border-primary bg-primary/10 text-primary'
                               : 'border-border text-muted-foreground hover:text-foreground'
@@ -239,7 +239,7 @@ const LayersSection = memo(function LayersSection() {
                   {layers.length > 1 && (
                     <button
                       onClick={() => removeLayer(layer.id)}
-                      className="text-[10px] text-destructive hover:underline"
+                      className="text-xs text-destructive hover:underline"
                     >
                       লেয়ার মুছুন
                     </button>
@@ -306,7 +306,7 @@ const DrawingListSection = memo(function DrawingListSection() {
                     style={{ backgroundColor: activeLayer.color }}
                   />
                   <span className="flex-1 text-xs">লাইন {index + 1}</span>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {path.points.length} পয়েন্ট
                   </span>
                   <button

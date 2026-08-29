@@ -287,7 +287,7 @@ export function FloatingToolbar() {
             </div>
 
             {scale && !isDrawing && (
-                <div className="absolute bottom-18 left-1/2 z-40 -translate-x-1/2 rounded-full border border-border bg-card/95 px-3 py-1 shadow-md text-[10px] font-medium md:hidden text-primary whitespace-nowrap">
+                <div className="absolute bottom-18 left-1/2 z-40 -translate-x-1/2 rounded-full border border-border bg-card/95 px-3 py-1 shadow-md text-xs font-medium md:hidden text-primary whitespace-nowrap">
                     স্কেল: ১ px ≈ {(1 / scale).toFixed(2)} ft
                 </div>
             )}

@@ -47,7 +47,7 @@ export default function GeoStudioTopNav({
       {transform && (
         <Badge
           variant="default"
-          className="ml-1 hidden bg-primary/10 px-2 py-0.5 text-[10px] text-primary md:block"
+          className="ml-1 hidden bg-primary/10 px-2 py-0.5 text-xs text-primary md:block"
         >
           {alignmentMode === 'affine' ? 'আফাইন' : 'অ্যালাইন্ড'}
         </Badge>

@@ -119,7 +119,7 @@ export function PricingCards({ compact }: PricingCardsProps) {
                 {plan.recommended ? "এখনই শুরু করুন" : "প্ল্যান নির্বাচন করুন"}
               </Button>
               {plan.recommended && (
-                <p className="mt-2 text-[10px] text-center text-muted-foreground">
+                <p className="mt-2 text-xs text-center text-muted-foreground">
                   বার্ষিক প্ল্যান — মাসে মাত্র ৳১৩৩
                 </p>
               )}

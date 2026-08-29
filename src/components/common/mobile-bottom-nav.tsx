@@ -42,7 +42,7 @@ export function MobileBottomNav() {
                 <Icon className="size-5" aria-hidden />
               </span>
             )}
-            <span className={cn("text-[10px] leading-none", isSpecial && "font-medium")}>{label}</span>
+            <span className={cn("text-xs leading-none", isSpecial && "font-medium")}>{label}</span>
           </Link>
         );
       })}
@@ -58,7 +58,7 @@ export function MobileBottomNav() {
             <span className="flex size-7 items-center justify-center">
               <Menu className="size-5" aria-hidden />
             </span>
-            <span className="text-[10px] leading-none">মেনু</span>
+            <span className="text-xs leading-none">মেনু</span>
           </button>
         }
       />

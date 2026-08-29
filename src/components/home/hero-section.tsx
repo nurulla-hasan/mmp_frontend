@@ -140,7 +140,7 @@ export function HeroSection() {
                       <Ruler className="size-3 sm:size-3.5 text-primary shrink-0" />
                       <span className="font-heading truncate">মৌজা জমি পরিমাপ</span>
                     </div>
-                    <span className="hidden sm:inline-block text-[10px] text-muted-foreground border-l pl-2">
+                    <span className="hidden sm:inline-block text-xs text-muted-foreground border-l pl-2">
                       ১৬″ = ১ মাইল
                     </span>
                   </div>
@@ -167,7 +167,7 @@ export function HeroSection() {
                     </g>
 
                     {/* Neighboring plot numbers */}
-                    <g fill="currentColor" className="text-muted-foreground/40 font-mono text-[10px]">
+                    <g fill="currentColor" className="text-muted-foreground/40 font-mono text-xs">
                       <text x="35" y="80">দাগ ৪২৬</text>
                       <text x="320" y="80">দাগ ৪২৭</text>
                       <text x="45" y="260">দাগ ৪২৯</text>
@@ -214,35 +214,35 @@ export function HeroSection() {
                   {/* HTML Overlay Badges for dynamic font-safe auto-sizing */}
                   {/* Top dimension */}
                   <div className="pointer-events-none absolute top-[15%] left-[46%] -translate-x-1/2">
-                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-[10px] font-mono font-medium text-foreground shadow-2xs backdrop-blur-xs">
+                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-xs font-mono font-medium text-foreground shadow-2xs backdrop-blur-xs">
                       ১২০ ফুট
                     </span>
                   </div>
 
                   {/* Right dimension */}
                   <div className="pointer-events-none absolute top-[42%] right-[14%] sm:right-[16%]">
-                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-[10px] font-mono font-medium text-foreground shadow-2xs backdrop-blur-xs">
+                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-xs font-mono font-medium text-foreground shadow-2xs backdrop-blur-xs">
                       ৮০ ফুট
                     </span>
                   </div>
 
                   {/* Bottom dimension */}
                   <div className="pointer-events-none absolute bottom-[22%] left-[36%] -translate-x-1/2">
-                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-[10px] font-mono font-medium text-foreground shadow-2xs backdrop-blur-xs">
+                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-xs font-mono font-medium text-foreground shadow-2xs backdrop-blur-xs">
                       ১১৫ ফুট
                     </span>
                   </div>
 
                   {/* Left dimension */}
                   <div className="pointer-events-none absolute top-[46%] left-[8%] sm:left-[10%]">
-                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-[10px] font-mono font-medium text-foreground shadow-2xs backdrop-blur-xs">
+                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-xs font-mono font-medium text-foreground shadow-2xs backdrop-blur-xs">
                       ৭৫ ফুট
                     </span>
                   </div>
 
                   {/* Center Plot Tag */}
                   <div className="pointer-events-none absolute top-[43%] left-[46%] -translate-x-1/2 -translate-y-1/2">
-                    <span className="inline-flex items-center rounded-md border border-primary/30 bg-primary/10 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-medium text-primary shadow-2xs backdrop-blur-xs">
+                    <span className="inline-flex items-center rounded-md border border-primary/30 bg-primary/10 px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs sm:text-[11px] font-medium text-primary shadow-2xs backdrop-blur-xs">
                       দাগ নং ৪২৮
                     </span>
                   </div>
@@ -254,7 +254,7 @@ export function HeroSection() {
                         <Sparkles className="size-3 sm:size-3.5" />
                       </div>
                       <div>
-                        <div className="text-[8.5px] sm:text-[10px] font-medium text-muted-foreground truncate">
+                        <div className="text-[8.5px] sm:text-xs font-medium text-muted-foreground truncate">
                           মোট জমি (দাগ ৪২৮)
                         </div>
                         <div className="flex items-baseline gap-1">
@@ -264,7 +264,7 @@ export function HeroSection() {
                           <span className="text-[9px] sm:text-xs font-semibold text-primary">
                             শতাংশ
                           </span>
-                          <span className="hidden text-[10px] text-muted-foreground sm:inline">
+                          <span className="hidden text-xs text-muted-foreground sm:inline">
                             • ২.৫৮ কাঠা
                           </span>
                         </div>
@@ -328,7 +328,7 @@ export function HeroSection() {
                       <circle cx="68" cy="18" r="2" fill="var(--color-primary)" />
                     </svg>
                   </div>
-                  <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground truncate">
+                  <p className="text-xs sm:text-[11px] font-medium text-muted-foreground truncate">
                     সাবেক ও হাল মিলান
                   </p>
                 </div>
@@ -372,7 +372,7 @@ export function HeroSection() {
                       <circle cx="68" cy="48" r="2.2" fill="var(--color-primary)" />
                     </svg>
                   </div>
-                  <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground truncate">
+                  <p className="text-xs sm:text-[11px] font-medium text-muted-foreground truncate">
                     ভেক্টর বাউন্ডারি ট্রেস
                   </p>
                 </div>

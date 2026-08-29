@@ -506,7 +506,7 @@ export default function StudioEditorLayout({
         </div>
       )}
 
-      <div className="pointer-events-none absolute bottom-4 right-4 rounded-lg border border-border/50 bg-background/80 px-2 py-1 font-mono text-[10px] text-muted-foreground">
+      <div className="pointer-events-none absolute bottom-4 right-4 rounded-lg border border-border/50 bg-background/80 px-2 py-1 font-mono text-xs text-muted-foreground">
         {Math.round(stageScale * 100)}%
       </div>
 

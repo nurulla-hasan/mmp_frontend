@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 
 import { JoinAsSurveyorForm } from "./_components/join-as-surveyor-form";
 import { SectionWrapper } from "@/components/common/section-wrapper";
-import { getMe } from "@/services/auth.service";
+import { getMe, getDistricts, getServices } from "@/services/auth.service";
 
 export const metadata: Metadata = {
   title: "সার্ভেয়ার হিসেবে যোগ দিন — MMP",
@@ -12,18 +11,25 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const result = await getMe();
-  if (result.success && result.data?.user) {
-    if (result.data.user.role === "SURVEYOR" || result.data.user.role === "ADMIN") {
-      notFound();
-    }
-  }
+  const [meResult, districtsResult, servicesResult] = await Promise.all([
+    getMe(),
+    getDistricts(),
+    getServices(),
+  ]);
+
+  const user = meResult.success ? meResult.data.user : undefined;
+  const isAuthenticated = Boolean(user);
+  const districts = districtsResult.success ? (districtsResult.data ?? []) : [];
+  const services = servicesResult.success ? (servicesResult.data ?? []) : [];
 
   return (
     <SectionWrapper padding="sm">
-      <div className="flex justify-center">
-        <JoinAsSurveyorForm />
-      </div>
+        <JoinAsSurveyorForm
+          isAuthenticated={isAuthenticated}
+          user={user}
+          districts={districts}
+          services={services}
+        />
     </SectionWrapper>
   );
 }

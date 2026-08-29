@@ -62,7 +62,7 @@ export function ProfessionalReportSection() {
                 <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-foreground">
                   ল্যান্ড সার্ভে রিপোর্ট
                 </h3>
-                <p className="text-[10px] text-gray-500 dark:text-muted-foreground">
+                <p className="text-xs text-gray-500 dark:text-muted-foreground">
                   রিপোর্ট আইডি: MMP-2026-0042
                 </p>
               </div>
@@ -73,7 +73,7 @@ export function ProfessionalReportSection() {
             </div>
 
             {/* Owner info */}
-            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
+            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
               <span className="text-gray-500 dark:text-muted-foreground">মালিক:</span>
               <span className="font-medium text-gray-900 dark:text-foreground">মো. আব্দুর রহিম</span>
               <span className="text-gray-500 dark:text-muted-foreground">মৌজা:</span>
@@ -88,7 +88,7 @@ export function ProfessionalReportSection() {
 
             {/* Plot shapes */}
             <div>
-              <p className="text-[10px] font-medium text-gray-700 dark:text-muted-foreground">প্লট লেআউট</p>
+              <p className="text-xs font-medium text-gray-700 dark:text-muted-foreground">প্লট লেআউট</p>
               <div className="mt-2 grid grid-cols-3 gap-2">
                 <div className="flex aspect-3/2 items-center justify-center rounded border-2 border-emerald-500/40 bg-emerald-50 text-[9px] font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
                   প্লট ১
@@ -103,7 +103,7 @@ export function ProfessionalReportSection() {
             </div>
 
             {/* Measurements table */}
-            <div className="mt-3 space-y-1 text-[10px]">
+            <div className="mt-3 space-y-1 text-xs">
               <div className="flex justify-between border-b pb-1">
                 <span className="text-gray-500 dark:text-muted-foreground">প্লট ১ (উত্তর)</span>
                 <span className="font-medium text-gray-900 dark:text-foreground">১৫.২৫ শতাংশ</span>

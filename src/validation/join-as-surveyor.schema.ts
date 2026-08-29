@@ -1,63 +1,41 @@
 import * as z from "zod";
 
-export const SERVICE_OPTIONS = [
-  { value: "land-measurement", label: "জমি পরিমাপ" },
-  { value: "land-division", label: "জমি ভাগ" },
-  { value: "boundary-determination", label: "সীমানা নির্ধারণ" },
-  { value: "digital-survey", label: "ডিজিটাল সার্ভে" },
-  { value: "mouza-map", label: "মৌজা ম্যাপ সহায়তা" },
-  { value: "survey-report", label: "পরিমাপ রিপোর্ট তৈরি" },
-  { value: "khatian-search", label: "খতিয়ান অনুসন্ধান" },
-  { value: "mutation", label: "নামজারি (মিউটেশন)" },
-  { value: "record-verification", label: "রেকর্ড যাচাই" },
-  { value: "plot-layout", label: "প্লট লেআউট ও নকশা" },
-] as const;
-
-export const DISTRICT_OPTIONS = [
-  { value: "dinajpur", label: "দিনাজপুর" },
-  { value: "rangpur", label: "রংপুর" },
-  { value: "bogura", label: "বগুড়া" },
-  { value: "rajshahi", label: "রাজশাহী" },
-  { value: "dhaka", label: "ঢাকা" },
-  { value: "chattogram", label: "চট্টগ্রাম" },
-  { value: "khulna", label: "খুলনা" },
-  { value: "sylhet", label: "সিলেট" },
-  { value: "barishal", label: "বরিশাল" },
-  { value: "mymensingh", label: "ময়মনসিংহ" },
-  { value: "comilla", label: "কুমিল্লা" },
-  { value: "gazipur", label: "গাজীপুর" },
-  { value: "narayanganj", label: "নারায়ণগঞ্জ" },
-  { value: "jessore", label: "যশোর" },
-  { value: "pabna", label: "পাবনা" },
-  { value: "tangail", label: "টাঙ্গাইল" },
-] as const;
-
-export const formSchema = z.object({
-  name: z.string().min(2, "নাম কমপক্ষে ২ অক্ষরের হতে হবে।"),
-  phone: z
+export const joinAsSurveyorSchema = z.object({
+  headline: z
     .string()
-    .regex(/^01[3-9]\d{8}$/, "সঠিক ১১ সংখ্যার মোবাইল নম্বর দিন।"),
-  email: z.string().email("সঠিক ইমেইল ঠিকানা দিন।"),
-  district: z.string().min(1, "জেলা নির্বাচন করুন।"),
-  upazila: z.string().min(1, "উপজেলা/থানা লিখুন।"),
-  address: z.string().min(10, "ঠিকানা কমপক্ষে ১০ অক্ষরের হতে হবে।"),
-  experience: z.coerce
+    .min(3, "পেশাদার শিরোনাম কমপক্ষে ৩ অক্ষরের হতে হবে।")
+    .max(120, "পেশাদার শিরোনাম ১২০ অক্ষরের বেশি হতে পারবে না।"),
+  experienceYears: z.coerce
     .number()
-    .int("পূর্ণ সংখ্যা দিন।")
+    .int("অভিজ্ঞতার বছর পূর্ণ সংখ্যা দিন।")
     .min(0, "০ বা তার বেশি হতে হবে।")
     .max(50, "৫০ এর বেশি হতে পারবে না।"),
-  nidFront: z.instanceof(File, { message: "NID এর সামনের ছবি দিন।" }).optional(),
-  nidBack: z.instanceof(File, { message: "NID এর পিছনের ছবি দিন।" }).optional(),
-  profileImage: z.instanceof(File).optional(),
-  certificate: z.instanceof(File).optional(),
-  services: z
-    .array(z.string())
-    .min(1, "কমপক্ষে একটি সেবা নির্বাচন করুন।"),
+  bio: z
+    .string()
+    .max(1000, "পরিচিতি ১০০০ অক্ষরের বেশি হতে পারবে না।")
+    .optional()
+    .or(z.literal("")),
+  certificateUrl: z.string().optional().or(z.literal("")),
   serviceAreas: z
-    .array(z.string())
+    .array(
+      z.object({
+        district: z.string().min(1, "জেলা নির্বাচন করুন।"),
+        upazilas: z.array(z.string()).default([]),
+      }),
+    )
     .min(1, "কমপক্ষে একটি সেবার এলাকা নির্বাচন করুন।"),
-  bio: z.string().max(500, "৫০০ অক্ষরের বেশি হতে পারবে না।").optional(),
-  terms: z.boolean().refine((val) => val === true, "আপনাকে অবশ্যই শর্তাবলীতে সম্মতি দিতে হবে।"),
+  services: z
+    .array(
+      z.object({
+        serviceId: z.string().min(1, "সার্ভিস নির্বাচন করুন।"),
+        name: z.string().optional(),
+        startingPrice: z.coerce
+          .number()
+          .min(0, "প্রারম্ভিক মূল্য ০ বা তার বেশি হতে হবে।"),
+      }),
+    )
+    .min(1, "কমপক্ষে একটি সেবা নির্বাচন করুন।"),
+  terms: z.boolean().refine((val) => val === true, "শর্তাবলীতে সম্মতি দেওয়া আবশ্যক।"),
 });
 
-export type FormValues = z.infer<typeof formSchema>;
+export type JoinAsSurveyorFormValues = z.infer<typeof joinAsSurveyorSchema>;

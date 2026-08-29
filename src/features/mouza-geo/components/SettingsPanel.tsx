@@ -278,7 +278,7 @@ export default function SettingsPanel({
                 </div>
               </div>
 
-              <p className="text-[10px] leading-4 text-muted-foreground">
+              <p className="text-xs leading-4 text-muted-foreground">
                 কমালে শুধু গাঢ় কালো, বাড়ালে ফিকে ও পুরোনো line-ও থাকবে।
               </p>
             </div>
@@ -338,7 +338,7 @@ export default function SettingsPanel({
               Original
             </button>
           </div>
-          <p className="text-[10px] leading-4 text-muted-foreground">
+          <p className="text-xs leading-4 text-muted-foreground">
             দুই mode-ই 2048px georeferenced tile বানায়, তাই zoom করলে map
             পরিষ্কার থাকে। High mode file size-ও কমায়।
           </p>

@@ -48,7 +48,7 @@ export function HowItWorksSection() {
                   <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
                     <Icon className="size-5 text-primary" />
                   </div>
-                  <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                  <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                     {item.step}
                   </span>
                 </div>
