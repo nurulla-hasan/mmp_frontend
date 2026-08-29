@@ -5,8 +5,11 @@ export const updateMeSchema = z.object({
   phone: z
     .string()
     .regex(/^01[3-9]\d{8}$/, "সঠিক ১১ সংখ্যার মোবাইল নম্বর দিন।")
+    .or(z.literal(""))
     .optional(),
   whatsappNumber: z.string().optional(),
+  district: z.string().optional(),
+  upazila: z.string().optional(),
 });
 
 export type UpdateMeFormValues = z.infer<typeof updateMeSchema>;

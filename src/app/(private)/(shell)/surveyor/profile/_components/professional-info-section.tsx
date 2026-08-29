@@ -1,9 +1,7 @@
 "use client";
 
-import { BadgeInfo, BookOpen, Briefcase, MapPin } from "lucide-react";
-
+import { BadgeInfo, BookOpen, Briefcase, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DISTRICT_OPTIONS } from "@/validation/join-as-surveyor.schema";
 import { ProfessionalInfoUpdate } from "./professional-info-update";
 import type { TSurveyorProfile } from "@/interface/surveyor-profile";
 
@@ -17,78 +15,54 @@ export function ProfessionalInfoSection({
   profile,
 }: ProfessionalInfoSectionProps) {
   const headline = profile?.headline;
-  const experienceYears = profile?.experienceYears;
-  const primaryDistrict = profile?.primaryLocation?.district;
-  const primaryUpazila = profile?.primaryLocation?.upazila;
+  const experienceYears = profile?.experienceYears ?? 0;
   const bio = profile?.bio;
 
-  // Map district value to its label for display
-  const districtLabel =
-    DISTRICT_OPTIONS.find((d) => d.value === primaryDistrict)?.label ?? "";
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2">
-            <Briefcase className="size-5 text-primary" />
-            পেশাগত তথ্য
+    <Card className="border-border/60 shadow-xs">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center justify-between gap-2 text-base">
+          <span className="flex items-center gap-2 font-semibold">
+            <Briefcase className="size-4 text-primary" />
+            পেশাগত পরিচিতি ও বিবরণ
           </span>
           <ProfessionalInfoUpdate profile={profile} />
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid gap-5 sm:grid-cols-2">
-          {/* ── Headline (view) ── */}
-          <div className="sm:col-span-2">
-            <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-              <BadgeInfo className="size-3.5" />
+      <CardContent className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* Headline */}
+          <div className="rounded-lg border border-border/40 bg-muted/20 p-3.5 sm:col-span-2">
+            <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <BadgeInfo className="size-3.5 text-primary" />
               পেশাদার শিরোনাম
             </p>
-            <p className="mt-1 text-sm">{headline ? headline : EMPTY}</p>
-          </div>
-
-          {/* ── Experience (view) ── */}
-          <div>
-            <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-              <BookOpen className="size-3.5" />
-              অভিজ্ঞতা (বছর)
-            </p>
-            <p className="mt-1 text-sm">
-              {experienceYears !== undefined && experienceYears !== null
-                ? experienceYears
-                : EMPTY}
+            <p className="mt-1 text-sm font-semibold text-foreground">
+              {headline || EMPTY}
             </p>
           </div>
 
-          {/* ── Primary District (view) ── */}
-          <div>
-            <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-              <MapPin className="size-3.5" />
-              প্রধান অবস্থান (জেলা)
+          {/* Experience */}
+          <div className="rounded-lg border border-border/40 bg-muted/20 p-3.5 sm:col-span-2">
+            <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <BookOpen className="size-3.5 text-primary" />
+              কাজের অভিজ্ঞতা
             </p>
-            <p className="mt-1 text-sm">
-              {districtLabel ? districtLabel : EMPTY}
+            <p className="mt-1 text-sm font-medium text-foreground">
+              {experienceYears > 0 ? `${experienceYears} বছর সক্রিয় পেশাদার অভিজ্ঞতা` : EMPTY}
             </p>
           </div>
+        </div>
 
-          {/* ── Primary Upazila (view) ── */}
-          <div className="sm:col-span-2">
-            <p className="text-sm font-medium text-muted-foreground">
-              উপজেলা/থানা
-            </p>
-            <p className="mt-1 text-sm">
-              {primaryUpazila ? primaryUpazila : EMPTY}
-            </p>
-          </div>
-
-          {/* ── Bio (view) ── */}
-          <div className="sm:col-span-2">
-            <p className="text-sm font-medium text-muted-foreground">সম্পর্কে</p>
-            <p className="mt-1 whitespace-pre-line text-sm">
-              {bio ? bio : EMPTY}
-            </p>
-          </div>
+        {/* Bio / About */}
+        <div className="rounded-lg border border-border/40 bg-muted/10 p-4">
+          <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <FileText className="size-3.5 text-primary" />
+            সার্ভেয়ার সম্পর্কে (Bio)
+          </p>
+          <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-foreground/90">
+            {bio || "আপনার পেশাগত ক্যারিয়ার, দক্ষতা ও সেবার ধরন সম্পর্কে বিস্তারিত লিখুন যাতে ক্লায়েন্টরা আপনাকে সহজে খুঁজে পায়।"}
+          </p>
         </div>
       </CardContent>
     </Card>

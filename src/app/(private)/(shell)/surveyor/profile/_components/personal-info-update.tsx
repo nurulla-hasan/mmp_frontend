@@ -1,28 +1,41 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Edit } from "lucide-react";
 
 import { ModalWrapper } from "@/components/common/modal-wrapper";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/common/form-input";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { updateMeAction } from "../_actions/surveyor-profile.action";
 import { updateMeSchema, type UpdateMeFormValues } from "@/validation/update-me.schema";
 import type { TAuthUser } from "@/interface/auth";
 
+type DistrictOption = { value: string; label: string; upazilas: string[] };
+
 type PersonalInfoUpdateProps = {
   user: TAuthUser | null;
+  districts: DistrictOption[];
 };
 
-export function PersonalInfoUpdate({ user }: PersonalInfoUpdateProps) {
+export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
+    setValue,
+    reset,
     formState: { isSubmitting },
   } = useForm<UpdateMeFormValues>({
     resolver: zodResolver(updateMeSchema),
@@ -30,8 +43,27 @@ export function PersonalInfoUpdate({ user }: PersonalInfoUpdateProps) {
       name: user?.name ?? "",
       phone: user?.phone ?? "",
       whatsappNumber: user?.whatsappNumber ?? "",
+      district: user?.district ?? "",
+      upazila: user?.upazila ?? "",
     },
   });
+
+  const selectedDistrict = useWatch({ control, name: "district" });
+  const districtObj = districts.find((d) => d.value === selectedDistrict);
+  const availableUpazilas = districtObj?.upazilas ?? [];
+
+  useEffect(() => {
+    if (open) {
+      reset({
+        name: user?.name ?? "",
+        phone: user?.phone ?? "",
+        whatsappNumber: user?.whatsappNumber ?? "",
+        district: user?.district ?? "",
+        upazila: user?.upazila ?? "",
+      });
+      setError(null);
+    }
+  }, [open, user, reset]);
 
   const onSubmit = async (values: UpdateMeFormValues) => {
     setError(null);
@@ -47,8 +79,8 @@ export function PersonalInfoUpdate({ user }: PersonalInfoUpdateProps) {
     <ModalWrapper
       open={open}
       onOpenChange={setOpen}
-      title="ব্যক্তিগত তথ্য আপডেট করুন"
-      description="আপনার নাম, মোবাইল ও WhatsApp নম্বর আপডেট করুন।"
+      title="ব্যক্তিগত ও অবস্থান তথ্য আপডেট করুন"
+      description="আপনার নাম, যোগাযোগ ও প্রধান অবস্থান (জেলা/উপজেলা) আপডেট করুন।"
       actionTrigger={
         <Button
           type="button"
@@ -67,20 +99,94 @@ export function PersonalInfoUpdate({ user }: PersonalInfoUpdateProps) {
           label="পূর্ণ নাম"
           placeholder="আপনার নাম লিখুন"
         />
-        <FormInput
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <FormInput
+            control={control}
+            name="phone"
+            label="মোবাইল নম্বর"
+            placeholder="01XXXXXXXXX"
+            type="tel"
+          />
+          <FormInput
+            control={control}
+            name="whatsappNumber"
+            label="WhatsApp নম্বর"
+            placeholder="01XXXXXXXXX"
+            type="tel"
+          />
+        </div>
+
+        {/* District Select */}
+        <Controller
+          name="district"
           control={control}
-          name="phone"
-          label="মোবাইল নম্বর"
-          placeholder="01XXXXXXXXX"
-          type="tel"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="primaryDistrictSelect">প্রধান জেলা (অবস্থান)</FieldLabel>
+              <Select
+                value={field.value || undefined}
+                onValueChange={(val) => {
+                  field.onChange(val ?? "");
+                  // Reset upazila if district changes
+                  setValue("upazila", "");
+                }}
+              >
+                <SelectTrigger id="primaryDistrictSelect" className="w-full">
+                  <SelectValue placeholder="জেলা নির্বাচন করুন" />
+                </SelectTrigger>
+                <SelectContent alignItemWithTrigger={false}>
+                  {districts.map((d) => (
+                    <SelectItem key={d.value} value={d.value}>
+                      {d.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {fieldState.invalid && (
+                <FieldError errors={[fieldState.error]} />
+              )}
+            </Field>
+          )}
         />
-        <FormInput
-          control={control}
-          name="whatsappNumber"
-          label="WhatsApp নম্বর"
-          placeholder="01XXXXXXXXX"
-          type="tel"
-        />
+
+        {/* Upazila Select / Input */}
+        {availableUpazilas.length > 0 ? (
+          <Controller
+            name="upazila"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="primaryUpazilaSelect">উপজেলা / থানা</FieldLabel>
+                <Select
+                  value={field.value || undefined}
+                  onValueChange={(val) => field.onChange(val ?? "")}
+                >
+                  <SelectTrigger id="primaryUpazilaSelect" className="w-full">
+                    <SelectValue placeholder="উপজেলা নির্বাচন করুন" />
+                  </SelectTrigger>
+                  <SelectContent alignItemWithTrigger={false}>
+                    {availableUpazilas.map((u) => (
+                      <SelectItem key={u} value={u}>
+                        {u}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+        ) : (
+          <FormInput
+            control={control}
+            name="upazila"
+            label="উপজেলা / থানা"
+            placeholder="উপজেলা বা থানার নাম লিখুন"
+          />
+        )}
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 

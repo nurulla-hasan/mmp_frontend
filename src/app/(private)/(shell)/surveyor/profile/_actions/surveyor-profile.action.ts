@@ -63,26 +63,7 @@ export async function updateMeAction(data: UpdateMeFormValues) {
 export async function updateMySurveyorProfileAction(
   data: Partial<SurveyorProfileFormValues>,
 ) {
-  const payload: Record<string, unknown> = {};
-  if (data.headline !== undefined) payload.headline = data.headline;
-  if (data.bio !== undefined) payload.bio = data.bio;
-  if (data.experienceYears !== undefined) {
-    payload.experienceYears = data.experienceYears;
-  }
-  if (data.serviceAreas !== undefined) {
-    payload.serviceAreas = data.serviceAreas.map((a) => ({
-      district: a.district,
-      upazilas: a.upazilas,
-    }));
-  }
-  if (data.services !== undefined) {
-    payload.services = data.services.map((s) => ({
-      serviceId: s.serviceId,
-      startingPrice: s.startingPrice ?? 0,
-    }));
-  }
-
-  const result = await updateMySurveyorProfile(payload);
+  const result = await updateMySurveyorProfile(data);
   if (!result.success) {
     return { success: false, message: result.message };
   }

@@ -23,6 +23,23 @@ type ServiceAreasUpdateProps = {
   districts: DistrictOption[];
 };
 
+const getInitialServiceAreas = (
+  profile: TSurveyorProfile | null,
+  validDistricts?: DistrictOption[],
+) => {
+  const areas = (profile?.serviceAreas ?? []).map((a) => ({
+    district: a.district,
+    upazilas: Array.isArray(a.upazilas) ? a.upazilas : [],
+  }));
+
+  if (validDistricts && validDistricts.length > 0) {
+    const validValues = new Set(validDistricts.map((d) => d.value));
+    return areas.filter((a) => validValues.has(a.district));
+  }
+
+  return areas;
+};
+
 export function ServiceAreasUpdate({
   profile,
   districts,
@@ -30,22 +47,31 @@ export function ServiceAreasUpdate({
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currentDistricts = (profile?.serviceAreas ?? []).map((a) => a.district);
-
   const {
     control,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<UpdateServiceAreasFormValues>({
     resolver: zodResolver(updateServiceAreasSchema as any),
     defaultValues: {
-      serviceAreas: currentDistricts.map((d) => ({
-        district: d,
-        upazilas: [],
-      })),
+      serviceAreas: getInitialServiceAreas(profile, districts),
     },
   });
+
+  // Sync form state when modal opens or profile/districts change
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next) {
+      reset({
+        serviceAreas: getInitialServiceAreas(profile, districts),
+      });
+      setError(null);
+    } else {
+      setError(null);
+    }
+  };
 
   const selected = useWatch({ control, name: "serviceAreas" }) ?? [];
 
@@ -89,18 +115,6 @@ export function ServiceAreasUpdate({
       return;
     }
     setOpen(false);
-  };
-
-  const handleOpenChange = async (next: boolean) => {
-    setOpen(next);
-    if (!next) {
-      setError(null);
-      setValue(
-        "serviceAreas",
-        currentDistricts.map((d) => ({ district: d, upazilas: [] })),
-        { shouldValidate: false },
-      );
-    }
   };
 
   return (

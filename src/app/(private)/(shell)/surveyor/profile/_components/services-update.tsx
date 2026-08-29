@@ -19,6 +19,16 @@ type ServicesUpdateProps = {
   services: TSurveyorService[];
 };
 
+const getInitialServices = (profile: TSurveyorProfile | null) => {
+  const currentServices = profile?.surveyorServices ?? [];
+  return currentServices.map((s) => ({
+    serviceId: s.serviceId,
+    slug: s.service.slug,
+    name: s.service.name,
+    startingPrice: s.startingPrice ?? 0,
+  }));
+};
+
 export function ServicesUpdate({
   profile,
   services,
@@ -26,25 +36,31 @@ export function ServicesUpdate({
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currentServices = profile?.surveyorServices ?? [];
-
   const {
     control,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<UpdateServicesFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(updateServicesSchema as any),
     defaultValues: {
-      services: currentServices.map((s) => ({
-        serviceId: s.serviceId,
-        slug: s.service.slug,
-        name: s.service.name,
-        startingPrice: s.startingPrice ?? 0,
-      })),
+      services: getInitialServices(profile),
     },
   });
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next) {
+      reset({
+        services: getInitialServices(profile),
+      });
+      setError(null);
+    } else {
+      setError(null);
+    }
+  };
 
   const selected = useWatch({ control, name: "services" }) ?? [];
 
@@ -97,7 +113,7 @@ export function ServicesUpdate({
   return (
     <ModalWrapper
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={handleOpenChange}
       title="আপনার সেবাসমূহ আপডেট করুন"
       description="সেবা নির্বাচন করুন ও প্রতিটির শুরুর মূল্য দিন।"
       actionTrigger={
