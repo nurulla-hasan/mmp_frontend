@@ -27,15 +27,15 @@ const getInitialServiceAreas = (
   profile: TSurveyorProfile | null,
   validDistricts?: DistrictOption[],
 ) => {
-  const areas = (profile?.serviceAreas ?? []).map((a) => ({
-    district: a.district,
-    upazilas: Array.isArray(a.upazilas) ? a.upazilas : [],
-  }));
-
-  if (validDistricts && validDistricts.length > 0) {
-    const validValues = new Set(validDistricts.map((d) => d.value));
-    return areas.filter((a) => validValues.has(a.district));
-  }
+  const areas = (profile?.serviceAreas ?? []).map((a) => {
+    const match = validDistricts?.find(
+      (d) => d.value === a.district || d.label === a.district,
+    );
+    return {
+      district: match?.label ?? a.district,
+      upazilas: Array.isArray(a.upazilas) ? a.upazilas : [],
+    };
+  });
 
   return areas;
 };
@@ -76,7 +76,9 @@ export function ServiceAreasUpdate({
   const selected = useWatch({ control, name: "serviceAreas" }) ?? [];
 
   const toggleDistrict = (district: string) => {
-    const exists = selected.some((a) => a.district === district);
+    const exists = selected.some(
+      (a) => a.district === district,
+    );
     if (exists) {
       setValue(
         "serviceAreas",
@@ -91,7 +93,9 @@ export function ServiceAreasUpdate({
   };
 
   const toggleUpazila = (district: string, upazila: string) => {
-    const area = selected.find((a) => a.district === district);
+    const area = selected.find(
+      (a) => a.district === district,
+    );
     if (!area) return;
     const has = area.upazilas.includes(upazila);
     const nextUpazilas = has
@@ -142,7 +146,9 @@ export function ServiceAreasUpdate({
           ) : (
             <div className="space-y-3">
               {districts.map((d) => {
-                const area = selected.find((a) => a.district === d.value);
+                const area = selected.find(
+                  (a) => a.district === d.label || a.district === d.value,
+                );
                 const checked = Boolean(area);
                 return (
                   <div
@@ -153,7 +159,7 @@ export function ServiceAreasUpdate({
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() => toggleDistrict(d.value)}
+                        onChange={() => toggleDistrict(d.label)}
                         className="accent-primary"
                       />
                       {d.label}
@@ -170,7 +176,7 @@ export function ServiceAreasUpdate({
                               <input
                                 type="checkbox"
                                 checked={upChecked}
-                                onChange={() => toggleUpazila(d.value, u)}
+                                onChange={() => toggleUpazila(d.label, u)}
                                 className="accent-primary"
                               />
                               {u}

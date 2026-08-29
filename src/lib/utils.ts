@@ -68,3 +68,10 @@ export const generateSlug = (title: string) => {
 export const clamp = (value: number, min: number, max: number): number => {
   return Math.min(Math.max(value, min), max);
 };
+
+export const toBengaliDigits = (num: number | string | null | undefined): string => {
+  if (num == null) return "";
+  const bnDigits = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+  return String(num).replace(/\d/g, (d) => bnDigits[Number(d)] || d);
+};
+

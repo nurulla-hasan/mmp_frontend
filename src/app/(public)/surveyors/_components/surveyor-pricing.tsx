@@ -18,7 +18,7 @@ export function SurveyorPricing({
 
   return (
     <Card className="border-border/60 shadow-xs">
-      <CardHeader className="pb-3">
+      <CardHeader>
         <CardTitle className="text-base font-semibold">
           সেবার মূল্য তালিকা
         </CardTitle>

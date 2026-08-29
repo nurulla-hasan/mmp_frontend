@@ -25,13 +25,14 @@ export function PersonalInfoSection({ user, districts }: PersonalInfoSectionProp
     : null;
 
   const districtLabel =
-    districts.find((d) => d.value === user?.district)?.label || user?.district;
+    districts.find((d) => d.value === user?.district || d.label === user?.district)?.label ||
+    user?.district;
 
   const locationText = [user?.upazila, districtLabel].filter(Boolean).join(", ");
 
   return (
     <Card className="border-border/60 shadow-xs">
-      <CardHeader className="pb-4">
+      <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2 text-base">
           <span className="flex items-center gap-2 font-semibold">
             <User className="size-4 text-primary" />

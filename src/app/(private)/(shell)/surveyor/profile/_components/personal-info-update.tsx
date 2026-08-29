@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Edit } from "lucide-react";
@@ -48,12 +48,9 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
     },
   });
 
-  const selectedDistrict = useWatch({ control, name: "district" });
-  const districtObj = districts.find((d) => d.value === selectedDistrict);
-  const availableUpazilas = districtObj?.upazilas ?? [];
-
-  useEffect(() => {
-    if (open) {
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (newOpen) {
       reset({
         name: user?.name ?? "",
         phone: user?.phone ?? "",
@@ -63,11 +60,22 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
       });
       setError(null);
     }
-  }, [open, user, reset]);
+  };
+
+  const selectedDistrict = useWatch({ control, name: "district" });
+  const districtObj = districts.find((d) => d.label === selectedDistrict || d.value === selectedDistrict);
+  const availableUpazilas = districtObj?.upazilas ?? [];
 
   const onSubmit = async (values: UpdateMeFormValues) => {
     setError(null);
-    const result = await updateMeAction(values);
+    const cleanedValues = {
+      name: values.name?.trim() || undefined,
+      phone: values.phone?.trim() || undefined,
+      whatsappNumber: values.whatsappNumber?.trim() || undefined,
+      district: values.district?.trim() || undefined,
+      upazila: values.upazila?.trim() || undefined,
+    };
+    const result = await updateMeAction(cleanedValues);
     if (!result.success) {
       setError(result.message ?? "কিছু ভুল হয়েছে।");
       return;
@@ -78,7 +86,7 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
   return (
     <ModalWrapper
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={handleOpenChange}
       title="ব্যক্তিগত ও অবস্থান তথ্য আপডেট করুন"
       description="আপনার নাম, যোগাযোগ ও প্রধান অবস্থান (জেলা/উপজেলা) আপডেট করুন।"
       actionTrigger={
@@ -125,7 +133,7 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="primaryDistrictSelect">প্রধান জেলা (অবস্থান)</FieldLabel>
               <Select
-                value={field.value || undefined}
+                value={field.value ?? ""}
                 onValueChange={(val) => {
                   field.onChange(val ?? "");
                   // Reset upazila if district changes
@@ -137,7 +145,7 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
                 </SelectTrigger>
                 <SelectContent alignItemWithTrigger={false}>
                   {districts.map((d) => (
-                    <SelectItem key={d.value} value={d.value}>
+                    <SelectItem key={d.value} value={d.label}>
                       {d.label}
                     </SelectItem>
                   ))}
@@ -159,7 +167,7 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="primaryUpazilaSelect">উপজেলা / থানা</FieldLabel>
                 <Select
-                  value={field.value || undefined}
+                  value={field.value ?? ""}
                   onValueChange={(val) => field.onChange(val ?? "")}
                 >
                   <SelectTrigger id="primaryUpazilaSelect" className="w-full">

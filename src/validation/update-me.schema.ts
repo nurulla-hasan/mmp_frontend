@@ -7,7 +7,11 @@ export const updateMeSchema = z.object({
     .regex(/^01[3-9]\d{8}$/, "সঠিক ১১ সংখ্যার মোবাইল নম্বর দিন।")
     .or(z.literal(""))
     .optional(),
-  whatsappNumber: z.string().optional(),
+  whatsappNumber: z
+    .string()
+    .regex(/^01[3-9]\d{8}$/, "সঠিক ১১ সংখ্যার WhatsApp নম্বর দিন।")
+    .or(z.literal(""))
+    .optional(),
   district: z.string().optional(),
   upazila: z.string().optional(),
 });

@@ -11,7 +11,7 @@ export function SurveyorVerification({
 }) {
   return (
     <Card className="border-border/60 shadow-xs">
-      <CardHeader className="pb-3">
+      <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
           <ShieldCheck className="size-4 text-primary" />
           ভেরিফিকেশন

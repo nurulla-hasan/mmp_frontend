@@ -38,8 +38,9 @@ export function ProfessionalInfoUpdate({ profile }: ProfessionalInfoUpdateProps)
     },
   });
 
-  useEffect(() => {
-    if (open) {
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (newOpen) {
       reset({
         headline: profile?.headline ?? "",
         experienceYears: profile?.experienceYears ?? 0,
@@ -47,7 +48,7 @@ export function ProfessionalInfoUpdate({ profile }: ProfessionalInfoUpdateProps)
       });
       setError(null);
     }
-  }, [open, profile, reset]);
+  };
 
   const onSubmit = async (values: UpdateProfessionalInfoFormValues) => {
     setError(null);
@@ -62,7 +63,7 @@ export function ProfessionalInfoUpdate({ profile }: ProfessionalInfoUpdateProps)
   return (
     <ModalWrapper
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={handleOpenChange}
       title="পেশাগত তথ্য আপডেট করুন"
       description="আপনার শিরোনাম, অভিজ্ঞতা ও সম্পর্কে লিখুন।"
       actionTrigger={

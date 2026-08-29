@@ -1,9 +1,9 @@
-import { MessageCircle, BadgeCheck, CalendarDays, MapPin } from "lucide-react";
+import { MessageCircle, BadgeCheck, CalendarDays, MapPin, Briefcase } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn, getInitials } from "@/lib/utils";
+import { cn, getInitials, toBengaliDigits } from "@/lib/utils";
 import type { TSurveyorProfile } from "@/interface/surveyor-profile";
 import { StarRating } from "@/components/common/star-rating";
 
@@ -34,6 +34,7 @@ export function SurveyorHero({
     surveyor.primaryLocation?.upazila ||
     surveyor.serviceAreas?.[0]?.upazilas?.[0] ||
     "";
+  const experienceYears = surveyor.experienceYears ?? 0;
   const joinedAt = surveyor.user?.createdAt || surveyor.createdAt || surveyor.joinedAt || "";
   const rating = surveyor.rating ?? 0;
   const totalReviews = surveyor.totalReviews ?? 0;
@@ -86,6 +87,12 @@ export function SurveyorHero({
                   {[primaryUpazila, primaryDistrict].filter(Boolean).join(", ")}
                 </span>
               )}
+              {experienceYears > 0 && (
+                <span className="flex items-center gap-1.5">
+                  <Briefcase className="size-4 text-primary" />
+                  {toBengaliDigits(experienceYears)} বছর অভিজ্ঞতা
+                </span>
+              )}
               {joinedAt && (
                 <span className="flex items-center gap-1.5">
                   <CalendarDays className="size-4" />
@@ -100,10 +107,10 @@ export function SurveyorHero({
             <div className="shrink-0 rounded-xl border border-border/70 bg-muted/40 px-4 py-2.5 text-center">
               <div className="flex items-center gap-1 text-lg font-bold">
                 <StarRating rating={Math.round(rating)} totalStars={1} />
-                <span>{rating.toFixed(1)}</span>
+                <span>{toBengaliDigits(rating.toFixed(1))}</span>
               </div>
               <p className="whitespace-nowrap text-xs text-muted-foreground">
-                {totalReviews} টি রিভিউ
+                {toBengaliDigits(totalReviews)} টি রিভিউ
               </p>
             </div>
           ) : (

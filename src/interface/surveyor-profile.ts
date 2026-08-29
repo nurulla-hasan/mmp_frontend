@@ -2,6 +2,7 @@ export type TSurveyorService = {
   id: string;
   slug: string;
   name: string;
+  description?: string | null;
 };
 
 export type TSurveyorServiceWithPrice = {
@@ -11,6 +12,7 @@ export type TSurveyorServiceWithPrice = {
   service: {
     slug: string;
     name: string;
+    description?: string | null;
   };
 };
 

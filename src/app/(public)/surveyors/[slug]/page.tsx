@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { PageWrapper } from "@/components/common/page-wrapper";
 import { SurveyorHero } from "../_components/surveyor-hero";
-import { SurveyorStatsPanel } from "../_components/surveyor-stats-panel";
 import { SurveyorServices } from "../_components/surveyor-services";
 import { SurveyorServiceAreas } from "../_components/surveyor-service-areas";
 import { SurveyorPricing } from "../_components/surveyor-pricing";
@@ -49,8 +48,6 @@ export default async function Page({
       />
 
       <SurveyorHero surveyor={surveyor} />
-
-      <SurveyorStatsPanel surveyor={surveyor} />
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="space-y-8 lg:col-span-2">

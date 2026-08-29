@@ -21,7 +21,7 @@ export function ServicesSection({
 
   return (
     <Card className="border-border/60 shadow-xs">
-      <CardHeader className="pb-4">
+      <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2 text-base">
           <div className="flex items-center gap-2 font-semibold">
             <Award className="size-4 text-primary" />

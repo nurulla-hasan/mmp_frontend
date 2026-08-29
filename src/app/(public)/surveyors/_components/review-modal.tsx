@@ -8,6 +8,7 @@ import { MessageCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ModalWrapper } from "@/components/common/modal-wrapper";
+import { FormInput } from "@/components/common/form-input";
 import {
   Field,
   FieldError,
@@ -72,6 +73,14 @@ export function ReviewModal({
     >
       <form onSubmit={form.handleSubmit(handleFormSubmit)}>
         <div className="space-y-4">
+          {/* Reviewer Name */}
+          <FormInput
+            control={form.control}
+            name="reviewerName"
+            label="আপনার নাম"
+            placeholder="আপনার নাম লিখুন"
+          />
+
           {/* Service */}
           <Controller
             name="serviceName"
@@ -79,23 +88,21 @@ export function ReviewModal({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>কোন সার্ভিস ব্যবহার করেছেন?</FieldLabel>
-                <FieldGroup>
-                  <Select
-                    value={field.value}
-                    onValueChange={(val) => val && field.onChange(val)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="সার্ভিস নির্বাচন করুন" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {services.map((s) => (
-                        <SelectItem key={s.id} value={s.service.name}>
-                          {s.service.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FieldGroup>
+                <Select
+                  value={field.value ?? ""}
+                  onValueChange={(val) => field.onChange(val ?? "")}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="সার্ভিস নির্বাচন করুন" />
+                  </SelectTrigger>
+                  <SelectContent alignItemWithTrigger={false}>
+                    {services.map((s) => (
+                      <SelectItem key={s.id} value={s.service.name}>
+                        {s.service.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}

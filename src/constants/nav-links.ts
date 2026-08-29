@@ -3,9 +3,11 @@ import {
   FileText,
   Home,
   House,
+  Info,
   MapPin,
   Megaphone,
   MonitorSmartphone,
+  PhoneCall,
   Ruler,
   ShieldCheck,
   ShieldUser,
@@ -28,11 +30,13 @@ export const publicNavigation: NavigationItem[] = [
   { title: "হোম", href: "/", icon: Home },
   { title: "ল্যান্ড টুলস", href: "/tools", icon: Ruler },
   { title: "সার্ভেয়ার খুঁজুন", href: "/surveyors", icon: MapPin },
+  { title: "আমাদের সম্পর্কে", href: "/about", icon: Info },
+  { title: "যোগাযোগ", href: "/contact", icon: PhoneCall },
 ];
 
 export const userNavigation: NavigationItem[] = [
   {
-    title: "আমার ক্যালকুলেশন",
+    title: "ক্যালকুলেশন",
     href: "/calculations",
     icon: Calculator,
   },
@@ -44,9 +48,8 @@ export const userNavigation: NavigationItem[] = [
 ];
 
 export const surveyorNavigation: NavigationItem[] = [
-
   {
-    title: "আমার ক্যালকুলেশন",
+    title: "ক্যালকুলেশন",
     href: "/calculations",
     icon: Calculator,
   },
@@ -56,7 +59,6 @@ export const surveyorNavigation: NavigationItem[] = [
     href: "/surveyor/profile",
     icon: FileText,
   },
-
 ];
 
 export const adminNavigation: NavigationItem[] = [

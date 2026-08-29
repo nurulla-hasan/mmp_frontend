@@ -24,7 +24,7 @@ export function ServiceAreasSection({
   // Map service areas with their labels and upazilas
   const areasWithLabels = serviceAreas
     .map((a) => {
-      const match = districts.find((d) => d.value === a.district);
+      const match = districts.find((d) => d.value === a.district || d.label === a.district);
       return {
         districtValue: a.district,
         districtLabel: match?.label ?? a.district,
@@ -35,7 +35,7 @@ export function ServiceAreasSection({
 
   return (
     <Card className="border-border/60 shadow-xs">
-      <CardHeader className="pb-4">
+      <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2 text-base">
           <div className="flex items-center gap-2 font-semibold">
             <Globe className="size-4 text-primary" />
