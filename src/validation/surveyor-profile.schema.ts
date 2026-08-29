@@ -46,9 +46,20 @@ export const surveyorProfileSchema = z.object({
 
 export type SurveyorProfileFormValues = z.infer<typeof surveyorProfileSchema>;
 
-// ── Partial schemas for individual section updates ──
-// These match the backend `updateSurveyorProfileSchema` (all fields optional),
-// so each modal only validates the field it actually edits.
+export const updateProfessionalInfoSchema = z.object({
+  headline: z.string().min(2, "শিরোনাম কমপক্ষে ২ অক্ষরের হতে হবে।"),
+  experienceYears: z.coerce
+    .number()
+    .int("পূর্ণ সংখ্যা দিন।")
+    .min(0, "০ বা তার বেশি হতে হবে।")
+    .max(50, "৫০ এর বেশি হতে পারবে না।"),
+  bio: z.string().max(1000, "১০০০ অক্ষরের বেশি হতে পারবে না।").optional(),
+});
+
+export type UpdateProfessionalInfoFormValues = z.infer<
+  typeof updateProfessionalInfoSchema
+>;
+
 export const updateServiceAreasSchema = z.object({
   serviceAreas: z
     .array(serviceAreaFormSchema)

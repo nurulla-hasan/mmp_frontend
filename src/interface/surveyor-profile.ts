@@ -21,8 +21,18 @@ export type TSurveyorProfile = {
   headline?: string;
   bio?: string | null;
 
-  // Optional fields used by public mock data / future API expansion.
-  // These are NOT returned by the current backend endpoints.
+  user?: {
+    id: string;
+    name: string;
+    imageUrl: string;
+    phone: string;
+    whatsappNumber: string;
+    district: string;
+    upazila: string;
+    isSubscribed: boolean;
+    createdAt: string;
+  };
+
   fullName?: string;
   profilePhoto?: string;
   isSubscribed?: boolean;

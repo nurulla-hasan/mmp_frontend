@@ -1,6 +1,8 @@
 "use client";
 
-import { BadgeCheck, Star } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { BadgeCheck } from "lucide-react";
+import { StarRating } from "@/components/common/star-rating";
 
 import type {
   TSurveyorReview,
@@ -21,28 +23,18 @@ function ReviewCard({ review }: { review: TSurveyorReview }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-medium text-foreground">{review.reviewerName}</p>
-          <div className="mt-0.5 flex items-center gap-1.5">
-            <div className="flex items-center gap-0.5">
-              {Array.from({ length: 5 }, (_, i) => (
-                <Star
-                  key={i}
-                  className={`size-3.5 ${i < review.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
-                />
-              ))}
-            </div>
+          <div className="mt-1 flex items-center gap-1.5">
+            <StarRating rating={review.rating} size={13} />
             <span className="text-xs text-muted-foreground">
               — {review.serviceName}
             </span>
           </div>
         </div>
         {review.isVerifiedService && (
-          <span
-            className="flex items-center gap-1"
-            title="এই রিভিউটি যাচাইকৃত কাজের"
-          >
-            <BadgeCheck className="size-4 text-primary" />
-            <span className="text-xs text-muted-foreground">যাচাইকৃত কাজ</span>
-          </span>
+          <Badge variant="success" className="gap-1">
+            <BadgeCheck className="size-3" />
+            যাচাইকৃত কাজ
+          </Badge>
         )}
       </div>
       <p className="mt-2 leading-relaxed text-muted-foreground md:text-base">
@@ -103,9 +95,9 @@ export function SurveyorReviews({
               key={review.id}
               className="rounded-xl border border-dashed border-muted-foreground/30 bg-muted/30 p-4 opacity-60 space-y-2"
             >
-              <p className="text-xs text-muted-foreground">
-                ⏳ আপনার জমা দেওয়া রিভিউটি যাচাইয়ের অপেক্ষায় আছে
-              </p>
+              <Badge variant="progress">
+                ⏳ যাচাইয়ের অপেক্ষায়
+              </Badge>
               <ReviewCard review={review} />
             </div>
           ))}

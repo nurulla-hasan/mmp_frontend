@@ -1,5 +1,5 @@
 import { MapPin } from "lucide-react";
-
+import { Badge } from "@/components/ui/badge";
 import type { TSurveyorProfile } from "@/interface/surveyor-profile";
 
 export function SurveyorServiceAreas({
@@ -12,19 +12,32 @@ export function SurveyorServiceAreas({
       <h2 className="text-lg font-semibold font-heading md:text-xl">
         সেবা এলাকা
       </h2>
-      <div className="mt-4 grid gap-2 md:grid-cols-2">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {(serviceAreas ?? []).map((area) => (
           <div
             key={area.district}
-            className="rounded-xl border border-border bg-card px-4 py-3"
+            className="rounded-xl border border-border bg-card p-4 transition-colors hover:bg-muted/20"
           >
-            <h3 className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+            <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
               <MapPin className="size-3.5 shrink-0 text-primary" />
               {area.district}
             </h3>
-            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              {area.upazilas.join(" · ")}
-            </p>
+            {area.upazilas.length > 0 ? (
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {area.upazilas.map((upazila) => (
+                  <Badge
+                    key={upazila}
+                    variant="outline"
+                  >
+                    {upazila}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-xs text-muted-foreground">
+                জেলার সকল উপজেলায় সেবা প্রযোজ্য
+              </p>
+            )}
           </div>
         ))}
       </div>

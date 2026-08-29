@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Edit } from "lucide-react";
@@ -9,7 +9,10 @@ import { ModalWrapper } from "@/components/common/modal-wrapper";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/common/form-input";
 import { updateMySurveyorProfileAction } from "../_actions/surveyor-profile.action";
-import { surveyorProfileSchema, type SurveyorProfileFormValues } from "@/validation/surveyor-profile.schema";
+import {
+  updateProfessionalInfoSchema,
+  type UpdateProfessionalInfoFormValues,
+} from "@/validation/surveyor-profile.schema";
 import type { TSurveyorProfile } from "@/interface/surveyor-profile";
 
 type ProfessionalInfoUpdateProps = {
@@ -23,20 +26,30 @@ export function ProfessionalInfoUpdate({ profile }: ProfessionalInfoUpdateProps)
   const {
     control,
     handleSubmit,
+    reset,
     formState: { isSubmitting },
-  } = useForm<SurveyorProfileFormValues>({
+  } = useForm<UpdateProfessionalInfoFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(surveyorProfileSchema) as any,
+    resolver: zodResolver(updateProfessionalInfoSchema) as any,
     defaultValues: {
       headline: profile?.headline ?? "",
       experienceYears: profile?.experienceYears ?? 0,
       bio: profile?.bio ?? "",
-      serviceAreas: [],
-      services: [],
-    } as unknown as SurveyorProfileFormValues,
+    },
   });
 
-  const onSubmit = async (values: SurveyorProfileFormValues) => {
+  useEffect(() => {
+    if (open) {
+      reset({
+        headline: profile?.headline ?? "",
+        experienceYears: profile?.experienceYears ?? 0,
+        bio: profile?.bio ?? "",
+      });
+      setError(null);
+    }
+  }, [open, profile, reset]);
+
+  const onSubmit = async (values: UpdateProfessionalInfoFormValues) => {
     setError(null);
     const result = await updateMySurveyorProfileAction(values);
     if (!result.success) {

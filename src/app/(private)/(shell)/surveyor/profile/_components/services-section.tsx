@@ -58,10 +58,7 @@ export function ServicesSection({
                 </div>
 
                 <div className="shrink-0 text-right">
-                  <Badge
-                    variant="outline"
-                    className="border-emerald-500/30 bg-emerald-500/10 font-semibold text-emerald-600 dark:text-emerald-400"
-                  >
+                  <Badge variant="success">
                     <Tag className="mr-1 size-3" />
                     ৳{(service.startingPrice ?? 0).toLocaleString("bn-BD")}
                   </Badge>

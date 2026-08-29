@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Banknote } from "lucide-react";
 
 import type { TSurveyorProfile } from "@/interface/surveyor-profile";
@@ -47,10 +48,12 @@ export function SurveyorServices({
                   {service.service.name}
                 </h3>
                 {service.startingPrice != null && (
-                  <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-primary">
-                    <Banknote className="size-3" />
-                    ৳{service.startingPrice.toLocaleString("bn")} থেকে
-                  </p>
+                  <div className="mt-1">
+                    <Badge variant="success">
+                      <Banknote className="size-3" />
+                      ৳{service.startingPrice.toLocaleString("bn-BD")} থেকে
+                    </Badge>
+                  </div>
                 )}
               </div>
             </div>

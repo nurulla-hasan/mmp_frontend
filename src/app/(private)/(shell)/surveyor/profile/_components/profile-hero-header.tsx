@@ -56,17 +56,17 @@ export function ProfileHeroHeader({ user, profile, districts = [] }: ProfileHero
                   {name}
                 </h1>
                 {isVerified ? (
-                  <Badge variant="default" className="gap-1 bg-emerald-600/90 text-white hover:bg-emerald-600">
+                  <Badge variant="success" className="gap-1">
                     <CheckCircle2 className="size-3.5" />
                     ভেরিফাইড সার্ভেয়ার
                   </Badge>
                 ) : verificationStatus === "REJECTED" ? (
-                  <Badge variant="destructive" className="gap-1">
+                  <Badge variant="rejected" className="gap-1">
                     <ShieldAlert className="size-3.5" />
                     আবেদন বাতিল
                   </Badge>
                 ) : (
-                  <Badge variant="secondary" className="gap-1 text-amber-600 dark:text-amber-400">
+                  <Badge variant="progress" className="gap-1">
                     <Clock className="size-3.5" />
                     ভেরিফিকেশন অপেক্ষমাণ
                   </Badge>

@@ -1,8 +1,9 @@
-import { Quote, Star } from "lucide-react";
+import { Quote } from "lucide-react";
 
 import { SectionHeading } from "@/components/common/section-heading";
 import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
+import { StarRating } from "@/components/common/star-rating";
 
 const testimonials = [
   {
@@ -34,17 +35,8 @@ export function TestimonialsSection() {
               <p className="text-sm leading-6 text-muted-foreground">
                 &ldquo;{t.content}&rdquo;
               </p>
-              <div className="mt-4 flex items-center gap-1">
-                {Array.from({ length: 5 }).map((_, j) => (
-                  <Star
-                    key={j}
-                    className={`size-3.5 ${
-                      j < t.rating
-                        ? "fill-yellow-500 text-yellow-500"
-                        : "text-muted-foreground/30"
-                    }`}
-                  />
-                ))}
+              <div className="mt-4">
+                <StarRating rating={t.rating} size={14} />
               </div>
               <div className="mt-3 border-t pt-3">
                 <p className="text-xs text-muted-foreground">{t.role}</p>

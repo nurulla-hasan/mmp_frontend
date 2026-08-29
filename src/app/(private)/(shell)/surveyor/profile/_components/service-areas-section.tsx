@@ -67,8 +67,7 @@ export function ServiceAreasSection({
                     {area.upazilas.map((upazila) => (
                       <Badge
                         key={upazila}
-                        variant="secondary"
-                        className="border border-border/40 bg-background/80 text-xs font-normal text-muted-foreground"
+                        variant="outline"
                       >
                         {upazila}
                       </Badge>

@@ -68,14 +68,14 @@ export function PersonalInfoSection({ user, districts }: PersonalInfoSectionProp
         </div>
 
         {/* WhatsApp Number */}
-        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 dark:bg-emerald-950/10">
+        <div className="rounded-lg border border-border/40 bg-muted/20 p-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-              <MessageCircle className="size-3.5" />
+            <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <MessageCircle className="size-3.5 text-primary" />
               WhatsApp নম্বর
             </p>
             {user?.whatsappNumber && (
-              <Badge variant="secondary" className="bg-emerald-500/15 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+              <Badge variant="success">
                 সক্রিয়
               </Badge>
             )}
@@ -93,10 +93,10 @@ export function PersonalInfoSection({ user, districts }: PersonalInfoSectionProp
               ইমেইল
             </p>
             {user?.emailVerified && (
-              <span className="flex items-center gap-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+              <Badge variant="success" className="gap-1">
                 <CheckCircle2 className="size-3" />
                 যাচাইকৃত
-              </span>
+              </Badge>
             )}
           </div>
           <p className="mt-1 break-all text-sm font-medium text-foreground">

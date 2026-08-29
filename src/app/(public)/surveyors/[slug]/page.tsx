@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { PageWrapper } from "@/components/common/page-wrapper";
-import type { TSurveyorProfile } from "@/interface/surveyor-profile";
 import { SurveyorHero } from "../_components/surveyor-hero";
 import { SurveyorStatsPanel } from "../_components/surveyor-stats-panel";
 import { SurveyorServices } from "../_components/surveyor-services";
@@ -10,156 +9,25 @@ import { SurveyorPricing } from "../_components/surveyor-pricing";
 import { SurveyorVerification } from "../_components/surveyor-verification";
 import { SurveyorReviews } from "../_components/surveyor-reviews";
 import CustomBreadcrumb from "@/components/common/custom-breadcrumb";
+import { getSurveyorBySlug } from "@/services/auth.service";
 
-// ─── Mock data ───────────────────────────────────────────
-const mockSurveyors: Record<string, TSurveyorProfile> = {
-  "md-abdul-karim": {
-    id: "surveyor-001",
-    slug: "md-abdul-karim",
-    userId: "user-001",
-    fullName: "মো. আব্দুল করিম",
-    // profilePhoto: "/images/surveyors/abdul-karim.webp",
-    headline: "জমি পরিমাপ ও সীমানা নির্ধারণে অভিজ্ঞ সার্ভেয়ার",
-    bio: "আমি দিনাজপুর সদর ও আশপাশের এলাকায় দীর্ঘদিন ধরে জমি পরিমাপ, সীমানা নির্ধারণ, জমি ভাগ-বাটোয়ারা এবং পরিমাপ রিপোর্ট প্রস্তুতের কাজ করে আসছি। কাজের প্রতিটি ধাপ সহজ ভাষায় বুঝিয়ে দেওয়ার চেষ্টা করি।",
-    isVerified: true,
-    isSubscribed: true,
-    experienceYears: 8,
-    joinedAt: "2026-01-12T10:30:00.000Z",
-    primaryLocation: {
-      district: "দিনাজপুর",
-      upazila: "দিনাজপুর সদর",
-    },
-    serviceAreas: [
-      {
-        district: "দিনাজপুর",
-        upazilas: ["দিনাজপুর সদর", "বিরল", "কাহারোল", "বোচাগঞ্জ"],
-      },
-      {
-        district: "ঠাকুরগাঁও",
-        upazilas: ["ঠাকুরগাঁও সদর"],
-      },
-    ],
-    surveyorServices: [
-      {
-        id: "service-001",
-        serviceId: "svc-001",
-        startingPrice: 3500,
-        service: { slug: "land-measurement", name: "জমি পরিমাপ" },
-      },
-      {
-        id: "service-002",
-        serviceId: "svc-002",
-        startingPrice: 5000,
-        service: { slug: "land-division", name: "জমি ভাগ" },
-      },
-      {
-        id: "service-003",
-        serviceId: "svc-003",
-        startingPrice: 3000,
-        service: { slug: "boundary-determination", name: "সীমানা নির্ধারণ" },
-      },
-      {
-        id: "service-004",
-        serviceId: "svc-004",
-        startingPrice: 2000,
-        service: { slug: "survey-report", name: "পরিমাপ রিপোর্ট তৈরি" },
-      },
-      {
-        id: "service-005",
-        serviceId: "svc-005",
-        startingPrice: 6000,
-        service: { slug: "digital-survey", name: "ডিজিটাল সার্ভে" },
-      },
-      {
-        id: "service-006",
-        serviceId: "svc-006",
-        startingPrice: 1500,
-        service: { slug: "khatian-search", name: "খতিয়ান অনুসন্ধান" },
-      },
-    ],
-    rating: 4.8,
-    totalReviews: 3,
-    whatsappNumber: "01712345678",
-    completedRequests: 128,    verificationStatus: "APPROVED",
-    createdAt: "2026-01-12T10:30:00.000Z",
-    updatedAt: "2026-01-18T09:15:00.000Z",    verification: {
-      identityReviewed: true,
-      professionalInformationReviewed: true,
-      verifiedAt: "2026-01-18T09:15:00.000Z",
-      note: "পরিচয় ও জমা দেওয়া professional তথ্য Mouza Map Pro কর্তৃক review করা হয়েছে। এটি সরকারি certification নয়।",
-    },
-    reviews: [
-      {
-        id: "review-001",
-        reviewerName: "রহিম উদ্দিন",
-        rating: 5,
-        comment:
-          "সময়মতো এসে জমির পরিমাপ করেছেন এবং পুরো হিসাবটি সহজভাবে বুঝিয়ে দিয়েছেন।",
-        serviceName: "জমি পরিমাপ",
-        createdAt: "2026-06-18T14:20:00.000Z",
-        isVerifiedService: true,
-        status: "approved",
-      },
-      {
-        id: "review-002",
-        reviewerName: "মো. কামাল হোসেন",
-        rating: 4,
-        comment:
-          "কাজ ভালো হয়েছে। সীমানার বিষয়গুলো পরিষ্কারভাবে দেখিয়ে দিয়েছেন।",
-        serviceName: "সীমানা নির্ধারণ",
-        createdAt: "2026-05-27T11:40:00.000Z",
-        isVerifiedService: true,
-        status: "approved",
-      },
-      {
-        id: "review-003",
-        reviewerName: "সাবিনা ইয়াসমিন",
-        rating: 5,
-        comment:
-          "পারিবারিক জমি ভাগের হিসাব এবং রিপোর্ট সুন্দরভাবে তৈরি করে দিয়েছেন।",
-        serviceName: "জমি ভাগ",
-        createdAt: "2026-04-09T16:10:00.000Z",
-        isVerifiedService: true,
-        status: "approved",
-      },
-      {
-        id: "review-pending-001",
-        reviewerName: "আনোয়ার হোসেন",
-        rating: 4,
-        comment: "ভালো কাজ করেছেন। তবে একটু দেরি করেছিলেন।",
-        serviceName: "জমি পরিমাপ",
-        createdAt: "2026-07-20T10:30:00.000Z",
-        isVerifiedService: false,
-        status: "pending",
-      },
-      {
-        id: "review-pending-002",
-        reviewerName: "শামীমা বেগম",
-        rating: 3,
-        comment: "মোটামুটি কাজ। আরও ভালো হতে পারে সীমানা নির্ধারণ।",
-        serviceName: "সীমানা নির্ধারণ",
-        createdAt: "2026-07-19T16:45:00.000Z",
-        isVerifiedService: false,
-        status: "pending",
-      },
-    ],
-  },
-};
-
-// ─── Page ──────────────────────────────────────────────────
 export default async function Page({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const surveyor = mockSurveyors[slug];
+  const result = await getSurveyorBySlug(slug);
+  const surveyor = result.success ? result.data : null;
 
   if (!surveyor) {
     return (
       <PageWrapper>
-        <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-muted-foreground">সার্ভেয়ার খুঁজে পাওয়া যায়নি</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <h2 className="text-xl font-bold">সার্ভেয়ার খুঁজে পাওয়া যায়নি</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            এই লিংকের সার্ভেয়ার প্রোফাইলটি সক্রিয় নেই অথবা মুছে ফেলা হয়েছে।
+          </p>
           <Button className="mt-4" nativeButton={false} render={<Link href="/surveyors" />}>
             সার্ভেয়ার তালিকায় ফিরুন
           </Button>
@@ -168,13 +36,15 @@ export default async function Page({
     );
   }
 
+  const fullName = surveyor.user?.name || surveyor.fullName || "সার্ভেয়ার";
+
   return (
     <PageWrapper className="space-y-6" paddingSize="small">
       <CustomBreadcrumb
         links={[
           { name: "হোম", href: "/" },
           { name: "সার্ভেয়ার", href: "/surveyors" },
-          { name: surveyor.fullName ?? "", isCurrent: true },
+          { name: fullName, isCurrent: true },
         ]}
       />
 
@@ -186,7 +56,6 @@ export default async function Page({
         <div className="space-y-8 lg:col-span-2">
           <SurveyorServices services={surveyor.surveyorServices} />
           <SurveyorServiceAreas serviceAreas={surveyor.serviceAreas} />
-          {/* surveyorServices/serviceAreas are optional in type; components handle undefined */}
         </div>
         <div className="space-y-6">
           <SurveyorPricing surveyor={surveyor} />

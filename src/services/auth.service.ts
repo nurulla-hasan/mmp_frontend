@@ -10,8 +10,10 @@ import type {
   VerifyEmailPayload,
 } from "@/interface/auth";
 import type { TSurveyorProfile, TSurveyorService } from "@/interface/surveyor-profile";
+import { buildQueryString } from "@/lib/buildQueryString";
 import { nextServerFetch } from "@/lib/nextServerFetch";
 import { CACHE_TAGS, CACHE_TIME } from "@/lib/cache-tags";
+import type { TQuery } from "@/interface/global";
 
 export type AuthTokens = {
   accessToken: string;
@@ -114,6 +116,20 @@ export const getDistricts = () =>
   );
 
 // ── Surveyor profile ──
+export const getAllSurveyors = (query?: TQuery) => {
+  const params = buildQueryString(query ?? {});
+  return nextServerFetch<TSurveyorProfile[]>(`/surveyor${params}`, {
+    auth: "none",
+    next: { tags: [CACHE_TAGS.surveyors], revalidate: CACHE_TIME.day },
+  });
+};
+
+export const getSurveyorBySlug = (slug: string) =>
+  nextServerFetch<TSurveyorProfile>(`/surveyor/${slug}`, {
+    auth: "none",
+    next: { tags: [CACHE_TAGS.surveyorProfile], revalidate: 60 },
+  });
+
 export const applyAsSurveyor = (payload: unknown) =>
   nextServerFetch<TSurveyorProfile>("/surveyor/profile", {
     method: "POST",
