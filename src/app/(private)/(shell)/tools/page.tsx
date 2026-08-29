@@ -82,7 +82,7 @@ export default function ToolsPage() {
   const FeaturedIcon = featuredTool.icon;
 
   return (
-    <PageWrapper className="space-y-10">
+    <PageWrapper paddingSize="large" className="space-y-6">
       {/* ─── Featured Tool ──────────────────────────────────── */}
       <section>
         <Link href={featuredTool.href} className="group block">

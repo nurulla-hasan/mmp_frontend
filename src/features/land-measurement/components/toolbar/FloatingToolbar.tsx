@@ -3,7 +3,7 @@
 import { useRef, useMemo, useCallback, memo } from 'react';
 import {
     Upload, Ruler, PenTool, Scissors, Eye, EyeOff, Search, HelpCircle,
-    Moon, Sun, MoreHorizontal, HardDrive, RotateCcw
+    Moon, Sun, MoreHorizontal, HardDrive, RotateCcw, FolderOpen, BookmarkCheck
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useShallow } from 'zustand/shallow';
@@ -60,7 +60,7 @@ const ToolBtn = memo(function ToolBtn({
             nativeButton={!href}
             render={href ? <a href={href} target="_blank" rel="noopener noreferrer" /> : undefined}
         >
-            <Icon className={size === 'md' ? "w-5 h-5" : "w-4 h-4"} />
+            <Icon className={size === 'md' ? "size-5" : "size-4"} />
         </Button>
     );
 
@@ -79,7 +79,12 @@ function VDivider() {
     return <div className="my-1 h-px w-7 self-center bg-border" />;
 }
 
-export function FloatingToolbar() {
+interface FloatingToolbarProps {
+    onOpenLoad?: () => void;
+    onOpenSave?: () => void;
+}
+
+export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps = {}) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { theme, setTheme } = useTheme();
 
@@ -154,6 +159,26 @@ export function FloatingToolbar() {
                 disabled={isProcessingFile}
                 size={size}
                 id="step-image-upload"
+            />
+        ),
+        saved: (size: 'md' | 'sm' = 'md') => (
+            <ToolBtn
+                icon={FolderOpen}
+                label="সংরক্ষিত পরিমাপসমূহ"
+                onClick={onOpenLoad}
+                size={size}
+                id="step-saved-calculations"
+            />
+        ),
+        save: (size: 'md' | 'sm' = 'md') => (
+            <ToolBtn
+                icon={BookmarkCheck}
+                label={plots.length > 0 ? "পরিমাপ সেভ করুন" : "সেভ করতে প্লট আঁকুন"}
+                active={plots.length > 0}
+                onClick={onOpenSave}
+                disabled={plots.length === 0}
+                size={size}
+                id="step-save-calculation"
             />
         ),
         drive: (size: 'md' | 'sm' = 'md') => (
@@ -250,7 +275,7 @@ export function FloatingToolbar() {
             />
         ),
     }), [
-        selectedFile, isProcessingFile, handleUploadClick,
+        selectedFile, isProcessingFile, handleUploadClick, onOpenLoad, onOpenSave,
         scale, mode, image, plots.length, isDrawing, handleCalibrateClick, startPlotDrawing,
         startManualDivide, isShowDiagonals, setIsShowDiagonals,
         isMagnifierEnabled, setIsMagnifierEnabled, theme, setTheme, confirmClearMap
@@ -272,6 +297,8 @@ export function FloatingToolbar() {
                 className="absolute right-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl md:flex"
             >
                 {commonTools.upload()}
+                {commonTools.saved()}
+                {plots.length > 0 && commonTools.save()}
                 {commonTools.drive()}
                 <VDivider />
                 {commonTools.calibrate()}
@@ -294,6 +321,8 @@ export function FloatingToolbar() {
 
             <div id="step-toolbar" className={`absolute bottom-4 left-1/2 z-40 w-max max-w-[95vw] flex-wrap -translate-x-1/2 items-center justify-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl ${isDrawing ? 'hidden' : 'flex md:hidden'}`}>
                 {commonTools.upload('sm')}
+                {commonTools.saved('sm')}
+                {plots.length > 0 && commonTools.save('sm')}
                 {commonTools.drive('sm')}
                 {commonTools.calibrate('sm')}
                 {commonTools.draw('sm')}

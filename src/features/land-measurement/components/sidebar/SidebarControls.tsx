@@ -1,4 +1,4 @@
-﻿import { memo, useMemo, useState, useEffect, useRef } from 'react';
+import { memo, useMemo, useState, useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -208,7 +208,7 @@ export const SidebarControls = memo(function SidebarControls() {
           <div className='flex gap-1.5'>
             {mode === 'drawing_plot' && (
               <Button size="sm" onClick={() => { setMode('none'); setIsDrawing(false); setSnapHint(false); }} variant="destructive" title="আঁকা বন্ধ করুন">
-                <X />
+                <X className="size-4" />
               </Button>
             )}
             <Button size="sm" onClick={() => confirmClearPlot()} disabled={plots.length === 0 && plotPoints.length === 0} variant="outline" title="সব প্লট মুছুন">

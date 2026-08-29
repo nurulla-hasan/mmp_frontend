@@ -1,6 +1,7 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import nextDynamic from 'next/dynamic';
 import { HardDrive, Ruler, Upload } from 'lucide-react';
@@ -15,6 +16,8 @@ import { ResultsDisplay } from '@/features/land-measurement/components/ResultsDi
 import { SidebarControls } from '@/features/land-measurement/components/sidebar/SidebarControls';
 import { FloatingToolbar } from '@/features/land-measurement/components/toolbar/FloatingToolbar';
 import { TutorialGuide } from '@/features/land-measurement/components/tutorial-guide';
+import { SaveCalculationDialog } from '@/features/land-measurement/components/calculations/save-calculation-dialog';
+import { LoadCalculationDialog } from '@/features/land-measurement/components/calculations/load-calculation-dialog';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 
 const KonvaStage = nextDynamic(
@@ -42,9 +45,14 @@ export default function MapCalculator() {
   const printRef = useRef<HTMLDivElement | null>(null);
   const previousModeRef = useRef<string | null>(null);
 
+  const searchParams = useSearchParams();
+  const calculationId = searchParams.get('calculationId');
+
+  const [isLoadOpen, setIsLoadOpen] = useState(Boolean(calculationId));
+  const [initialCalcId, setInitialCalcId] = useState<string | null>(calculationId);
+  const [isSaveOpen, setIsSaveOpen] = useState(false);
+
   const {
-    savedPlots,
-    deleteSavedPlot,
     setStageSize,
     mode,
     plotPoints,
@@ -52,8 +60,6 @@ export default function MapCalculator() {
     isProcessingFile,
   } = useMapStore(
     useShallow((s) => ({
-      savedPlots: s.savedPlots,
-      deleteSavedPlot: s.deleteSavedPlot,
       setStageSize: s.setStageSize,
       mode: s.mode,
       plotPoints: s.plotPoints,
@@ -61,6 +67,13 @@ export default function MapCalculator() {
       isProcessingFile: s.isProcessingFile,
     })),
   );
+
+  useEffect(() => {
+    if (calculationId) {
+      setInitialCalcId(calculationId);
+      setIsLoadOpen(true);
+    }
+  }, [calculationId]);
 
   useEffect(() => {
     const updateSize = () => {
@@ -183,7 +196,13 @@ export default function MapCalculator() {
             </div>
           )}
 
-          <FloatingToolbar />
+          <FloatingToolbar
+            onOpenLoad={() => {
+              setInitialCalcId(null);
+              setIsLoadOpen(true);
+            }}
+            onOpenSave={() => setIsSaveOpen(true)}
+          />
           <SidebarControls />
         </div>
 
@@ -192,37 +211,14 @@ export default function MapCalculator() {
             <ResultsDisplay onPrint={handlePrint} />
           )}
         </div>
-
-        {savedPlots.length > 0 && (
-          <div className="border-t bg-gray-50 py-2 print:hidden">
-            <div className={cn(`${CONTAINER_MAX_WIDTH} mx-auto px-4 xl:px-0`)}>
-              <h3 className="mb-2 text-sm font-medium text-gray-700">সংরক্ষিত প্লট</h3>
-              <div className="flex flex-wrap gap-3">
-                {savedPlots.map((plot, index) => (
-                  <div
-                    key={plot.id}
-                    className="flex items-center gap-2 rounded border bg-white px-3 py-1.5 text-sm shadow-sm"
-                  >
-                    <span className="font-medium text-gray-800">
-                      {plot.name || `প্লট ${index + 1}`}
-                    </span>
-                    <span className="text-gray-500">
-                      {plot.results.shotok.toFixed(4)} শতক
-                    </span>
-                    <button
-                      onClick={() => deleteSavedPlot(plot.id)}
-                      className="ml-1 text-red-500 hover:text-red-700"
-                      aria-label={`মুছুন ${plot.name || `প্লট ${index + 1}`}`}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      <SaveCalculationDialog open={isSaveOpen} onOpenChange={setIsSaveOpen} />
+      <LoadCalculationDialog
+        open={isLoadOpen}
+        onOpenChange={setIsLoadOpen}
+        initialCalculationId={initialCalcId}
+      />
 
       <PrintLayout ref={printRef} />
       <TutorialGuide />

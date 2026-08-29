@@ -1,10 +1,13 @@
-import * as pdfjs from 'pdfjs-dist';
 import { PDFDocument, PDFName } from 'pdf-lib';
 
-// PDF.js worker — CDN (no extra file copy needed)
-if (typeof window !== 'undefined') {
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-}
+// Dynamic lazy loader for pdfjs-dist to avoid SSR DOMMatrix / window evaluation errors
+const getPdfjs = async () => {
+  const pdfjs = await import('pdfjs-dist');
+  if (typeof window !== 'undefined' && !pdfjs.GlobalWorkerOptions.workerSrc) {
+    pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+  }
+  return pdfjs;
+};
 
 const MAX_PDF_SIZE_BYTES = 25 * 1024 * 1024;
 
@@ -25,76 +28,48 @@ export interface PdfDpiInfo {
   imageHeightPx: number;
 }
 
-/**
- * Detects the scanning DPI of a PDF by extracting the first page's
- * embedded image XObject dimensions via pdf-lib, then comparing
- * against the page's physical size.
- *
- * How it works:
- * - PDF page size is measured in `points` (1pt = 1/72 inch)
- * - Embedded scanned images have native pixel dimensions stored
- *   in the XObject dictionary (Width / Height)
- * - DPI = image_pixel_width / (page_width_points / 72)
- *
- * Best for scanned PDFs like Bangladesh mouza maps.
- * Returns `null` if the PDF has no detectable embedded image.
- */
-/**
- * Detects the scanning DPI of a PDF by extracting the first page's
- * embedded image XObject dimensions via pdf-lib, then comparing
- * against the page's physical size.
- *
- * How it works:
- * - PDF page size is measured in `points` (1pt = 1/72 inch)
- * - Embedded scanned images have native pixel dimensions stored
- *   in the XObject dictionary (Width / Height)
- * - DPI = image_pixel_width / (page_width_points / 72)
- *
- * For Bangladesh mouza maps (scanned PDFs), this reliably returns
- * the scan DPI (usually 200, 300, or 600 DPI).
- *
- * Returns `null` if no embedded image XObject is found.
- */
 type PdfSource = File | ArrayBuffer;
 
 const MAX_PDF_RENDER_DIMENSION = 4096;
-const MAX_PDF_RENDER_PIXELS = 12_000_000;
+const MAX_PDF_RENDER_PIXELS = 16 * 1024 * 1024;
 
 const readPdfBytes = async (source: PdfSource): Promise<ArrayBuffer> => {
-  if (source instanceof File) {
-    if (source.size > MAX_PDF_SIZE_BYTES) {
-      throw new Error('PDF file is too large');
-    }
-    return source.arrayBuffer();
+  if (source instanceof ArrayBuffer) {
+    return source;
   }
 
-  if (source.byteLength > MAX_PDF_SIZE_BYTES) {
-    throw new Error('PDF file is too large');
+  if (source.size > MAX_PDF_SIZE_BYTES) {
+    throw new Error('PDF file exceeds the 25MB limit');
   }
 
-  return source;
+  return source.arrayBuffer();
 };
 
 export async function detectPdfDpi(source: PdfSource): Promise<PdfDpiInfo | null> {
   try {
     const buffer = await readPdfBytes(source);
-    const pdfDoc = await PDFDocument.load(new Uint8Array(buffer), {
-      ignoreEncryption: true,
-    });
-    const firstPage = pdfDoc.getPages()[0];
-    if (!firstPage) return null;
+    const pdfDoc = await PDFDocument.load(buffer, { ignoreEncryption: true });
+    const page = pdfDoc.getPages()[0];
+    if (!page) return null;
 
-    const { width: pageWidthPts, height: pageHeightPts } = firstPage.getSize();
+    const { width: pageWidthPts, height: pageHeightPts } = page.getSize();
     const pageWidthInches = pageWidthPts / 72;
     const pageHeightInches = pageHeightPts / 72;
+
     let imageW = 0;
     let imageH = 0;
 
-    if (typeof pdfDoc.context?.enumerateIndirectObjects === 'function') {
-      for (const [, obj] of pdfDoc.context.enumerateIndirectObjects()) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const xObjects = page.node.Resources()?.lookup(PDFName.of('XObject')) as any;
+    if (xObjects) {
+      const keys = typeof xObjects.keys === 'function' ? xObjects.keys() : [];
+      for (const key of keys) {
+        const xObject = typeof xObjects.lookup === 'function' ? xObjects.lookup(key) : null;
+        if (!xObject) continue;
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const stream = obj as any;
-        if (!stream?.dict?.get) continue;
+        const stream = xObject as any;
+        if (!stream.dict) continue;
 
         const subtype = stream.dict.get(PDFName.of('Subtype'));
         if (subtype?.toString() !== '/Image') continue;
@@ -132,6 +107,7 @@ export const extractImageFromPDF = async (
   source: PdfSource,
 ): Promise<HTMLImageElement> => {
   const buffer = await readPdfBytes(source);
+  const pdfjs = await getPdfjs();
   const loadingTask = pdfjs.getDocument({ data: new Uint8Array(buffer) });
   const pdf = await loadingTask.promise;
   const page = await pdf.getPage(1);
@@ -160,7 +136,8 @@ export const extractImageFromPDF = async (
     canvas.width = Math.ceil(viewport.width);
     canvas.height = Math.ceil(viewport.height);
 
-    await page.render({ canvas, canvasContext: context, viewport }).promise;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (page.render as any)({ canvasContext: context, viewport }).promise;
 
     const blob = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((result) => {

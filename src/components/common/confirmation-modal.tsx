@@ -85,7 +85,7 @@ export function ConfirmationModal({
   return (
     <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
       {" "}
-      {finalTrigger !== null && (
+      {(isValidElement(finalTrigger) || (!isControlled && finalTrigger !== null)) && (
         <AlertDialogTrigger
           render={
             isValidElement(finalTrigger) ? (
