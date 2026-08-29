@@ -16,6 +16,7 @@ const mockSurveyors: Record<string, TSurveyorProfile> = {
   "md-abdul-karim": {
     id: "surveyor-001",
     slug: "md-abdul-karim",
+    userId: "user-001",
     fullName: "মো. আব্দুল করিম",
     // profilePhoto: "/images/surveyors/abdul-karim.webp",
     headline: "জমি পরিমাপ ও সীমানা নির্ধারণে অভিজ্ঞ সার্ভেয়ার",
@@ -38,49 +39,50 @@ const mockSurveyors: Record<string, TSurveyorProfile> = {
         upazilas: ["ঠাকুরগাঁও সদর"],
       },
     ],
-    services: [
+    surveyorServices: [
       {
         id: "service-001",
-        slug: "land-measurement",
-        name: "জমি পরিমাপ",
+        serviceId: "svc-001",
         startingPrice: 3500,
+        service: { slug: "land-measurement", name: "জমি পরিমাপ" },
       },
       {
         id: "service-002",
-        slug: "land-division",
-        name: "জমি ভাগ",
+        serviceId: "svc-002",
         startingPrice: 5000,
+        service: { slug: "land-division", name: "জমি ভাগ" },
       },
       {
         id: "service-003",
-        slug: "boundary-determination",
-        name: "সীমানা নির্ধারণ",
+        serviceId: "svc-003",
         startingPrice: 3000,
+        service: { slug: "boundary-determination", name: "সীমানা নির্ধারণ" },
       },
       {
         id: "service-004",
-        slug: "survey-report",
-        name: "পরিমাপ রিপোর্ট তৈরি",
+        serviceId: "svc-004",
         startingPrice: 2000,
+        service: { slug: "survey-report", name: "পরিমাপ রিপোর্ট তৈরি" },
       },
       {
         id: "service-005",
-        slug: "digital-survey",
-        name: "ডিজিটাল সার্ভে",
+        serviceId: "svc-005",
         startingPrice: 6000,
+        service: { slug: "digital-survey", name: "ডিজিটাল সার্ভে" },
       },
       {
         id: "service-006",
-        slug: "khatian-search",
-        name: "খতিয়ান অনুসন্ধান",
+        serviceId: "svc-006",
         startingPrice: 1500,
+        service: { slug: "khatian-search", name: "খতিয়ান অনুসন্ধান" },
       },
     ],
     rating: 4.8,
     totalReviews: 3,
     whatsappNumber: "01712345678",
-    completedRequests: 128,
-    verification: {
+    completedRequests: 128,    verificationStatus: "APPROVED",
+    createdAt: "2026-01-12T10:30:00.000Z",
+    updatedAt: "2026-01-18T09:15:00.000Z",    verification: {
       identityReviewed: true,
       professionalInformationReviewed: true,
       verifiedAt: "2026-01-18T09:15:00.000Z",
@@ -172,7 +174,7 @@ export default async function Page({
         links={[
           { name: "হোম", href: "/" },
           { name: "সার্ভেয়ার", href: "/surveyors" },
-          { name: surveyor.fullName, isCurrent: true },
+          { name: surveyor.fullName ?? "", isCurrent: true },
         ]}
       />
 
@@ -182,8 +184,9 @@ export default async function Page({
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="space-y-8 lg:col-span-2">
-          <SurveyorServices services={surveyor.services} />
+          <SurveyorServices services={surveyor.surveyorServices} />
           <SurveyorServiceAreas serviceAreas={surveyor.serviceAreas} />
+          {/* surveyorServices/serviceAreas are optional in type; components handle undefined */}
         </div>
         <div className="space-y-6">
           <SurveyorPricing surveyor={surveyor} />
@@ -194,7 +197,7 @@ export default async function Page({
       <SurveyorReviews
         reviews={surveyor.reviews}
         totalReviews={surveyor.totalReviews}
-        services={surveyor.services}
+        services={surveyor.surveyorServices}
       />
     </PageWrapper>
   );

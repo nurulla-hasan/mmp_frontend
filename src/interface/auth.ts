@@ -1,3 +1,5 @@
+import type { TSurveyorProfile } from "./surveyor-profile";
+
 export type LoginPayload = {
   email: string;
   password: string;
@@ -33,4 +35,5 @@ export type TAuthUser = {
   upazila: string;
   createdAt: string;
   updatedAt: string;
+  surveyorProfile?: TSurveyorProfile;
 };

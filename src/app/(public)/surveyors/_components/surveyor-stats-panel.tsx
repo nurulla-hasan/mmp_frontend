@@ -6,9 +6,9 @@ export function SurveyorStatsPanel({
   surveyor: TSurveyorProfile;
 }) {
   const stats = [
-    { label: "অভিজ্ঞতা", value: `${surveyor.experienceYears} বছর` },
-    { label: "কাজ সম্পন্ন", value: `${surveyor.completedRequests} টি` },
-    { label: "মোট রিভিউ", value: `${surveyor.totalReviews} টি` },
+    { label: "অভিজ্ঞতা", value: `${surveyor.experienceYears ?? 0} বছর` },
+    { label: "কাজ সম্পন্ন", value: `${surveyor.completedRequests ?? 0} টি` },
+    { label: "মোট রিভিউ", value: `${surveyor.totalReviews ?? 0} টি` },
   ];
 
   return (

@@ -29,6 +29,8 @@ export type TSurveyorCard = {
   services: TSurveyorServiceWithPrice[];
 };
 
+// TSurveyorServiceWithPrice = { id, serviceId, startingPrice, service: { slug, name } }
+
 export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
   return (
     <Link
@@ -110,7 +112,7 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
                 key={service.id}
                 className="rounded-md bg-primary/5 px-2 py-0.5 text-xs text-primary"
               >
-                {service.name}
+                {service.service.name}
               </span>
             ))}
             {surveyor.services.length > 3 && (
@@ -130,7 +132,7 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorCard }) {
               className="flex items-center justify-between text-xs"
             >
               <span className="text-muted-foreground truncate">
-                {service.name}
+                {service.service.name}
               </span>
               <span className="font-medium text-primary shrink-0 ml-2">
                 {service.startingPrice != null

@@ -5,7 +5,7 @@ import type { TSurveyorProfile } from "@/interface/surveyor-profile";
 export function SurveyorServiceAreas({
   serviceAreas,
 }: {
-  serviceAreas: TSurveyorProfile["serviceAreas"];
+  serviceAreas?: TSurveyorProfile["serviceAreas"];
 }) {
   return (
     <section>
@@ -13,7 +13,7 @@ export function SurveyorServiceAreas({
         সেবা এলাকা
       </h2>
       <div className="mt-4 grid gap-2 md:grid-cols-2">
-        {serviceAreas.map((area) => (
+        {(serviceAreas ?? []).map((area) => (
           <div
             key={area.district}
             className="rounded-xl border border-border bg-card px-4 py-3"

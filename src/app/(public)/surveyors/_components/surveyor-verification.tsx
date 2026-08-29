@@ -5,7 +5,7 @@ import type { TSurveyorProfile } from "@/interface/surveyor-profile";
 export function SurveyorVerification({
   verification,
 }: {
-  verification: TSurveyorProfile["verification"];
+  verification?: TSurveyorProfile["verification"];
 }) {
   return (
     <section className="rounded-xl border border-border bg-card p-5">
@@ -22,7 +22,7 @@ export function SurveyorVerification({
           <span className="text-foreground">পেশাগত তথ্য যাচাইকৃত</span>
         </div>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          {verification.note}
+          {verification?.note ?? ""}
         </p>
       </div>
     </section>

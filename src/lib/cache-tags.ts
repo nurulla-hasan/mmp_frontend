@@ -3,6 +3,7 @@ export const CACHE_TAGS = {
   surveyors: "surveyors",
   surveyor: (id: string) => `surveyor-${id}`,
   user: "user",
+  surveyorProfile: "surveyor-profile",
 } as const;
 
 export const CACHE_TIME = {

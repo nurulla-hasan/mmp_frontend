@@ -5,7 +5,7 @@ export const surveyorProfileSchema = z.object({
   phone: z
     .string()
     .regex(/^01[3-9]\d{8}$/, "সঠিক ১১ সংখ্যার মোবাইল নম্বর দিন।"),
-  email: z.string().email("সঠিক ইমেইল ঠিকানা দিন।"),
+  email: z.email("সঠিক ইমেইল ঠিকানা দিন।"),
   headline: z.string().min(2, "শিরোনাম কমপক্ষে ২ অক্ষরের হতে হবে।"),
   experienceYears: z.coerce
     .number()

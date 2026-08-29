@@ -8,7 +8,7 @@ export function SurveyorPricing({
 }: {
   surveyor: TSurveyorProfile;
 }) {
-  const pricedServices = surveyor.services.filter(
+  const pricedServices = (surveyor.surveyorServices ?? []).filter(
     (s) => s.startingPrice != null,
   );
 
@@ -26,7 +26,7 @@ export function SurveyorPricing({
               className="flex items-center justify-between rounded-lg bg-primary/5 px-3 py-2"
             >
               <span className="text-sm text-muted-foreground">
-                {service.name}
+                {service.service.name}
               </span>
               <span className="flex items-center gap-1 text-sm font-semibold text-primary">
                 <Banknote className="size-3.5" />
@@ -49,7 +49,7 @@ export function SurveyorPricing({
             nativeButton={false}
             render={
               <a
-                href={`https://wa.me/880${surveyor.whatsappNumber.replace(/^0/, "")}?text=${encodeURIComponent(`হ্যালো, আমি Mouza Map Pro থেকে ${surveyor.fullName} এর সেবার মূল্য তালিকা দেখেছি। আরও বিস্তারিত জানতে চাই।`)}`}
+                href={`https://wa.me/880${surveyor.whatsappNumber?.replace(/^0/, "") ?? ""}?text=${encodeURIComponent(`হ্যালো, আমি Mouza Map Pro থেকে ${surveyor.fullName ?? ""} এর সেবার মূল্য তালিকা দেখেছি। আরও বিস্তারিত জানতে চাই।`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
               />

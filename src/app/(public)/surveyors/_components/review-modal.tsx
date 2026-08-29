@@ -89,8 +89,8 @@ export function ReviewModal({
                     </SelectTrigger>
                     <SelectContent>
                       {services.map((s) => (
-                        <SelectItem key={s.id} value={s.name}>
-                          {s.name}
+                        <SelectItem key={s.id} value={s.service.name}>
+                          {s.service.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

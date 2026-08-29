@@ -61,12 +61,12 @@ export function SurveyorReviews({
   totalReviews,
   services,
 }: {
-  reviews: TSurveyorReview[];
-  totalReviews: number;
+  reviews?: TSurveyorReview[];
+  totalReviews?: number;
   services?: TSurveyorServiceWithPrice[];
 }) {
-  const approvedReviews = reviews.filter((r) => r.status === "approved");
-  const pendingReviews = reviews.filter((r) => r.status === "pending");
+  const approvedReviews = (reviews ?? []).filter((r) => r.status === "approved");
+  const pendingReviews = (reviews ?? []).filter((r) => r.status === "pending");
 
   return (
     <section>
@@ -76,7 +76,7 @@ export function SurveyorReviews({
             ক্লায়েন্ট রিভিউ
           </h2>
           <span className="text-sm text-muted-foreground">
-            ({totalReviews} টি)
+            ({totalReviews ?? 0} টি)
           </span>
         </div>
         {services && services.length > 0 && (

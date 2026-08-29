@@ -1,50 +1,68 @@
-export type TSurveyorServiceWithPrice = {
+export type TSurveyorService = {
   id: string;
   slug: string;
   name: string;
-  startingPrice: number | null;
+};
+
+export type TSurveyorServiceWithPrice = {
+  id: string;
+  serviceId: string;
+  startingPrice: number;
+  service: {
+    slug: string;
+    name: string;
+  };
 };
 
 export type TSurveyorProfile = {
-  id: string;
-  slug: string;
-  fullName: string;
+  id?: string;
+  userId?: string;
+  slug?: string;
+  headline?: string;
+  bio?: string | null;
+
+  // Optional fields used by public mock data / future API expansion.
+  // These are NOT returned by the current backend endpoints.
+  fullName?: string;
   profilePhoto?: string;
-  headline: string;
-  bio?: string;
-
-  isVerified: boolean;
   isSubscribed?: boolean;
-
-  experienceYears: number;
-  joinedAt: string;
-
-  primaryLocation: {
+  joinedAt?: string;
+  primaryLocation?: {
     district: string;
     upazila: string;
   };
-
-  serviceAreas: {
-    district: string;
-    upazilas: string[];
-  }[];
-
-  services: TSurveyorServiceWithPrice[];
-
   whatsappNumber?: string;
-
-  rating: number;
-  totalReviews: number;
-  completedRequests: number;
-
-  verification: {
+  completedRequests?: number;
+  verification?: {
     identityReviewed: boolean;
     professionalInformationReviewed: boolean;
     verifiedAt: string;
     note: string;
   };
+  reviews?: TSurveyorReview[];
 
-  reviews: TSurveyorReview[];
+  experienceYears?: number;
+
+  certificateUrl?: string | null;
+
+  verificationStatus?: "PENDING" | "APPROVED" | "REJECTED";
+  isVerified?: boolean;
+  verifiedAt?: string | null;
+  adminNote?: string | null;
+
+  rating?: number;
+  totalReviews?: number;
+
+  createdAt?: string;
+  updatedAt?: string;
+
+  surveyorServices?: TSurveyorServiceWithPrice[];
+
+  serviceAreas?: {
+    id?: string;
+    district: string;
+    upazilas: string[];
+  }[];
 };
 
 export type TSurveyorReview = {

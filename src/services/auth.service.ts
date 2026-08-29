@@ -9,6 +9,7 @@ import type {
   TAuthUser,
   VerifyEmailPayload,
 } from "@/interface/auth";
+import type { TSurveyorProfile, TSurveyorService } from "@/interface/surveyor-profile";
 import { nextServerFetch } from "@/lib/nextServerFetch";
 import { CACHE_TAGS, CACHE_TIME } from "@/lib/cache-tags";
 
@@ -86,4 +87,43 @@ export const getMe = () =>
   nextServerFetch<{ user: TAuthUser }>("/auth/me", {
     auth: "auth",
     next: { tags: [CACHE_TAGS.user], revalidate: CACHE_TIME.day },
+  });
+
+export const updateMe = (payload: unknown) =>
+  nextServerFetch<{ user: TAuthUser }>("/auth/me", {
+    method: "PATCH",
+    body: payload,
+    auth: "auth",
+  });
+
+// ── Surveyor services (public catalog: id + slug + name) ──
+export const getServices = () =>
+  nextServerFetch<TSurveyorService[]>("/services", {
+    auth: "none",
+    next: { revalidate: CACHE_TIME.day },
+  });
+
+// ── Districts (public catalog: value + label + upazilas) ──
+export const getDistricts = () =>
+  nextServerFetch<{ value: string; label: string; upazilas: string[] }[]>(
+    "/districts",
+    {
+      auth: "none",
+      next: { revalidate: CACHE_TIME.day },
+    },
+  );
+
+// ── Surveyor profile ──
+export const applyAsSurveyor = (payload: unknown) =>
+  nextServerFetch<TSurveyorProfile>("/surveyor/profile", {
+    method: "POST",
+    body: payload,
+    auth: "auth",
+  });
+
+export const updateMySurveyorProfile = (payload: unknown) =>
+  nextServerFetch<TSurveyorProfile>("/surveyor/profile", {
+    method: "PATCH",
+    body: payload,
+    auth: "auth",
   });

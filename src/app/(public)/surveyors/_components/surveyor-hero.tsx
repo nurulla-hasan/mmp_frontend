@@ -30,13 +30,14 @@ export function SurveyorHero({
               surveyor.isSubscribed &&
                 "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5",
             )}
+            // isSubscribed is optional; falsy when undefined
           >
             <AvatarImage
               src={surveyor.profilePhoto}
-              alt={surveyor.fullName}
+              alt={surveyor.fullName ?? ""}
             />
             <AvatarFallback className="text-xl md:text-2xl">
-              {getInitials(surveyor.fullName)}
+              {getInitials(surveyor.fullName ?? "")}
             </AvatarFallback>
           </Avatar>
         </div>
@@ -62,12 +63,14 @@ export function SurveyorHero({
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-muted-foreground md:text-base">
               <span className="flex items-center gap-1.5">
                 <MapPin className="size-4" />
-                {surveyor.primaryLocation.upazila},{" "}
-                {surveyor.primaryLocation.district}
+                {surveyor.primaryLocation?.upazila ?? ""},{" "}
+                {surveyor.primaryLocation?.district ?? ""}
               </span>
               <span className="flex items-center gap-1.5">
                 <CalendarDays className="size-4" />
-                {formatJoinDate(surveyor.joinedAt)} থেকে সক্রিয়
+                {surveyor.joinedAt
+                  ? `${formatJoinDate(surveyor.joinedAt)} থেকে সক্রিয়`
+                  : ""}
               </span>
             </div>
           </div>
@@ -75,11 +78,16 @@ export function SurveyorHero({
           {/* Rating */}
           <div className="shrink-0 rounded-xl border border-border/70 bg-muted/40 px-4 py-2.5 text-center">
             <div className="flex items-center gap-1 text-lg font-bold">
-              <StarRating rating={surveyor.rating} totalStars={1} />
-              <span>{surveyor.rating.toFixed(1)}</span>
+              <StarRating rating={surveyor.rating ?? 0} totalStars={1} />
+              <span>{(surveyor.rating ?? 0).toFixed(1)}</span>
             </div>
             <p className="whitespace-nowrap text-xs text-muted-foreground">
-              {surveyor.totalReviews} টি {surveyor.reviews?.length > 0 && surveyor.reviews.every((r) => r.isVerifiedService) ? "যাচাইকৃত " : ""}রিভিউ
+              {surveyor.totalReviews ?? 0} টি{" "}
+              {surveyor.reviews && surveyor.reviews.length > 0 &&
+              surveyor.reviews.every((r) => r.isVerifiedService)
+                ? "যাচাইকৃত "
+                : ""}
+              রিভিউ
             </p>
           </div>
         </div>
@@ -99,7 +107,7 @@ export function SurveyorHero({
               nativeButton={false}
               render={
                 <a
-                  href={`https://wa.me/880${surveyor.whatsappNumber.replace(/^0/, "")}?text=${encodeURIComponent(`হ্যালো, আমি Mouza Map Pro থেকে দেখছি। ${surveyor.fullName} এর সেবা সম্পর্কে জানতে চাই।`)}`}
+                  href={`https://wa.me/880${surveyor.whatsappNumber.replace(/^0/, "")}?text=${encodeURIComponent(`হ্যালো, আমি Mouza Map Pro থেকে দেখছি। ${surveyor.fullName ?? ""} এর সেবা সম্পর্কে জানতে চাই।`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 />
