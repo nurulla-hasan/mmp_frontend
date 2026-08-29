@@ -132,7 +132,7 @@ export function JoinAsSurveyorForm({
         <SectionHeading
           title="সার্ভেয়ার হিসেবে আবেদন করুন"
           description="আপনার পেশাগত অভিজ্ঞতা ও সেবার তথ্য প্রদান করে MMP ভেরিফাইড সার্ভেয়ার নেটওয়ার্কে যুক্ত হন।"
-          as="h4"
+          as="h3"
           alignment="left"
           constrain={false}
         >

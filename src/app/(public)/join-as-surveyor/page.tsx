@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 
 import { JoinAsSurveyorForm } from "./_components/join-as-surveyor-form";
-import { SectionWrapper } from "@/components/common/section-wrapper";
+import { ApplicationStatusView } from "./_components/application-status-view";
 import { getMe, getDistricts, getServices } from "@/services/auth.service";
+import { PageWrapper } from "@/components/common/page-wrapper";
 
 export const metadata: Metadata = {
   title: "সার্ভেয়ার হিসেবে যোগ দিন — MMP",
@@ -22,14 +23,20 @@ export default async function Page() {
   const districts = districtsResult.success ? (districtsResult.data ?? []) : [];
   const services = servicesResult.success ? (servicesResult.data ?? []) : [];
 
+  const existingProfile = user?.surveyorProfile;
+
   return (
-    <SectionWrapper padding="sm">
+    <PageWrapper paddingSize="small">
+      {existingProfile ? (
+        <ApplicationStatusView profile={existingProfile} />
+      ) : (
         <JoinAsSurveyorForm
           isAuthenticated={isAuthenticated}
           user={user}
           districts={districts}
           services={services}
         />
-    </SectionWrapper>
+      )}
+    </PageWrapper>
   );
 }

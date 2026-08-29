@@ -15,6 +15,7 @@ const PUBLIC_ROUTES = [
   "/fraud-awareness",
   "/pricing",
   "/surveyors",
+  "/join-as-surveyor",
 ];
 
 const AUTH_ROUTES = [
