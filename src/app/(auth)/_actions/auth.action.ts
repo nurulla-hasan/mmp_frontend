@@ -68,5 +68,5 @@ export async function logoutAction(): Promise<void> {
   await logout();
   await clearAuthCookies();
   updateTag(CACHE_TAGS.user);
-  redirect("/login");
+  redirect("/");
 }
