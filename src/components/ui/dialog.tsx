@@ -65,7 +65,7 @@ function DialogContent({
             render={
               <Button
                 variant="ghost"
-                className="absolute top-0 right-0 size-8 rounded-none rounded-tr-xl rounded-bl-lg bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 transition-colors shadow-xs z-20 p-0 flex items-center justify-center"
+                className="absolute top-0 right-0 size-8 rounded-none rounded-tr-xl rounded-bl-lg bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 transition-colors shadow-xs z-20 p-0"
               />
             }
           >

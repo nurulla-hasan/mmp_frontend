@@ -13,6 +13,7 @@ import {
   ShieldUser,
   Star,
   Tags,
+  UserPlus,
   UserRoundCheck,
   Users,
   Wrench,
@@ -45,6 +46,11 @@ export const userNavigation: NavigationItem[] = [
     href: "/dashboard/profile",
     icon: FileText,
   },
+  {
+    title: "সার্ভেয়ার হিসেবে যোগ দিন",
+    href: "/join-as-surveyor",
+    icon: UserPlus,
+  },
 ];
 
 export const surveyorNavigation: NavigationItem[] = [
@@ -55,7 +61,7 @@ export const surveyorNavigation: NavigationItem[] = [
   },
 
   {
-    title: "পেশাদার প্রোফাইল",
+    title: "প্রোফাইল",
     href: "/surveyor/profile",
     icon: FileText,
   },
