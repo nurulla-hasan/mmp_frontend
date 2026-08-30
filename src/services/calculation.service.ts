@@ -17,6 +17,12 @@ export const saveCalculation = (payload: CreateCalculationPayload) =>
     auth: "auth",
   });
 
+export const incrementPlotCount = () =>
+  nextServerFetch<TUserMeasurementStat>("/calculations/stats/increment-plot", {
+    method: "POST",
+    auth: "auth",
+  });
+
 export const getCalculations = (query?: TQuery) => {
   const params = buildQueryString(query ?? {});
   return nextServerFetch<TCalculation[]>(`/calculations${params}`, {

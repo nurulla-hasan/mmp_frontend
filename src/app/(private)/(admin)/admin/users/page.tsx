@@ -11,6 +11,7 @@ interface PageProps {
 }
 
 export default async function AdminUsersPage({ searchParams }: PageProps) {
+  //  await new Promise((resolve) => setTimeout(resolve, 20000));
   const query = await searchParams;
   const res = await getUsers(query);
 

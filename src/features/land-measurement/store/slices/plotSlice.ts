@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { PLOT_COLOR_PALETTE } from '../../utils/canvas';
 import { calculatePolygonData } from '../../utils/calculations';
 import { normalizePolygonPoints } from '../../utils/geometry';
+import { incrementPlotCountAction } from '../../actions/calculation.action';
 import type { Point, PolygonResults, PlotRecord } from '../../types/map';
 
 export interface PlotState {
@@ -96,6 +97,9 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
       results: nextResults,
       isPlotFinished: true,
     });
+
+    // Increment user's measured plot count in the background as soon as a plot is completed
+    incrementPlotCountAction().catch(() => {});
   },
 
   clearPlot: () =>

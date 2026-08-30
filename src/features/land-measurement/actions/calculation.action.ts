@@ -4,6 +4,7 @@ import { updateTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import {
   saveCalculation,
+  incrementPlotCount,
   getCalculations,
   deleteCalculation,
   getCalculationById,
@@ -15,6 +16,14 @@ export async function saveCalculationAction(payload: CreateCalculationPayload) {
   const result = await saveCalculation(payload);
   if (result.success) {
     updateTag(CACHE_TAGS.CALCULATIONS);
+    updateTag(CACHE_TAGS.ME);
+  }
+  return result;
+}
+
+export async function incrementPlotCountAction() {
+  const result = await incrementPlotCount();
+  if (result.success) {
     updateTag(CACHE_TAGS.ME);
   }
   return result;
