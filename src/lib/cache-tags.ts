@@ -7,6 +7,7 @@ export const CACHE_TAGS = {
   SURVEYOR_PROFILE: "surveyor-profile",
   CALCULATIONS: "calculations",
   REVIEWS: "reviews",
+  PLANS: "plans",
 } as const;
 
 export const CACHE_TIME = {

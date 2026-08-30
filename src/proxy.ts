@@ -7,6 +7,7 @@ type UserRole = "USER" | "SURVEYOR" | "ADMIN" | "SUPER_ADMIN";
 interface TokenPayload {
   exp?: number;
   role?: unknown;
+  isSubscribed?: boolean;
 }
 
 const PUBLIC_ROUTES = [
@@ -65,6 +66,11 @@ const getRole = (token: string): UserRole | null => {
     : null;
 };
 
+const getIsSubscribed = (token: string): boolean => {
+  const payload = decodeToken(token);
+  return !!payload?.isSubscribed;
+};
+
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   if (!IS_PROTECTION_ON) {
     return NextResponse.next();
@@ -110,6 +116,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   const role =
     accessToken && !isExpired(accessToken) ? getRole(accessToken) : null;
+  const isSubscribed =
+    accessToken && !isExpired(accessToken)
+      ? getIsSubscribed(accessToken)
+      : false;
 
   let response: NextResponse;
 
@@ -142,6 +152,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     } else {
       if (!role) {
         response = NextResponse.redirect(new URL("/login", request.url));
+      }
+      // Subscription protection for /tools: Free users are redirected to /pricing
+      else if (pathname.startsWith("/tools") && !isSubscribed) {
+        response = NextResponse.redirect(new URL("/pricing", request.url));
       }
       // Role-based access control
       else if (pathname.startsWith("/dashboard") && role !== "USER") {

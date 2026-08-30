@@ -1,55 +1,49 @@
+import { getAllPlans } from "@/services/plan.service";
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
 import { SearchInput } from "@/components/common/search-input";
-import { planColumns, type PlanRow } from "./_components/plan-column";
+import { planColumns } from "./_components/plan-column";
+import { PlanFormModal } from "./_components/plan-form-modal";
+import type { TPlanQuery } from "@/interface/plan";
 
-const Plans: PlanRow[] = [
-  {
-    id: "p-001",
-    name: "Monthly Pro",
-    code: "pro_monthly",
-    price: 99,
-    discount: "",
-    duration: "1 month",
-    features: 5,
-    active: true,
-  },
-  {
-    id: "p-002",
-    name: "6 Months Pro",
-    code: "pro_6months",
-    price: 599,
-    discount: "",
-    duration: "6 months",
-    features: 5,
-    active: true,
-  },
-  {
-    id: "p-003",
-    name: "Yearly Pro",
-    code: "pro_yearly",
-    price: 999,
-    discount: "",
-    duration: "1 year",
-    features: 5,
-    active: true,
-  },
-];
+interface PageProps {
+  searchParams: Promise<TPlanQuery>;
+}
 
-export default function Page() {
+export default async function AdminPlansPage({ searchParams }: PageProps) {
+  const query = await searchParams;
+  const res = await getAllPlans(query);
+
+  const plans = res.success && res.data ? res.data : [];
+  const meta = res.success ? res.meta : undefined;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between items-end sm:flex-row">
+      {/* Header & Controls */}
+      <div className="flex flex-col justify-between items-start gap-4 lg:flex-row lg:items-end">
         <SectionHeading
-          title="Plans"
-          description="Configure subscription plans and pricing tiers."
+          title="Subscription Plans"
+          description="Configure pricing packages, plot/calculation limits, and feature sets for users."
           as="h3"
           alignment="left"
           constrain={false}
         />
-        <SearchInput filterKey="name" placeholder="Search plans..." />
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <SearchInput
+            filterKey="searchTerm"
+            placeholder="Search plans by name or code..."
+            className="w-full sm:w-72"
+          />
+          <PlanFormModal />
+        </div>
       </div>
-      <DataTable data={Plans} columns={planColumns} />
+
+      {/* TanStack Data Table with Server Pagination */}
+      <DataTable
+        data={plans}
+        columns={planColumns}
+        meta={meta}
+      />
     </div>
   );
 }
