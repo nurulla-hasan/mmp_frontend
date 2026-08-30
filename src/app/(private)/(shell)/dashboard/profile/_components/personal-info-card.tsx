@@ -1,5 +1,8 @@
+"use client";
+
 import {
   CalendarDays,
+  Edit,
   Mail,
   MapPin,
   MessageCircle,
@@ -14,8 +17,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ProfileEditModal } from "./profile-edit-modal";
 import type { TAuthUser } from "@/interface/auth";
 import { formatDate } from "@/lib/utils";
+
+type DistrictOption = { value: string; label: string; upazilas: string[] };
 
 function InfoItem({
   icon: Icon,
@@ -39,11 +46,27 @@ function InfoItem({
   );
 }
 
-export function PersonalInfoCard({ user }: { user: TAuthUser }) {
+export function PersonalInfoCard({
+  user,
+  districts,
+}: {
+  user: TAuthUser;
+  districts: DistrictOption[];
+}) {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle>ব্যক্তিগত ও যোগাযোগ তথ্য</CardTitle>
+        <ProfileEditModal
+          user={user}
+          districts={districts}
+          trigger={
+            <Button variant="ghost" size="sm">
+              <Edit className="size-3.5" />
+              <span>এডিট</span>
+            </Button>
+          }
+        />
       </CardHeader>
       <CardContent>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -64,14 +87,14 @@ export function PersonalInfoCard({ user }: { user: TAuthUser }) {
             label="বর্তমান ঠিকানা"
             value={
               user.upazila || user.district
-                ? `${user.upazila}, ${user.district}`
+                ? `${user.upazila ? `${user.upazila}, ` : ""}${user.district || ""}`
                 : "যুক্ত করা হয়নি"
             }
           />
           <InfoItem
             icon={CalendarDays}
             label="অ্যাকাউন্ট তৈরি"
-              value={user.createdAt ? formatDate(user.createdAt) : "N/A"}
+            value={user.createdAt ? formatDate(user.createdAt) : "N/A"}
           />
         </div>
       </CardContent>

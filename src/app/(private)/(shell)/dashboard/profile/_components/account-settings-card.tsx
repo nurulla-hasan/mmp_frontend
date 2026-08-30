@@ -1,6 +1,7 @@
+"use client";
+
 import { KeyRound, Moon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,8 +11,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/common/theme-toggle";
+import { ChangePasswordModal } from "./change-password-modal";
+import type { TAuthUser } from "@/interface/auth";
 
-export function AccountSettingsCard() {
+export function AccountSettingsCard({ user }: { user?: TAuthUser | null }) {
+  const hasPassword = user?.hasPassword !== false;
+
   return (
     <Card>
       <CardHeader>
@@ -44,13 +49,11 @@ export function AccountSettingsCard() {
               <div>
                 <Label>নিরাপত্তা</Label>
                 <p className="text-xs text-muted-foreground">
-                  পাসওয়ার্ড পরিবর্তন করুন
+                  {hasPassword ? "পাসওয়ার্ড পরিবর্তন করুন" : "পাসওয়ার্ড সেট করুন"}
                 </p>
               </div>
             </div>
-            <Button variant="outline" size="sm">
-              পরিবর্তন
-            </Button>
+            <ChangePasswordModal hasPassword={hasPassword} />
           </div>
         </div>
       </CardContent>

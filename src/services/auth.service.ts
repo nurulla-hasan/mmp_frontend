@@ -98,6 +98,13 @@ export const updateMe = (payload: unknown) =>
     auth: "auth",
   });
 
+export const changePassword = (payload: unknown) =>
+  nextServerFetch<{ message: string }>("/auth/change-password", {
+    method: "POST",
+    body: payload,
+    auth: "auth",
+  });
+
 // ── Surveyor services (public catalog: id + slug + name) ──
 export const getServices = () =>
   nextServerFetch<TSurveyorService[]>("/services", {

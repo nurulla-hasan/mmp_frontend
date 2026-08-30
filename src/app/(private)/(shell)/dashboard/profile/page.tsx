@@ -4,11 +4,16 @@ import { ProfileHeaderCard } from "./_components/profile-header-card";
 import { PersonalInfoCard } from "./_components/personal-info-card";
 import { ActivityCard } from "./_components/activity-card";
 import { AccountSettingsCard } from "./_components/account-settings-card";
-import { getMe } from "@/services/auth.service";
+import { getMe, getDistricts } from "@/services/auth.service";
 
 export default async function Page() {
-  const result = await getMe();
-  const user = result.success ? result.data.user : null;
+  const [meResult, districtsResult] = await Promise.all([
+    getMe(),
+    getDistricts(),
+  ]);
+
+  const user = meResult.success ? meResult.data.user : null;
+  const districts = districtsResult.success ? districtsResult.data : [];
 
   if (!user) {
     return (
@@ -17,6 +22,7 @@ export default async function Page() {
       </PageWrapper>
     );
   }
+
   return (
     <PageWrapper paddingSize="small">
       <div className="space-y-6">
@@ -32,15 +38,15 @@ export default async function Page() {
         <div className="grid gap-6 lg:grid-cols-12">
           {/* Left Column: User Identity & Profile Summary */}
           <div className="lg:col-span-4">
-            <ProfileHeaderCard user={user} />
+            <ProfileHeaderCard user={user} districts={districts} />
           </div>
 
           {/* Right Column: Detailed Personal Info & Activities */}
           <div className="space-y-6 lg:col-span-8">
-            <PersonalInfoCard user={user} />
+            <PersonalInfoCard user={user} districts={districts} />
             <div className="grid gap-6 sm:grid-cols-2">
               <ActivityCard />
-              <AccountSettingsCard />
+              <AccountSettingsCard user={user} />
             </div>
           </div>
         </div>

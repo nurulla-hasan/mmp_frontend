@@ -1,7 +1,7 @@
+"use client";
 
 import {
   CalendarDays,
-  Edit,
   MapPin,
   ShieldCheck,
   Sparkles,
@@ -9,17 +9,25 @@ import {
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { ProfileEditModal } from "./profile-edit-modal";
 import type { TAuthUser } from "@/interface/auth";
 import { formatDate, getInitials } from "@/lib/utils";
 
-export function ProfileHeaderCard({ user }: { user: TAuthUser }) {
+type DistrictOption = { value: string; label: string; upazilas: string[] };
+
+export function ProfileHeaderCard({
+  user,
+  districts,
+}: {
+  user: TAuthUser;
+  districts: DistrictOption[];
+}) {
   return (
     <Card>
       <CardHeader>
@@ -46,12 +54,12 @@ export function ProfileHeaderCard({ user }: { user: TAuthUser }) {
               <span>{user.role}</span>
             </Badge>
             {user.isSubscribed ? (
-              <Badge variant="secondary">
-                <Sparkles className="size-3 text-primary" />
+              <Badge variant="progress">
+                <Sparkles className="size-3" />
                 <span>সাবস্ক্রাইবড</span>
               </Badge>
             ) : (
-              <Badge variant="secondary">ফ্রি মেম্বার</Badge>
+              <Badge variant="outline">ফ্রি মেম্বার</Badge>
             )}
           </div>
         </div>
@@ -81,14 +89,7 @@ export function ProfileHeaderCard({ user }: { user: TAuthUser }) {
 
       <CardFooter>
         <div className="w-full">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-          >
-            <Edit className="size-3.5" />
-            <span>প্রোফাইল এডিট</span>
-          </Button>
+          <ProfileEditModal user={user} districts={districts} />
         </div>
       </CardFooter>
     </Card>

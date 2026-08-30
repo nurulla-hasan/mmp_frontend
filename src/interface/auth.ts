@@ -35,5 +35,7 @@ export type TAuthUser = {
   upazila: string;
   createdAt: string;
   updatedAt: string;
+  hasPassword?: boolean;
+  authProvider?: "EMAIL" | "GOOGLE";
   surveyorProfile?: TSurveyorProfile;
 };

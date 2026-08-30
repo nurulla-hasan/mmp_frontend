@@ -24,7 +24,7 @@ function Avatar({
         data-slot="avatar-pro-ring"
         data-size={size}
         className={cn(
-          "relative flex shrink-0 items-center justify-center rounded-full select-none p-[2px]",
+          "relative flex shrink-0 items-center justify-center rounded-full select-none p-0.5",
           "bg-[conic-gradient(from_45deg,#FF2E93_0%,#FF8A00_20%,#FFDD00_40%,#00E676_60%,#00B0FF_80%,#9C27B0_90%,#FF2E93_100%)]",
           "size-8",
           "data-[size=sm]:size-6",
@@ -34,7 +34,7 @@ function Avatar({
           className,
         )}
       >
-        <div className="flex size-full items-center justify-center rounded-full bg-background p-[2px]">
+        <div className="flex size-full items-center justify-center rounded-full bg-background p-0.5">
           <AvatarPrimitive.Root
             data-slot="avatar"
             data-size={size}
