@@ -26,13 +26,14 @@ export type TSurveyorProfile = {
   user?: {
     id: string;
     name: string;
-    imageUrl: string;
-    phone: string;
-    whatsappNumber: string;
-    district: string;
-    upazila: string;
-    isSubscribed: boolean;
-    createdAt: string;
+    email?: string;
+    imageUrl?: string;
+    phone?: string;
+    whatsappNumber?: string;
+    district?: string;
+    upazila?: string;
+    isSubscribed?: boolean;
+    createdAt?: string;
   };
 
   fullName?: string;

@@ -1,49 +1,51 @@
+import { getVerificationRequests } from "@/services/verification.service";
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
 import { SearchInput } from "@/components/common/search-input";
-import {
-  verificationColumns,
-  type VerificationRow,
-} from "./_components/verification-column";
+import { verificationColumns } from "./_components/verification-column";
+import { VerificationStatusFilter } from "./_components/verification-status-filter";
+import type { TVerificationQuery } from "@/interface/verification";
 
-const Verifications: VerificationRow[] = [
-  {
-    id: "v-001",
-    name: "মো. আব্দুল করিম",
-    type: "Professional",
-    status: "pending",
-    submittedAt: "2026-05-10T11:20:00.000Z",
-  },
-  {
-    id: "v-002",
-    name: "জামাল উদ্দিন",
-    type: "Identity",
-    status: "approved",
-    submittedAt: "2026-05-18T09:05:00.000Z",
-  },
-  {
-    id: "v-003",
-    name: "নাসিমা আক্তার",
-    type: "Document",
-    status: "rejected",
-    submittedAt: "2026-06-02T16:40:00.000Z",
-  },
-];
+interface PageProps {
+  searchParams: Promise<TVerificationQuery>;
+}
 
-export default function Page() {
+export default async function VerificationRequestsPage({
+  searchParams,
+}: PageProps) {
+  const query = await searchParams;
+  const res = await getVerificationRequests(query);
+
+  const requests = res.success && res.data ? res.data : [];
+  const meta = res.success ? res.meta : undefined;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between items-end sm:flex-row">
+      {/* Header & Controls */}
+      <div className="flex flex-col justify-between items-start gap-4 lg:flex-row lg:items-end">
         <SectionHeading
           title="Verification Requests"
-          description="Review identity and professional document submissions."
+          description="Review applicant identities, surveying licenses, and professional credentials."
           as="h3"
           alignment="left"
           constrain={false}
         />
-        <SearchInput filterKey="name" placeholder="Search requests..." />
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <VerificationStatusFilter />
+          <SearchInput
+            filterKey="searchTerm"
+            placeholder="Search by name, email, or phone..."
+            className="w-full sm:w-72"
+          />
+        </div>
       </div>
-      <DataTable data={Verifications} columns={verificationColumns} />
+
+      {/* TanStack Data Table with Server Pagination */}
+      <DataTable
+        data={requests}
+        columns={verificationColumns}
+        meta={meta}
+      />
     </div>
   );
 }
