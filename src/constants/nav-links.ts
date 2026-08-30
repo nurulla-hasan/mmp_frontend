@@ -37,14 +37,14 @@ export const publicNavigation: NavigationItem[] = [
 
 export const userNavigation: NavigationItem[] = [
   {
-    title: "ক্যালকুলেশন",
-    href: "/calculations",
-    icon: Calculator,
-  },
-  {
     title: "প্রোফাইল",
     href: "/dashboard/profile",
     icon: FileText,
+  },
+  {
+    title: "ক্যালকুলেশন",
+    href: "/calculations",
+    icon: Calculator,
   },
   {
     title: "সার্ভেয়ার হিসেবে যোগ দিন",
@@ -55,16 +55,16 @@ export const userNavigation: NavigationItem[] = [
 
 export const surveyorNavigation: NavigationItem[] = [
   {
+    title: "প্রোফাইল",
+    href: "/surveyor/profile",
+    icon: FileText,
+  },
+  {
     title: "ক্যালকুলেশন",
     href: "/calculations",
     icon: Calculator,
   },
 
-  {
-    title: "প্রোফাইল",
-    href: "/surveyor/profile",
-    icon: FileText,
-  },
 ];
 
 export const adminNavigation: NavigationItem[] = [

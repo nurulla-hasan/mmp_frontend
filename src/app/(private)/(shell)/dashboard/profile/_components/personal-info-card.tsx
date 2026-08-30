@@ -55,7 +55,7 @@ export function PersonalInfoCard({
 }) {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle>ব্যক্তিগত ও যোগাযোগ তথ্য</CardTitle>
         <ProfileEditModal
           user={user}

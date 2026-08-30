@@ -5,6 +5,7 @@ import { PersonalInfoSection } from "./_components/personal-info-section";
 import { ProfessionalInfoSection } from "./_components/professional-info-section";
 import { ServiceAreasSection } from "./_components/service-areas-section";
 import { ServicesSection } from "./_components/services-section";
+import { AccountSettingsCard } from "../../dashboard/profile/_components/account-settings-card";
 
 export default async function Page() {
   const meResult = await getMe();
@@ -25,9 +26,10 @@ export default async function Page() {
 
         {/* 2-Column Grid Layout */}
         <div className="grid gap-6 lg:grid-cols-12">
-          {/* Left Column: Personal & Contact Details */}
+          {/* Left Column: Personal & Contact Details + Security Settings */}
           <div className="space-y-6 lg:col-span-4">
             <PersonalInfoSection user={user} districts={districts} />
+            <AccountSettingsCard user={user} />
           </div>
 
           {/* Right Column: Professional Info, Service Areas & Services */}

@@ -1,5 +1,5 @@
 import { PageWrapper } from "@/components/common/page-wrapper";
-import { SectionHeading } from "@/components/common/section-heading";
+// import { SectionHeading } from "@/components/common/section-heading";
 import { ProfileHeaderCard } from "./_components/profile-header-card";
 import { PersonalInfoCard } from "./_components/personal-info-card";
 import { ActivityCard } from "./_components/activity-card";
@@ -26,13 +26,13 @@ export default async function Page() {
   return (
     <PageWrapper paddingSize="small">
       <div className="space-y-6">
-        <SectionHeading
+        {/* <SectionHeading
           as="h3"
           title="প্রোফাইল"
           description="আপনার অ্যাকাউন্ট আইডেন্টিটি এবং যোগাযোগ পছন্দ পরিচালনা করুন।"
           alignment="left"
           constrain={false}
-        />
+        /> */}
 
         {/* Modern 2-Column Dashboard Profile Layout */}
         <div className="grid gap-6 lg:grid-cols-12">

@@ -42,7 +42,7 @@ export function ProfileHeroHeader({ user, profile, districts = [] }: ProfileHero
           {/* Avatar & Main Info */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="-mt-10 flex items-center justify-center sm:-mt-12">
-              <Avatar className="size-20 border-4 border-card shadow-md sm:size-24">
+              <Avatar size="xl" isPro={user?.isSubscribed} className="size-20 border-4 border-card shadow-md sm:size-24">
                 <AvatarImage src={user?.imageUrl || ""} alt={name} />
                 <AvatarFallback className="bg-primary/10 text-xl font-bold text-primary sm:text-2xl">
                   {initials}

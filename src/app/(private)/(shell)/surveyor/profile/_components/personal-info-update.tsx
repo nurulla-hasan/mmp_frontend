@@ -41,6 +41,7 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
     resolver: zodResolver(updateMeSchema),
     defaultValues: {
       name: user?.name ?? "",
+      imageUrl: user?.imageUrl ?? "",
       phone: user?.phone ?? "",
       whatsappNumber: user?.whatsappNumber ?? "",
       district: user?.district ?? "",
@@ -53,6 +54,7 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
     if (newOpen) {
       reset({
         name: user?.name ?? "",
+        imageUrl: user?.imageUrl ?? "",
         phone: user?.phone ?? "",
         whatsappNumber: user?.whatsappNumber ?? "",
         district: user?.district ?? "",
@@ -70,6 +72,7 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
     setError(null);
     const cleanedValues = {
       name: values.name?.trim() || undefined,
+      imageUrl: values.imageUrl?.trim() || undefined,
       phone: values.phone?.trim() || undefined,
       whatsappNumber: values.whatsappNumber?.trim() || undefined,
       district: values.district?.trim() || undefined,
@@ -101,6 +104,13 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <FormInput
+          control={control}
+          name="imageUrl"
+          label="প্রোফাইল ছবির লিংক (Image URL)"
+          placeholder="https://example.com/photo.jpg"
+        />
+
         <FormInput
           control={control}
           name="name"
