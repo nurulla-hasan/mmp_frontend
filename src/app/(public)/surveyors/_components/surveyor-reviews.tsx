@@ -35,19 +35,26 @@ function ReviewCard({
   return (
     <div
       className={cn(
-        "rounded-xl border p-4 transition-all",
+        "rounded-xl border p-4",
         isPending
-          ? "border-dashed border-amber-500/40 bg-amber-500/5 opacity-75 dark:bg-amber-950/15 dark:border-amber-500/30"
+          ? "border-dashed border-border/70 bg-muted/15 opacity-70 dark:bg-muted/10 dark:border-border/50"
           : "border-border bg-card shadow-xs",
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="w-full">
           <div className="flex items-center gap-2 justify-between">
-            <p className="font-medium text-foreground">{review.reviewerName}</p>
+            <p
+              className={cn(
+                "font-medium",
+                isPending ? "text-muted-foreground" : "text-foreground",
+              )}
+            >
+              {review.reviewerName}
+            </p>
             <div>
               {isPending && (
-                <Badge variant="progress" size="sm">
+                <Badge variant="progress">
                   <Clock />
                   যাচাইয়ের অপেক্ষায়
                 </Badge>
@@ -55,7 +62,11 @@ function ReviewCard({
             </div>
           </div>
           <div className="mt-1 flex items-center gap-2">
-            <StarRating rating={review.rating} size={13} />
+            <StarRating
+              rating={review.rating}
+              size={13}
+              className={isPending ? "opacity-75" : ""}
+            />
             {displayServiceName && (
               <span className="text-xs text-muted-foreground">
                 — {displayServiceName}
@@ -64,16 +75,21 @@ function ReviewCard({
           </div>
         </div>
         {review.isVerifiedService && !isPending && (
-          <Badge variant="success" size="sm">
+          <Badge variant="success">
             <BadgeCheck />
             যাচাইকৃত কাজ
           </Badge>
         )}
       </div>
-      <p className="mt-2.5 leading-relaxed text-foreground/90 text-sm md:text-base">
+      <p
+        className={cn(
+          "mt-2.5 leading-relaxed text-sm md:text-base",
+          isPending ? "text-muted-foreground/90 italic" : "text-foreground/90",
+        )}
+      >
         &quot;{displayComment}&quot;
       </p>
-      <p className="mt-2 text-xs text-muted-foreground">
+      <p className="mt-2 text-xs text-muted-foreground/70">
         {formatJoinDate(review.createdAt)}
       </p>
     </div>
@@ -139,7 +155,7 @@ export function SurveyorReviews({
         <p className="text-sm text-muted-foreground">এখনও কোনো রিভিউ নেই।</p>
       ) : null}
 
-      {/* Pending Reviews (Dim light / translucent style) */}
+      {/* Pending Reviews (Fixed opacity-70 style, no hover change) */}
       {pendingReviews.length > 0 && (
         <div className="space-y-3 pt-1">
           {pendingReviews.map((review) => (

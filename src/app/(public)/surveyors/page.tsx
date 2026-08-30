@@ -17,6 +17,7 @@ export default async function Page({
 }: {
   searchParams: TSearchParams;
 }) {
+  // throw new Promise((resolve) => setTimeout(resolve, 20000)); 
   const params = await searchParams;
 
   // ------ Fetch filtered data from API ------

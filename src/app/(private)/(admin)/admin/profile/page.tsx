@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 import { PageWrapper } from "@/components/common/page-wrapper";
-import { SectionHeading } from "@/components/common/section-heading";
+// import { SectionHeading } from "@/components/common/section-heading";
 import { getMe, getDistricts } from "@/services/auth.service";
 import { ProfileHeaderCard } from "@/app/(private)/(shell)/dashboard/profile/_components/profile-header-card";
 import { PersonalInfoCard } from "@/app/(private)/(shell)/dashboard/profile/_components/personal-info-card";
@@ -40,13 +40,13 @@ export default async function AdminProfilePage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeading
+      {/* <SectionHeading
         title="অ্যাডমিনিস্ট্রেটর প্রোফাইল"
         description="আপনার প্রশাসনিক অ্যাকাউন্ট আইডেন্টিটি, ব্যক্তিগত তথ্য এবং নিরাপত্তা পছন্দসমূহ পরিচালনা করুন।"
         as="h3"
         alignment="left"
         constrain={false}
-      />
+      /> */}
 
       {/* 2-Column Grid Layout */}
       <div className="grid gap-6 lg:grid-cols-12">

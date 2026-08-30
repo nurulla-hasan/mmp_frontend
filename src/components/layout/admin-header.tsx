@@ -79,7 +79,6 @@ export default async function AdminHeader() {
             <DropdownMenuGroup>
               <DropdownMenuItem
                 render={<Link href="/" />}
-                render={<Link href="/admin/profile" />}
                 className="flex items-center gap-2"
               >
                 <UserRound className="size-4" />
