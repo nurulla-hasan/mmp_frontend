@@ -1,4 +1,4 @@
-import { ClipboardCheck, MessageCircle, UserCheck } from "lucide-react";
+import { ClipboardCheck, MessageCircle, UserCheck, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 import { SectionHeading } from "@/components/common/section-heading";
@@ -8,21 +8,27 @@ import { Button } from "@/components/ui/button";
 const steps = [
   {
     icon: ClipboardCheck,
-    step: "১",
-    title: "সার্ভেয়ার দেখুন",
-    description: "এলাকার সার্ভেয়ারদের প্রোফাইল, সেবা ও ভেরিফিকেশন status দেখুন।",
+    step: "০১",
+    title: "সার্ভেয়ার খুঁজুন",
+    description:
+      "আপনার জেলা ও উপজেলা সিলেক্ট করে অভিজ্ঞ সার্ভেয়ারদের রেটিং, সেবা ও কাজের রেট যাচাই করুন।",
+    tag: "অনুসন্ধান",
   },
   {
     icon: UserCheck,
-    step: "২",
-    title: "সার্ভেয়ার নির্বাচন করুন",
-    description: "অভিজ্ঞতা ও ভেরিফিকেশন দেখে সঠিক পেশাজীবী বেছে নিন।",
+    step: "০২",
+    title: "পেশাজীবী নির্বাচন করুন",
+    description:
+      "ভেরিফাইড স্ট্যাটাস, রিভিউ ও অভিজ্ঞতা বিশ্লেষণ করে সেরা পেশাজীবীকে বেছে নিন।",
+    tag: "বাছাই",
   },
   {
     icon: MessageCircle,
-    step: "৩",
-    title: "কাজ ট্র্যাক করুন",
-    description: "WhatsApp-এর মাধ্যমে সরাসরি সার্ভেয়ারের সাথে যোগাযোগ করে কাজের অগ্রগতি দেখুন।",
+    step: "০৩",
+    title: "সরাসরি যোগাযোগ ও ট্র্যাক",
+    description:
+      "১-ক্লিকে WhatsApp-এ সরাসরি যোগাযোগ করে জমির পরিমাপ বা সার্ভে কাজের অগ্রগতি পরিচালনা করুন।",
+    tag: "কাজ শুরু",
   },
 ];
 
@@ -31,41 +37,61 @@ export function HowItWorksSection() {
     <SectionWrapper id="how-it-works" padding="md">
       <SectionHeading
         badge="কীভাবে কাজ করে"
-        title="তিন ধাপে জমির কাজ এগিয়ে নিন"
-        description="সার্ভেয়ার খোঁজা থেকে কাজ শেষ হওয়া পর্যন্ত পুরো ওয়ার্কফ্লো এক জায়গায় পরিচালনা করুন।"
+        title="তিন সহজ ধাপে জমির কাজ সম্পন্ন করুন"
+        description="সার্ভেয়ার খোঁজা থেকে কাজ সম্পন্ন হওয়া পর্যন্ত পুরো প্রক্রিয়াটি অত্যন্ত স্বচ্ছ ও ঝামেলাহীন।"
       />
-      <div className="mt-12 grid gap-8 md:grid-cols-3">
+
+      <div className="mt-12 grid gap-6 md:grid-cols-3 relative">
         {steps.map((item, i) => {
           const Icon = item.icon;
           return (
-            <div key={item.step} className="relative">
-              {/* Connector line - desktop (column layout, circle centered) */}
-              {i < steps.length - 1 && (
-                <div className="absolute left-[calc(50%+1.5rem)] top-6 hidden h-0.5 w-[calc(100%-3rem)] bg-border md:block" />
-              )}
-              <div className="flex items-start gap-4 md:flex-col md:items-center md:text-center">
-                <div className="relative shrink-0">
-                  <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-                    <Icon className="size-5 text-primary" />
-                  </div>
-                  <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            <div
+              key={item.step}
+              className="relative flex flex-col justify-between rounded-2xl border border-border/80 bg-card p-6 shadow-xs transition-transform duration-200 hover:-translate-y-1 hover:border-primary/40"
+            >
+              <div>
+                {/* Header: Step Badge & Tag */}
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary font-heading font-bold text-lg">
                     {item.step}
+                  </div>
+                  <span className="rounded-md border border-border bg-muted/60 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                    {item.tag}
                   </span>
                 </div>
-                <div className="md:mt-4">
-                  <h3 className="font-medium">{item.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Icon className="size-4 text-primary" />
+                    <h3 className="font-heading font-semibold text-lg text-foreground">
+                      {item.title}
+                    </h3>
+                  </div>
+                  <p className="text-xs sm:text-sm leading-6 text-muted-foreground">
                     {item.description}
                   </p>
                 </div>
               </div>
+
+              {i < steps.length - 1 && (
+                <div className="mt-4 hidden lg:flex items-center justify-end text-muted-foreground/40">
+                  <ArrowRight className="size-4" />
+                </div>
+              )}
             </div>
           );
         })}
       </div>
+
       <div className="mt-10 text-center">
-        <Button size="lg" nativeButton={false} render={<Link href="/surveyors" />}>
-          সার্ভেয়ার খুঁজুন
+        <Button
+          size="lg"
+          nativeButton={false}
+          render={<Link href="/surveyors" />}
+          className="gap-2 shadow-sm"
+        >
+          সার্ভেয়ার ডিরেক্টরি দেখুন
+          <ArrowRight className="size-4" />
         </Button>
       </div>
     </SectionWrapper>

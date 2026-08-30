@@ -14,22 +14,53 @@ import {
   TestimonialsSection,
   TrustHighlightsSection,
 } from "@/components/home";
+import {
+  getAllSurveyors,
+  getServices,
+  getTestimonials,
+} from "@/services/auth.service";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [surveyorsRes, servicesRes, testimonialsRes] = await Promise.allSettled([
+    getAllSurveyors({ limit: 6, isVerified: "true" }),
+    getServices(),
+    getTestimonials(),
+  ]);
+
+  const surveyors =
+    surveyorsRes.status === "fulfilled" && surveyorsRes.value.success
+      ? surveyorsRes.value.data
+      : [];
+
+  const totalSurveyors =
+    surveyorsRes.status === "fulfilled" && surveyorsRes.value.success
+      ? (surveyorsRes.value.meta?.total ?? surveyors.length)
+      : undefined;
+
+  const services =
+    servicesRes.status === "fulfilled" && servicesRes.value.success
+      ? servicesRes.value.data
+      : [];
+
+  const testimonials =
+    testimonialsRes.status === "fulfilled" && testimonialsRes.value.success
+      ? testimonialsRes.value.data
+      : [];
+
   return (
     <main>
-      <HeroSection />
+      <HeroSection totalSurveyors={totalSurveyors} />
       <QuickActionsSection />
       <TrustHighlightsSection />
-      <PopularServicesSection />
+      <PopularServicesSection services={services} />
       <HowItWorksSection />
-      <FeaturedSurveyorsSection />
+      <FeaturedSurveyorsSection surveyors={surveyors} />
       <LandToolsSection />
       <SavedCalculationsSection />
       <RoleBenefitsSection />
       <ProfessionalReportSection />
       {/* <PricingSection /> */}
-      <TestimonialsSection />
+      <TestimonialsSection testimonials={testimonials} />
       <FaqSection />
       <FinalCtaSection />
     </main>

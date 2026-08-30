@@ -88,3 +88,15 @@ export type TSurveyorReview = {
   isVerifiedService: boolean;
   status: "approved" | "pending" | "rejected";
 };
+
+export type TTestimonial = {
+  id: string;
+  reviewerName: string;
+  reviewerDistrict?: string;
+  surveyorName?: string;
+  surveyorSlug?: string;
+  serviceName?: string;
+  comment: string;
+  rating: number;
+  createdAt: string;
+};
