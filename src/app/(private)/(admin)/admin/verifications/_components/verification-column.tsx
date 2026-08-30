@@ -116,7 +116,7 @@ export const verificationColumns: ColumnDef<VerificationRow>[] = [
       const user = row.original.user;
       return (
         <div className="flex items-center gap-3">
-          <Avatar className="size-8 sm:size-9 shrink-0 border border-border">
+          <Avatar className="shrink-0 border border-border">
             <AvatarImage src={user?.imageUrl} alt={user?.name || "Applicant"} />
             <AvatarFallback>
               {getInitials(user?.name || "") || (

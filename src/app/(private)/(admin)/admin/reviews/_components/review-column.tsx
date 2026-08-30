@@ -154,10 +154,12 @@ export const reviewColumns: ColumnDef<ReviewRow>[] = [
       const user = surveyor?.user;
       return (
         <div className="flex items-center gap-2.5">
-          <Avatar className="size-7 sm:size-8 shrink-0 border border-border">
+          <Avatar className="shrink-0 border border-border">
             <AvatarImage src={user?.imageUrl} alt={user?.name || "Surveyor"} />
             <AvatarFallback>
-              {getInitials(user?.name || "") || <UserRound className="size-3.5" />}
+              {getInitials(user?.name || "") || (
+                <UserRound className="size-3.5" />
+              )}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
@@ -165,7 +167,7 @@ export const reviewColumns: ColumnDef<ReviewRow>[] = [
               <Link
                 href={`/surveyors/${surveyor.slug}`}
                 target="_blank"
-                className="font-medium text-foreground text-xs hover:text-primary hover:underline truncate max-w-[150px]"
+                className="font-medium text-foreground text-xs hover:text-primary hover:underline truncate max-w-37.5"
               >
                 {user?.name || "Surveyor"}
               </Link>

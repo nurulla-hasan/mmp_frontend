@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Infinity, Power, Star, Trash2 } from "lucide-react";
+import { Power, Star, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,21 +52,16 @@ function PlanActionsCell({ plan }: { plan: PlanRow }) {
   };
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1">
       {/* 1. Quick Toggle Active/Inactive */}
       <Button
-        variant="outline"
+        variant={plan.isActive ? "default" : "outline"}
         size="icon"
         disabled={isToggling}
         onClick={handleToggle}
-        className={`size-8 ${
-          plan.isActive
-            ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
-            : "text-muted-foreground hover:text-foreground"
-        }`}
         aria-label={plan.isActive ? "Deactivate plan" : "Activate plan"}
       >
-        <Power className="size-3.5" />
+        <Power />
       </Button>
 
       {/* 2. Edit Modal */}
@@ -83,12 +78,11 @@ function PlanActionsCell({ plan }: { plan: PlanRow }) {
         onConfirm={handleDelete}
         actionTrigger={
           <Button
-            variant="outline"
+            variant="destructive"
             size="icon"
-            className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
             aria-label="Delete plan"
           >
-            <Trash2 className="size-3.5" />
+            <Trash2 />
           </Button>
         }
       />
@@ -107,13 +101,12 @@ export const planColumns: ColumnDef<PlanRow>[] = [
             {row.original.name}
           </span>
           {row.original.isPopular && (
-            <Badge variant="progress" size="sm" className="text-xs gap-1 py-0 font-normal">
-              <Star className="size-2.5 fill-amber-400 text-amber-400" />
-              Popular
+            <Badge variant="progress" size="sm">
+              <Star />
             </Badge>
           )}
         </div>
-        <code className="text-[11px] text-muted-foreground font-mono">
+        <code className="text-xs text-muted-foreground font-mono">
           {row.original.code}
         </code>
       </div>
@@ -150,20 +143,10 @@ export const planColumns: ColumnDef<PlanRow>[] = [
         <span className="font-medium text-foreground">
           {row.original.durationDays} Days
         </span>
-        <span className="text-[11px] capitalize">
+        <span className="text-xs capitalize">
           {row.original.billingCycle.toLowerCase().replace("_", " ")}
         </span>
       </div>
-    ),
-  },
-  {
-    id: "access",
-    header: "Access",
-    cell: () => (
-      <Badge variant="outline" size="sm" className="gap-1 text-xs font-normal border-primary/30 text-primary">
-        <Infinity className="size-3" />
-        Unlimited
-      </Badge>
     ),
   },
   {

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Pencil, Plus } from "lucide-react";
+import { Edit, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -170,10 +170,9 @@ export function PlanFormModal({ plan, trigger }: PlanFormModalProps) {
           <Button
             variant="outline"
             size="icon"
-            className="size-8"
             aria-label="Edit plan"
           >
-            <Pencil className="size-3.5" />
+            <Edit  />
           </Button>
         ) : (
           <Button size="sm">

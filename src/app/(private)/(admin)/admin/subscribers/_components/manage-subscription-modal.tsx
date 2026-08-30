@@ -366,12 +366,12 @@ export function ManageSubscriptionModal({
               </strong>
             </span>
             <Button
-              size="sm"
               disabled={isPending}
+              loading={isPending}
+              loadingText="Saving..."
               onClick={handleCustomDateSubmit}
-              className="gap-1.5 h-8 text-xs"
             >
-              <CheckCircle2 className="size-3.5" />
+              <CheckCircle2 />
               Save Expiry Date
             </Button>
           </div>

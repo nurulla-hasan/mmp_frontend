@@ -11,7 +11,10 @@ import type { TSubscriber } from "@/interface/subscriber";
 
 export type SubscriberRow = TSubscriber;
 
-function getDaysRemaining(endDateStr: string): { text: string; isExpired: boolean } {
+function getDaysRemaining(endDateStr: string): {
+  text: string;
+  isExpired: boolean;
+} {
   const now = new Date().getTime();
   const end = new Date(endDateStr).getTime();
   const diffDays = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
@@ -33,21 +36,21 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
       const user = row.original.user;
       return (
         <div className="flex items-center gap-2.5">
-          <Avatar className="size-8 shrink-0 border border-border">
-            <AvatarImage src={user?.imageUrl} alt={user?.name || "Subscriber"} />
+          <Avatar className="shrink-0 border-border">
+            <AvatarImage
+              src={user?.imageUrl}
+              alt={user?.name || "Subscriber"}
+            />
             <AvatarFallback>
-              {getInitials(user?.name || "") || <UserRound className="size-3.5" />}
+              {getInitials(user?.name || "") || (
+                <UserRound className="size-3.5" />
+              )}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className="font-semibold text-foreground text-xs">
-                {user?.name || "User"}
-              </span>
-              <Badge variant="progress" size="sm" className="text-xs py-0 font-normal">
-                {user?.role || "USER"}
-              </Badge>
-            </div>
+            <span className="font-semibold text-foreground text-xs">
+              {user?.name || "User"}
+            </span>
             {user?.phone ? (
               <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                 <Phone className="size-2.5" />
@@ -102,7 +105,9 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
           </span>
           <span
             className={`text-[11px] flex items-center gap-1 ${
-              isExpired ? "text-destructive font-medium" : "text-muted-foreground"
+              isExpired
+                ? "text-destructive font-medium"
+                : "text-muted-foreground"
             }`}
           >
             <Clock className="size-2.5" />

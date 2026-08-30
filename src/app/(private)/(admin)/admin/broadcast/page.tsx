@@ -1,46 +1,47 @@
+import { getAllBroadcasts } from "@/services/broadcast.service";
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
 import { SearchInput } from "@/components/common/search-input";
-import {
-  broadcastColumns,
-  type BroadcastRow,
-} from "./_components/broadcast-column";
+import { broadcastColumns } from "./_components/broadcast-column";
+import { BroadcastFormModal } from "./_components/broadcast-form-modal";
+import { BroadcastTypeFilter } from "./_components/broadcast-type-filter";
+import type { TBroadcastQuery } from "@/interface/broadcast";
 
-const Broadcasts: BroadcastRow[] = [
-  {
-    id: "b-001",
-    title: "নতুন Pro ফিচার চালু হয়েছে",
-    message: "সকল ব্যবহারকারীর জন্য নতুন Pro ফিচার আপডেট করা হয়েছে।",
-    active: true,
-  },
-  {
-    id: "b-002",
-    title: "সার্ভেয়ার ভেরিফিকেশন ক্যাম্পেইন",
-    message: "সার্ভেয়ারদের ভেরিফিকেশন ড্রাইভ চলছে, আবেদন করুন।",
-    active: true,
-  },
-  {
-    id: "b-003",
-    title: "রুটিন মেইনটেনেন্স নোটিশ",
-    message: "সিস্টেম আপডেটের জন্য সাময়িক বিভ্রাট হতে পারে।",
-    active: false,
-  },
-];
+interface PageProps {
+  searchParams: Promise<TBroadcastQuery>;
+}
 
-export default function Page() {
+export default async function AdminBroadcastPage({ searchParams }: PageProps) {
+  const query = await searchParams;
+  const res = await getAllBroadcasts(query);
+
+  const broadcasts = res.success && res.data ? res.data : [];
+  const meta = res.success ? res.meta : undefined;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between items-end sm:flex-row">
+      {/* Header & Controls */}
+      <div className="flex flex-col justify-between items-start gap-4 lg:flex-row lg:items-end">
         <SectionHeading
-          title="Broadcast"
-          description="Send announcements and notifications to users."
+          title="Broadcast Notifications"
+          description="Send system-wide announcements, promotional campaign alerts, and maintenance updates to platform users."
           as="h3"
           alignment="left"
           constrain={false}
         />
-        <SearchInput filterKey="title" placeholder="Search broadcasts..." />
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <BroadcastTypeFilter />
+          <BroadcastFormModal />
+          <SearchInput
+            filterKey="searchTerm"
+            placeholder="Search by title, message..."
+            className="w-full sm:w-64"
+          />
+        </div>
       </div>
-      <DataTable data={Broadcasts} columns={broadcastColumns} />
+
+      {/* TanStack Data Table with Server Pagination */}
+      <DataTable data={broadcasts} columns={broadcastColumns} meta={meta} />
     </div>
   );
 }

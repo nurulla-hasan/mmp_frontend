@@ -9,6 +9,7 @@ export const CACHE_TAGS = {
   REVIEWS: "reviews",
   PLANS: "plans",
   SUBSCRIBERS: "subscribers",
+  BROADCASTS: "broadcasts",
 } as const;
 
 export const CACHE_TIME = {
