@@ -79,6 +79,11 @@ export const adminNavigation: NavigationItem[] = [
     icon: Users,
   },
   {
+    title: "Services",
+    href: "/admin/services",
+    icon: Wrench,
+  },
+  {
     title: "Subscribers",
     href: "/admin/subscribers",
     icon: UserRoundCheck,
@@ -89,14 +94,14 @@ export const adminNavigation: NavigationItem[] = [
     icon: Tags,
   },
   {
-    title: "Device Management",
-    href: "/admin/device-locks",
-    icon: MonitorSmartphone,
-  },
-  {
     title: "Calculations",
     href: "/admin/calculations",
     icon: Calculator,
+  },
+  {
+    title: "Device Management",
+    href: "/admin/device-locks",
+    icon: MonitorSmartphone,
   },
   {
     title: "Broadcast",
@@ -117,10 +122,5 @@ export const adminNavigation: NavigationItem[] = [
     title: "Reviews",
     href: "/admin/reviews",
     icon: Star,
-  },
-  {
-    title: "Service Categories",
-    href: "/admin/service-categories",
-    icon: Wrench,
   },
 ];

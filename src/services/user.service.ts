@@ -3,23 +3,16 @@ import "server-only";
 import type { TUser, TUserQuery, TUserRole, TUserStatus } from "@/interface/user";
 import { buildQueryString } from "@/lib/buildQueryString";
 import { nextServerFetch } from "@/lib/nextServerFetch";
-import { CACHE_TAGS } from "@/lib/cache-tags";
+import { CACHE_TAGS, CACHE_TIME } from "@/lib/cache-tags";
 
 // 1. Get all users for admin
 export const getUsers = (query?: TUserQuery) => {
   const params = buildQueryString(query ?? {});
   return nextServerFetch<TUser[]>(`/users${params}`, {
     auth: "auth",
-    next: { tags: [CACHE_TAGS.USERS], revalidate: 0 },
+    next: { tags: [CACHE_TAGS.USERS], revalidate: CACHE_TIME.DAY },
   });
 };
-
-// 2. Get user by ID
-export const getUserById = (id: string) =>
-  nextServerFetch<TUser>(`/users/${id}`, {
-    auth: "auth",
-    next: { revalidate: 0 },
-  });
 
 // 3. Update user status (ACTIVE | BLOCKED)
 export const updateUserStatus = (id: string, status: TUserStatus) =>
