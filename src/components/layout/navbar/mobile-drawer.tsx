@@ -14,11 +14,16 @@ import {
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import {
+  adminNavigation,
   publicNavigation,
   surveyorNavigation,
   userNavigation,
 } from "@/constants/nav-links";
 import { logoutAction } from "@/app/(auth)/_actions/auth.action";
+
+const mobileLinks = publicNavigation;
+const userMobileLinks = userNavigation;
+const surveyorMobileLinks = surveyorNavigation;
 
 export function MobileDrawer({
   isAuthenticated,
@@ -26,14 +31,16 @@ export function MobileDrawer({
   customTrigger,
 }: {
   isAuthenticated?: boolean;
-  userRole?: "USER" | "SURVEYOR";
+  userRole?: "USER" | "SURVEYOR" | "ADMIN";
   customTrigger?: React.ReactElement;
 }) {
   const pathname = usePathname();
   const dashboardLinks =
-      userRole === "SURVEYOR"
-        ? surveyorNavigation
-        : userNavigation;
+    userRole === "ADMIN"
+      ? adminNavigation
+      : userRole === "SURVEYOR"
+        ? surveyorMobileLinks
+        : userMobileLinks;
 
   return (
     <Drawer swipeDirection="right">
@@ -78,7 +85,7 @@ export function MobileDrawer({
           <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
             মেনু
           </p>
-          {publicNavigation.map((item) => {
+          {mobileLinks.map((item) => {
             const Icon = item.icon;
             const isActive =
               pathname === item.href ||

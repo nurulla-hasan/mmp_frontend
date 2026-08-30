@@ -1,46 +1,49 @@
+import { getServices } from "@/services/service.service";
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
 import { SearchInput } from "@/components/common/search-input";
-import {
-  serviceCategoryColumns,
-  type ServiceCategoryRow,
-} from "./_components/service-category-column";
+import { serviceColumns } from "./_components/service-column";
+import { ServiceModal } from "./_components/service-modal";
+import type { TServiceQuery } from "@/interface/service";
 
-const ServiceCategories: ServiceCategoryRow[] = [
-  {
-    id: "sc-001",
-    name: "জমি পরিমাপ",
-    slug: "land-measurement",
-    status: "published",
-  },
-  {
-    id: "sc-002",
-    name: "সীমানা নির্ধারণ",
-    slug: "boundary-marking",
-    status: "published",
-  },
-  {
-    id: "sc-003",
-    name: "জমি ভাগ",
-    slug: "land-division",
-    status: "draft",
-  },
-];
+interface PageProps {
+  searchParams: Promise<TServiceQuery>;
+}
 
-export default function Page() {
+export default async function AdminServicesPage({ searchParams }: PageProps) {
+  const query = await searchParams;
+  const res = await getServices(query);
+
+  const services = res.success && res.data ? res.data : [];
+  const meta = res.success ? res.meta : undefined;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between items-end sm:flex-row">
+      {/* Top Header & Search Bar */}
+      <div className="flex flex-col justify-between items-start gap-4 lg:flex-row lg:items-end">
         <SectionHeading
-          title="Service Categories"
-          description="Manage public land-service categories and descriptions."
+          title="Services Management"
+          description="Manage land surveying service categories, descriptions, and catalog."
           as="h3"
           alignment="left"
           constrain={false}
         />
-        <SearchInput filterKey="name" placeholder="Search categories..." />
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <SearchInput
+            filterKey="searchTerm"
+            placeholder="Search by name or slug..."
+            className="w-full sm:w-72"
+          />
+          <ServiceModal actionType="create" />
+        </div>
       </div>
-      <DataTable data={ServiceCategories} columns={serviceCategoryColumns} />
+
+      {/* TanStack Data Table with Server Pagination */}
+      <DataTable
+        data={services}
+        columns={serviceColumns}
+        meta={meta}
+      />
     </div>
   );
 }

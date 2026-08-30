@@ -113,7 +113,7 @@ function UserActionsCell({ user }: { user: UserRow }) {
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button variant="ghost" size="icon" className="size-8 p-0">
+            <Button variant="outline" size="icon">
               <span className="sr-only">Open action menu</span>
               <MoreHorizontal className="size-4" />
             </Button>
