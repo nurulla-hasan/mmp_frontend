@@ -10,10 +10,9 @@ import { cn } from "@/lib/utils";
 
 import { CONTAINER_MAX_WIDTH } from "@/components/common/page-wrapper";
 import { publicNavigation } from "@/constants/nav-links";
-import { MobileDrawer } from "./mobile-drawer";
 import type { TAuthUser } from "@/interface/auth";
 
-export function Navbar({user}: {user?: TAuthUser}) {
+export function Navbar({ user }: { user?: TAuthUser }) {
   const pathname = usePathname();
 
   function isActive(href: string) {
@@ -60,12 +59,9 @@ export function Navbar({user}: {user?: TAuthUser}) {
         </nav>
 
         {/* Right: Actions */}
-        <div className="flex flex-1 items-center justify-end gap-2">
+        <div className="flex flex-1 items-center justify-end gap-2.5">
           <ThemeToggle />
-          <div className="hidden lg:block">
-            <AuthDropdown isAuthenticated={!!user} user={user} />
-          </div>
-          <MobileDrawer />
+          <AuthDropdown isAuthenticated={!!user} user={user} />
         </div>
       </div>
     </header>

@@ -5,26 +5,40 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { MobileDrawer } from "@/components/layout/navbar/mobile-drawer";
-
 import { cn } from "@/lib/utils";
+import type { TAuthUser } from "@/interface/auth";
 
-const items = [
-  { label: "হোম", icon: Home, href: "/" },
-  { label: "সার্ভেয়ার", icon: MapPin, href: "/surveyors" },
-  { label: "টুলস", icon: Ruler, href: "/tools" },
-  { label: "প্রোফাইল", icon: User, href: "/dashboard/profile" },
-];
-
-export function MobileBottomNav() {
+export function MobileBottomNav({ user }: { user?: TAuthUser }) {
   const pathname = usePathname();
+
+  const profileHref = !user
+    ? "/login"
+    : user.role === "ADMIN"
+      ? "/admin/dashboard"
+      : user.role === "SURVEYOR"
+        ? "/surveyor/profile"
+        : "/dashboard/profile";
+
+  const items = [
+    { label: "হোম", icon: Home, href: "/" },
+    { label: "সার্ভেয়ার", icon: MapPin, href: "/surveyors" },
+    { label: "টুলস", icon: Ruler, href: "/tools" },
+    { label: "প্রোফাইল", icon: User, href: profileHref },
+  ];
+
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 flex h-14 items-center justify-between border-t bg-background px-4 lg:hidden" aria-label="দ্রুত নেভিগেশন">
+    <nav
+      className="fixed inset-x-0 bottom-0 z-50 flex h-14 items-center justify-between border-t bg-background/95 backdrop-blur-md px-4 lg:hidden select-none"
+      aria-label="দ্রুত নেভিগেশন"
+    >
       {items.map(({ label, icon: Icon, href }) => {
-        const active = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+        const active =
+          pathname === href ||
+          (href !== "/" && pathname.startsWith(`${href}/`));
         const isSpecial = href === "/tools";
         return (
           <Link
-            key={href}
+            key={label}
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
@@ -42,17 +56,23 @@ export function MobileBottomNav() {
                 <Icon className="size-5" aria-hidden />
               </span>
             )}
-            <span className={cn("text-xs leading-none", isSpecial && "font-medium")}>{label}</span>
+            <span
+              className={cn("text-xs leading-none", isSpecial && "font-medium")}
+            >
+              {label}
+            </span>
           </Link>
         );
       })}
-      
+
       {/* Menu Item (Drawer Trigger) */}
       <MobileDrawer
-        isAuthenticated={true}
+        isAuthenticated={!!user}
+        userRole={user?.role}
         customTrigger={
           <button
-            className="flex flex-col items-center gap-0.5 text-muted-foreground"
+            type="button"
+            className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
             aria-label="মেনু"
           >
             <span className="flex size-7 items-center justify-center">

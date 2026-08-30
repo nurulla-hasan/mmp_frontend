@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn, getInitials } from "@/lib/utils";
+import { getInitials } from "@/lib/utils";
 import type { TAuthUser } from "@/interface/auth";
 import {
   surveyorNavigation,
@@ -39,13 +39,22 @@ export function AuthDropdown({
   isAuthenticated?: boolean;
   user?: TAuthUser;
 }) {
-  // Not logged in — show login button
+  // Not logged in — show login button on mobile & desktop
   if (!isAuthenticated) {
     return (
       <div className="flex items-center gap-2">
         <Button
-          variant="ghost"
           className="hidden sm:inline-flex"
+          variant="outline"
+          nativeButton={false}
+          render={<Link href="/login" />}
+        >
+          লগইন
+        </Button>
+        <Button
+          size="sm"
+          className="sm:hidden"
+          variant="outline"
           nativeButton={false}
           render={<Link href="/login" />}
         >
@@ -66,7 +75,7 @@ export function AuthDropdown({
     <div className="flex items-center gap-2">
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="outline-none rounded-full focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="outline-none rounded-full focus-visible:ring-3 focus-visible:ring-ring/50 cursor-pointer"
           render={
             <Button
               variant="ghost"
@@ -75,32 +84,15 @@ export function AuthDropdown({
             />
           }
         >
-          <>
-            {/* Mobile Avatar (Default Size) */}
-            <Avatar
-              className={cn("lg:hidden")}
-            >
-              <AvatarImage
-                src={user?.imageUrl || "/assets/fallback-avatar.png"}
-              />
-              <AvatarFallback>
-                {getInitials(user?.name || "") || <UserRound />}
-              </AvatarFallback>
-            </Avatar>
-
-            {/* Desktop Avatar (Large Size) */}
-            <Avatar
-              size="lg"
-              className={cn("hidden lg:flex")}
-            >
-              <AvatarImage
-                src={user?.imageUrl || "/assets/fallback-avatar.png"}
-              />
-              <AvatarFallback>
-                {getInitials(user?.name || "") || <UserRound />}
-              </AvatarFallback>
-            </Avatar>
-          </>
+          <Avatar className="size-8 sm:size-9 border border-border">
+            <AvatarImage
+              src={user?.imageUrl || "/assets/fallback-avatar.png"}
+              alt={user?.name || "User Avatar"}
+            />
+            <AvatarFallback>
+              {getInitials(user?.name || "") || <UserRound className="size-4" />}
+            </AvatarFallback>
+          </Avatar>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="w-56">
@@ -108,7 +100,7 @@ export function AuthDropdown({
             <DropdownMenuGroup>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {user.name}
                   </p>
                   {user.email && (
@@ -149,7 +141,7 @@ export function AuthDropdown({
               logoutAction();
             }}
           >
-            <LogOut />
+            <LogOut className="size-4" />
             লগআউট
           </DropdownMenuItem>
         </DropdownMenuContent>

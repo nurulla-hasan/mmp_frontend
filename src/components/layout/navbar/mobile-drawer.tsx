@@ -18,10 +18,7 @@ import {
   surveyorNavigation,
   userNavigation,
 } from "@/constants/nav-links";
-
-const mobileLinks = publicNavigation;
-const userMobileLinks = userNavigation;
-const surveyorMobileLinks = surveyorNavigation;
+import { logoutAction } from "@/app/(auth)/_actions/auth.action";
 
 export function MobileDrawer({
   isAuthenticated,
@@ -29,12 +26,14 @@ export function MobileDrawer({
   customTrigger,
 }: {
   isAuthenticated?: boolean;
-  userRole?: "USER" | "SURVEYOR" | "ADMIN";
+  userRole?: "USER" | "SURVEYOR";
   customTrigger?: React.ReactElement;
 }) {
   const pathname = usePathname();
-  const isSurveyor = userRole === "SURVEYOR";
-  const dashboardLinks = isSurveyor ? surveyorMobileLinks : userMobileLinks;
+  const dashboardLinks =
+      userRole === "SURVEYOR"
+        ? surveyorNavigation
+        : userNavigation;
 
   return (
     <Drawer swipeDirection="right">
@@ -48,27 +47,27 @@ export function MobileDrawer({
               size="icon"
               className="lg:hidden rounded-full"
               aria-label="মেনু খুলুন"
-            />
+            >
+              <Menu />
+            </Button>
           )
         }
-      >
-        {!customTrigger && <Menu />}
-      </DrawerTrigger>
+      />
       <DrawerContent>
         {/* Header */}
         <div className="flex items-center justify-between border-b px-5 py-4">
-          <Logo showText showTextOnMobile/>
+          <Logo showText showTextOnMobile />
           <DrawerClose
             render={
               <Button
                 variant="ghost"
                 size="icon"
                 aria-label="মেনু বন্ধ করুন"
-              />
+              >
+                <X />
+              </Button>
             }
-          >
-            <X />
-          </DrawerClose>
+          />
         </div>
 
         {/* Navigation Links */}
@@ -79,7 +78,7 @@ export function MobileDrawer({
           <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
             মেনু
           </p>
-          {mobileLinks.map((item) => {
+          {publicNavigation.map((item) => {
             const Icon = item.icon;
             const isActive =
               pathname === item.href ||
@@ -122,7 +121,7 @@ export function MobileDrawer({
               <p className="mb-3 px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
                 ড্যাশবোর্ড
               </p>
-              <div className="grid gap-1">
+              <div className="grid gap-1 max-h-48 overflow-y-auto">
                 {dashboardLinks.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname.startsWith(item.href);
@@ -149,7 +148,11 @@ export function MobileDrawer({
                 })}
               </div>
               <div className="mt-3">
-                <Button variant="outline" className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => logoutAction()}
+                >
                   লগআউট
                 </Button>
               </div>

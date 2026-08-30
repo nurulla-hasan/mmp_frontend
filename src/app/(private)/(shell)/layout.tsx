@@ -1,5 +1,5 @@
 import { PublicFooter } from "@/components/layout/public-footer";
-import { MobileBottomNav } from "@/components/common/mobile-bottom-nav";
+import UserMobileBottomNav from "@/components/common/user-mobile-bottom-nav";
 import { Suspense } from "react";
 import UserNavbar from "@/components/layout/navbar/user-navbar";
 
@@ -17,7 +17,9 @@ export default function PrivateLayout({
         {children}
         <PublicFooter />
       </div>
-      <MobileBottomNav />
+      <Suspense fallback={null}>
+        <UserMobileBottomNav />
+      </Suspense>
     </>
   );
 }

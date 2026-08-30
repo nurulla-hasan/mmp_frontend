@@ -35,6 +35,7 @@ export interface PlotActions {
 
 export type PlotSlice = PlotState & PlotActions;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set, get, _store) => ({
   // State
   plotPoints: [],
