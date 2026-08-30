@@ -26,7 +26,7 @@ export async function loginAction(
   if (!result.success) return result;
 
   await setAuthCookies(result.data);
-  updateTag(CACHE_TAGS.user);
+  updateTag(CACHE_TAGS.ME);
 
   const payload = decodeJwtPayload(result.data.accessToken);
   const homePath = payload?.role === "ADMIN" ? "/admin/dashboard" : "/";
@@ -50,7 +50,7 @@ export async function verifyEmailAction(data: {
   if (!result.success) return result;
 
   await setAuthCookies(result.data);
-  updateTag(CACHE_TAGS.user);
+  updateTag(CACHE_TAGS.ME);
 
   const payload = decodeJwtPayload(result.data.accessToken);
   const homePath = payload?.role === "ADMIN" ? "/admin/dashboard" : "/";
@@ -67,6 +67,6 @@ export async function resendOtpAction(data: {
 export async function logoutAction(): Promise<void> {
   await logout();
   await clearAuthCookies();
-  updateTag(CACHE_TAGS.user);
+  updateTag(CACHE_TAGS.ME);
   redirect("/");
 }

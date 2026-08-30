@@ -14,7 +14,7 @@ import {
 import { Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-import { useSmartFilter } from "@/hooks/useSmartFilter";
+import { useNextFilter } from "@/hooks/useNextFilter";
 import {
   Table,
   TableBody,
@@ -53,6 +53,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   limit?: number;
   meta?: PaginationMeta;
+  tableMeta?: Record<string, unknown>;
 
   /**
    * The key in the URL for searching.
@@ -73,11 +74,12 @@ function DataTableInner<TData, TValue>({
   data,
   limit = 10,
   meta,
+  tableMeta,
   searchKey,
   searchPlaceholder,
   showFooter = false,
 }: DataTableProps<TData, TValue>) {
-  const { updateFilter, getFilter } = useSmartFilter<string>({
+  const { updateFilter, getFilter } = useNextFilter<string>({
     paginationKey: "page",
     defaultDebounce: 500,
     defaultMethod: "replace",
@@ -126,6 +128,7 @@ function DataTableInner<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: meta ? undefined : getPaginationRowModel(),
+    meta: tableMeta,
   });
 
   return (
@@ -139,7 +142,7 @@ function DataTableInner<TData, TValue>({
               value={getFilter(searchKey)}
               onChange={(event) =>
                 updateFilter(searchKey, event.target.value, {
-                  debounce: 500,
+                  debounce: 300,
                   method: "replace",
                 })
               }

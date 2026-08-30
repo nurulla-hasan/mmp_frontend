@@ -88,7 +88,7 @@ export const exchangeGoogleCode = (code: string) =>
 export const getMe = () =>
   nextServerFetch<{ user: TAuthUser }>("/auth/me", {
     auth: "auth",
-    next: { tags: [CACHE_TAGS.user], revalidate: CACHE_TIME.day },
+    next: { tags: [CACHE_TAGS.ME], revalidate: 0 },
   });
 
 export const updateMe = (payload: unknown) =>
@@ -102,7 +102,7 @@ export const updateMe = (payload: unknown) =>
 export const getServices = () =>
   nextServerFetch<TSurveyorService[]>("/services", {
     auth: "none",
-    next: { revalidate: CACHE_TIME.day },
+    next: { revalidate: CACHE_TIME.DAY },
   });
 
 // ── Districts (public catalog: value + label + upazilas) ──
@@ -111,7 +111,7 @@ export const getDistricts = () =>
     "/districts",
     {
       auth: "none",
-      next: { revalidate: CACHE_TIME.day },
+      next: { revalidate: CACHE_TIME.DAY },
     },
   );
 
@@ -120,14 +120,14 @@ export const getAllSurveyors = (query?: TQuery) => {
   const params = buildQueryString(query ?? {});
   return nextServerFetch<TSurveyorProfile[]>(`/surveyor${params}`, {
     auth: "none",
-    next: { tags: [CACHE_TAGS.surveyors], revalidate: CACHE_TIME.day },
+    next: { tags: [CACHE_TAGS.SURVEYORS], revalidate: CACHE_TIME.DAY },
   });
 };
 
 export const getSurveyorBySlug = (slug: string) =>
   nextServerFetch<TSurveyorProfile>(`/surveyor/${slug}`, {
     auth: "none",
-    next: { tags: [CACHE_TAGS.surveyorProfile], revalidate: 60 },
+    next: { tags: [CACHE_TAGS.SURVEYOR_PROFILE], revalidate: 60 },
   });
 
 export const applyAsSurveyor = (payload: unknown) =>

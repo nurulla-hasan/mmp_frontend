@@ -28,8 +28,7 @@ export async function submitSurveyorApplicationAction(
     return { success: false, message: result.message || "আবেদন জমা দিতে সমস্যা হয়েছে।" };
   }
 
-  updateTag(CACHE_TAGS.surveyorProfile);
-  updateTag(CACHE_TAGS.user);
+  updateTag(CACHE_TAGS.SURVEYOR_PROFILE);
+  updateTag(CACHE_TAGS.ME);
   return { success: true, message: "আপনার আবেদন সফলভাবে জমা হয়েছে! অ্যাডমিন যাচাইয়ের পর প্রোফাইল সচল হবে।" };
 }
-

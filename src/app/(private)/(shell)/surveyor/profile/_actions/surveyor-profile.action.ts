@@ -1,52 +1,13 @@
 "use server";
 
 import { updateTag } from "next/cache";
-
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import {
-  applyAsSurveyor,
-  updateMySurveyorProfile,
   updateMe,
-  getServices,
+  updateMySurveyorProfile,
 } from "@/services/auth.service";
+import type { UpdateMeFormValues } from "@/validation/update-me.schema";
 import type { SurveyorProfileFormValues } from "@/validation/surveyor-profile.schema";
-import { UpdateMeFormValues } from "@/validation/update-me.schema";
-
-export async function applyAsSurveyorAction(
-  data: SurveyorProfileFormValues,
-){
-  const servicesResult = await getServices();
-  if (!servicesResult.success) {
-    return { success: false, message: "সার্ভিস লোড করা যায়নি।" };
-  }
-
-  const slugToId = new Map<string, string>(
-    servicesResult.data.map((s) => [s.slug, s.id]),
-  );
-
-  const payload = {
-    headline: data.headline,
-    bio: data.bio,
-    experienceYears: data.experienceYears,
-    serviceAreas: data.serviceAreas.map((a) => ({
-      district: a.district,
-      upazilas: a.upazilas,
-    })),
-    services: data.services.map((s) => ({
-      serviceId: slugToId.get(s.slug) ?? s.slug,
-      startingPrice: s.startingPrice ?? 0,
-    })),
-  };
-
-  const result = await applyAsSurveyor(payload);
-  if (!result.success) {
-    return { success: false, message: result.message };
-  }
-
-  updateTag(CACHE_TAGS.surveyorProfile);
-  updateTag(CACHE_TAGS.user);
-  return { success: true };
-}
 
 // PATCH /auth/me — normal user profile (name, phone, whatsappNumber)
 export async function updateMeAction(data: UpdateMeFormValues) {
@@ -55,7 +16,7 @@ export async function updateMeAction(data: UpdateMeFormValues) {
     return { success: false, message: result.message };
   }
 
-  updateTag(CACHE_TAGS.user);
+  updateTag(CACHE_TAGS.ME);
   return { success: true };
 }
 
@@ -68,7 +29,7 @@ export async function updateMySurveyorProfileAction(
     return { success: false, message: result.message };
   }
 
-  updateTag(CACHE_TAGS.surveyorProfile);
-  updateTag(CACHE_TAGS.user);
+  updateTag(CACHE_TAGS.SURVEYOR_PROFILE);
+  updateTag(CACHE_TAGS.ME);
   return { success: true };
 }

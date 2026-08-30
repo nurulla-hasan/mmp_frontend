@@ -3,10 +3,11 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 type UserRole = "USER" | "SURVEYOR" | "ADMIN";
-type TokenPayload = { exp?: number; role?: unknown };
-type RefreshResult = {
-  data?: { accessToken?: string; refreshToken?: string };
-};
+
+interface TokenPayload {
+  exp?: number;
+  role?: unknown;
+}
 
 const PUBLIC_ROUTES = [
   "/",
@@ -26,8 +27,11 @@ const AUTH_ROUTES = [
   "/verify-code",
 ];
 
+// Set to true to enforce route protection
+const IS_PROTECTION_ON = true;
+
 const ROLE_HOME: Record<UserRole, string> = {
-  USER: "/dashboard",
+  USER: "/dashboard/profile",
   SURVEYOR: "/surveyor/profile",
   ADMIN: "/admin/dashboard",
 };
@@ -42,123 +46,123 @@ const decodeToken = (token: string): TokenPayload | null => {
 
 const isExpired = (token: string): boolean => {
   const payload = decodeToken(token);
-  return !payload?.exp || Date.now() / 1000 >= payload.exp;
+
+  if (!payload?.exp) return true;
+
+  return Date.now() / 1000 >= payload.exp;
 };
 
 const getRole = (token: string): UserRole | null => {
-  const role = decodeToken(token)?.role;
-  return role === "USER" || role === "SURVEYOR" || role === "ADMIN" ? role : null;
-};
+  const payload = decodeToken(token);
+  const role = payload?.role as string;
 
-const matches = (pathname: string, routes: string[]): boolean =>
-  routes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
-
-const setTokenCookies = (
-  response: NextResponse,
-  tokens: { accessToken?: string; refreshToken?: string },
-): NextResponse => {
-  const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    path: "/",
-  };
-  if (tokens.accessToken) {
-    response.cookies.set("accessToken", tokens.accessToken, {
-      ...options,
-      maxAge: 15 * 60,
-    });
-  }
-  if (tokens.refreshToken) {
-    response.cookies.set("refreshToken", tokens.refreshToken, {
-      ...options,
-      maxAge: 7 * 24 * 60 * 60,
-    });
-  }
-  return response;
-};
-
-const refreshTokens = async (
-  refreshToken: string,
-): Promise<RefreshResult["data"] | null> => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
-  if (!baseUrl) return null;
-  try {
-    const response = await fetch(`${baseUrl}/auth/refresh-token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
-      cache: "no-store",
-    });
-    if (!response.ok) return null;
-    const result = (await response.json()) as RefreshResult;
-    return result.data ?? null;
-  } catch {
-    return null;
-  }
+  return role === "USER" || role === "SURVEYOR" || role === "ADMIN"
+    ? (role as UserRole)
+    : null;
 };
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
+  if (!IS_PROTECTION_ON) {
+    return NextResponse.next();
+  }
+
   const pathname = request.nextUrl.pathname;
-  const isPublic = matches(pathname, PUBLIC_ROUTES);
-  const isAuthRoute = matches(pathname, AUTH_ROUTES);
+
+  const isPublic = PUBLIC_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
+
+  const isAuthRoute = AUTH_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
+
   let accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
-  let refreshed: RefreshResult["data"] | null = null;
+  let newAccessToken: string | undefined = undefined;
 
-  // ── Refresh Access Token if Expired ─────────────────────────────
+  // Try to refresh token if missing or expired
   if ((!accessToken || isExpired(accessToken)) && refreshToken) {
-    refreshed = await refreshTokens(refreshToken);
-    accessToken = refreshed?.accessToken;
+    try {
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+      const res = await fetch(`${apiUrl}/auth/refresh-token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      const data = await res.json();
+
+      if (data?.success && data?.data?.accessToken) {
+        newAccessToken = data.data.accessToken;
+        accessToken = newAccessToken;
+      }
+    } catch (error) {
+      console.error("Token refresh failed in proxy:", error);
+    }
   }
 
   const role =
     accessToken && !isExpired(accessToken) ? getRole(accessToken) : null;
 
+  let response: NextResponse;
+
   // ── 1. ADMIN Rule: Admin can ONLY access /admin/* routes ─────────
+  // If an Admin tries to access ANY other route (/tools, /calculations, /, /about, etc.),
+  // they are strictly redirected to /admin/dashboard
   if (role === "ADMIN" && !pathname.startsWith("/admin")) {
-    return setTokenCookies(
-      NextResponse.redirect(new URL("/admin/dashboard", request.url)),
-      refreshed ?? {},
-    );
+    response = NextResponse.redirect(new URL("/admin/dashboard", request.url));
   }
-
-  // ── 2. Stealth Mode: Surveyor gets 404 Not Found on /join-as-surveyor
-  if (role === "SURVEYOR" && pathname.startsWith("/join-as-surveyor")) {
-    return setTokenCookies(
-      NextResponse.redirect(new URL("/not-found", request.url)),
-      refreshed ?? {},
-    );
+  // ── 2. SURVEYOR Rule: Stealth Mode on /join-as-surveyor ──────────
+  else if (role === "SURVEYOR" && pathname.startsWith("/join-as-surveyor")) {
+    response = NextResponse.redirect(new URL("/not-found", request.url));
   }
-
-  // ── 3. Auth Routes (/login, /register, etc.) for Logged-in Users ─
-  if (isAuthRoute && role) {
-    return setTokenCookies(
-      NextResponse.redirect(new URL(ROLE_HOME[role], request.url)),
-      refreshed ?? {},
-    );
+  // ── 3. Authenticated Users on Auth Routes (/login, /register, etc.) ──
+  else if (isAuthRoute && role) {
+    response = NextResponse.redirect(new URL(ROLE_HOME[role], request.url));
   }
-
-  // ── 4. Protected Private Routes Guard (Direct 404 if unauthorized)
-  if (!isPublic && !isAuthRoute) {
-    if (!accessToken || isExpired(accessToken) || !role) {
+  // ── 4. Protected Private Routes Guard (/tools, /calculations, /dashboard, etc.) ──
+  else if (!isPublic && !isAuthRoute) {
+    if (!accessToken || isExpired(accessToken)) {
       const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
+      loginUrl.searchParams.set(
+        "callbackUrl",
+        pathname + request.nextUrl.search,
+      );
+      response = NextResponse.redirect(loginUrl);
+    } else {
+      if (!role) {
+        response = NextResponse.redirect(new URL("/login", request.url));
+      }
+      // Role-based access control
+      else if (pathname.startsWith("/dashboard") && role !== "USER") {
+        response = NextResponse.redirect(new URL("/not-found", request.url));
+      } else if (pathname.startsWith("/surveyor") && role !== "SURVEYOR") {
+        response = NextResponse.redirect(new URL("/not-found", request.url));
+      } else if (pathname.startsWith("/admin") && role !== "ADMIN") {
+        response = NextResponse.redirect(new URL("/not-found", request.url));
+      } else {
+        response = NextResponse.next();
+      }
     }
-
-    if (pathname.startsWith("/dashboard") && role !== "USER") {
-      return NextResponse.redirect(new URL("/not-found", request.url));
-    }
-    if (pathname.startsWith("/surveyor") && role !== "SURVEYOR") {
-      return NextResponse.redirect(new URL("/not-found", request.url));
-    }
-    if (pathname.startsWith("/admin") && role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/not-found", request.url));
-    }
+  } else {
+    response = NextResponse.next();
   }
 
-  return setTokenCookies(NextResponse.next(), refreshed ?? {});
+  // If a new access token was fetched, set it in the response cookies
+  if (newAccessToken) {
+    response.cookies.set("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 15 * 60,
+    });
+  }
+
+  return response;
 }
 
 export const config = {

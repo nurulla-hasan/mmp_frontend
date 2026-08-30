@@ -1,14 +1,14 @@
-
 export const CACHE_TAGS = {
-  surveyors: "surveyors",
-  surveyor: (id: string) => `surveyor-${id}`,
-  user: "user",
-  surveyorProfile: "surveyor-profile",
-  calculations: "calculations",
+  ME: "me",
+  USERS: "users",
+  SURVEYORS: "surveyors",
+  SURVEYOR: (id: string) => `surveyor-${id}`,
+  SURVEYOR_PROFILE: "surveyor-profile",
+  CALCULATIONS: "calculations",
 } as const;
 
 export const CACHE_TIME = {
-  fiveMinutes: 300,
-  hour: 3600,
-  day: 86400,
+  FIVE_MINUTES: 300,
+  HOUR: 3600,
+  DAY: 86400,
 } as const;

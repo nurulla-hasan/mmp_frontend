@@ -1,32 +1,14 @@
 import "server-only";
 
+import { CACHE_TAGS, CACHE_TIME } from "@/lib/cache-tags";
+import { nextServerFetch } from "@/lib/nextServerFetch";
+import { buildQueryString } from "@/lib/buildQueryString";
 import type {
-  CreateCalculationPayload,
   TCalculation,
+  CreateCalculationPayload,
   TUserMeasurementStat,
-  UpdateCalculationPayload,
 } from "@/interface/calculation";
 import type { TQuery } from "@/interface/global";
-import { buildQueryString } from "@/lib/buildQueryString";
-import { nextServerFetch } from "@/lib/nextServerFetch";
-import { CACHE_TAGS, CACHE_TIME } from "@/lib/cache-tags";
-
-export const getCalculations = (query?: TQuery) =>
-  nextServerFetch<TCalculation[]>(
-    `/calculations${query ? buildQueryString(query) : ""}`,
-    {
-      auth: "auth",
-      next: {
-        tags: [CACHE_TAGS.calculations],
-        revalidate: CACHE_TIME.fiveMinutes,
-      },
-    },
-  );
-
-export const getCalculationById = (id: string) =>
-  nextServerFetch<TCalculation>(`/calculations/${id}`, {
-    auth: "auth",
-  });
 
 export const saveCalculation = (payload: CreateCalculationPayload) =>
   nextServerFetch<TCalculation>("/calculations", {
@@ -35,9 +17,26 @@ export const saveCalculation = (payload: CreateCalculationPayload) =>
     auth: "auth",
   });
 
+export const getCalculations = (query?: TQuery) => {
+  const params = buildQueryString(query ?? {});
+  return nextServerFetch<TCalculation[]>(`/calculations${params}`, {
+    auth: "auth",
+    next: {
+      tags: [CACHE_TAGS.CALCULATIONS],
+      revalidate: CACHE_TIME.FIVE_MINUTES,
+    },
+  });
+};
+
+export const getCalculationById = (id: string) =>
+  nextServerFetch<TCalculation>(`/calculations/${id}`, {
+    auth: "auth",
+    next: { revalidate: 60 },
+  });
+
 export const updateCalculation = (
   id: string,
-  payload: UpdateCalculationPayload,
+  payload: Partial<CreateCalculationPayload>,
 ) =>
   nextServerFetch<TCalculation>(`/calculations/${id}`, {
     method: "PATCH",
@@ -54,5 +53,5 @@ export const deleteCalculation = (id: string) =>
 export const getMyMeasurementStats = () =>
   nextServerFetch<TUserMeasurementStat>("/calculations/stats/me", {
     auth: "auth",
-    next: { tags: [CACHE_TAGS.user], revalidate: CACHE_TIME.fiveMinutes },
+    next: { tags: [CACHE_TAGS.ME], revalidate: CACHE_TIME.FIVE_MINUTES },
   });
