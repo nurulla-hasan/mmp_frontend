@@ -272,7 +272,7 @@ export const userColumns: ColumnDef<UserRow>[] = [
       const user = row.original;
       return (
         <div className="flex items-center gap-2.5">
-          <Avatar className="shrink-0">
+          <Avatar isPro={user.isSubscribed} className="shrink-0">
             <AvatarImage src={user.imageUrl || undefined} alt={user.name} />
             <AvatarFallback>
               {getInitials(user.name) || <UserRound />}

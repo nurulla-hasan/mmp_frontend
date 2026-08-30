@@ -45,11 +45,8 @@ export function SurveyorHero({
       <div className="flex shrink-0 justify-center md:block">
         <div className="relative size-20 md:size-24">
           <Avatar
-            className={cn(
-              "size-20 md:size-24",
-              isSubscribed &&
-                "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5",
-            )}
+            isPro={isSubscribed}
+            className="size-20 md:size-24"
           >
             <AvatarImage
               src={profilePhoto}

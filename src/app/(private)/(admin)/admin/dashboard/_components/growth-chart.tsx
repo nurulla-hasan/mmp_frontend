@@ -1,7 +1,5 @@
 "use client";
 
-import { Users, UserCheck } from "lucide-react";
-
 interface GrowthChartProps {
   data: {
     month: string;
@@ -29,7 +27,7 @@ export function GrowthChart({ data }: GrowthChartProps) {
 
         <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-1">
-            <div className="size-2.5 rounded-sm bg-primary" />
+            <div className="size-2.5 rounded-sm bg-blue-500" />
             <span className="text-muted-foreground">Users</span>
           </div>
           <div className="flex items-center gap-1">
@@ -39,7 +37,7 @@ export function GrowthChart({ data }: GrowthChartProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-2 pt-6 items-end min-h-[140px]">
+      <div className="grid grid-cols-6 gap-2 pt-6 items-end min-h-35">
         {data.map((item) => {
           const userHeight = Math.max(8, Math.round((item.users / maxVal) * 100));
           const subHeight = Math.max(8, Math.round((item.subscribers / maxVal) * 100));
@@ -53,7 +51,7 @@ export function GrowthChart({ data }: GrowthChartProps) {
                 {/* Users bar */}
                 <div
                   style={{ height: `${userHeight}%` }}
-                  className="w-3 rounded-t-sm bg-primary/80 group-hover:bg-primary transition-all relative"
+                  className="w-3 rounded-t-sm bg-blue-500/80 group-hover:bg-blue-500 transition-all relative"
                   title={`Users: ${item.users}`}
                 />
                 {/* Subscribers bar */}

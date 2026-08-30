@@ -56,11 +56,8 @@ export function SurveyorCard({ surveyor }: { surveyor: TSurveyorProfile }) {
           <Link href={`/surveyors/${surveyor.slug}`} className="shrink-0">
             <div className="relative size-14 md:size-16">
               <Avatar
-                className={cn(
-                  "size-full ring-2 ring-border/40 transition-transform duration-300 group-hover:scale-105",
-                  isSubscribed &&
-                    "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5 ring-0",
-                )}
+                isPro={isSubscribed}
+                className="size-full transition-transform duration-300 group-hover:scale-105"
               >
                 <AvatarImage
                   src={profilePhoto}

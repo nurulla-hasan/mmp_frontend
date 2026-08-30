@@ -84,7 +84,7 @@ export function AuthDropdown({
             />
           }
         >
-          <Avatar className="size-8 sm:size-9 border border-border">
+          <Avatar isPro={user?.isSubscribed} className="size-8 sm:size-9">
             <AvatarImage
               src={user?.imageUrl || "/assets/fallback-avatar.png"}
               alt={user?.name || "User Avatar"}

@@ -36,7 +36,7 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
       const user = row.original.user;
       return (
         <div className="flex items-center gap-2.5">
-          <Avatar className="shrink-0 border-border">
+          <Avatar isPro={row.original.status === "ACTIVE"} className="shrink-0">
             <AvatarImage
               src={user?.imageUrl}
               alt={user?.name || "Subscriber"}

@@ -1,8 +1,8 @@
-import Link from "next/link";
+
 import {
   CalendarDays,
+  Edit,
   MapPin,
-  Pencil,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
@@ -17,7 +17,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import type { TAuthUser } from "@/interface/auth";
-import { cn, formatDate, getInitials } from "@/lib/utils";
+import { formatDate, getInitials } from "@/lib/utils";
 
 export function ProfileHeaderCard({ user }: { user: TAuthUser }) {
   return (
@@ -25,20 +25,11 @@ export function ProfileHeaderCard({ user }: { user: TAuthUser }) {
       <CardHeader>
         <div className="flex flex-col items-center text-center">
           <div className="relative">
-            <div
-              className={cn(
-                "rounded-full",
-                user.isSubscribed
-                  ? "bg-conic from-violet-500 via-green-500 to-red-500 p-0.5"
-                  : "ring-1 ring-border p-1",
-              )}
-            >
-              <div className="rounded-full bg-card p-1">
-                <Avatar size="xl">
-                  <AvatarImage src={user.imageUrl} alt={user.name} />
-                  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                </Avatar>
-              </div>
+            <div>
+              <Avatar size="xl" isPro={user.isSubscribed}>
+                <AvatarImage src={user.imageUrl} alt={user.name} />
+                <AvatarFallback className="text-xl">{getInitials(user.name)}</AvatarFallback>
+              </Avatar>
             </div>
           </div>
 
@@ -94,10 +85,8 @@ export function ProfileHeaderCard({ user }: { user: TAuthUser }) {
             variant="outline"
             size="sm"
             className="w-full"
-            nativeButton={false}
-            render={<Link href="/dashboard/profile/edit" />}
           >
-            <Pencil className="size-3.5" />
+            <Edit className="size-3.5" />
             <span>প্রোফাইল এডিট</span>
           </Button>
         </div>

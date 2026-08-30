@@ -8,10 +8,44 @@ import { cn } from "@/lib/utils";
 function Avatar({
   className,
   size = "default",
+  isPro = false,
+  isSubscribed,
   ...props
 }: AvatarPrimitive.Root.Props & {
   size?: "default" | "sm" | "lg" | "xl" | "2xl";
+  isPro?: boolean;
+  isSubscribed?: boolean;
 }) {
+  const hasPro = isPro || isSubscribed;
+
+  if (hasPro) {
+    return (
+      <div
+        data-slot="avatar-pro-ring"
+        data-size={size}
+        className={cn(
+          "relative flex shrink-0 items-center justify-center rounded-full select-none p-[2px]",
+          "bg-[conic-gradient(from_45deg,#FF2E93_0%,#FF8A00_20%,#FFDD00_40%,#00E676_60%,#00B0FF_80%,#9C27B0_90%,#FF2E93_100%)]",
+          "size-8",
+          "data-[size=sm]:size-6",
+          "data-[size=lg]:size-10",
+          "data-[size=xl]:size-20",
+          "data-[size=2xl]:size-24",
+          className,
+        )}
+      >
+        <div className="flex size-full items-center justify-center rounded-full bg-background p-[2px]">
+          <AvatarPrimitive.Root
+            data-slot="avatar"
+            data-size={size}
+            className="group/avatar relative flex size-full shrink-0 rounded-full select-none"
+            {...props}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AvatarPrimitive.Root
       data-slot="avatar"

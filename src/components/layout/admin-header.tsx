@@ -42,7 +42,7 @@ export default async function AdminHeader() {
           <DropdownMenuTrigger className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
             <>
               {/* Mobile Avatar (Default Size) */}
-              <Avatar className={cn("lg:hidden")}>
+              <Avatar isPro={user?.isSubscribed} className={cn("lg:hidden")}>
                 <AvatarImage
                   src={user?.imageUrl || "/assets/fallback-avatar.png"}
                 />
@@ -52,7 +52,7 @@ export default async function AdminHeader() {
               </Avatar>
 
               {/* Desktop Avatar (Large Size) */}
-              <Avatar size="lg" className={cn("hidden lg:flex")}>
+              <Avatar isPro={user?.isSubscribed} size="lg" className={cn("hidden lg:flex")}>
                 <AvatarImage
                   src={user?.imageUrl || "/assets/fallback-avatar.png"}
                 />
