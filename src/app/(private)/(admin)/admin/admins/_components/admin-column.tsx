@@ -67,7 +67,7 @@ function AdminActionsCell({ admin }: { admin: AdminRow }) {
   }
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1">
       {/* 1. Status Toggle Action */}
       <ConfirmationModal
         title={isBlocked ? "Activate Administrator?" : "Block Administrator?"}
@@ -85,13 +85,12 @@ function AdminActionsCell({ admin }: { admin: AdminRow }) {
           <Button
             variant="outline"
             size="icon"
-            className="size-8"
             aria-label={isBlocked ? "Activate admin" : "Block admin"}
           >
             {isBlocked ? (
-              <UserCheck className="size-4 text-emerald-600" />
+              <UserCheck className="size-3.5 text-emerald-600" />
             ) : (
-              <UserX className="size-4 text-amber-600" />
+              <UserX className="size-3.5 text-amber-600" />
             )}
           </Button>
         }
@@ -108,12 +107,11 @@ function AdminActionsCell({ admin }: { admin: AdminRow }) {
         onConfirm={handleDelete}
         actionTrigger={
           <Button
-            variant="outline"
+            variant="destructive"
             size="icon"
-            className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
             aria-label="Delete admin"
           >
-            <Trash2 className="size-4" />
+            <Trash2 />
           </Button>
         }
       />
@@ -126,29 +124,27 @@ export const adminColumns: ColumnDef<AdminRow>[] = [
     accessorKey: "name",
     header: "Administrator",
     cell: ({ row }) => (
-      <div className="flex items-center gap-3">
-        <Avatar className="size-8 sm:size-9 shrink-0 border border-border">
+      <div className="flex items-center gap-2.5">
+        <Avatar className="shrink-0">
           <AvatarImage src={row.original.imageUrl} alt={row.original.name} />
           <AvatarFallback>
-            {getInitials(row.original.name) || (
-              <UserRound className="size-4" />
-            )}
+            {getInitials(row.original.name) || <UserRound />}
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5">
-            <span className="font-medium text-foreground">
+            <span className="font-semibold text-foreground text-xs">
               {row.original.name}
             </span>
             {row.original.role === "SUPER_ADMIN" ? (
-              <ShieldAlert className="size-3.5 text-purple-600" />
+              <ShieldAlert className="size-3 text-purple-600" />
             ) : (
-              <ShieldCheck className="size-3.5 text-primary" />
+              <ShieldCheck className="size-3 text-primary" />
             )}
           </div>
           {row.original.phone && (
-            <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Phone className="size-3" />
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Phone className="size-2.5" />
               {row.original.phone}
             </span>
           )}
@@ -160,9 +156,9 @@ export const adminColumns: ColumnDef<AdminRow>[] = [
     accessorKey: "email",
     header: "Email Address",
     cell: ({ row }) => (
-      <code className="text-xs font-mono bg-muted/60 px-2 py-0.5 rounded text-muted-foreground border">
+      <span className="text-xs text-muted-foreground font-mono">
         {row.original.email}
-      </code>
+      </span>
     ),
   },
   {
@@ -172,12 +168,7 @@ export const adminColumns: ColumnDef<AdminRow>[] = [
       const isSuper = row.original.role === "SUPER_ADMIN";
       return (
         <Badge
-          variant={isSuper ? "default" : "secondary"}
-          className={
-            isSuper
-              ? "bg-purple-600/15 text-purple-700 dark:text-purple-300 border-purple-300/40"
-              : ""
-          }
+          variant={isSuper ? "admin" : "manager"}
         >
           {isSuper ? "Super Admin" : "Admin"}
         </Badge>
@@ -190,7 +181,7 @@ export const adminColumns: ColumnDef<AdminRow>[] = [
     cell: ({ row }) => {
       const isBlocked = row.original.status === "BLOCKED";
       return (
-        <Badge variant={isBlocked ? "destructive" : "success"}>
+        <Badge variant={isBlocked ? "blocked" : "active"}>
           {row.original.status}
         </Badge>
       );
@@ -200,7 +191,7 @@ export const adminColumns: ColumnDef<AdminRow>[] = [
     accessorKey: "createdAt",
     header: "Created Date",
     cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">
+      <span className="text-xs text-muted-foreground font-mono">
         {formatDate(row.original.createdAt)}
       </span>
     ),

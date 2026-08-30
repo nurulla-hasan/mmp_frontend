@@ -101,7 +101,7 @@ export const SidebarCalibrationPanel = () => {
             <p className="text-xs text-blue-700 dark:text-blue-400 text-center leading-relaxed">
               ম্যাপের উপরে-বামের <strong>স্কেল বার</strong>-এর শুরুতে ও শেষে ক্লিক করুন
               <br />
-              <span className="text-[11px] opacity-80">(যেমন: ০ থেকে ১০ চেইন পর্যন্ত)</span>
+              <span className="text-xs opacity-80">(যেমন: ০ থেকে ১০ চেইন পর্যন্ত)</span>
             </p>
           </div>
         )}

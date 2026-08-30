@@ -52,7 +52,7 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
               {user?.name || "User"}
             </span>
             {user?.phone ? (
-              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Phone className="size-2.5" />
                 {user.phone}
               </span>
@@ -85,7 +85,7 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
             <code className="text-xs text-muted-foreground font-mono">
               {plan?.code || "pro"}
             </code>
-            <span className="text-[11px] text-primary font-medium">
+            <span className="text-xs text-primary font-medium">
               ৳{row.original.amountPaid}
             </span>
           </div>
@@ -104,7 +104,7 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
             {formatDate(row.original.endDate)}
           </span>
           <span
-            className={`text-[11px] flex items-center gap-1 ${
+            className={`text-xs flex items-center gap-1 ${
               isExpired
                 ? "text-destructive font-medium"
                 : "text-muted-foreground"
@@ -127,7 +127,7 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
         <Badge
           variant={
             status === "ACTIVE" && !isExpired
-              ? "success"
+              ? "active"
               : status === "CANCELLED"
                 ? "rejected"
                 : "pending"
@@ -142,7 +142,7 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
     accessorKey: "paymentMethod",
     header: "Payment",
     cell: ({ row }) => (
-      <div className="flex flex-col text-[11px] text-muted-foreground">
+      <div className="flex flex-col text-xs text-muted-foreground">
         <span className="font-medium text-foreground uppercase">
           {row.original.paymentMethod || "MANUAL"}
         </span>

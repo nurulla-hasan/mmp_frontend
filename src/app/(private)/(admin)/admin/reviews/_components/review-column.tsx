@@ -61,13 +61,13 @@ function ReviewActionsCell({ review }: { review: ReviewRow }) {
   };
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1">
       {/* 1. Approve Button (if not already approved) */}
       {status !== "APPROVED" && (
         <ConfirmationModal
           title="Approve Review?"
           description={`Approving this review from "${review.reviewerName}" will make it publicly visible on the surveyor's profile.`}
-          confirmText="Approve Review"
+          confirmText="Approve"
           cancelText="Cancel"
           loadingText="Approving..."
           onConfirm={handleApprove}
@@ -75,10 +75,10 @@ function ReviewActionsCell({ review }: { review: ReviewRow }) {
             <Button
               variant="outline"
               size="icon"
-              className="size-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+              className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
               aria-label="Approve review"
             >
-              <Check className="size-4" />
+              <Check />
             </Button>
           }
         />
@@ -88,8 +88,8 @@ function ReviewActionsCell({ review }: { review: ReviewRow }) {
       {status !== "REJECTED" && (
         <ConfirmationModal
           title="Reject Review?"
-          description={`Rejecting this review will hide it from the surveyor's public profile.`}
-          confirmText="Reject Review"
+          description="Rejecting this review will hide it from the surveyor's public profile."
+          confirmText="Reject"
           cancelText="Cancel"
           loadingText="Rejecting..."
           variant="destructive"
@@ -98,10 +98,10 @@ function ReviewActionsCell({ review }: { review: ReviewRow }) {
             <Button
               variant="outline"
               size="icon"
-              className="size-8 text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
+              className="text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
               aria-label="Reject review"
             >
-              <X className="size-4" />
+              <X />
             </Button>
           }
         />
@@ -111,19 +111,18 @@ function ReviewActionsCell({ review }: { review: ReviewRow }) {
       <ConfirmationModal
         title="Delete Review?"
         description="Are you sure you want to permanently delete this review? This action cannot be undone."
-        confirmText="Delete Review"
+        confirmText="Delete"
         cancelText="Cancel"
         loadingText="Deleting..."
         variant="destructive"
         onConfirm={handleDelete}
         actionTrigger={
           <Button
-            variant="outline"
+            variant="destructive"
             size="icon"
-            className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
             aria-label="Delete review"
           >
-            <Trash2 className="size-4" />
+            <Trash2 />
           </Button>
         }
       />
@@ -136,13 +135,26 @@ export const reviewColumns: ColumnDef<ReviewRow>[] = [
     accessorKey: "reviewerName",
     header: "Reviewer",
     cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <div className="size-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground border shrink-0">
-          <UserRound className="size-3.5" />
+      <div className="flex items-center gap-2.5">
+        <Avatar className="shrink-0">
+          <AvatarImage
+            src={row.original.user?.imageUrl}
+            alt={row.original.reviewerName}
+          />
+          <AvatarFallback>
+            {getInitials(row.original.reviewerName) || <UserRound />}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col">
+          <span className="font-semibold text-foreground text-xs">
+            {row.original.reviewerName}
+          </span>
+          {row.original.reviewerEmail && (
+            <span className="text-xs text-muted-foreground font-mono truncate max-w-40">
+              {row.original.reviewerEmail}
+            </span>
+          )}
         </div>
-        <span className="font-medium text-foreground text-sm">
-          {row.original.reviewerName}
-        </span>
       </div>
     ),
   },
@@ -154,12 +166,10 @@ export const reviewColumns: ColumnDef<ReviewRow>[] = [
       const user = surveyor?.user;
       return (
         <div className="flex items-center gap-2.5">
-          <Avatar className="shrink-0 border border-border">
+          <Avatar className="shrink-0">
             <AvatarImage src={user?.imageUrl} alt={user?.name || "Surveyor"} />
             <AvatarFallback>
-              {getInitials(user?.name || "") || (
-                <UserRound className="size-3.5" />
-              )}
+              {getInitials(user?.name || "") || <UserRound />}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
@@ -167,17 +177,17 @@ export const reviewColumns: ColumnDef<ReviewRow>[] = [
               <Link
                 href={`/surveyors/${surveyor.slug}`}
                 target="_blank"
-                className="font-medium text-foreground text-xs hover:text-primary hover:underline truncate max-w-37.5"
+                className="font-semibold text-foreground text-xs hover:text-primary hover:underline truncate max-w-36"
               >
                 {user?.name || "Surveyor"}
               </Link>
             ) : (
-              <span className="font-medium text-foreground text-xs">
+              <span className="font-semibold text-foreground text-xs">
                 {user?.name || "Surveyor"}
               </span>
             )}
             {user?.district && (
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {user.district}
               </span>
             )}
@@ -191,8 +201,8 @@ export const reviewColumns: ColumnDef<ReviewRow>[] = [
     header: "Rating",
     cell: ({ row }) => (
       <div className="flex items-center gap-1.5">
-        <StarRating rating={row.original.rating} size={14} />
-        <span className="text-xs font-semibold text-foreground">
+        <StarRating rating={row.original.rating} size={13} />
+        <span className="text-xs font-bold text-foreground font-mono">
           {row.original.rating}.0
         </span>
       </div>
@@ -211,11 +221,11 @@ export const reviewColumns: ColumnDef<ReviewRow>[] = [
       return (
         <div className="flex flex-col gap-1 max-w-xs">
           {displayService && (
-            <span className="text-[11px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded w-fit">
+            <Badge variant="outline" className="w-fit font-normal">
               {displayService}
-            </span>
+            </Badge>
           )}
-          <p className="text-xs text-foreground/90 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
             {displayComment}
           </p>
         </div>
@@ -246,7 +256,7 @@ export const reviewColumns: ColumnDef<ReviewRow>[] = [
     accessorKey: "createdAt",
     header: "Date",
     cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">
+      <span className="text-xs text-muted-foreground font-mono">
         {formatDate(row.original.createdAt)}
       </span>
     ),

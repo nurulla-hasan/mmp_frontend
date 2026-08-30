@@ -136,7 +136,7 @@ export function HeroSection() {
                   {/* Top Floating Header Pill inside Canvas */}
                   <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-3.5 z-10 flex items-center gap-1.5 sm:gap-2 rounded-xl border border-border/80 bg-background/90 px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-sm backdrop-blur-md">
                     <span className="flex size-2 shrink-0 rounded-full bg-primary animate-pulse" />
-                    <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-semibold">
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-xs font-semibold">
                       <Ruler className="size-3 sm:size-3.5 text-primary shrink-0" />
                       <span className="font-heading truncate">মৌজা জমি পরিমাপ</span>
                     </div>
@@ -242,7 +242,7 @@ export function HeroSection() {
 
                   {/* Center Plot Tag */}
                   <div className="pointer-events-none absolute top-[43%] left-[46%] -translate-x-1/2 -translate-y-1/2">
-                    <span className="inline-flex items-center rounded-md border border-primary/30 bg-primary/10 px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs sm:text-[11px] font-medium text-primary shadow-2xs backdrop-blur-xs">
+                    <span className="inline-flex items-center rounded-md border border-primary/30 bg-primary/10 px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs sm:text-xs font-medium text-primary shadow-2xs backdrop-blur-xs">
                       দাগ নং ৪২৮
                     </span>
                   </div>
@@ -294,7 +294,7 @@ export function HeroSection() {
               >
                 <div className="flex flex-col gap-1.5 sm:gap-2 rounded-xl border border-border/80 bg-card/95 p-2.5 sm:p-3 shadow-xl ring-1 ring-primary/15 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/40 group-hover:ring-primary/30 group-hover:shadow-primary/10 min-w-0">
                   <div className="flex items-center justify-between gap-1 min-w-0">
-                    <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-semibold truncate min-w-0">
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-xs font-semibold truncate min-w-0">
                       <Scaling className="size-3.5 shrink-0 text-primary" />
                       <span className="font-heading truncate">ম্যাপ তুলনা</span>
                     </div>
@@ -328,7 +328,7 @@ export function HeroSection() {
                       <circle cx="68" cy="18" r="2" fill="var(--color-primary)" />
                     </svg>
                   </div>
-                  <p className="text-xs sm:text-[11px] font-medium text-muted-foreground truncate">
+                  <p className="text-xs sm:text-xs font-medium text-muted-foreground truncate">
                     সাবেক ও হাল মিলান
                   </p>
                 </div>
@@ -341,7 +341,7 @@ export function HeroSection() {
               >
                 <div className="flex flex-col gap-1.5 sm:gap-2 rounded-xl border border-border/80 bg-card/95 p-2.5 sm:p-3 shadow-xl ring-1 ring-primary/15 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/40 group-hover:ring-primary/30 group-hover:shadow-primary/10 min-w-0">
                   <div className="flex items-center justify-between gap-1 min-w-0">
-                    <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-semibold truncate min-w-0">
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-xs font-semibold truncate min-w-0">
                       <PenLine className="size-3.5 shrink-0 text-primary" />
                       <span className="font-heading truncate">ম্যাপ ট্রেসার</span>
                     </div>
@@ -372,7 +372,7 @@ export function HeroSection() {
                       <circle cx="68" cy="48" r="2.2" fill="var(--color-primary)" />
                     </svg>
                   </div>
-                  <p className="text-xs sm:text-[11px] font-medium text-muted-foreground truncate">
+                  <p className="text-xs sm:text-xs font-medium text-muted-foreground truncate">
                     ভেক্টর বাউন্ডারি ট্রেস
                   </p>
                 </div>
@@ -398,7 +398,7 @@ export function HeroSection() {
                     <div className="font-heading text-lg sm:text-xl font-bold tracking-tight text-foreground">
                       {stat.value}
                     </div>
-                    <div className="text-[11px] sm:text-xs text-muted-foreground truncate">
+                    <div className="text-xs sm:text-xs text-muted-foreground truncate">
                       {stat.label}
                     </div>
                   </div>

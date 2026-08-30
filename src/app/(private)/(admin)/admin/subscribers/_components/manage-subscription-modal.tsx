@@ -261,7 +261,7 @@ export function ManageSubscriptionModal({
               type="button"
               disabled={isPending}
               onClick={handleSetPromo2028}
-              className="text-[11px] text-amber-500 hover:text-amber-400 font-medium flex items-center gap-1 cursor-pointer transition-colors"
+              className="text-xs text-amber-500 hover:text-amber-400 font-medium flex items-center gap-1 cursor-pointer transition-colors"
             >
               <Sparkles className="size-3" />
               Set till Dec 2028
@@ -293,7 +293,7 @@ export function ManageSubscriptionModal({
           <div className="grid grid-cols-3 gap-2">
             {/* Day */}
             <div className="space-y-1">
-              <label className="text-[11px] text-muted-foreground font-medium">Day</label>
+              <label className="text-xs text-muted-foreground font-medium">Day</label>
               <Select
                 value={selectedDay}
                 onValueChange={(val) => {
@@ -315,7 +315,7 @@ export function ManageSubscriptionModal({
 
             {/* Month */}
             <div className="space-y-1">
-              <label className="text-[11px] text-muted-foreground font-medium">Month</label>
+              <label className="text-xs text-muted-foreground font-medium">Month</label>
               <Select
                 value={selectedMonth}
                 onValueChange={(val) => {
@@ -337,7 +337,7 @@ export function ManageSubscriptionModal({
 
             {/* Year */}
             <div className="space-y-1">
-              <label className="text-[11px] text-muted-foreground font-medium">Year</label>
+              <label className="text-xs text-muted-foreground font-medium">Year</label>
               <Select
                 value={selectedYear}
                 onValueChange={(val) => {
@@ -383,7 +383,7 @@ export function ManageSubscriptionModal({
             <p className="font-semibold text-destructive text-xs">
               Revoke Subscription
             </p>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Cancels active subscription and returns user to Free tier.
             </p>
           </div>

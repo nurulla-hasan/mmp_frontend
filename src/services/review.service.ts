@@ -39,11 +39,11 @@ export const deleteReview = (id: string) =>
     auth: "auth",
   });
 
-// 4. Create public review
+// 4. Create review (Authenticated User)
 export const createReview = (payload: CreateReviewPayload) =>
   nextServerFetch<TReview>("/reviews", {
     method: "POST",
     body: payload,
-    auth: "none",
+    auth: "auth",
   });
 

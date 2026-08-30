@@ -38,11 +38,11 @@ export default function StudioSheetPreview({
                     <h1 className="text-xl font-bold uppercase tracking-wide">
                       {sheetDetails.title || 'MOUZA MAP'}
                     </h1>
-                    <p className="mt-1 text-[11px] text-gray-600">
+                    <p className="mt-1 text-xs text-gray-600">
                       RED LINE — C.S MAP | GREEN LINE — B.S MAP
                     </p>
                   </div>
-                  <div className="flex gap-3 text-[11px] font-semibold">
+                  <div className="flex gap-3 text-xs font-semibold">
                     <span className="text-red-600">● C.S</span>
                     <span className="text-green-600">● B.S</span>
                   </div>
@@ -108,7 +108,7 @@ export default function StudioSheetPreview({
                   </div>
                 </div>
 
-                <div className="mt-5 text-[11px] leading-5">
+                <div className="mt-5 text-xs leading-5">
                   {([
                     ['PANTAGRAPH FOR', sheetDetails.ownerName],
                     ['NAME OF MOUZA', sheetDetails.mouzaName],

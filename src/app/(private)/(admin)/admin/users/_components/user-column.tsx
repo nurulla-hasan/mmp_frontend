@@ -115,7 +115,7 @@ function UserActionsCell({ user }: { user: UserRow }) {
           render={
             <Button variant="outline" size="icon">
               <span className="sr-only">Open action menu</span>
-              <MoreHorizontal className="size-4" />
+              <MoreHorizontal />
             </Button>
           }
         />
@@ -205,7 +205,7 @@ function UserActionsCell({ user }: { user: UserRow }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* User Details Modal (rendered outside dropdown to prevent unmount on menu close) */}
+      {/* User Details Modal */}
       <UserDetailsModal
         user={user}
         open={showDetailsModal}
@@ -271,23 +271,23 @@ export const userColumns: ColumnDef<UserRow>[] = [
     cell: ({ row }) => {
       const user = row.original;
       return (
-        <div className="flex items-center gap-3">
-          <Avatar className="size-9">
+        <div className="flex items-center gap-2.5">
+          <Avatar className="shrink-0">
             <AvatarImage src={user.imageUrl || undefined} alt={user.name} />
-            <AvatarFallback>{getInitials(user.name) || <UserRound className="size-4" />}</AvatarFallback>
+            <AvatarFallback>
+              {getInitials(user.name) || <UserRound />}
+            </AvatarFallback>
           </Avatar>
-          <div className="space-y-0.5 min-w-0">
-            <div className="font-medium text-foreground truncate max-w-40 sm:max-w-60">
+          <div className="flex flex-col">
+            <span className="font-semibold text-foreground text-xs">
               {user.name}
-            </div>
+            </span>
             {user.phone ? (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Phone className="size-3" />
-                <span>{user.phone}</span>
-              </div>
-            ) : (
-              <div className="text-xs text-muted-foreground/70">No phone</div>
-            )}
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Phone className="size-2.5" />
+                {user.phone}
+              </span>
+            ) : null}
           </div>
         </div>
       );
@@ -297,7 +297,9 @@ export const userColumns: ColumnDef<UserRow>[] = [
     accessorKey: "email",
     header: "Email",
     cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground font-mono">{row.original.email}</span>
+      <span className="text-xs text-muted-foreground font-mono">
+        {row.original.email}
+      </span>
     ),
   },
   {
@@ -307,7 +309,7 @@ export const userColumns: ColumnDef<UserRow>[] = [
       const role = row.original.role;
       let variant: "default" | "info" | "admin" = "default";
       if (role === "SURVEYOR") variant = "info";
-      if (role === "ADMIN") variant = "admin";
+      if (role === "ADMIN" || role === "SUPER_ADMIN") variant = "admin";
 
       return <Badge variant={variant}>{role}</Badge>;
     },
@@ -330,7 +332,7 @@ export const userColumns: ColumnDef<UserRow>[] = [
     accessorKey: "plotsMeasured",
     header: "Plots Measured",
     cell: ({ row }) => (
-      <span className="text-sm tabular-nums font-medium text-foreground">
+      <span className="text-xs font-mono font-medium text-foreground">
         {row.original.plotsMeasured || 0}
       </span>
     ),
@@ -339,7 +341,7 @@ export const userColumns: ColumnDef<UserRow>[] = [
     accessorKey: "createdAt",
     header: "Joined Date",
     cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">
+      <span className="text-xs text-muted-foreground font-mono">
         {formatDate(row.original.createdAt)}
       </span>
     ),

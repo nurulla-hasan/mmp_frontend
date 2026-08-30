@@ -55,12 +55,16 @@ function Button({
   loading = false,
   loadingText,
   disabled,
+  nativeButton,
   children,
   ...props
 }: ButtonProps) {
+  const isNative = nativeButton ?? (props.render ? false : undefined);
+
   return (
     <ButtonPrimitive
       data-slot="button"
+      nativeButton={isNative}
       className={cn(
         buttonVariants({ variant, size, className }),
         loading && "cursor-wait",

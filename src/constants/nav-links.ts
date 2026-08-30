@@ -6,7 +6,7 @@ import {
   Info,
   MapPin,
   Megaphone,
-  MonitorSmartphone,
+  // MonitorSmartphone,
   PhoneCall,
   Ruler,
   ShieldCheck,
@@ -79,29 +79,29 @@ export const adminNavigation: NavigationItem[] = [
     icon: Users,
   },
   {
-    title: "Services",
-    href: "/admin/services",
-    icon: Wrench,
-  },
-  {
-    title: "Subscribers",
-    href: "/admin/subscribers",
-    icon: UserRoundCheck,
-  },
-  {
     title: "Plans",
     href: "/admin/plans",
     icon: Tags,
   },
   {
-    title: "Device Management",
-    href: "/admin/device-locks",
-    icon: MonitorSmartphone,
+    title: "Reviews",
+    href: "/admin/reviews",
+    icon: Star,
+  },
+  {
+    title: "Services",
+    href: "/admin/services",
+    icon: Wrench,
   },
   {
     title: "Broadcast",
     href: "/admin/broadcast",
     icon: Megaphone,
+  },
+  {
+    title: "Subscribers",
+    href: "/admin/subscribers",
+    icon: UserRoundCheck,
   },
   {
     title: "Admin Management",
@@ -113,9 +113,9 @@ export const adminNavigation: NavigationItem[] = [
     href: "/admin/verifications",
     icon: ShieldCheck,
   },
-  {
-    title: "Reviews",
-    href: "/admin/reviews",
-    icon: Star,
-  },
+  // {
+  //   title: "Device Management",
+  //   href: "/admin/device-locks",
+  //   icon: MonitorSmartphone,
+  // },
 ];

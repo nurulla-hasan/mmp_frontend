@@ -8,7 +8,7 @@ import { SurveyorPricing } from "../_components/surveyor-pricing";
 import { SurveyorVerification } from "../_components/surveyor-verification";
 import { SurveyorReviews } from "../_components/surveyor-reviews";
 import CustomBreadcrumb from "@/components/common/custom-breadcrumb";
-import { getSurveyorBySlug } from "@/services/auth.service";
+import { getMe, getSurveyorBySlug } from "@/services/auth.service";
 
 export default async function Page({
   params,
@@ -16,8 +16,13 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const result = await getSurveyorBySlug(slug);
-  const surveyor = result.success ? result.data : null;
+  const [surveyorRes, meRes] = await Promise.all([
+    getSurveyorBySlug(slug),
+    getMe(),
+  ]);
+
+  const surveyor = surveyorRes.success ? surveyorRes.data : null;
+  const currentUser = meRes.success ? meRes.data.user : null;
 
   if (!surveyor) {
     return (
@@ -27,7 +32,7 @@ export default async function Page({
           <p className="mt-1 text-sm text-muted-foreground">
             এই লিংকের সার্ভেয়ার প্রোফাইলটি সক্রিয় নেই অথবা মুছে ফেলা হয়েছে।
           </p>
-          <Button className="mt-4" nativeButton={false} render={<Link href="/surveyors" />}>
+          <Button className="mt-4" render={<Link href="/surveyors" />}>
             সার্ভেয়ার তালিকায় ফিরুন
           </Button>
         </div>
@@ -36,6 +41,7 @@ export default async function Page({
   }
 
   const fullName = surveyor.user?.name || surveyor.fullName || "সার্ভেয়ার";
+  const surveyorUserId = surveyor.user?.id || surveyor.userId;
 
   return (
     <PageWrapper className="space-y-6" paddingSize="small">
@@ -62,9 +68,12 @@ export default async function Page({
 
       <SurveyorReviews
         surveyorProfileId={surveyor.id}
+        surveyorSlug={slug}
+        surveyorUserId={surveyorUserId}
         reviews={surveyor.reviews}
         totalReviews={surveyor.totalReviews}
         services={surveyor.surveyorServices}
+        currentUser={currentUser}
       />
     </PageWrapper>
   );

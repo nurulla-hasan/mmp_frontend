@@ -9,6 +9,7 @@ import type {
   TSurveyorReview,
   TSurveyorServiceWithPrice,
 } from "@/interface/surveyor-profile";
+import type { TAuthUser } from "@/interface/auth";
 import { ReviewModal } from "./review-modal";
 
 function formatJoinDate(dateStr: string) {
@@ -26,7 +27,6 @@ function ReviewCard({
   review: TSurveyorReview;
   isPending?: boolean;
 }) {
-  // If previous review had [serviceName] prepended in comment text, parse it cleanly
   const bracketMatch = review.comment.match(/^\[(.*?)\]\s*(.*)$/);
   const displayServiceName =
     review.serviceName || (bracketMatch ? bracketMatch[1] : undefined);
@@ -47,7 +47,7 @@ function ReviewCard({
             <p className="font-medium text-foreground">{review.reviewerName}</p>
             <div>
               {isPending && (
-                <Badge variant="progress">
+                <Badge variant="progress" size="sm">
                   <Clock />
                   যাচাইয়ের অপেক্ষায়
                 </Badge>
@@ -64,8 +64,8 @@ function ReviewCard({
           </div>
         </div>
         {review.isVerifiedService && !isPending && (
-          <Badge variant="success" className="gap-1">
-            <BadgeCheck className="size-3" />
+          <Badge variant="success" size="sm">
+            <BadgeCheck />
             যাচাইকৃত কাজ
           </Badge>
         )}
@@ -82,14 +82,20 @@ function ReviewCard({
 
 export function SurveyorReviews({
   surveyorProfileId,
+  surveyorSlug,
+  surveyorUserId,
   reviews,
   totalReviews,
   services,
+  currentUser,
 }: {
   surveyorProfileId?: string;
+  surveyorSlug?: string;
+  surveyorUserId?: string;
   reviews?: TSurveyorReview[];
   totalReviews?: number;
   services?: TSurveyorServiceWithPrice[];
+  currentUser?: TAuthUser | null;
 }) {
   const approvedReviews = (reviews ?? []).filter(
     (r) => r.status === "approved" || (r.status as string) === "APPROVED",
@@ -97,6 +103,9 @@ export function SurveyorReviews({
   const pendingReviews = (reviews ?? []).filter(
     (r) => r.status === "pending" || (r.status as string) === "PENDING",
   );
+
+  const isOwnProfile =
+    !!currentUser && !!surveyorUserId && currentUser.id === surveyorUserId;
 
   return (
     <section className="space-y-4">
@@ -109,10 +118,12 @@ export function SurveyorReviews({
             ({totalReviews ?? 0} টি)
           </span>
         </div>
-        {services && services.length > 0 && (
+        {services && services.length > 0 && !isOwnProfile && (
           <ReviewModal
             surveyorProfileId={surveyorProfileId}
+            surveyorSlug={surveyorSlug}
             services={services}
+            currentUser={currentUser}
           />
         )}
       </div>

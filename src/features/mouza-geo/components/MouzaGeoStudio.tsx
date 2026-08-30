@@ -454,7 +454,7 @@ export default function MouzaGeoStudio() {
                 <h2 className="font-heading text-sm font-semibold">
                   ম্যাপ ও সেটিংস
                 </h2>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Point pair → Align → KMZ
                 </p>
               </div>
@@ -524,7 +524,7 @@ export default function MouzaGeoStudio() {
                         <h2 className="font-heading text-sm font-semibold">
                           ম্যাপ ও সেটিংস
                         </h2>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           Point pair → Align → KMZ
                         </p>
                       </div>

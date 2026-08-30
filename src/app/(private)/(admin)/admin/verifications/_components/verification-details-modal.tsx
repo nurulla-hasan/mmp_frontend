@@ -236,13 +236,13 @@ export function VerificationDetailsModal({
                         area.upazilas.map((u) => (
                           <span
                             key={u}
-                            className="inline-block text-[11px] bg-muted px-2 py-0.5 rounded text-muted-foreground border"
+                            className="inline-block text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground border"
                           >
                             {u}
                           </span>
                         ))
                       ) : (
-                        <span className="text-[11px] text-muted-foreground">
+                        <span className="text-xs text-muted-foreground">
                           All Upazilas covered
                         </span>
                       )}

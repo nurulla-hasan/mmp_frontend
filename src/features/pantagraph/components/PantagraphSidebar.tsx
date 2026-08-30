@@ -154,7 +154,7 @@ const MapUploadSection = memo(function MapUploadSection() {
             </Label>
             {formerMap && (
               <span
-                className="text-[11px] text-foreground/80 font-mono truncate max-w-33.75 sm:max-w-40 text-right"
+                className="text-xs text-foreground/80 font-mono truncate max-w-33.75 sm:max-w-40 text-right"
                 title={formerMapName || "সাবেক_ম্যাপ.png"}
               >
                 {formerMapName || "সাবেক_ম্যাপ.png"}
@@ -203,7 +203,7 @@ const MapUploadSection = memo(function MapUploadSection() {
             </Label>
             {currentMap && (
               <span
-                className="text-[11px] text-foreground/80 font-mono truncate max-w-33.75 sm:max-w-40 text-right"
+                className="text-xs text-foreground/80 font-mono truncate max-w-33.75 sm:max-w-40 text-right"
                 title={currentMapName || "হাল_ম্যাপ.png"}
               >
                 {currentMapName || "হাল_ম্যাপ.png"}

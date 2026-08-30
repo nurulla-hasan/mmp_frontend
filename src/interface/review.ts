@@ -12,12 +12,20 @@ export interface TReviewQuery extends TQuery {
 export interface TReview {
   id: string;
   surveyorProfileId: string;
+  userId?: string | null;
   reviewerName: string;
+  reviewerEmail?: string | null;
   serviceName?: string | null;
   rating: number;
   comment: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
   createdAt: string;
+  user?: {
+    id: string;
+    name: string;
+    email?: string;
+    imageUrl?: string;
+  } | null;
   surveyorProfile?: {
     id: string;
     slug: string;
@@ -35,8 +43,7 @@ export interface TReview {
 
 export interface CreateReviewPayload {
   surveyorProfileId: string;
-  reviewerName: string;
-  serviceName?: string;
+  serviceName?: string | null;
   rating: number;
   comment: string;
 }

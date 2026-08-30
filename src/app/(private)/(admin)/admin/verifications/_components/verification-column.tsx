@@ -54,7 +54,7 @@ function VerificationActionsCell({ request }: { request: VerificationRow }) {
   };
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1">
       {/* 1. View Details Modal */}
       <VerificationDetailsModal request={request} />
 
@@ -72,10 +72,10 @@ function VerificationActionsCell({ request }: { request: VerificationRow }) {
             <Button
               variant="outline"
               size="icon"
-              className="size-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+              className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
               aria-label="Approve application"
             >
-              <Check className="size-4" />
+              <Check />
             </Button>
           }
         />
@@ -85,13 +85,12 @@ function VerificationActionsCell({ request }: { request: VerificationRow }) {
       {status !== "REJECTED" && (
         <>
           <Button
-            variant="outline"
+            variant="destructive"
             size="icon"
             onClick={() => setShowRejectModal(true)}
-            className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
             aria-label="Reject application"
           >
-            <X className="size-4" />
+            <X />
           </Button>
 
           {user?.id && (
@@ -115,27 +114,25 @@ export const verificationColumns: ColumnDef<VerificationRow>[] = [
     cell: ({ row }) => {
       const user = row.original.user;
       return (
-        <div className="flex items-center gap-3">
-          <Avatar className="shrink-0 border border-border">
+        <div className="flex items-center gap-2.5">
+          <Avatar className="shrink-0">
             <AvatarImage src={user?.imageUrl} alt={user?.name || "Applicant"} />
             <AvatarFallback>
-              {getInitials(user?.name || "") || (
-                <UserRound className="size-4" />
-              )}
+              {getInitials(user?.name || "") || <UserRound />}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
-              <span className="font-medium text-foreground">
+              <span className="font-semibold text-foreground text-xs">
                 {user?.name || "Anonymous"}
               </span>
               {row.original.verificationStatus === "APPROVED" && (
-                <ShieldCheck className="size-3.5 text-emerald-600" />
+                <ShieldCheck className="size-3 text-emerald-600" />
               )}
             </div>
             {user?.phone && (
-              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                <Phone className="size-3" />
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Phone className="size-2.5" />
                 {user.phone}
               </span>
             )}
@@ -148,11 +145,11 @@ export const verificationColumns: ColumnDef<VerificationRow>[] = [
     accessorKey: "headline",
     header: "Headline & Experience",
     cell: ({ row }) => (
-      <div className="flex flex-col max-w-50">
+      <div className="flex flex-col max-w-48">
         <span className="text-xs font-medium text-foreground truncate">
           {row.original.headline || "Land Surveyor"}
         </span>
-        <span className="text-[11px] text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           {row.original.experienceYears || 0} yrs experience
         </span>
       </div>
@@ -166,7 +163,7 @@ export const verificationColumns: ColumnDef<VerificationRow>[] = [
       return (
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <MapPin className="size-3 shrink-0 text-primary" />
-          <span>
+          <span className="truncate max-w-36">
             {user?.district ? `${user.district}${user.upazila ? `, ${user.upazila}` : ""}` : "Unspecified"}
           </span>
         </div>
@@ -181,7 +178,7 @@ export const verificationColumns: ColumnDef<VerificationRow>[] = [
       if (!url) {
         return (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <FileX className="size-3.5" />
+            <FileX className="size-3" />
             None
           </span>
         );
@@ -193,9 +190,9 @@ export const verificationColumns: ColumnDef<VerificationRow>[] = [
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
         >
-          <FileCheck className="size-3.5" />
+          <FileCheck className="size-3" />
           <span>Attached</span>
-          <ExternalLink className="size-3" />
+          <ExternalLink className="size-2.5" />
         </a>
       );
     },
@@ -224,7 +221,7 @@ export const verificationColumns: ColumnDef<VerificationRow>[] = [
     accessorKey: "createdAt",
     header: "Applied Date",
     cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">
+      <span className="text-xs text-muted-foreground font-mono">
         {formatDate(row.original.createdAt || "")}
       </span>
     ),

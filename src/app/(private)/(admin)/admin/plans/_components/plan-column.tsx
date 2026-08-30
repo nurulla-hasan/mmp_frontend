@@ -101,7 +101,7 @@ export const planColumns: ColumnDef<PlanRow>[] = [
             {row.original.name}
           </span>
           {row.original.isPopular && (
-            <Badge variant="progress" size="sm">
+            <Badge variant="progress">
               <Star />
             </Badge>
           )}
