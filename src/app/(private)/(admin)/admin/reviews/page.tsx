@@ -1,60 +1,49 @@
-
+import { getAllReviews } from "@/services/review.service";
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
-import { reviewColumns, type ReviewRow } from "./_components/review-column";
+import { SearchInput } from "@/components/common/search-input";
+import { reviewColumns } from "./_components/review-column";
+import { ReviewStatusFilter } from "./_components/review-status-filter";
+import type { TReviewQuery } from "@/interface/review";
 
-const Reviews: ReviewRow[] = [
-  {
-    id: "review-001",
-    reviewerName: "রহিম উদ্দিন",
-    rating: 5,
-    comment:
-      "সময়মতো এসে জমির পরিমাপ করেছেন এবং পুরো হিসাবটি সহজভাবে বুঝিয়ে দিয়েছেন।",
-    serviceName: "জমি পরিমাপ",
-    createdAt: "2026-06-18T14:20:00.000Z",
-    isVerifiedService: true,
-    status: "approved",
-    surveyorName: "মো. আব্দুল করিম",
-    surveyorSlug: "md-abdul-karim",
-  },
-  {
-    id: "review-002",
-    reviewerName: "মো. কামাল হোসেন",
-    rating: 4,
-    comment: "কাজ ভালো হয়েছে। সীমানার বিষয়গুলো পরিষ্কারভাবে দেখিয়ে দিয়েছেন।",
-    serviceName: "সীমানা নির্ধারণ",
-    createdAt: "2026-05-27T11:40:00.000Z",
-    isVerifiedService: true,
-    status: "approved",
-    surveyorName: "মো. আব্দুল করিম",
-    surveyorSlug: "md-abdul-karim",
-  },
-  {
-    id: "review-003",
-    reviewerName: "সাবিনা ইয়াসমিন",
-    rating: 5,
-    comment:
-      "পারিবারিক জমি ভাগের হিসাব এবং রিপোর্ট সুন্দরভাবে তৈরি করে দিয়েছেন।",
-    serviceName: "জমি ভাগ",
-    createdAt: "2026-04-09T16:10:00.000Z",
-    isVerifiedService: true,
-    status: "approved",
-    surveyorName: "মো. আব্দুল করিম",
-    surveyorSlug: "md-abdul-karim",
-  },
-];
+interface PageProps {
+  searchParams: Promise<TReviewQuery>;
+}
 
-export default function AdminReviewsPage() {
+export default async function AdminReviewsPage({ searchParams }: PageProps) {
+  const query = await searchParams;
+  const res = await getAllReviews(query);
+
+  const reviews = res.success && res.data ? res.data : [];
+  const meta = res.success ? res.meta : undefined;
+
   return (
     <div className="space-y-6">
-      <SectionHeading
-        title="Reviews"
-        description="Verify and approve surveyor reviews."
-        as="h3"
-        alignment="left"
-      />
+      {/* Header & Controls */}
+      <div className="flex flex-col justify-between items-start gap-4 lg:flex-row lg:items-end">
+        <SectionHeading
+          title="Reviews"
+          description="Moderate, verify, and manage customer reviews for surveyors."
+          as="h3"
+          alignment="left"
+          constrain={false}
+        />
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <ReviewStatusFilter />
+          <SearchInput
+            filterKey="searchTerm"
+            placeholder="Search by reviewer, comment, or surveyor..."
+            className="w-full sm:w-72"
+          />
+        </div>
+      </div>
 
-      <DataTable data={Reviews} columns={reviewColumns}/>
+      {/* TanStack Data Table with Server Pagination */}
+      <DataTable
+        data={reviews}
+        columns={reviewColumns}
+        meta={meta}
+      />
     </div>
   );
 }

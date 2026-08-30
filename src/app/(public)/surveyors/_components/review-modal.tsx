@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -24,26 +24,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StarRating } from "@/components/common/star-rating";
+import { createReviewAction } from "../_actions/review.action";
+import { SuccessToast, ErrorToast } from "@/lib/utils";
 import type { TSurveyorServiceWithPrice } from "@/interface/surveyor-profile";
 
 const reviewSchema = z.object({
-  reviewerName: z.string().min(1, "আপনার নাম লিখুন"),
+  reviewerName: z.string().min(2, "আপনার নাম লিখুন"),
   rating: z.number().min(1, "রেটিং নির্বাচন করুন"),
-  comment: z.string().min(1, "আপনার মন্তব্য লিখুন"),
+  comment: z.string().min(5, "আপনার মন্তব্য অন্তত ৫ অক্ষরে লিখুন"),
   serviceName: z.string().min(1, "সার্ভিস নির্বাচন করুন"),
 });
 
 type ReviewData = z.infer<typeof reviewSchema>;
 
 export function ReviewModal({
+  surveyorProfileId,
   services,
 }: {
+  surveyorProfileId?: string;
   services: TSurveyorServiceWithPrice[];
 }) {
   const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<ReviewData>({
     resolver: zodResolver(reviewSchema),
+    mode: "onChange",
     defaultValues: {
       reviewerName: "",
       rating: 0,
@@ -53,15 +59,45 @@ export function ReviewModal({
   });
 
   function handleFormSubmit(data: ReviewData) {
-    console.log("Review submitted:", data);
-    form.reset();
-    setOpen(false);
+    if (!surveyorProfileId) {
+      ErrorToast("সার্ভেয়ার প্রোফাইল পাওয়া যায়নি।");
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        const res = await createReviewAction({
+          surveyorProfileId,
+          reviewerName: data.reviewerName.trim(),
+          serviceName: data.serviceName || undefined,
+          rating: data.rating,
+          comment: data.comment.trim(),
+        });
+
+        if (res.success) {
+          SuccessToast(
+            "আপনার রিভিউটি সফলভাবে জমা হয়েছে। এডমিনের যাচাইয়ের পর প্রকাশিত হবে।",
+          );
+          form.reset();
+          setOpen(false);
+        } else {
+          ErrorToast(res.message || "রিভিউ জমা দিতে ব্যর্থ হয়েছে।");
+        }
+      } catch {
+        ErrorToast("রিভিউ জমা দেওয়ার সময় একটি ত্রুটি ঘটেছে।");
+      }
+    });
   }
 
   return (
     <ModalWrapper
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(next) => {
+        if (!isPending) {
+          setOpen(next);
+          if (!next) form.reset();
+        }
+      }}
       title="রিভিউ লিখুন"
       description="আপনার অভিজ্ঞতা শেয়ার করুন। রিভিউটি এডমিন দ্বারা যাচাইয়ের পর প্রকাশ করা হবে।"
       actionTrigger={
@@ -154,7 +190,13 @@ export function ReviewModal({
             )}
           />
 
-          <Button type="submit" className="w-full">
+          <Button
+            type="submit"
+            disabled={isPending || !form.formState.isValid}
+            loading={isPending}
+            loadingText="জমা হচ্ছে..."
+            className="w-full"
+          >
             রিভিউ জমা দিন
           </Button>
         </div>

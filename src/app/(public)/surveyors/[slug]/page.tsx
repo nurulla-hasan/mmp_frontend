@@ -61,6 +61,7 @@ export default async function Page({
       </div>
 
       <SurveyorReviews
+        surveyorProfileId={surveyor.id}
         reviews={surveyor.reviews}
         totalReviews={surveyor.totalReviews}
         services={surveyor.surveyorServices}

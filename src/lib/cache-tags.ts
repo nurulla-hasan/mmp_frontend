@@ -6,6 +6,7 @@ export const CACHE_TAGS = {
   SURVEYOR: (id: string) => `surveyor-${id}`,
   SURVEYOR_PROFILE: "surveyor-profile",
   CALCULATIONS: "calculations",
+  REVIEWS: "reviews",
 } as const;
 
 export const CACHE_TIME = {
