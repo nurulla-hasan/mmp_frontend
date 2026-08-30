@@ -24,7 +24,7 @@ export type TAuthUser = {
   id: string;
   name: string;
   email: string;
-  role: "USER" | "SURVEYOR" | "ADMIN";
+  role: "USER" | "SURVEYOR" | "ADMIN" | "SUPER_ADMIN";
   status: "ACTIVE" | "BLOCKED";
   emailVerified: boolean;
   isSubscribed: boolean;

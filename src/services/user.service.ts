@@ -1,6 +1,12 @@
 import "server-only";
 
-import type { TUser, TUserQuery, TUserRole, TUserStatus } from "@/interface/user";
+import type {
+  TUser,
+  TUserQuery,
+  TUserRole,
+  TUserStatus,
+  CreateAdminPayload,
+} from "@/interface/user";
 import { buildQueryString } from "@/lib/buildQueryString";
 import { nextServerFetch } from "@/lib/nextServerFetch";
 import { CACHE_TAGS, CACHE_TIME } from "@/lib/cache-tags";
@@ -13,6 +19,14 @@ export const getUsers = (query?: TUserQuery) => {
     next: { tags: [CACHE_TAGS.USERS], revalidate: CACHE_TIME.DAY },
   });
 };
+
+// 2. Create new Admin
+export const createAdmin = (payload: CreateAdminPayload) =>
+  nextServerFetch<TUser>("/users/create-admin", {
+    method: "POST",
+    body: payload,
+    auth: "auth",
+  });
 
 // 3. Update user status (ACTIVE | BLOCKED)
 export const updateUserStatus = (id: string, status: TUserStatus) =>

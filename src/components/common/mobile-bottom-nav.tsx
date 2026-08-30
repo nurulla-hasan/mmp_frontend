@@ -1,44 +1,30 @@
 "use client";
 
-import { Home, MapPin, User, Menu, Ruler } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { MobileDrawer } from "@/components/layout/navbar/mobile-drawer";
 import { cn } from "@/lib/utils";
 import type { TAuthUser } from "@/interface/auth";
+import { publicNavigation } from "@/constants/nav-links";
 
 export function MobileBottomNav({ user }: { user?: TAuthUser }) {
   const pathname = usePathname();
-
-  const profileHref = !user
-    ? "/login"
-    : user.role === "ADMIN"
-      ? "/admin/dashboard"
-      : user.role === "SURVEYOR"
-        ? "/surveyor/profile"
-        : "/dashboard/profile";
-
-  const items = [
-    { label: "হোম", icon: Home, href: "/" },
-    { label: "সার্ভেয়ার", icon: MapPin, href: "/surveyors" },
-    { label: "টুলস", icon: Ruler, href: "/tools" },
-    { label: "প্রোফাইল", icon: User, href: profileHref },
-  ];
 
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-50 flex h-14 items-center justify-between border-t bg-background/95 backdrop-blur-md px-4 lg:hidden select-none"
       aria-label="দ্রুত নেভিগেশন"
     >
-      {items.map(({ label, icon: Icon, href }) => {
+      {publicNavigation.map(({ title, icon: Icon, href }) => {
         const active =
           pathname === href ||
           (href !== "/" && pathname.startsWith(`${href}/`));
         const isSpecial = href === "/tools";
         return (
           <Link
-            key={label}
+            key={title}
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
@@ -59,7 +45,7 @@ export function MobileBottomNav({ user }: { user?: TAuthUser }) {
             <span
               className={cn("text-xs leading-none", isSpecial && "font-medium")}
             >
-              {label}
+              {title}
             </span>
           </Link>
         );

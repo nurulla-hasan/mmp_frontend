@@ -94,11 +94,6 @@ export const adminNavigation: NavigationItem[] = [
     icon: Tags,
   },
   {
-    title: "Calculations",
-    href: "/admin/calculations",
-    icon: Calculator,
-  },
-  {
     title: "Device Management",
     href: "/admin/device-locks",
     icon: MonitorSmartphone,

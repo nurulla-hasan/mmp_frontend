@@ -14,12 +14,12 @@ import {
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import {
-  adminNavigation,
   publicNavigation,
   surveyorNavigation,
   userNavigation,
 } from "@/constants/nav-links";
 import { logoutAction } from "@/app/(auth)/_actions/auth.action";
+import type { TAuthUser } from "@/interface/auth";
 
 const mobileLinks = publicNavigation;
 const userMobileLinks = userNavigation;
@@ -31,16 +31,14 @@ export function MobileDrawer({
   customTrigger,
 }: {
   isAuthenticated?: boolean;
-  userRole?: "USER" | "SURVEYOR" | "ADMIN";
+  userRole?: TAuthUser["role"];
   customTrigger?: React.ReactElement;
 }) {
   const pathname = usePathname();
   const dashboardLinks =
-    userRole === "ADMIN"
-      ? adminNavigation
-      : userRole === "SURVEYOR"
-        ? surveyorMobileLinks
-        : userMobileLinks;
+    userRole === "SURVEYOR"
+      ? surveyorMobileLinks
+      : userMobileLinks;
 
   return (
     <Drawer swipeDirection="right">

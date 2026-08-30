@@ -2,7 +2,7 @@ import { jwtDecode } from "jwt-decode";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-type UserRole = "USER" | "SURVEYOR" | "ADMIN";
+type UserRole = "USER" | "SURVEYOR" | "ADMIN" | "SUPER_ADMIN";
 
 interface TokenPayload {
   exp?: number;
@@ -34,6 +34,7 @@ const ROLE_HOME: Record<UserRole, string> = {
   USER: "/dashboard/profile",
   SURVEYOR: "/surveyor/profile",
   ADMIN: "/admin/dashboard",
+  SUPER_ADMIN: "/admin/dashboard",
 };
 
 const decodeToken = (token: string): TokenPayload | null => {
@@ -56,7 +57,10 @@ const getRole = (token: string): UserRole | null => {
   const payload = decodeToken(token);
   const role = payload?.role as string;
 
-  return role === "USER" || role === "SURVEYOR" || role === "ADMIN"
+  return role === "USER" ||
+    role === "SURVEYOR" ||
+    role === "ADMIN" ||
+    role === "SUPER_ADMIN"
     ? (role as UserRole)
     : null;
 };
@@ -109,10 +113,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   let response: NextResponse;
 
-  // ── 1. ADMIN Rule: Admin can ONLY access /admin/* routes ─────────
-  // If an Admin tries to access ANY other route (/tools, /calculations, /, /about, etc.),
+  // ── 1. ADMIN & SUPER_ADMIN Rule: Admins can ONLY access /admin/* routes ─────────
+  // If an Admin/Super Admin tries to access ANY other route (/tools, /calculations, /, /about, etc.),
   // they are strictly redirected to /admin/dashboard
-  if (role === "ADMIN" && !pathname.startsWith("/admin")) {
+  if (
+    (role === "ADMIN" || role === "SUPER_ADMIN") &&
+    !pathname.startsWith("/admin")
+  ) {
     response = NextResponse.redirect(new URL("/admin/dashboard", request.url));
   }
   // ── 2. SURVEYOR Rule: Stealth Mode on /join-as-surveyor ──────────
@@ -123,7 +130,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   else if (isAuthRoute && role) {
     response = NextResponse.redirect(new URL(ROLE_HOME[role], request.url));
   }
-  // ── 4. Protected Private Routes Guard (/tools, /calculations, /dashboard, etc.) ──
+  // ── 4. Protected Private Routes Guard (/tools, /calculations, /dashboard, /admin, etc.) ──
   else if (!isPublic && !isAuthRoute) {
     if (!accessToken || isExpired(accessToken)) {
       const loginUrl = new URL("/login", request.url);
@@ -141,7 +148,11 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         response = NextResponse.redirect(new URL("/not-found", request.url));
       } else if (pathname.startsWith("/surveyor") && role !== "SURVEYOR") {
         response = NextResponse.redirect(new URL("/not-found", request.url));
-      } else if (pathname.startsWith("/admin") && role !== "ADMIN") {
+      } else if (
+        pathname.startsWith("/admin") &&
+        role !== "ADMIN" &&
+        role !== "SUPER_ADMIN"
+      ) {
         response = NextResponse.redirect(new URL("/not-found", request.url));
       } else {
         response = NextResponse.next();

@@ -1,4 +1,4 @@
-export type TUserRole = "USER" | "SURVEYOR" | "ADMIN";
+export type TUserRole = "USER" | "SURVEYOR" | "ADMIN" | "SUPER_ADMIN";
 export type TUserStatus = "ACTIVE" | "BLOCKED";
 
 export type TUser = {
@@ -29,3 +29,10 @@ export type TUserQuery = {
   sortBy?: "newest" | "oldest" | "name_asc" | "name_desc";
 };
 
+export type CreateAdminPayload = {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string | null;
+  role?: "ADMIN" | "SUPER_ADMIN";
+};
