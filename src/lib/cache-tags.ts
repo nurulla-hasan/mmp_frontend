@@ -8,6 +8,7 @@ export const CACHE_TAGS = {
   CALCULATIONS: "calculations",
   REVIEWS: "reviews",
   PLANS: "plans",
+  SUBSCRIBERS: "subscribers",
 } as const;
 
 export const CACHE_TIME = {

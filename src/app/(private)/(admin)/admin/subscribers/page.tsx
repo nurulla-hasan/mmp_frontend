@@ -1,64 +1,47 @@
-
+import { getAllSubscribers } from "@/services/subscriber.service";
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
 import { SearchInput } from "@/components/common/search-input";
-import {
-  subscriberColumns,
-  type SubscriberRow,
-} from "./_components/subscriber-column";
+import { subscriberColumns } from "./_components/subscriber-column";
+import { SubscriberStatusFilter } from "./_components/subscriber-status-filter";
+import type { TSubscriberQuery } from "@/interface/subscriber";
 
-const Subscribers: SubscriberRow[] = [
-  {
-    id: "s-001",
-    name: "Rakesh Roy",
-    email: "rakeshroyraj2000@gmail.com",
-    plan: "pro",
-    expiresAt: "2026-12-31T00:00:00.000Z",
-  },
-  {
-    id: "s-002",
-    name: "munshiganj Cod",
-    email: "cod2for@gmail.com",
-    plan: "pro",
-    expiresAt: "2026-12-31T00:00:00.000Z",
-  },
-  {
-    id: "s-003",
-    name: "Tonjib Kormokar",
-    email: "tonjib.bsl@gmail.com",
-    plan: "pro",
-    expiresAt: "2026-12-31T00:00:00.000Z",
-  },
-  {
-    id: "s-004",
-    name: "রহিম উদ্দিন",
-    email: "rahim.uddin@gmail.com",
-    plan: "pro",
-    expiresAt: "2026-09-12T00:00:00.000Z",
-  },
-  {
-    id: "s-005",
-    name: "ফাতেমা বেগম",
-    email: "fatema.begum@gmail.com",
-    plan: "pro",
-    expiresAt: "2027-01-15T00:00:00.000Z",
-  },
-];
+interface PageProps {
+  searchParams: Promise<TSubscriberQuery>;
+}
 
-export default function Page() {
+export default async function AdminSubscribersPage({
+  searchParams,
+}: PageProps) {
+  const query = await searchParams;
+  const res = await getAllSubscribers(query);
+
+  const subscribers = res.success && res.data ? res.data : [];
+  const meta = res.success ? res.meta : undefined;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between items-end sm:flex-row">
+      {/* Header & Controls */}
+      <div className="flex flex-col justify-between items-start gap-4 lg:flex-row lg:items-end">
         <SectionHeading
           title="Subscribers"
-          description="Manage platform subscribers and their subscription status."
+          description="Manage active memberships, subscription packages, validity periods, and manual extensions."
           as="h3"
           alignment="left"
           constrain={false}
         />
-        <SearchInput filterKey="name" placeholder="Search subscribers..." />
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <SubscriberStatusFilter />
+          <SearchInput
+            filterKey="searchTerm"
+            placeholder="Search by name, email, phone, plan..."
+            className="w-full sm:w-72"
+          />
+        </div>
       </div>
-      <DataTable data={Subscribers} columns={subscriberColumns} />
+
+      {/* TanStack Data Table with Server Pagination */}
+      <DataTable data={subscribers} columns={subscriberColumns} meta={meta} />
     </div>
   );
 }

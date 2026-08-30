@@ -209,7 +209,7 @@ export function ApplicationStatusView({
 
             <div className="space-y-3.5 text-xs text-muted-foreground leading-relaxed">
               <div className="flex items-start gap-2.5">
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-[10px]">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-xs">
                   ১
                 </span>
                 <div>
@@ -218,7 +218,7 @@ export function ApplicationStatusView({
               </div>
 
               <div className="flex items-start gap-2.5">
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-[10px]">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-xs">
                   ২
                 </span>
                 <div>
@@ -227,7 +227,7 @@ export function ApplicationStatusView({
               </div>
 
               <div className="flex items-start gap-2.5">
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-[10px]">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-xs">
                   ৩
                 </span>
                 <div>

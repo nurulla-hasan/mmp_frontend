@@ -1,126 +1,160 @@
 "use client";
 
-import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Clock, Phone, UserRound } from "lucide-react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { ModalWrapper } from "@/components/common/modal-wrapper";
+import { ManageSubscriptionModal } from "./manage-subscription-modal";
+import { formatDate, getInitials } from "@/lib/utils";
+import type { TSubscriber } from "@/interface/subscriber";
 
-export interface SubscriberRow {
-  id: string;
-  name: string;
-  email: string;
-  plan: string;
-  expiresAt: string;
-}
+export type SubscriberRow = TSubscriber;
 
-const PLAN_OPTIONS = [
-  "1 Month Pro",
-  "3 Months Pro",
-  "6 Months Pro",
-  "1 Year Pro",
-  "Lifetime Pro",
-];
+function getDaysRemaining(endDateStr: string): { text: string; isExpired: boolean } {
+  const now = new Date().getTime();
+  const end = new Date(endDateStr).getTime();
+  const diffDays = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
 
-function ManagePlanButton({ row }: { row: SubscriberRow }) {
-  const [open, setOpen] = useState(false);
-  const [expiry, setExpiry] = useState<Date | undefined>(
-    new Date(row.expiresAt)
-  );
-
-  return (
-    <ModalWrapper
-      open={open}
-      onOpenChange={setOpen}
-      title="Update Subscription"
-      description={`Manage plan for ${row.name}`}
-      actionTrigger={
-        <Button variant="outline" size="sm">
-          Manage Plan
-        </Button>
-      }
-    >
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 gap-2">
-          {PLAN_OPTIONS.map((option) => (
-            <Button key={option} variant="outline" className="justify-start">
-              {option}
-            </Button>
-          ))}
-        </div>
-
-        <div className="border-t border-border pt-4">
-          <p className="mb-2 text-sm text-muted-foreground">
-            Pick custom expiry date
-          </p>
-          <Calendar
-            mode="single"
-            selected={expiry}
-            onSelect={setExpiry}
-            className="rounded-lg border border-border"
-          />
-          <Button
-            className="mt-3 w-full"
-            onClick={() => setOpen(false)}
-            disabled={!expiry}
-          >
-            Set Custom Expiry
-          </Button>
-        </div>
-
-        <Button
-          variant="destructive"
-          className="w-full"
-          onClick={() => setOpen(false)}
-        >
-          Revoke / Set Free
-        </Button>
-      </div>
-    </ModalWrapper>
-  );
+  if (diffDays <= 0) {
+    return { text: "Expired", isExpired: true };
+  }
+  if (diffDays === 1) {
+    return { text: "Expires tomorrow", isExpired: false };
+  }
+  return { text: `${diffDays} days left`, isExpired: false };
 }
 
 export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
   {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => (
-      <div className="font-medium text-foreground">{row.original.name}</div>
-    ),
+    accessorKey: "user",
+    header: "Subscriber",
+    cell: ({ row }) => {
+      const user = row.original.user;
+      return (
+        <div className="flex items-center gap-2.5">
+          <Avatar className="size-8 shrink-0 border border-border">
+            <AvatarImage src={user?.imageUrl} alt={user?.name || "Subscriber"} />
+            <AvatarFallback>
+              {getInitials(user?.name || "") || <UserRound className="size-3.5" />}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5">
+              <span className="font-semibold text-foreground text-xs">
+                {user?.name || "User"}
+              </span>
+              <Badge variant="progress" size="sm" className="text-xs py-0 font-normal">
+                {user?.role || "USER"}
+              </Badge>
+            </div>
+            {user?.phone ? (
+              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <Phone className="size-2.5" />
+                {user.phone}
+              </span>
+            ) : null}
+          </div>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "email",
     header: "Email",
     cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground">{row.original.email}</span>
+      <span className="text-xs text-muted-foreground font-mono">
+        {row.original.user?.email || "—"}
+      </span>
     ),
   },
   {
     accessorKey: "plan",
-    header: "Current Plan",
-    cell: ({ row }) => <Badge variant="info">{row.original.plan}</Badge>,
+    header: "Active Plan",
+    cell: ({ row }) => {
+      const plan = row.original.plan;
+      return (
+        <div className="flex flex-col gap-0.5">
+          <span className="font-semibold text-foreground text-xs">
+            {plan?.name || "Pro Plan"}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <code className="text-xs text-muted-foreground font-mono">
+              {plan?.code || "pro"}
+            </code>
+            <span className="text-[11px] text-primary font-medium">
+              ৳{row.original.amountPaid}
+            </span>
+          </div>
+        </div>
+      );
+    },
   },
   {
-    accessorKey: "expiresAt",
+    accessorKey: "endDate",
     header: "Expires At",
+    cell: ({ row }) => {
+      const { text, isExpired } = getDaysRemaining(row.original.endDate);
+      return (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs font-medium text-foreground">
+            {formatDate(row.original.endDate)}
+          </span>
+          <span
+            className={`text-[11px] flex items-center gap-1 ${
+              isExpired ? "text-destructive font-medium" : "text-muted-foreground"
+            }`}
+          >
+            <Clock className="size-2.5" />
+            {text}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.original.status;
+      const isExpired = new Date(row.original.endDate) < new Date();
+      return (
+        <Badge
+          variant={
+            status === "ACTIVE" && !isExpired
+              ? "success"
+              : status === "CANCELLED"
+                ? "rejected"
+                : "pending"
+          }
+        >
+          {status}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "paymentMethod",
+    header: "Payment",
     cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground">
-        {new Date(row.original.expiresAt).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })}
-      </span>
+      <div className="flex flex-col text-[11px] text-muted-foreground">
+        <span className="font-medium text-foreground uppercase">
+          {row.original.paymentMethod || "MANUAL"}
+        </span>
+        {row.original.transactionId && (
+          <span className="font-mono text-xs truncate max-w-25">
+            {row.original.transactionId}
+          </span>
+        )}
+      </div>
     ),
   },
   {
     id: "actions",
     header: "Actions",
-    meta: { headerClassName: "text-right" },
     cell: ({ row }) => (
-      <div className="flex justify-end">
-        <ManagePlanButton row={row.original} />
+      <div className="flex items-center">
+        <ManageSubscriptionModal subscriber={row.original} />
       </div>
     ),
   },
