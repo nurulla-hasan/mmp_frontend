@@ -1,12 +1,11 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,18 +23,18 @@ import {
   resendResetOtpAction,
   resetPasswordAction,
 } from "../_actions/auth.action";
+import { SuccessToast, ErrorToast } from "@/lib/utils";
 
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailParam = searchParams.get("email") || "";
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
 
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
-    defaultValues: {
+    values: {
       email: emailParam,
       otp: "",
       password: "",
@@ -45,16 +44,10 @@ function ResetPasswordForm() {
 
   const { rawSeconds, isRunning, start } = useCountdown(60, "reset-otp-timer");
 
-  useEffect(() => {
-    if (emailParam) {
-      form.setValue("email", emailParam);
-    }
-  }, [emailParam, form]);
-
   async function handleResendOtp() {
     const email = form.getValues("email");
     if (!email) {
-      toast.error("অনুগ্রহ করে ইমেইল ঠিকানা দিন।");
+      ErrorToast("Please provide your email address.");
       return;
     }
 
@@ -62,36 +55,33 @@ function ResetPasswordForm() {
     try {
       const res = await resendResetOtpAction({ email });
       if (!res.success) {
-        toast.error(res.message || "কোড পুনরায় পাঠানো যায়নি।");
+        ErrorToast(res.message || "Failed to resend verification code.");
         return;
       }
 
-      toast.success(res.message || "নতুন কোড আপনার ইমেইলে পাঠানো হয়েছে!");
+      SuccessToast(res.message || "A new code has been sent to your email!");
       start();
     } catch {
-      toast.error("একটি ত্রুটি ঘটেছে। আবার চেষ্টা করুন।");
+      ErrorToast("An error occurred. Please try again.");
     } finally {
       setIsResending(false);
     }
   }
 
   async function onSubmit(data: ResetPasswordFormValues) {
-    setIsSubmitting(true);
     try {
       const res = await resetPasswordAction(data);
       if (!res.success) {
-        toast.error(res.message || "পাসওয়ার্ড রিসেট করা যায়নি।");
+        ErrorToast(res.message || "Failed to reset password.");
         return;
       }
 
-      toast.success(
-        res.message || "পাসওয়ার্ড সফলভাবে রিসেট হয়েছে! এখন লগইন করুন।",
+      SuccessToast(
+        res.message || "Password reset successfully! Please log in with your new password.",
       );
       router.push("/login");
     } catch {
-      toast.error("একটি ত্রুটি ঘটেছে। আবার চেষ্টা করুন।");
-    } finally {
-      setIsSubmitting(false);
+      ErrorToast("An error occurred. Please try again.");
     }
   }
 
@@ -106,10 +96,10 @@ function ResetPasswordForm() {
             <ShieldCheck className="size-5" />
           </div>
           <h1 className="text-2xl font-bold font-heading tracking-tight text-foreground">
-            নতুন পাসওয়ার্ড সেট করুন
+            Set New Password
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            আপনার ইমেইলে পাঠানো ৬-ডিজিটের কোড ও নতুন পাসওয়ার্ড প্রদান করুন।
+            Enter the 6-digit code sent to your email and your new password.
           </p>
         </div>
 
@@ -117,26 +107,24 @@ function ResetPasswordForm() {
           <FormInput
             control={form.control}
             name="email"
-            label="ইমেইল ঠিকানা"
+            label="Email Address"
             placeholder="name@example.com"
             type="email"
             autoComplete="email"
-            disabled={isSubmitting}
           />
 
           <div className="space-y-1.5">
             <FormInput
               control={form.control}
               name="otp"
-              label="৬-ডিজিট ভেরিফিকেশন কোড"
+              label="6-Digit Verification Code"
               placeholder="123456"
               type="text"
               inputMode="numeric"
               maxLength={6}
-              disabled={isSubmitting}
             />
             <div className="flex items-center justify-between text-xs pt-1">
-              <span className="text-muted-foreground">কোড পাননি?</span>
+              <span className="text-muted-foreground">Didn&apos;t receive code?</span>
               <button
                 type="button"
                 onClick={handleResendOtp}
@@ -144,11 +132,11 @@ function ResetPasswordForm() {
                 className="font-medium text-primary hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer disabled:cursor-not-allowed"
               >
                 {isResending ? (
-                  "পাঠানো হচ্ছে..."
+                  "Sending..."
                 ) : rawSeconds > 0 ? (
-                  `পুনরায় পাঠান (${rawSeconds}s)`
+                  `Resend (${rawSeconds}s)`
                 ) : (
-                  "পুনরায় কোড পাঠান"
+                  "Resend Code"
                 )}
               </button>
             </div>
@@ -157,41 +145,30 @@ function ResetPasswordForm() {
           <FormInput
             control={form.control}
             name="password"
-            label="নতুন পাসওয়ার্ড"
-            placeholder="কমপক্ষে ৮ অক্ষরের পাসওয়ার্ড"
+            label="New Password"
+            placeholder="Minimum 8 characters"
             type="password"
             autoComplete="new-password"
-            disabled={isSubmitting}
           />
 
           <FormInput
             control={form.control}
             name="confirmPassword"
-            label="পাসওয়ার্ড নিশ্চিত করুন"
-            placeholder="পুনরায় পাসওয়ার্ড লিখুন"
+            label="Confirm Password"
+            placeholder="Repeat new password"
             type="password"
             autoComplete="new-password"
-            disabled={isSubmitting}
           />
 
           <Field className="pt-2">
             <Button
               type="submit"
-              size="lg"
-              className="w-full gap-2 font-medium"
-              disabled={isSubmitting}
+              className="w-full font-medium"
+              loading={form.formState.isSubmitting}
+              loadingText="Resetting Password..."
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  রিসেট করা হচ্ছে...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="size-4" />
-                  পাসওয়ার্ড সংরক্ষণ করুন
-                </>
-              )}
+              <CheckCircle2 />
+              Save New Password
             </Button>
           </Field>
 
@@ -201,7 +178,7 @@ function ResetPasswordForm() {
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="size-3.5" />
-              লগইন পেজে ফিরে যান
+              Back to Login
             </Link>
           </div>
         </FieldGroup>

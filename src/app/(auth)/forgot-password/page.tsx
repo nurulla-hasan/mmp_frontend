@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, KeyRound, Loader2, Mail } from "lucide-react";
+import { ArrowLeft, KeyRound, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,10 +19,10 @@ import {
   type ForgotPasswordFormValues,
 } from "@/validation/forgot-password.schema";
 import { forgotPasswordAction } from "../_actions/auth.action";
+import { SuccessToast, ErrorToast } from "@/lib/utils";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -32,22 +30,19 @@ export default function ForgotPasswordPage() {
   });
 
   async function onSubmit(data: ForgotPasswordFormValues) {
-    setIsSubmitting(true);
     try {
       const res = await forgotPasswordAction(data);
       if (!res.success) {
-        toast.error(res.message || "ভেরিফিকেশন কোড পাঠানো সম্ভব হয়নি।");
+        ErrorToast(res.message || "Failed to send reset code.");
         return;
       }
 
-      toast.success(
-        res.message || "আপনার ইমেইলে ৬-ডিজিটের ভেরিফিকেশন কোড পাঠানো হয়েছে!",
+      SuccessToast(
+        res.message || "A 6-digit verification code has been sent to your email!",
       );
       router.push(`/reset-password?email=${encodeURIComponent(data.email)}`);
     } catch {
-      toast.error("একটি ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।");
-    } finally {
-      setIsSubmitting(false);
+      ErrorToast("An unexpected error occurred. Please try again.");
     }
   }
 
@@ -58,14 +53,15 @@ export default function ForgotPasswordPage() {
     >
       <FieldSet>
         <div className="space-y-1.5 text-center sm:text-left">
-          <div className="inline-flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary mb-2">
+          <div className="flex items-center justify-center sm:justify-start gap-2 text-primary font-bold text-lg font-heading">
             <KeyRound className="size-5" />
+            <span>Reset Password</span>
           </div>
-          <h1 className="text-2xl font-bold font-heading tracking-tight text-foreground">
-            পাসওয়ার্ড ভুলে গেছেন?
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-heading">
+            Forgot Password?
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            আপনার অ্যাকাউন্টের ইমেইল ঠিকানা দিন। আমরা পাসওয়ার্ড রিসেটের জন্য একটি ৬-ডিজিটের কোড পাঠাব।
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Enter the email associated with your account to receive a verification code.
           </p>
         </div>
 
@@ -73,42 +69,30 @@ export default function ForgotPasswordPage() {
           <FormInput
             control={form.control}
             name="email"
-            label="ইমেইল ঠিকানা"
-            placeholder="name@example.com"
+            label="Email Address"
             type="email"
-            autoComplete="email"
-            disabled={isSubmitting}
+            placeholder="e.g. name@example.com"
           />
 
           <Field>
             <Button
               type="submit"
-              size="lg"
-              className="w-full gap-2 font-medium"
-              disabled={isSubmitting}
+              className="w-full font-medium"
+              loading={form.formState.isSubmitting}
+              loadingText="Sending Code..."
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  কোড পাঠানো হচ্ছে...
-                </>
-              ) : (
-                <>
-                  <Mail className="size-4" />
-                  রিসেট কোড পাঠান
-                </>
-              )}
+              <Mail />
+              Send Reset Code
             </Button>
           </Field>
 
-          <FieldSeparator>অথবা</FieldSeparator>
+          <FieldSeparator>Or</FieldSeparator>
 
           <Field>
             <Button
               type="button"
               variant="outline"
-              size="lg"
-              className="w-full gap-2 text-sm font-medium"
+              className="w-full font-medium"
               onClick={() => {
                 window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/auth/google`;
               }}
@@ -119,7 +103,7 @@ export default function ForgotPasswordPage() {
                 className="size-4"
               >
                 <path
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
                 />
                 <path
@@ -127,25 +111,25 @@ export default function ForgotPasswordPage() {
                   fill="#34A853"
                 />
                 <path
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
                   fill="#FBBC05"
                 />
                 <path
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   fill="#EA4335"
                 />
               </svg>
-              Google দিয়ে লগইন করুন
+              <span>Continue with Google</span>
             </Button>
           </Field>
 
           <div className="pt-2 text-center">
             <Link
               href="/login"
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors"
             >
               <ArrowLeft className="size-3.5" />
-              লগইন পেজে ফিরে যান
+              <span>Back to Login</span>
             </Link>
           </div>
         </FieldGroup>

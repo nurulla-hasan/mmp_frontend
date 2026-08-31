@@ -5,7 +5,7 @@ import { Sparkles, Check, Gift } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { SuccessToast, ErrorToast } from "@/lib/utils";
 import { setAutoProSettingAction } from "../_actions/plan.action";
 import type { TPlan } from "@/interface/plan";
 
@@ -36,14 +36,14 @@ export function AutoProToggleCard({
         planId: selectedPlanId,
       });
       if (res.success) {
-        toast.success(
+        SuccessToast(
           checked
             ? `Auto-grant on registration enabled with "${selectedPlan?.name || "Plan"}"!`
             : "Auto-grant on registration disabled.",
         );
       } else {
         setEnabled(!checked);
-        toast.error(res.message || "Failed to update setting.");
+        ErrorToast(res.message || "Failed to update setting.");
       }
     });
   };
@@ -58,11 +58,11 @@ export function AutoProToggleCard({
         planId,
       });
       if (res.success) {
-        toast.success(
-          `Default registration plan set to "${targetPlan?.name || "Plan"}"!`,
+        SuccessToast(
+          `Auto-grant plan updated to "${targetPlan?.name || "Plan"}"!`,
         );
       } else {
-        toast.error(res.message || "Failed to update setting.");
+        ErrorToast(res.message || "Failed to update setting.");
       }
     });
   };
