@@ -1,8 +1,8 @@
 import Image from "next/image";
 
-export default function Loading() {
+export default function ShellLoading() {
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden py-16 select-none">
+    <div className="relative flex min-h-[calc(100vh-12rem)] w-full flex-col items-center justify-center overflow-hidden py-16 select-none">
       {/* ── Ambient Background Aurora Glows ─────────────────────── */}
       <div className="pointer-events-none absolute -top-12 size-96 rounded-full bg-linear-to-tr from-primary/20 via-emerald-500/15 to-cyan-500/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-12 size-96 rounded-full bg-linear-to-bl from-yellow-500/10 via-primary/15 to-transparent blur-3xl" />
@@ -65,7 +65,7 @@ export default function Loading() {
               <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
             </span>
             <span className="text-xs font-medium text-muted-foreground">
-              ম্যাপ ডাটা ও সিস্টেম প্রস্তুত হচ্ছে...
+              ডাটা লোড হচ্ছে...
             </span>
           </div>
 
@@ -78,3 +78,4 @@ export default function Loading() {
     </div>
   );
 }
+
