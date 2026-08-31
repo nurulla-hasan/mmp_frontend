@@ -346,7 +346,7 @@ export function LoadCalculationDialog({
                 variant="outline"
                 size="sm"
                 nativeButton={false}
-                render={<Link href="/calculations" target="_blank" />}
+                render={<Link href="/calculations" />}
                 className="h-9 px-3 text-xs gap-1.5 shrink-0 hidden sm:flex"
                 title="সব পরিমাপ টেবিল আকারে দেখুন"
               >
