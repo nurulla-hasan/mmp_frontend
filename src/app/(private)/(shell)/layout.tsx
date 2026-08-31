@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { PublicFooter } from "@/components/layout/public-footer";
 import UserMobileBottomNav from "@/components/common/user-mobile-bottom-nav";
 import UserNavbar from "@/components/layout/navbar/user-navbar";
-import { Navbar } from "@/components/layout/navbar/navbar";
 
 export default function PrivateLayout({
   children,
@@ -11,10 +10,10 @@ export default function PrivateLayout({
 }) {
   return (
     <>
-      <Suspense fallback={<Navbar />}>
+      <Suspense fallback={null}>
         <UserNavbar />
       </Suspense>
-      <div className="pb-14 lg:pb-0 min-h-[calc(100vh-4rem)] flex flex-col justify-between">
+      <div className="pb-14 lg:pb-0 screen-height flex flex-col justify-between">
         <main className="flex-1">{children}</main>
         <PublicFooter />
       </div>

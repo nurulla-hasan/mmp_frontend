@@ -26,21 +26,21 @@ function renderModalTypeBadge(type: TBroadcastType) {
   switch (type) {
     case "PROMO":
       return (
-        <Badge variant="progress" size="sm">
+        <Badge variant="progress">
           <Sparkles />
           Special Announcement
         </Badge>
       );
     case "WARNING":
       return (
-        <Badge variant="pending" size="sm">
+        <Badge variant="pending">
           <AlertTriangle />
           Important Notice
         </Badge>
       );
     case "MAINTENANCE":
       return (
-        <Badge variant="admin" size="sm">
+        <Badge variant="admin">
           <Wrench />
           Maintenance Update
         </Badge>
@@ -48,7 +48,7 @@ function renderModalTypeBadge(type: TBroadcastType) {
     case "INFO":
     default:
       return (
-        <Badge variant="info" size="sm">
+        <Badge variant="info">
           <Info />
           Announcement
         </Badge>
@@ -145,7 +145,7 @@ export function BroadcastAnnouncementModal() {
           <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 pt-2 border-t border-border">
             <Button
               variant="outline"
-              size="sm"
+             
               onClick={handleClose}
               className="w-full sm:w-auto"
             >
@@ -161,7 +161,7 @@ export function BroadcastAnnouncementModal() {
                     className="w-full sm:w-auto"
                   />
                 }
-                size="sm"
+               
               >
                 {broadcast.linkText || "বিস্তারিত দেখুন"}
                 <ArrowRight />
