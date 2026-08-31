@@ -11,6 +11,7 @@ type SourceMapCanvasProps = {
   controlPairs: ControlPair[];
   pendingSource: Point2D | null;
   active: boolean;
+  pointMode: boolean;
   onPlacePoint: (point: Point2D) => void;
 };
 
@@ -31,6 +32,7 @@ export default function SourceMapCanvas({
   controlPairs,
   pendingSource,
   active,
+  pointMode,
   onPlacePoint,
 }: SourceMapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -290,7 +292,7 @@ export default function SourceMapCanvas({
       !gestureUsedMultipleRef.current
     ) {
       const point = getSourcePoint(event.clientX, event.clientY);
-      if (point) onPlacePoint(point);
+      if (point && pointMode) onPlacePoint(point);
     }
     if (pointersRef.current.size === 0) {
       gestureUsedMultipleRef.current = false;
@@ -319,7 +321,9 @@ export default function SourceMapCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative h-full w-full touch-none overflow-hidden bg-transparent"
+      className={`relative h-full w-full touch-none overflow-hidden bg-transparent ${
+        pointMode ? "cursor-crosshair" : "cursor-grab active:cursor-grabbing"
+      }`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={(event) => finishPointer(event)}
@@ -334,22 +338,56 @@ export default function SourceMapCanvas({
       {markers.map((marker) => (
         <div
           key={marker.id}
-          className="pointer-events-none absolute z-10 size-9 -translate-x-1/2 -translate-y-full drop-shadow-lg"
+          className="pointer-events-none absolute z-10 size-8 -translate-x-1/2 -translate-y-full drop-shadow-md select-none"
           style={{
             left: view.x + marker.point.x * view.scale,
             top: view.y + marker.point.y * view.scale,
             opacity: marker.pending ? 0.7 : 1,
           }}
         >
-          <MapPin className="absolute inset-0 size-9 fill-destructive text-destructive stroke-background stroke-[1.5]" />
-          <span className="absolute left-1/2 top-1.25 -translate-x-1/2 text-xs font-bold leading-none text-destructive-foreground">
-            {marker.label}
-          </span>
+          <svg
+            viewBox="0 0 28 36"
+            className="w-full h-full"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* Outer pin body */}
+            <path
+              d="M14 1C6.82 1 1 6.82 1 14C1 23.75 14 35 14 35C14 35 27 23.75 27 14C27 6.82 21.18 1 14 1Z"
+              fill="#DC2626"
+              stroke="#FFFFFF"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+            {/* Crisp white inner badge */}
+            <circle cx="14" cy="14" r="7.5" fill="#FFFFFF" />
+            {/* Centered bold number label */}
+            <text
+              x="14"
+              y="18"
+              textAnchor="middle"
+              fill="#DC2626"
+              fontSize="11"
+              fontWeight="bold"
+              fontFamily="system-ui, -apple-system, sans-serif"
+            >
+              {marker.label}
+            </text>
+          </svg>
         </div>
       ))}
 
-      <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-2 text-center text-xs text-foreground shadow-lg backdrop-blur">
-        Tap: point · Drag: pan · Pinch/Wheel: zoom
+      <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-1.5 text-center text-xs text-foreground shadow-lg backdrop-blur flex items-center gap-2">
+        <span
+          className={`size-2 rounded-full ${
+            pointMode ? "bg-primary animate-pulse" : "bg-muted-foreground"
+          }`}
+        />
+        <span>
+          {pointMode
+            ? "পয়েন্ট মোড চালু: ম্যাপে ক্লিক করে পয়েন্ট বসান · ড্র্যাগ: প্যান"
+            : "প্যান মোড: ম্যাপ ড্র্যাগ করুন · পয়েন্ট বসাতে পয়েন্ট মোড অন করুন"}
+        </span>
       </div>
     </div>
   );

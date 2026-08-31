@@ -1,8 +1,9 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Globe, X } from "lucide-react";
-import { useTheme } from "next-themes";
+
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -10,9 +11,14 @@ import {
   DrawerOverlay,
   DrawerPortal,
 } from "@/components/ui/drawer";
-import { extractImageFromPDF } from "@/features/land-measurement/utils/pdfHelper";
 import { useMediaQuery } from "@/hooks/useUtilityHooks";
 import { ErrorToast, SuccessToast } from "@/lib/utils";
+import EmptyState from "./EmptyState";
+import GeoStudioToolbar from "./GeoStudioToolbar";
+import GeoStudioTopNav from "./GeoStudioTopNav";
+import SettingsPanel from "./SettingsPanel";
+import SourceMapCanvas from "./SourceMapCanvas";
+import WorldMapCanvas from "./WorldMapCanvas";
 import type {
   AlignmentMode,
   ControlPair,
@@ -30,115 +36,109 @@ import {
   translateGeoTransform,
 } from "../utils/geoMath";
 import { exportMouzaKmz, type KmzExportQuality } from "../utils/kmz";
+import { extractImageFromPDF } from "@/features/land-measurement/utils/pdfHelper";
 import { createProcessedPreview } from "../utils/imageProcessing";
 import { loadImage, toDataUrl } from "../utils/imageUtils";
-import EmptyState from "./EmptyState";
-import GeoStudioToolbar from "./GeoStudioToolbar";
-import GeoStudioTopNav from "./GeoStudioTopNav";
-import SettingsPanel from "./SettingsPanel";
-import SourceMapCanvas from "./SourceMapCanvas";
-import WorldMapCanvas from "./WorldMapCanvas";
-
-type ActiveView = "source" | "world";
 
 export default function MouzaGeoStudio() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const isMobile = useMediaQuery("(max-width: 767px)");
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [overlayImage, setOverlayImage] = useState<HTMLImageElement | null>(
     null,
   );
   const [mapName, setMapName] = useState("mouza-map");
   const [loadingFile, setLoadingFile] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [activeView, setActiveView] = useState<ActiveView>("source");
+
+  const [activeView, setActiveView] = useState<"source" | "world">("source");
   const [worldInitialized, setWorldInitialized] = useState(false);
-  const [interactionTarget, setInteractionTarget] =
-    useState<InteractionTarget>("map");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [pointMode, setPointMode] = useState(false);
+
   const [controlPairs, setControlPairs] = useState<ControlPair[]>([]);
+  const [redoControlPairs, setRedoControlPairs] = useState<ControlPair[]>([]);
   const [pendingSource, setPendingSource] = useState<Point2D | null>(null);
+  const [transform, setTransform] = useState<GeoTransform | null>(null);
   const [alignmentMode, setAlignmentMode] =
     useState<AlignmentMode>("similarity");
-  const [transform, setTransform] = useState<GeoTransform | null>(null);
+
   const [backgroundRemoved, setBackgroundRemoved] = useState(false);
+  const [processingBackground, setProcessingBackground] = useState(false);
   const [backgroundSensitivity, setBackgroundSensitivity] = useState(75);
   const [lineColor, setLineColor] = useState("#DC2626");
-  const [processingBackground, setProcessingBackground] = useState(false);
   const [opacity, setOpacity] = useState(0.72);
   const [mapStyle, setMapStyle] = useState<"satellite" | "street">("satellite");
   const [exportQuality, setExportQuality] =
     useState<KmzExportQuality>("optimized");
   const [exportingKmz, setExportingKmz] = useState(false);
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
 
-  const imageSize = useMemo(
-    () => ({
-      width: image?.naturalWidth || image?.width || 0,
-      height: image?.naturalHeight || image?.height || 0,
-    }),
-    [image],
-  );
+  const [interactionTarget, setInteractionTarget] =
+    useState<InteractionTarget>("map");
+
+  const imageSize = useMemo(() => {
+    if (!image) return { width: 0, height: 0 };
+    return {
+      width: image.naturalWidth || image.width,
+      height: image.naturalHeight || image.height,
+    };
+  }, [image]);
 
   const imageCenter = useMemo(
-    () => ({ x: imageSize.width / 2, y: imageSize.height / 2 }),
+    () => ({
+      x: imageSize.width / 2,
+      y: imageSize.height / 2,
+    }),
     [imageSize],
   );
 
-  const residual = useMemo(
-    () => (transform ? calculateResidualMeters(transform, controlPairs) : null),
-    [controlPairs, transform],
-  );
+  const residual = useMemo(() => {
+    if (!transform || controlPairs.length < 2) return null;
+    return calculateResidualMeters(transform, controlPairs);
+  }, [transform, controlPairs]);
 
   useEffect(() => {
-    if (!image) return;
+    if (!image) {
+      setOverlayImage(null);
+      return;
+    }
 
-    const controller = new AbortController();
-    const delay = backgroundRemoved ? 220 : 0;
+    if (!backgroundRemoved) {
+      setOverlayImage(image);
+      return;
+    }
 
-    const timer = window.setTimeout(() => {
-      if (!backgroundRemoved) {
+    let cancelled = false;
+    setProcessingBackground(true);
+
+    void createProcessedPreview(image, {
+      sensitivity: backgroundSensitivity,
+      lineColor,
+    })
+      .then((processed: HTMLImageElement) => {
+        if (cancelled) return;
+        setOverlayImage(processed);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        console.error("BG remove error:", error);
+        ErrorToast("Background remove করা যায়নি");
         setOverlayImage(image);
-        setProcessingBackground(false);
-        return;
-      }
-
-      setProcessingBackground(true);
-
-      void createProcessedPreview(
-        image,
-        { sensitivity: backgroundSensitivity, lineColor },
-        controller.signal,
-      )
-        .then((processedImage) => {
-          setOverlayImage(processedImage);
-        })
-        .catch((error: unknown) => {
-          if (error instanceof DOMException && error.name === "AbortError") {
-            return;
-          }
-
-          ErrorToast(
-            error instanceof Error
-              ? error.message
-              : "Background remove করা যায়নি",
-          );
-        })
-        .finally(() => {
-          if (!controller.signal.aborted) {
-            setProcessingBackground(false);
-          }
-        });
-    }, delay);
+      })
+      .finally(() => {
+        if (!cancelled) setProcessingBackground(false);
+      });
 
     return () => {
-      window.clearTimeout(timer);
-      controller.abort();
+      cancelled = true;
     };
-  }, [backgroundRemoved, backgroundSensitivity, image, lineColor]);
+  }, [image, backgroundRemoved, backgroundSensitivity, lineColor]);
 
   const resetAlignment = () => {
     setControlPairs([]);
+    setRedoControlPairs([]);
     setPendingSource(null);
     setTransform(null);
     setAlignmentMode("similarity");
@@ -165,6 +165,7 @@ export default function MouzaGeoStudio() {
       resetAlignment();
       setActiveView("source");
       setWorldInitialized(false);
+      setPointMode(false);
       // SuccessToast("মৌজা ম্যাপ প্রস্তুত হয়েছে");
     } catch (error: unknown) {
       ErrorToast(error instanceof Error ? error.message : "Map load করা যায়নি");
@@ -222,6 +223,7 @@ export default function MouzaGeoStudio() {
     ];
 
     setControlPairs(nextPairs);
+    setRedoControlPairs([]);
     setPendingSource(null);
 
     if (nextPairs.length >= 2) {
@@ -237,7 +239,45 @@ export default function MouzaGeoStudio() {
     setActiveView("source");
   };
 
+  const undoPair = () => {
+    if (controlPairs.length === 0) return;
+    const last = controlPairs[controlPairs.length - 1];
+    const nextPairs = controlPairs.slice(0, -1);
+    setControlPairs(nextPairs);
+    setRedoControlPairs((prev) => [...prev, last]);
+
+    const required = alignmentMode === "affine" ? 3 : 2;
+    if (nextPairs.length >= required) {
+      fitTransform(nextPairs, alignmentMode, false);
+    } else if (nextPairs.length >= 2) {
+      fitTransform(nextPairs, "similarity", false);
+    } else {
+      setTransform(null);
+    }
+  };
+
+  const redoPair = () => {
+    if (redoControlPairs.length === 0) return;
+    const restored = redoControlPairs[redoControlPairs.length - 1];
+    const nextPairs = [...controlPairs, restored];
+    setControlPairs(nextPairs);
+    setRedoControlPairs((prev) => prev.slice(0, -1));
+
+    const required = alignmentMode === "affine" ? 3 : 2;
+    if (nextPairs.length >= required) {
+      fitTransform(nextPairs, alignmentMode, false);
+    } else if (nextPairs.length >= 2) {
+      fitTransform(nextPairs, "similarity", false);
+    } else {
+      setTransform(null);
+    }
+  };
+
   const removePair = (id: string) => {
+    const removed = controlPairs.find((p) => p.id === id);
+    if (removed) {
+      setRedoControlPairs((prev) => [...prev, removed]);
+    }
     const nextPairs = controlPairs.filter((pair) => pair.id !== id);
     setControlPairs(nextPairs);
 
@@ -355,6 +395,7 @@ export default function MouzaGeoStudio() {
                 controlPairs={controlPairs}
                 pendingSource={pendingSource}
                 active={activeView === "source"}
+                pointMode={pointMode}
                 onPlacePoint={handleSourcePoint}
               />
             </div>
@@ -388,17 +429,7 @@ export default function MouzaGeoStudio() {
         )}
       </main>
 
-      <GeoStudioTopNav
-        image={image}
-        activeView={activeView}
-        alignmentMode={alignmentMode}
-        transform={transform}
-        onSourceClick={() => setActiveView("source")}
-        onWorldClick={() => {
-          setWorldInitialized(true);
-          setActiveView("world");
-        }}
-      />
+      <GeoStudioTopNav />
 
       {/* Desktop floating toolbar */}
       <div className="absolute right-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl md:flex">
@@ -406,14 +437,22 @@ export default function MouzaGeoStudio() {
           settingsOpen={settingsOpen}
           activeView={activeView}
           transform={transform}
-          pendingSource={pendingSource}
-          interactionTarget={interactionTarget}
-          image={image}
+          alignmentMode={alignmentMode}
+          controlPairsCount={controlPairs.length}
+          pointMode={pointMode}
+          canUndo={controlPairs.length > 0}
+          canRedo={redoControlPairs.length > 0}
           canExport={Boolean(image) && !processingBackground && !exportingKmz}
           onToggleSettings={() => setSettingsOpen((open) => !open)}
-          onSetInteractionTarget={setInteractionTarget}
-          onScale={handleScale}
-          onRotate={handleRotate}
+          onTogglePointMode={() => setPointMode((prev) => !prev)}
+          onSelectView={(view) => {
+            if (view === "world") setWorldInitialized(true);
+            setActiveView(view);
+          }}
+          onSimilarityClick={() => fitTransform(controlPairs, "similarity", true)}
+          onAffineClick={() => fitTransform(controlPairs, "affine", true)}
+          onUndo={undoPair}
+          onRedo={redoPair}
           onExport={handleExport}
           onResetAlignment={resetAlignment}
           mobile={false}
@@ -429,14 +468,22 @@ export default function MouzaGeoStudio() {
           settingsOpen={settingsOpen}
           activeView={activeView}
           transform={transform}
-          pendingSource={pendingSource}
-          interactionTarget={interactionTarget}
-          image={image}
+          alignmentMode={alignmentMode}
+          controlPairsCount={controlPairs.length}
+          pointMode={pointMode}
+          canUndo={controlPairs.length > 0}
+          canRedo={redoControlPairs.length > 0}
           canExport={Boolean(image) && !processingBackground && !exportingKmz}
           onToggleSettings={() => setSettingsOpen((open) => !open)}
-          onSetInteractionTarget={setInteractionTarget}
-          onScale={handleScale}
-          onRotate={handleRotate}
+          onTogglePointMode={() => setPointMode((prev) => !prev)}
+          onSelectView={(view) => {
+            if (view === "world") setWorldInitialized(true);
+            setActiveView(view);
+          }}
+          onSimilarityClick={() => fitTransform(controlPairs, "similarity", true)}
+          onAffineClick={() => fitTransform(controlPairs, "affine", true)}
+          onUndo={undoPair}
+          onRedo={redoPair}
           onExport={handleExport}
           onResetAlignment={resetAlignment}
           mobile={true}
@@ -494,9 +541,9 @@ export default function MouzaGeoStudio() {
                 onUploadClick={() => fileInputRef.current?.click()}
                 onRemovePair={removePair}
                 onSimilarityClick={() =>
-                  fitTransform(controlPairs, "similarity")
+                  fitTransform(controlPairs, "similarity", true)
                 }
-                onAffineClick={() => fitTransform(controlPairs, "affine")}
+                onAffineClick={() => fitTransform(controlPairs, "affine", true)}
                 onBackgroundRemovedChange={setBackgroundRemoved}
                 onBackgroundSensitivityChange={setBackgroundSensitivity}
                 onLineColorChange={setLineColor}
@@ -574,10 +621,10 @@ export default function MouzaGeoStudio() {
                         onUploadClick={() => fileInputRef.current?.click()}
                         onRemovePair={removePair}
                         onSimilarityClick={() =>
-                          fitTransform(controlPairs, "similarity")
+                          fitTransform(controlPairs, "similarity", true)
                         }
                         onAffineClick={() =>
-                          fitTransform(controlPairs, "affine")
+                          fitTransform(controlPairs, "affine", true)
                         }
                         onBackgroundRemovedChange={setBackgroundRemoved}
                         onBackgroundSensitivityChange={setBackgroundSensitivity}

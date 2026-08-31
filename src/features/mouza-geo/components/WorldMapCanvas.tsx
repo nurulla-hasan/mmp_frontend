@@ -81,22 +81,16 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       if (style === "satellite") {
         baseLayerRef.current = leaflet
           .tileLayer(
-            "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            "https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
             {
+              subdomains: ["0", "1", "2", "3"],
               minZoom: 2,
-              maxZoom: 19,
-              attribution: "Tiles &copy; Esri — Sources: Esri and contributors",
-            },
-          )
-          .addTo(map);
-
-        labelLayerRef.current = leaflet
-          .tileLayer(
-            "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-            {
-              minZoom: 2,
-              maxZoom: 19,
-              attribution: "Labels &copy; Esri",
+              maxZoom: 22,
+              maxNativeZoom: 20,
+              keepBuffer: 8,
+              updateWhenZooming: false,
+              updateWhenIdle: false,
+              attribution: "&copy; Google Maps",
             },
           )
           .addTo(map);
@@ -106,7 +100,11 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       baseLayerRef.current = leaflet
         .tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
           minZoom: 2,
-          maxZoom: 19,
+          maxZoom: 22,
+          maxNativeZoom: 19,
+          keepBuffer: 8,
+          updateWhenZooming: false,
+          updateWhenIdle: false,
           attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
         })
@@ -215,8 +213,15 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       context.fill();
       context.stroke();
 
+      // White inner badge
+      context.beginPath();
+      context.arc(tipX, tipY - 22, 7.5, 0, Math.PI * 2);
       context.fillStyle = "white";
-      context.font = "700 12px sans-serif";
+      context.fill();
+
+      // Red bold number inside white badge
+      context.fillStyle = "rgb(220 38 38)";
+      context.font = "bold 11px system-ui, sans-serif";
       context.textAlign = "center";
       context.textBaseline = "middle";
       context.fillText(String(index + 1), tipX, tipY - 22);
@@ -275,11 +280,12 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
           .map(host, {
             center: [25.6217, 88.6354],
             zoom: 15,
+            maxZoom: 22,
             zoomControl: false,
             attributionControl: true,
-            zoomAnimation: false,
-            fadeAnimation: false,
-            markerZoomAnimation: false,
+            zoomAnimation: true,
+            fadeAnimation: true,
+            markerZoomAnimation: true,
           })
           .setView([25.6217, 88.6354], 15);
 

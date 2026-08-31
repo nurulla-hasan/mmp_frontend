@@ -1,30 +1,36 @@
 import {
   Crosshair,
   Download,
-  MapPinned,
+  FileText,
+  Globe2,
+  Redo2,
   RotateCcw,
-  RotateCw,
   Settings2,
-  ZoomIn,
-  ZoomOut,
-} from 'lucide-react';
+  SlidersHorizontal,
+  Sparkles,
+  Undo2,
+} from "lucide-react";
 
-import type { InteractionTarget, Point2D } from '../types';
-import FloatingToolButton from './FloatingToolButton';
-import { Separator } from '@/components/ui/separator';
+import type { AlignmentMode } from "../types";
+import FloatingToolButton from "./FloatingToolButton";
 
 type GeoStudioToolbarProps = {
   settingsOpen: boolean;
-  activeView: 'source' | 'world';
+  activeView: "source" | "world";
   transform: unknown;
-  pendingSource: Point2D | null;
-  interactionTarget: InteractionTarget;
-  image: unknown;
+  alignmentMode: AlignmentMode;
+  controlPairsCount: number;
+  pointMode: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
   canExport: boolean;
   onToggleSettings: () => void;
-  onSetInteractionTarget: (target: InteractionTarget) => void;
-  onScale: (factor: number) => void;
-  onRotate: (angleRadians: number) => void;
+  onTogglePointMode: () => void;
+  onSelectView: (view: "source" | "world") => void;
+  onSimilarityClick: () => void;
+  onAffineClick: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
   onExport: () => void;
   onResetAlignment: () => void;
   mobile: boolean;
@@ -34,35 +40,32 @@ export default function GeoStudioToolbar({
   settingsOpen,
   activeView,
   transform,
-  pendingSource,
-  interactionTarget,
-  image,
+  alignmentMode,
+  controlPairsCount,
+  pointMode,
+  canUndo,
+  canRedo,
   canExport,
   onToggleSettings,
-  onSetInteractionTarget,
-  onScale,
-  onRotate,
+  onTogglePointMode,
+  onSelectView,
+  onSimilarityClick,
+  onAffineClick,
+  onUndo,
+  onRedo,
   onExport,
   onResetAlignment,
   mobile,
 }: GeoStudioToolbarProps) {
-  const mapControlsDisabled =
-    activeView !== 'world' || !transform || Boolean(pendingSource);
-
-  const separator = (
-    <div
-      className={
-        mobile
-          ? 'mx-0.5 h-6'
-          : 'my-0.5 w-6'
-      }
-    >
-      <Separator orientation={mobile ? 'vertical' : 'horizontal'} />
-    </div>
+  const divider = mobile ? (
+    <div className="mx-0.5 h-6 w-px bg-border/60" />
+  ) : (
+    <div className="my-0.5 h-px w-6 bg-border/60" />
   );
 
   return (
     <>
+      {/* 1. Settings Drawer Toggle */}
       <FloatingToolButton
         icon={Settings2}
         label="ম্যাপ ও সেটিংস"
@@ -70,72 +73,92 @@ export default function GeoStudioToolbar({
         onClick={onToggleSettings}
         mobile={mobile}
       />
-      {separator}
-      <FloatingToolButton
-        icon={MapPinned}
-        label="World Map control"
-        active={
-          activeView === 'world' &&
-          interactionTarget === 'map' &&
-          !mapControlsDisabled
-        }
-        disabled={mapControlsDisabled}
-        onClick={() => onSetInteractionTarget('map')}
-        mobile={mobile}
-      />
+
+      {divider}
+
+      {/* 2. Point Mode Toggle (Crosshair) */}
       <FloatingToolButton
         icon={Crosshair}
-        label="PDF overlay control"
-        active={
-          activeView === 'world' &&
-          interactionTarget === 'pdf' &&
-          !mapControlsDisabled
+        label={
+          pointMode
+            ? "পয়েন্ট মোড চালু (ক্লিক করলে পয়েন্ট বসবে)"
+            : "প্যান মোড (ক্লিক করলে পয়েন্ট বসবে না)"
         }
-        disabled={mapControlsDisabled}
-        onClick={() => onSetInteractionTarget('pdf')}
+        active={pointMode}
+        onClick={onTogglePointMode}
         mobile={mobile}
       />
-      {separator}
+
+      {divider}
+
+      {/* 3. View Switchers */}
       <FloatingToolButton
-        icon={ZoomOut}
-        label="PDF ছোট করুন"
-        disabled={!transform}
-        onClick={() => onScale(1 / 1.02)}
-        mobile={mobile}
-      />
-      <FloatingToolButton
-        icon={ZoomIn}
-        label="PDF বড় করুন"
-        disabled={!transform}
-        onClick={() => onScale(1.02)}
+        icon={FileText}
+        label="মৌজা PDF ভিউ"
+        active={activeView === "source"}
+        onClick={() => onSelectView("source")}
         mobile={mobile}
       />
       <FloatingToolButton
-        icon={RotateCcw}
-        label="PDF বামে ঘোরান"
-        disabled={!transform}
-        onClick={() => onRotate(-Math.PI / 180)}
+        icon={Globe2}
+        label="World Map স্যাটেলাইট ভিউ"
+        active={activeView === "world"}
+        onClick={() => onSelectView("world")}
+        mobile={mobile}
+      />
+
+      {divider}
+
+      {/* 4. Quick Alignment Methods */}
+      <FloatingToolButton
+        icon={SlidersHorizontal}
+        label="Similarity অ্যালাইনমেন্ট (২+ পয়েন্ট)"
+        active={alignmentMode === "similarity" && Boolean(transform)}
+        disabled={controlPairsCount < 2}
+        onClick={onSimilarityClick}
         mobile={mobile}
       />
       <FloatingToolButton
-        icon={RotateCw}
-        label="PDF ডানে ঘোরান"
-        disabled={!transform}
-        onClick={() => onRotate(Math.PI / 180)}
+        icon={Sparkles}
+        label="Affine রিফাইনমেন্ট (৩+ পয়েন্ট)"
+        active={alignmentMode === "affine" && Boolean(transform)}
+        disabled={controlPairsCount < 3}
+        onClick={onAffineClick}
         mobile={mobile}
       />
-      {separator}
+
+      {divider}
+
+      {/* 5. Undo / Redo */}
+      <FloatingToolButton
+        icon={Undo2}
+        label="শেষ পয়েন্ট বাতিল (Undo)"
+        disabled={!canUndo}
+        onClick={onUndo}
+        mobile={mobile}
+      />
+      <FloatingToolButton
+        icon={Redo2}
+        label="পয়েন্ট ফিরিয়ে আনুন (Redo)"
+        disabled={!canRedo}
+        onClick={onRedo}
+        mobile={mobile}
+      />
+
+      {divider}
+
+      {/* 6. KMZ Export & Reset */}
       <FloatingToolButton
         icon={Download}
-        label="KMZ Export"
+        label="KMZ ফাইল ডাউনলোড"
         disabled={!transform || !canExport}
         onClick={onExport}
         mobile={mobile}
       />
       <FloatingToolButton
         icon={RotateCcw}
-        label="Alignment reset"
-        disabled={!image}
+        label="অ্যালাইনমেন্ট রিসেট"
+        disabled={controlPairsCount === 0 && !transform}
         onClick={onResetAlignment}
         mobile={mobile}
       />
