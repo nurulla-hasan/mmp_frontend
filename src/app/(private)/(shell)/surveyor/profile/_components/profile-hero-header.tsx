@@ -1,9 +1,9 @@
 "use client";
 
 import { CheckCircle2, Clock, MapPin, ShieldAlert, Star, Briefcase, Award } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { ProfileAvatarUpload } from "@/components/common/profile-avatar-upload";
 import type { TAuthUser } from "@/interface/auth";
 import type { TSurveyorProfile } from "@/interface/surveyor-profile";
 
@@ -42,12 +42,13 @@ export function ProfileHeroHeader({ user, profile, districts = [] }: ProfileHero
           {/* Avatar & Main Info */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="-mt-10 flex items-center justify-center sm:-mt-12">
-              <Avatar size="xl" isPro={user?.isSubscribed} className="size-20 border-4 border-card shadow-md sm:size-24">
-                <AvatarImage src={user?.imageUrl || ""} alt={name} />
-                <AvatarFallback className="bg-primary/10 text-xl font-bold text-primary sm:text-2xl">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+              <ProfileAvatarUpload
+                src={user?.imageUrl}
+                name={name}
+                isPro={user?.isSubscribed}
+                size="xl"
+                className="size-20 border-4 border-card shadow-md sm:size-24"
+              />
             </div>
 
             <div className="space-y-1">

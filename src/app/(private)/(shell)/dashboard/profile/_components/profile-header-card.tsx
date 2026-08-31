@@ -7,7 +7,6 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -15,9 +14,10 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { ProfileAvatarUpload } from "@/components/common/profile-avatar-upload";
 import { ProfileEditModal } from "./profile-edit-modal";
 import type { TAuthUser } from "@/interface/auth";
-import { formatDate, getInitials } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 
 type DistrictOption = { value: string; label: string; upazilas: string[] };
 
@@ -32,14 +32,12 @@ export function ProfileHeaderCard({
     <Card>
       <CardHeader>
         <div className="flex flex-col items-center text-center">
-          <div className="relative">
-            <div>
-              <Avatar size="xl" isPro={user.isSubscribed}>
-                <AvatarImage src={user.imageUrl} alt={user.name} />
-                <AvatarFallback className="text-xl">{getInitials(user.name)}</AvatarFallback>
-              </Avatar>
-            </div>
-          </div>
+          <ProfileAvatarUpload
+            src={user.imageUrl}
+            name={user.name}
+            isPro={user.isSubscribed}
+            size="xl"
+          />
 
           <div className="mt-4">
             <h2 className="font-heading text-xl font-bold text-foreground">

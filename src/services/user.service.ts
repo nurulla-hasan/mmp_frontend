@@ -50,3 +50,11 @@ export const deleteUser = (id: string) =>
     method: "DELETE",
     auth: "auth",
   });
+
+// 6. Upload user profile image
+export const uploadProfileImage = (formData: FormData) =>
+  nextServerFetch<TUser>("/users/profile-image", {
+    method: "PATCH",
+    body: formData,
+    auth: "auth",
+  });
