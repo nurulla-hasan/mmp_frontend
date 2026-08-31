@@ -35,11 +35,10 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
     control,
     handleSubmit,
     setValue,
-    reset,
     formState: { isSubmitting },
   } = useForm<UpdateMeFormValues>({
     resolver: zodResolver(updateMeSchema),
-    defaultValues: {
+    values: {
       name: user?.name ?? "",
       imageUrl: user?.imageUrl ?? "",
       phone: user?.phone ?? "",
@@ -48,21 +47,6 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
       upazila: user?.upazila ?? "",
     },
   });
-
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    if (newOpen) {
-      reset({
-        name: user?.name ?? "",
-        imageUrl: user?.imageUrl ?? "",
-        phone: user?.phone ?? "",
-        whatsappNumber: user?.whatsappNumber ?? "",
-        district: user?.district ?? "",
-        upazila: user?.upazila ?? "",
-      });
-      setError(null);
-    }
-  };
 
   const selectedDistrict = useWatch({ control, name: "district" });
   const districtObj = districts.find((d) => d.label === selectedDistrict || d.value === selectedDistrict);
@@ -89,7 +73,7 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
   return (
     <ModalWrapper
       open={open}
-      onOpenChange={handleOpenChange}
+      onOpenChange={setOpen}
       title="ব্যক্তিগত ও অবস্থান তথ্য আপডেট করুন"
       description="আপনার নাম, যোগাযোগ ও প্রধান অবস্থান (জেলা/উপজেলা) আপডেট করুন।"
       actionTrigger={
@@ -99,7 +83,7 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
           variant="ghost"
           aria-label="Edit personal info"
         >
-          <Edit className="size-4" />
+          <Edit />
         </Button>
       }
     >
@@ -115,78 +99,45 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
           control={control}
           name="name"
           label="পূর্ণ নাম"
-          placeholder="আপনার নাম লিখুন"
+          placeholder="আপনার নাম"
         />
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormInput
             control={control}
             name="phone"
-            label="মোবাইল নম্বর"
+            label="ফোন নম্বর"
             placeholder="01XXXXXXXXX"
-            type="tel"
           />
           <FormInput
             control={control}
             name="whatsappNumber"
-            label="WhatsApp নম্বর"
+            label="হোয়াটসঅ্যাপ নম্বর"
             placeholder="01XXXXXXXXX"
-            type="tel"
           />
         </div>
 
-        {/* District Select */}
-        <Controller
-          name="district"
-          control={control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="primaryDistrictSelect">প্রধান জেলা (অবস্থান)</FieldLabel>
-              <Select
-                value={field.value ?? ""}
-                onValueChange={(val) => {
-                  field.onChange(val ?? "");
-                  // Reset upazila if district changes
-                  setValue("upazila", "");
-                }}
-              >
-                <SelectTrigger id="primaryDistrictSelect" className="w-full">
-                  <SelectValue placeholder="জেলা নির্বাচন করুন" />
-                </SelectTrigger>
-                <SelectContent alignItemWithTrigger={false}>
-                  {districts.map((d) => (
-                    <SelectItem key={d.value} value={d.label}>
-                      {d.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
-              )}
-            </Field>
-          )}
-        />
-
-        {/* Upazila Select / Input */}
-        {availableUpazilas.length > 0 ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Controller
-            name="upazila"
+            name="district"
             control={control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="primaryUpazilaSelect">উপজেলা / থানা</FieldLabel>
+                <FieldLabel>জেলা</FieldLabel>
                 <Select
                   value={field.value ?? ""}
-                  onValueChange={(val) => field.onChange(val ?? "")}
+                  onValueChange={(val) => {
+                    field.onChange(val);
+                    setValue("upazila", "");
+                  }}
                 >
-                  <SelectTrigger id="primaryUpazilaSelect" className="w-full">
-                    <SelectValue placeholder="উপজেলা নির্বাচন করুন" />
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="জেলা নির্বাচন করুন" />
                   </SelectTrigger>
                   <SelectContent alignItemWithTrigger={false}>
-                    {availableUpazilas.map((u) => (
-                      <SelectItem key={u} value={u}>
-                        {u}
+                    {districts.map((d) => (
+                      <SelectItem key={d.value} value={d.label}>
+                        {d.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -197,27 +148,62 @@ export function PersonalInfoUpdate({ user, districts }: PersonalInfoUpdateProps)
               </Field>
             )}
           />
-        ) : (
-          <FormInput
-            control={control}
+
+          <Controller
             name="upazila"
-            label="উপজেলা / থানা"
-            placeholder="উপজেলা বা থানার নাম লিখুন"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>উপজেলা / থানা</FieldLabel>
+                <Select
+                  value={field.value ?? ""}
+                  onValueChange={field.onChange}
+                  disabled={!selectedDistrict || availableUpazilas.length === 0}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        !selectedDistrict
+                          ? "আগে জেলা নির্বাচন করুন"
+                          : availableUpazilas.length === 0
+                            ? "কোনো উপজেলা নেই"
+                            : "উপজেলা নির্বাচন করুন"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent alignItemWithTrigger={false}>
+                    {availableUpazilas.map((upazila) => (
+                      <SelectItem key={upazila} value={upazila}>
+                        {upazila}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
           />
-        )}
+        </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-end gap-2 pt-2 border-t">
           <Button
             type="button"
             variant="outline"
             onClick={() => setOpen(false)}
+            disabled={isSubmitting}
           >
             বাতিল
           </Button>
-          <Button type="submit" loading={isSubmitting} loadingText="সংরক্ষণ করা হচ্ছে...">
-            সংরক্ষণ করুন
+          <Button
+            type="submit"
+            loading={isSubmitting}
+            loadingText="আপডেট হচ্ছে..."
+          >
+            আপডেট করুন
           </Button>
         </div>
       </form>

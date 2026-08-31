@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -50,7 +50,6 @@ export function ReviewModal({
   currentUser?: TAuthUser | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
 
   const form = useForm<ReviewData>({
     resolver: zodResolver(reviewSchema),
@@ -72,7 +71,7 @@ export function ReviewModal({
         title="রিভিউ দিতে লগইন করুন"
         description="সার্ভেয়ারের কাজের গুণগত মান বজায় রাখতে ও স্প্যাম মুক্ত রাখতে শুধুমাত্র রেজিস্টার্ড ব্যবহারকারীরা রিভিউ দিতে পারবেন।"
         actionTrigger={
-          <Button size="sm">
+          <Button>
             <MessageCircle />
             রিভিউ লিখুন
           </Button>
@@ -89,14 +88,12 @@ export function ReviewModal({
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
             <Button
               variant="outline"
-              size="sm"
               onClick={() => setOpen(false)}
             >
               বাতিল
             </Button>
             <Button
               render={<Link href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`} />}
-              size="sm"
             >
               <LogIn />
               লগইন করতে এগিয়ে যান
@@ -108,49 +105,45 @@ export function ReviewModal({
   }
 
   // 2. Logged-in User Review Form
-  function handleFormSubmit(data: ReviewData) {
+  async function handleFormSubmit(data: ReviewData) {
     if (!surveyorProfileId) {
       ErrorToast("সার্ভেয়ার প্রোফাইল পাওয়া যায়নি।");
       return;
     }
 
-    startTransition(async () => {
-      try {
-        const res = await createReviewAction({
-          surveyorProfileId,
-          serviceName: data.serviceName || undefined,
-          rating: data.rating,
-          comment: data.comment.trim(),
-        });
+    try {
+      const res = await createReviewAction({
+        surveyorProfileId,
+        serviceName: data.serviceName || undefined,
+        rating: data.rating,
+        comment: data.comment.trim(),
+      });
 
-        if (res.success) {
-          SuccessToast(
-            "আপনার রিভিউটি সফলভাবে জমা হয়েছে। এডমিনের যাচাইয়ের পর প্রকাশিত হবে।",
-          );
-          form.reset();
-          setOpen(false);
-        } else {
-          ErrorToast(res.message || "রিভিউ জমা দিতে ব্যর্থ হয়েছে।");
-        }
-      } catch {
-        ErrorToast("রিভিউ জমা দেওয়ার সময় একটি ত্রুটি ঘটেছে।");
+      if (res.success) {
+        SuccessToast(
+          "আপনার রিভিউটি সফলভাবে জমা হয়েছে। এডমিনের যাচাইয়ের পর প্রকাশিত হবে।",
+        );
+        form.reset();
+        setOpen(false);
+      } else {
+        ErrorToast(res.message || "রিভিউ জমা দিতে ব্যর্থ হয়েছে।");
       }
-    });
+    } catch {
+      ErrorToast("রিভিউ জমা দেওয়ার সময় একটি ত্রুটি ঘটেছে।");
+    }
   }
 
   return (
     <ModalWrapper
       open={open}
       onOpenChange={(next) => {
-        if (!isPending) {
-          setOpen(next);
-          if (!next) form.reset();
-        }
+        setOpen(next);
+        if (!next) form.reset();
       }}
       title="রিভিউ লিখুন"
       description="আপনার কাজের অভিজ্ঞতা শেয়ার করুন। রিভিউটি এডমিন দ্বারা যাচাইয়ের পর প্রকাশ করা হবে।"
       actionTrigger={
-        <Button size="sm">
+        <Button>
           <MessageCircle />
           রিভিউ লিখুন
         </Button>
@@ -158,25 +151,18 @@ export function ReviewModal({
     >
       <form onSubmit={form.handleSubmit(handleFormSubmit)}>
         <div className="space-y-4">
-          {/* Authenticated User Preview */}
-          <div className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50 border border-border">
-            <Avatar className="size-8 shrink-0">
-              <AvatarImage src={currentUser.imageUrl} alt={currentUser.name} />
+          {/* User Preview */}
+          <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/40">
+            <Avatar className="size-10 border border-primary/20">
+              <AvatarImage src={currentUser.imageUrl || undefined} alt={currentUser.name} />
               <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
             </Avatar>
-            <div className="flex flex-col min-w-0">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-foreground truncate">
-                  {currentUser.name}
-                </span>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5">
-                  <UserCheck className="size-3" />
-                  ভেরিফাইড ইউজার
-                </span>
+                <span className="font-semibold text-sm truncate">{currentUser.name}</span>
+                <UserCheck className="size-3.5 text-primary shrink-0" />
               </div>
-              <span className="text-xs text-muted-foreground truncate font-mono">
-                {currentUser.email}
-              </span>
+              <p className="text-xs text-muted-foreground">পাবলিক প্রোফাইলে এই নামে রিভিউ দেখানো হবে</p>
             </div>
           </div>
 
@@ -186,22 +172,21 @@ export function ReviewModal({
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>কোন সার্ভিস ব্যবহার করেছেন?</FieldLabel>
+                <FieldLabel>যে সার্ভিসের জন্য রিভিউ দিচ্ছেন</FieldLabel>
                 <Select
-                  value={field.value ?? ""}
-                  onValueChange={(val) => {
-                    if (val) field.onChange(val);
-                  }}
+                  value={field.value}
+                  onValueChange={field.onChange}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="সার্ভিস নির্বাচন করুন" />
                   </SelectTrigger>
                   <SelectContent alignItemWithTrigger={false}>
-                    {services.map((s) => (
-                      <SelectItem key={s.id} value={s.service.name}>
-                        {s.service.name}
+                    {services.map((item) => (
+                      <SelectItem key={item.id} value={item.service.name}>
+                        {item.service.name}
                       </SelectItem>
                     ))}
+                    <SelectItem value="অন্যান্য সেবা">অন্যান্য সেবা / General Survey</SelectItem>
                   </SelectContent>
                 </Select>
                 {fieldState.invalid && (
@@ -257,8 +242,8 @@ export function ReviewModal({
 
           <Button
             type="submit"
-            disabled={isPending || !form.formState.isValid}
-            loading={isPending}
+            disabled={!form.formState.isValid}
+            loading={form.formState.isSubmitting}
             loadingText="জমা হচ্ছে..."
             className="w-full"
           >

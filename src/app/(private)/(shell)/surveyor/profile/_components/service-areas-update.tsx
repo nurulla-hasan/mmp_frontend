@@ -51,27 +51,13 @@ export function ServiceAreasUpdate({
     control,
     handleSubmit,
     setValue,
-    reset,
     formState: { errors, isSubmitting },
   } = useForm<UpdateServiceAreasFormValues>({
     resolver: zodResolver(updateServiceAreasSchema as any),
-    defaultValues: {
+    values: {
       serviceAreas: getInitialServiceAreas(profile, districts),
     },
   });
-
-  // Sync form state when modal opens or profile/districts change
-  const handleOpenChange = (next: boolean) => {
-    setOpen(next);
-    if (next) {
-      reset({
-        serviceAreas: getInitialServiceAreas(profile, districts),
-      });
-      setError(null);
-    } else {
-      setError(null);
-    }
-  };
 
   const selected = useWatch({ control, name: "serviceAreas" }) ?? [];
 
@@ -86,25 +72,40 @@ export function ServiceAreasUpdate({
         { shouldValidate: true },
       );
     } else {
-      setValue("serviceAreas", [...selected, { district, upazilas: [] }], {
-        shouldValidate: true,
-      });
+      const match = districts.find(
+        (d) => d.label === district || d.value === district,
+      );
+      setValue(
+        "serviceAreas",
+        [
+          ...selected,
+          {
+            district: match?.label ?? district,
+            upazilas: match?.upazilas ?? [],
+          },
+        ],
+        { shouldValidate: true },
+      );
     }
   };
 
   const toggleUpazila = (district: string, upazila: string) => {
-    const area = selected.find(
-      (a) => a.district === district,
-    );
-    if (!area) return;
-    const has = area.upazilas.includes(upazila);
-    const nextUpazilas = has
-      ? area.upazilas.filter((u) => u !== upazila)
-      : [...area.upazilas, upazila];
+    const current = selected.find((a) => a.district === district);
+    if (!current) return;
+
+    const currentUpazilas = Array.isArray(current.upazilas)
+      ? current.upazilas
+      : [];
+    const exists = currentUpazilas.includes(upazila);
+
+    const updatedUpazilas = exists
+      ? currentUpazilas.filter((u) => u !== upazila)
+      : [...currentUpazilas, upazila];
+
     setValue(
       "serviceAreas",
       selected.map((a) =>
-        a.district === district ? { ...a, upazilas: nextUpazilas } : a,
+        a.district === district ? { ...a, upazilas: updatedUpazilas } : a,
       ),
       { shouldValidate: true },
     );
@@ -124,7 +125,7 @@ export function ServiceAreasUpdate({
   return (
     <ModalWrapper
       open={open}
-      onOpenChange={handleOpenChange}
+      onOpenChange={setOpen}
       title="সেবার এলাকা আপডেট করুন"
       description="আপনি যে জেলাগুলোতে সেবা দেন নির্বাচন করুন।"
       actionTrigger={
@@ -134,7 +135,7 @@ export function ServiceAreasUpdate({
           variant="ghost"
           aria-label="Edit service areas"
         >
-          <Edit className="size-4" />
+          <Edit />
         </Button>
       }
     >
@@ -167,15 +168,15 @@ export function ServiceAreasUpdate({
                     {checked && d.upazilas.length > 0 && (
                       <div className="mt-2 grid grid-cols-2 gap-2 pl-6 sm:grid-cols-3">
                         {d.upazilas.map((u) => {
-                          const upChecked = area?.upazilas.includes(u) ?? false;
+                          const uChecked = area?.upazilas?.includes(u) ?? false;
                           return (
                             <label
                               key={u}
-                              className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground"
+                              className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground"
                             >
                               <input
                                 type="checkbox"
-                                checked={upChecked}
+                                checked={uChecked}
                                 onChange={() => toggleUpazila(d.label, u)}
                                 className="accent-primary"
                               />
@@ -192,27 +193,28 @@ export function ServiceAreasUpdate({
           )}
           {errors.serviceAreas && (
             <p className="text-sm text-destructive">
-              {errors.serviceAreas.message as string}
+              {errors.serviceAreas.message}
             </p>
           )}
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-end gap-2 pt-2 border-t">
           <Button
             type="button"
             variant="outline"
             onClick={() => setOpen(false)}
+            disabled={isSubmitting}
           >
             বাতিল
           </Button>
           <Button
             type="submit"
             loading={isSubmitting}
-            loadingText="সংরক্ষণ করা হচ্ছে..."
+            loadingText="আপডেট হচ্ছে..."
           >
-            সংরক্ষণ করুন
+            আপডেট করুন
           </Button>
         </div>
       </form>

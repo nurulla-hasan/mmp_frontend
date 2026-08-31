@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -67,12 +67,11 @@ export function BroadcastFormModal({
   trigger,
 }: BroadcastFormModalProps) {
   const [open, setOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
   const isEditing = !!broadcast;
 
   const form = useForm<BroadcastFormValues>({
     resolver: zodResolver(broadcastFormSchema) as never,
-    defaultValues: {
+    values: {
       title: broadcast?.title || "",
       message: broadcast?.message || "",
       type: broadcast?.type || "INFO",
@@ -84,7 +83,7 @@ export function BroadcastFormModal({
     },
   });
 
-  const onSubmit = (data: BroadcastFormValues) => {
+  const onSubmit = async (data: BroadcastFormValues) => {
     const payload = {
       title: data.title.trim(),
       message: data.message.trim(),
@@ -96,47 +95,28 @@ export function BroadcastFormModal({
       isPinned: data.isPinned,
     };
 
-    startTransition(async () => {
-      try {
-        const res = isEditing
-          ? await updateBroadcastAction(broadcast.id, payload)
-          : await createBroadcastAction(payload);
+    try {
+      const res = isEditing
+        ? await updateBroadcastAction(broadcast.id, payload)
+        : await createBroadcastAction(payload);
 
-        if (res.success) {
-          SuccessToast(
-            `Broadcast announcement ${isEditing ? "updated" : "published"} successfully.`,
-          );
-          setOpen(false);
-          if (!isEditing) form.reset();
-        } else {
-          ErrorToast(res.message || "Failed to save announcement.");
-        }
-      } catch {
-        ErrorToast("An error occurred while saving the broadcast.");
+      if (res.success) {
+        SuccessToast(
+          `Broadcast announcement ${isEditing ? "updated" : "published"} successfully.`,
+        );
+        setOpen(false);
+      } else {
+        ErrorToast(res.message || "Failed to save announcement.");
       }
-    });
+    } catch {
+      ErrorToast("An error occurred while saving the broadcast.");
+    }
   };
 
   return (
     <ModalWrapper
       open={open}
-      onOpenChange={(next) => {
-        if (!isPending) {
-          setOpen(next);
-          if (next && broadcast) {
-            form.reset({
-              title: broadcast.title,
-              message: broadcast.message,
-              type: broadcast.type,
-              target: broadcast.target,
-              linkUrl: broadcast.linkUrl || "",
-              linkText: broadcast.linkText || "",
-              isActive: broadcast.isActive,
-              isPinned: broadcast.isPinned,
-            });
-          }
-        }
-      }}
+      onOpenChange={setOpen}
       title={isEditing ? "Edit Broadcast Announcement" : "Create Broadcast Announcement"}
       description={
         isEditing
@@ -158,40 +138,56 @@ export function BroadcastFormModal({
         )
       }
     >
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4 max-h-[75vh] overflow-y-auto px-1"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* Title */}
         <FormInput
           control={form.control}
           name="title"
           label="Announcement Title"
-          placeholder="e.g. 🎉 New Feature Released / System Maintenance"
+          placeholder="e.g. Scheduled Maintenance Notice"
         />
 
-        {/* Row: Type & Target Audience */}
+        {/* Message */}
+        <Controller
+          name="message"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel>Message Content</FieldLabel>
+              <FieldGroup>
+                <Textarea
+                  {...field}
+                  placeholder="Type the full announcement message here..."
+                  rows={4}
+                />
+              </FieldGroup>
+              {fieldState.invalid && (
+                <FieldError errors={[fieldState.error]} />
+              )}
+            </Field>
+          )}
+        />
+
+        {/* Type and Target Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Controller
             name="type"
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Notice Type</FieldLabel>
+                <FieldLabel>Announcement Type</FieldLabel>
                 <Select
                   value={field.value}
-                  onValueChange={(val) => {
-                    if (val) field.onChange(val as TBroadcastType);
-                  }}
+                  onValueChange={(val) => field.onChange(val as TBroadcastType)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent alignItemWithTrigger={false}>
                     <SelectItem value="INFO">ℹ️ General Info</SelectItem>
-                    <SelectItem value="PROMO">🎉 Promo / Campaign</SelectItem>
                     <SelectItem value="WARNING">⚠️ Warning</SelectItem>
-                    <SelectItem value="MAINTENANCE">🔧 Maintenance</SelectItem>
+                    <SelectItem value="PROMO">🎉 Promotional / Offer</SelectItem>
+                    <SelectItem value="MAINTENANCE">🛠️ Maintenance</SelectItem>
                   </SelectContent>
                 </Select>
                 {fieldState.invalid && (
@@ -209,18 +205,16 @@ export function BroadcastFormModal({
                 <FieldLabel>Target Audience</FieldLabel>
                 <Select
                   value={field.value}
-                  onValueChange={(val) => {
-                    if (val) field.onChange(val as TBroadcastTarget);
-                  }}
+                  onValueChange={(val) => field.onChange(val as TBroadcastTarget)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select audience" />
                   </SelectTrigger>
                   <SelectContent alignItemWithTrigger={false}>
-                    <SelectItem value="ALL">Everyone (All Users)</SelectItem>
-                    <SelectItem value="USERS">General Users</SelectItem>
-                    <SelectItem value="SURVEYORS">Surveyors Only</SelectItem>
-                    <SelectItem value="PRO_USERS">Pro Subscribers</SelectItem>
+                    <SelectItem value="ALL">👥 All Users & Visitors</SelectItem>
+                    <SelectItem value="USERS">👤 General Users Only</SelectItem>
+                    <SelectItem value="SURVEYORS">📐 Surveyors Only</SelectItem>
+                    <SelectItem value="PRO_USERS">⭐ Pro Members Only</SelectItem>
                   </SelectContent>
                 </Select>
                 {fieldState.invalid && (
@@ -231,45 +225,24 @@ export function BroadcastFormModal({
           />
         </div>
 
-        {/* Message */}
-        <Controller
-          name="message"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel>Message Content</FieldLabel>
-              <FieldGroup>
-                <Textarea
-                  {...field}
-                  placeholder="Write the detailed announcement message..."
-                  rows={4}
-                />
-              </FieldGroup>
-              {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
-              )}
-            </Field>
-          )}
-        />
-
-        {/* Action Link (Optional) */}
+        {/* Link URL and Text */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormInput
             control={form.control}
             name="linkUrl"
             label="Action Link URL (Optional)"
-            placeholder="e.g. /tools or /pricing"
+            placeholder="e.g. /pricing or https://..."
           />
           <FormInput
             control={form.control}
             name="linkText"
             label="Button Label (Optional)"
-            placeholder="e.g. View Details / Open Tools"
+            placeholder="e.g. Learn More / Upgrade"
           />
         </div>
 
-        {/* Toggles */}
-        <div className="flex flex-col sm:flex-row gap-4 pt-2 border-t border-border">
+        {/* Pinned & Active Checkboxes */}
+        <div className="flex flex-col sm:flex-row gap-4 pt-1 border-t border-border">
           <Controller
             name="isPinned"
             control={form.control}
@@ -301,12 +274,13 @@ export function BroadcastFormModal({
 
         {/* Submit */}
         <div className="pt-2">
-          <Button type="submit" disabled={isPending} className="w-full">
-            {isPending
-              ? "Publishing..."
-              : isEditing
-                ? "Update Announcement"
-                : "Publish Announcement"}
+          <Button
+            type="submit"
+            className="w-full"
+            loading={form.formState.isSubmitting}
+            loadingText="Publishing..."
+          >
+            {isEditing ? "Update Announcement" : "Publish Announcement"}
           </Button>
         </div>
       </form>

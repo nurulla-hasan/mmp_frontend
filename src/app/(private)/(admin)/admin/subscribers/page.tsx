@@ -1,9 +1,10 @@
-import { getAllSubscribers } from "@/services/subscriber.service";
+import { getAllSubscribers, getPaymentNumbers } from "@/services/subscriber.service";
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
 import { SearchInput } from "@/components/common/search-input";
 import { subscriberColumns } from "./_components/subscriber-column";
 import { SubscriberStatusFilter } from "./_components/subscriber-status-filter";
+import { PaymentNumbersModal } from "./_components/payment-numbers-modal";
 import type { TSubscriberQuery } from "@/interface/subscriber";
 
 interface PageProps {
@@ -14,10 +15,16 @@ export default async function AdminSubscribersPage({
   searchParams,
 }: PageProps) {
   const query = await searchParams;
-  const res = await getAllSubscribers(query);
+  const [res, paymentNumbersRes] = await Promise.all([
+    getAllSubscribers(query),
+    getPaymentNumbers(),
+  ]);
 
   const subscribers = res.success && res.data ? res.data : [];
   const meta = res.success ? res.meta : undefined;
+  const paymentNumbers = paymentNumbersRes.success
+    ? paymentNumbersRes.data
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -31,6 +38,7 @@ export default async function AdminSubscribersPage({
           constrain={false}
         />
         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <PaymentNumbersModal initialData={paymentNumbers} />
           <SubscriberStatusFilter />
           <SearchInput
             filterKey="searchTerm"

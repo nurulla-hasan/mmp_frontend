@@ -1,12 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Clock, Phone, UserRound } from "lucide-react";
+import { Check, CheckCircle2, Clock, Copy, Phone, UserRound, XCircle } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ConfirmationModal } from "@/components/common/confirmation-modal";
 import { ManageSubscriptionModal } from "./manage-subscription-modal";
-import { formatDate, getInitials } from "@/lib/utils";
+import {
+  approveSubscriptionAction,
+  rejectSubscriptionAction,
+} from "../_actions/subscriber.action";
+import { formatDate, getInitials, SuccessToast, ErrorToast } from "@/lib/utils";
 import type { TSubscriber } from "@/interface/subscriber";
 
 export type SubscriberRow = TSubscriber;
@@ -26,6 +33,103 @@ function getDaysRemaining(endDateStr: string): {
     return { text: "Expires tomorrow", isExpired: false };
   }
   return { text: `${diffDays} days left`, isExpired: false };
+}
+
+function SubscriberActionsCell({ subscriber }: { subscriber: SubscriberRow }) {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleApprove = async () => {
+    setIsProcessing(true);
+    try {
+      const res = await approveSubscriptionAction(
+        subscriber.id,
+        "Approved by Admin",
+      );
+      if (res.success) {
+        SuccessToast(`Subscription for "${subscriber.user.name}" approved successfully!`);
+      } else {
+        ErrorToast(res.message || "Failed to approve subscription.");
+      }
+    } catch {
+      ErrorToast("An error occurred while approving subscription.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleReject = async () => {
+    setIsProcessing(true);
+    try {
+      const res = await rejectSubscriptionAction(
+        subscriber.id,
+        "Payment details could not be verified",
+      );
+      if (res.success) {
+        SuccessToast(`Subscription request rejected.`);
+      } else {
+        ErrorToast(res.message || "Failed to reject subscription.");
+      }
+    } catch {
+      ErrorToast("An error occurred while rejecting subscription.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {subscriber.status === "PENDING" && (
+        <>
+          {/* Quick Approve Modal */}
+          <ConfirmationModal
+            title={`Approve Pro Subscription for "${subscriber.user.name}"?`}
+            description={`This will activate the ${subscriber.plan.name} (${subscriber.plan.durationDays} days) package for this user immediately.`}
+            confirmText="Approve & Activate"
+            cancelText="Cancel"
+            loadingText="Approving..."
+            variant="default"
+            onConfirm={handleApprove}
+            actionTrigger={
+              <Button
+                variant="default"
+                size="sm"
+                className="h-8 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                disabled={isProcessing}
+              >
+                <CheckCircle2 className="size-3.5 mr-1" />
+                Approve
+              </Button>
+            }
+          />
+
+          {/* Quick Reject Modal */}
+          <ConfirmationModal
+            title={`Reject Subscription Request?`}
+            description={`Are you sure you want to reject this payment request for "${subscriber.user.name}"?`}
+            confirmText="Reject Request"
+            cancelText="Cancel"
+            loadingText="Rejecting..."
+            variant="destructive"
+            onConfirm={handleReject}
+            actionTrigger={
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2 text-destructive hover:bg-destructive/10 cursor-pointer"
+                disabled={isProcessing}
+              >
+                <XCircle className="size-3.5 mr-1" />
+                Reject
+              </Button>
+            }
+          />
+        </>
+      )}
+
+      {/* Edit / Detail Modal */}
+      <ManageSubscriptionModal subscriber={subscriber} />
+    </div>
+  );
 }
 
 export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
@@ -73,7 +177,7 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
   },
   {
     accessorKey: "plan",
-    header: "Active Plan",
+    header: "Plan & Amount",
     cell: ({ row }) => {
       const plan = row.original.plan;
       return (
@@ -85,7 +189,7 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
             <code className="text-xs text-muted-foreground font-mono">
               {plan?.code || "pro"}
             </code>
-            <span className="text-xs text-primary font-medium">
+            <span className="text-xs text-primary font-bold">
               ৳{row.original.amountPaid}
             </span>
           </div>
@@ -94,9 +198,45 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
     },
   },
   {
-    accessorKey: "endDate",
-    header: "Expires At",
+    accessorKey: "paymentMethod",
+    header: "Payment Details",
     cell: ({ row }) => {
+      const sub = row.original;
+      return (
+        <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <Badge variant="outline" className="text-[10px] py-0 font-bold uppercase">
+              {sub.paymentMethod || "MANUAL"}
+            </Badge>
+          </div>
+          {sub.transactionId && (
+            <div className="flex items-center gap-1 mt-0.5 font-mono text-[11px] text-foreground font-medium">
+              <span className="text-muted-foreground">Trx:</span>
+              <span className="text-primary font-bold">{sub.transactionId}</span>
+            </div>
+          )}
+          {sub.senderPhone && (
+            <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+              <span>From:</span>
+              <span>{sub.senderPhone}</span>
+            </div>
+          )}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "endDate",
+    header: "Validity",
+    cell: ({ row }) => {
+      const isPending = row.original.status === "PENDING";
+      if (isPending) {
+        return (
+          <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+            Pending Approval
+          </span>
+        );
+      }
       const { text, isExpired } = getDaysRemaining(row.original.endDate);
       return (
         <div className="flex flex-col gap-0.5">
@@ -128,9 +268,11 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
           variant={
             status === "ACTIVE" && !isExpired
               ? "active"
-              : status === "CANCELLED"
-                ? "rejected"
-                : "pending"
+              : status === "PENDING"
+                ? "pending"
+                : status === "CANCELLED"
+                  ? "rejected"
+                  : "pending"
           }
         >
           {status}
@@ -139,28 +281,8 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
     },
   },
   {
-    accessorKey: "paymentMethod",
-    header: "Payment",
-    cell: ({ row }) => (
-      <div className="flex flex-col text-xs text-muted-foreground">
-        <span className="font-medium text-foreground uppercase">
-          {row.original.paymentMethod || "MANUAL"}
-        </span>
-        {row.original.transactionId && (
-          <span className="font-mono text-xs truncate max-w-25">
-            {row.original.transactionId}
-          </span>
-        )}
-      </div>
-    ),
-  },
-  {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => (
-      <div className="flex items-center">
-        <ManageSubscriptionModal subscriber={row.original} />
-      </div>
-    ),
+    cell: ({ row }) => <SubscriberActionsCell subscriber={row.original} />,
   },
 ];

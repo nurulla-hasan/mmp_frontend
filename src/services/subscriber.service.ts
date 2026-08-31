@@ -5,6 +5,9 @@ import type {
   TSubscriberQuery,
   CreateSubscriptionPayload,
   UpdateSubscriptionPayload,
+  ManualCheckoutPayload,
+  PaymentNumbersResponse,
+  MySubscriptionResponse,
 } from "@/interface/subscriber";
 import { buildQueryString } from "@/lib/buildQueryString";
 import { nextServerFetch } from "@/lib/nextServerFetch";
@@ -66,3 +69,54 @@ export const revokeSubscription = (id: string) =>
     auth: "auth",
   });
 
+// 7. Get Payment Numbers & Instructions
+export const getPaymentNumbers = () =>
+  nextServerFetch<PaymentNumbersResponse>("/subscribers/payment-numbers", {
+    auth: "none",
+    next: {
+      tags: [CACHE_TAGS.SUBSCRIBERS, CACHE_TAGS.PLANS],
+      revalidate: CACHE_TIME.FIVE_MINUTES,
+    },
+  });
+
+// 8. Update Payment Numbers & Instructions (Admin)
+export const updatePaymentNumbers = (payload: Partial<PaymentNumbersResponse>) =>
+  nextServerFetch<PaymentNumbersResponse>("/subscribers/payment-numbers", {
+    method: "PATCH",
+    body: payload,
+    auth: "auth",
+  });
+
+// 9. Submit manual payment checkout (User)
+export const submitManualCheckout = (payload: ManualCheckoutPayload) =>
+  nextServerFetch<TSubscriber>("/subscribers/manual-checkout", {
+    method: "POST",
+    body: payload,
+    auth: "auth",
+  });
+
+// 10. Get Current User's Subscription & Pending Info
+export const getMySubscription = () =>
+  nextServerFetch<MySubscriptionResponse>("/subscribers/my-subscription", {
+    auth: "auth",
+    next: {
+      tags: [CACHE_TAGS.ME, CACHE_TAGS.SUBSCRIBERS],
+      revalidate: 0,
+    },
+  });
+
+// 11. Approve Subscription (Admin)
+export const approveSubscription = (id: string, adminNote?: string) =>
+  nextServerFetch<TSubscriber>(`/subscribers/${id}/approve`, {
+    method: "PATCH",
+    body: { adminNote },
+    auth: "auth",
+  });
+
+// 12. Reject Subscription (Admin)
+export const rejectSubscription = (id: string, adminNote: string) =>
+  nextServerFetch<TSubscriber>(`/subscribers/${id}/reject`, {
+    method: "PATCH",
+    body: { adminNote },
+    auth: "auth",
+  });

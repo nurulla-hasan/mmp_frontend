@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Edit } from "lucide-react";
@@ -26,29 +26,16 @@ export function ProfessionalInfoUpdate({ profile }: ProfessionalInfoUpdateProps)
   const {
     control,
     handleSubmit,
-    reset,
     formState: { isSubmitting },
   } = useForm<UpdateProfessionalInfoFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(updateProfessionalInfoSchema) as any,
-    defaultValues: {
+    values: {
       headline: profile?.headline ?? "",
       experienceYears: profile?.experienceYears ?? 0,
       bio: profile?.bio ?? "",
     },
   });
-
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    if (newOpen) {
-      reset({
-        headline: profile?.headline ?? "",
-        experienceYears: profile?.experienceYears ?? 0,
-        bio: profile?.bio ?? "",
-      });
-      setError(null);
-    }
-  };
 
   const onSubmit = async (values: UpdateProfessionalInfoFormValues) => {
     setError(null);
@@ -63,7 +50,7 @@ export function ProfessionalInfoUpdate({ profile }: ProfessionalInfoUpdateProps)
   return (
     <ModalWrapper
       open={open}
-      onOpenChange={handleOpenChange}
+      onOpenChange={setOpen}
       title="পেশাগত তথ্য আপডেট করুন"
       description="আপনার শিরোনাম, অভিজ্ঞতা ও সম্পর্কে লিখুন।"
       actionTrigger={
@@ -73,7 +60,7 @@ export function ProfessionalInfoUpdate({ profile }: ProfessionalInfoUpdateProps)
           variant="ghost"
           aria-label="Edit professional info"
         >
-          <Edit className="size-4" />
+          <Edit />
         </Button>
       }
     >
@@ -101,16 +88,21 @@ export function ProfessionalInfoUpdate({ profile }: ProfessionalInfoUpdateProps)
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-end gap-2 pt-2 border-t">
           <Button
             type="button"
             variant="outline"
             onClick={() => setOpen(false)}
+            disabled={isSubmitting}
           >
             বাতিল
           </Button>
-          <Button type="submit" loading={isSubmitting} loadingText="সংরক্ষণ করা হচ্ছে...">
-            সংরক্ষণ করুন
+          <Button
+            type="submit"
+            loading={isSubmitting}
+            loadingText="আপডেট হচ্ছে..."
+          >
+            আপডেট করুন
           </Button>
         </div>
       </form>

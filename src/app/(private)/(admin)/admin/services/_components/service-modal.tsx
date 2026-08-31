@@ -48,7 +48,7 @@ export function ServiceModal({
   } = useForm<ServiceFormData>({
     resolver: zodResolver(serviceSchema),
     mode: "onChange",
-    defaultValues: {
+    values: {
       name: defaultData?.name || "",
       slug: defaultData?.slug || "",
       description: defaultData?.description || "",
@@ -91,38 +91,43 @@ export function ServiceModal({
       }
       actionTrigger={
         isEdit ? (
-          <Button variant="outline" size="icon" className="size-8">
-            <SquarePen className="size-4" />
+          <Button variant="outline" size="icon">
+            <SquarePen />
           </Button>
         ) : (
           <Button>
-            <Plus className="size-4 mr-1.5" />
+            <Plus />
             Add Service
           </Button>
         )
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Service Name */}
         <FormInput
           control={control}
           name="name"
           label="Service Name"
-          placeholder="Enter service name"
+          placeholder="e.g. Land Boundary Survey"
         />
+
+        {/* Slug */}
         <FormInput
           control={control}
           name="slug"
-          label="URL Slug"
-          placeholder="Enter service slug (e.g. land-measurement)"
-          description="Unique URL identifier for web routes and filters"
+          label="Slug / Identifier"
+          placeholder="e.g. land-boundary-survey"
         />
+
+        {/* Description */}
         <FormInput
           control={control}
           name="description"
-          label="Description"
+          label="Description (Optional)"
+          placeholder="Brief description of what this service covers..."
           type="textarea"
-          placeholder="Enter service description (optional)"
         />
+
         <div className="flex justify-end gap-2 pt-2 border-t">
           <Button
             type="button"
@@ -138,10 +143,10 @@ export function ServiceModal({
           <Button
             type="submit"
             loading={isSubmitting}
-            loadingText={isEdit ? "Updating..." : "Creating..."}
+            loadingText={isEdit ? "Saving..." : "Creating..."}
             disabled={!isValid}
           >
-            {isEdit ? "Update" : "Create"}
+            {isEdit ? "Save Changes" : "Create Service"}
           </Button>
         </div>
       </form>

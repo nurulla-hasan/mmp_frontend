@@ -139,30 +139,20 @@ export function ImageCropDialog({
           <Button
             type="button"
             variant="outline"
-            size="sm"
             onClick={onClose}
             disabled={isProcessing}
           >
-            <X className="size-3.5 mr-1" />
+            <X />
             Cancel
           </Button>
           <Button
             type="button"
-            size="sm"
             onClick={handleCropAndSave}
-            disabled={isProcessing}
+            loading={isProcessing}
+            loadingText="Processing..."
           >
-            {isProcessing ? (
-              <>
-                <Loader2 className="size-3.5 animate-spin mr-1" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <Check className="size-3.5 mr-1" />
-                Crop & Save
-              </>
-            )}
+            <Check />
+            Crop & Save
           </Button>
         </DialogFooter>
       </DialogContent>

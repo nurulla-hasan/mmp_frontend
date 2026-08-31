@@ -48,11 +48,10 @@ export function ProfileEditModal({
     control,
     handleSubmit,
     setValue,
-    reset,
     formState: { isSubmitting },
   } = useForm<UpdateMeFormValues>({
     resolver: zodResolver(updateMeSchema),
-    defaultValues: {
+    values: {
       name: user.name ?? "",
       imageUrl: user.imageUrl ?? "",
       phone: user.phone ?? "",
@@ -61,20 +60,6 @@ export function ProfileEditModal({
       upazila: user.upazila ?? "",
     },
   });
-
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    if (newOpen) {
-      reset({
-        name: user.name ?? "",
-        imageUrl: user.imageUrl ?? "",
-        phone: user.phone ?? "",
-        whatsappNumber: user.whatsappNumber ?? "",
-        district: user.district ?? "",
-        upazila: user.upazila ?? "",
-      });
-    }
-  };
 
   const watchedImageUrl = useWatch({ control, name: "imageUrl" });
   const watchedName = useWatch({ control, name: "name" });
@@ -108,7 +93,7 @@ export function ProfileEditModal({
         SuccessToast("প্রোফাইল সফলভাবে আপডেট করা হয়েছে।");
         setOpen(false);
       } else {
-        ErrorToast(result.message || "প্রোফাইল আপডেট করতে সমস্যা হয়েছে।");
+        ErrorToast(result.message || "প্রোফাইল আপডেট ব্যর্থ হয়েছে।");
       }
     } catch {
       ErrorToast("কিছু ভুল হয়েছে, পরে আবার চেষ্টা করুন।");
@@ -118,12 +103,12 @@ export function ProfileEditModal({
   return (
     <ModalWrapper
       open={open}
-      onOpenChange={handleOpenChange}
+      onOpenChange={setOpen}
       title="প্রোফাইল সম্পাদনা"
       description="আপনার ব্যক্তিগত পরিচয়, যোগাযোগের নম্বর ও এলাকা আপডেট করুন।"
       actionTrigger={
         trigger || (
-          <Button variant="outline" size="sm" className="w-full">
+          <Button variant="outline" className="w-full">
             <Edit />
             <span>প্রোফাইল এডিট</span>
           </Button>
@@ -173,39 +158,40 @@ export function ProfileEditModal({
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-foreground">
-                WhatsApp নম্বর
+                হোয়াটসঅ্যাপ নম্বর
               </span>
               {watchedPhone && (
                 <button
                   type="button"
                   onClick={copyPhoneToWhatsapp}
-                  className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                  className="flex items-center gap-1 text-[11px] text-primary hover:underline"
                 >
-                  <Copy className="size-2.5" />
-                  <span>নম্বর কপি করুন</span>
+                  <Copy className="size-3" />
+                  <span>মোবাইল নম্বর কপি করুন</span>
                 </button>
               )}
             </div>
-            <FormInput
-              control={control}
-              name="whatsappNumber"
-              label=""
-              placeholder="01XXXXXXXXX"
-            />
+            <div className="mt-1">
+              <FormInput
+                control={control}
+                name="whatsappNumber"
+                label=""
+                placeholder="01XXXXXXXXX"
+              />
+            </div>
           </div>
         </div>
 
         {/* 4. District & Upazila */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* District Select */}
           <Controller
-            control={control}
             name="district"
+            control={control}
             render={({ field, fieldState }) => (
-              <Field data-invalid={!!fieldState.error} className="gap-1.5">
-                <FieldLabel className="text-xs font-medium">জেলা</FieldLabel>
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>জেলা</FieldLabel>
                 <Select
-                  value={field.value || ""}
+                  value={field.value ?? ""}
                   onValueChange={(val) => {
                     field.onChange(val);
                     setValue("upazila", "");
@@ -214,7 +200,7 @@ export function ProfileEditModal({
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="জেলা নির্বাচন করুন" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-56">
+                  <SelectContent alignItemWithTrigger={false}>
                     {districts.map((d) => (
                       <SelectItem key={d.value} value={d.label}>
                         {d.label}
@@ -222,22 +208,21 @@ export function ProfileEditModal({
                     ))}
                   </SelectContent>
                 </Select>
-                {fieldState.error && (
-                  <FieldError>{fieldState.error.message}</FieldError>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
                 )}
               </Field>
             )}
           />
 
-          {/* Upazila Select */}
           <Controller
-            control={control}
             name="upazila"
+            control={control}
             render={({ field, fieldState }) => (
-              <Field data-invalid={!!fieldState.error} className="gap-1.5">
-                <FieldLabel className="text-xs font-medium">উপজেলা</FieldLabel>
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>উপজেলা / থানা</FieldLabel>
                 <Select
-                  value={field.value || ""}
+                  value={field.value ?? ""}
                   onValueChange={field.onChange}
                   disabled={!selectedDistrict || availableUpazilas.length === 0}
                 >
@@ -247,29 +232,29 @@ export function ProfileEditModal({
                         !selectedDistrict
                           ? "আগে জেলা নির্বাচন করুন"
                           : availableUpazilas.length === 0
-                            ? "কোনো উপজেলা পাওয়া যায়নি"
+                            ? "কোনো উপজেলা নেই"
                             : "উপজেলা নির্বাচন করুন"
                       }
                     />
                   </SelectTrigger>
-                  <SelectContent className="max-h-56">
-                    {availableUpazilas.map((u) => (
-                      <SelectItem key={u} value={u}>
-                        {u}
+                  <SelectContent alignItemWithTrigger={false}>
+                    {availableUpazilas.map((upazila) => (
+                      <SelectItem key={upazila} value={upazila}>
+                        {upazila}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {fieldState.error && (
-                  <FieldError>{fieldState.error.message}</FieldError>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
                 )}
               </Field>
             )}
           />
         </div>
 
-        {/* Modal Actions */}
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-2 pt-2 border-t border-border">
           <Button
             type="button"
             variant="outline"
@@ -284,11 +269,10 @@ export function ProfileEditModal({
             loadingText="সংরক্ষণ হচ্ছে..."
           >
             <Check />
-            সংরক্ষণ করুন
+            <span>সংরক্ষণ করুন</span>
           </Button>
         </div>
       </form>
     </ModalWrapper>
   );
 }
-

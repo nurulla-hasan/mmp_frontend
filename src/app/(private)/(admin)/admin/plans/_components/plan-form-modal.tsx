@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -46,20 +46,7 @@ const planFormSchema = z.object({
   sortOrder: z.coerce.number().int().default(0),
 });
 
-interface PlanFormValues {
-  name: string;
-  code: string;
-  description: string;
-  price: number;
-  originalPrice?: number | null;
-  discountBadge?: string | null;
-  durationDays: number;
-  billingCycle: TPlanBillingCycle;
-  featuresText: string;
-  isPopular: boolean;
-  isActive: boolean;
-  sortOrder: number;
-}
+type PlanFormValues = z.infer<typeof planFormSchema>;
 
 interface PlanFormModalProps {
   plan?: TPlan;
@@ -68,12 +55,11 @@ interface PlanFormModalProps {
 
 export function PlanFormModal({ plan, trigger }: PlanFormModalProps) {
   const [open, setOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
   const isEditing = !!plan;
 
   const form = useForm<PlanFormValues>({
     resolver: zodResolver(planFormSchema) as never,
-    defaultValues: {
+    values: {
       name: plan?.name || "",
       code: plan?.code || "",
       description: plan?.description || "",
@@ -89,7 +75,7 @@ export function PlanFormModal({ plan, trigger }: PlanFormModalProps) {
     },
   });
 
-  const onSubmit = (data: PlanFormValues) => {
+  const onSubmit = async (data: PlanFormValues) => {
     const features = data.featuresText
       ? data.featuresText
           .split("\n")
@@ -112,51 +98,28 @@ export function PlanFormModal({ plan, trigger }: PlanFormModalProps) {
       sortOrder: Number(data.sortOrder),
     };
 
-    startTransition(async () => {
-      try {
-        const res = isEditing
-          ? await updatePlanAction(plan.id, payload)
-          : await createPlanAction(payload);
+    try {
+      const res = isEditing
+        ? await updatePlanAction(plan.id, payload)
+        : await createPlanAction(payload);
 
-        if (res.success) {
-          SuccessToast(
-            `Plan "${data.name}" ${isEditing ? "updated" : "created"} successfully.`,
-          );
-          setOpen(false);
-          if (!isEditing) form.reset();
-        } else {
-          ErrorToast(res.message || "Failed to save plan.");
-        }
-      } catch {
-        ErrorToast("An error occurred while saving the plan.");
+      if (res.success) {
+        SuccessToast(
+          `Plan "${data.name}" ${isEditing ? "updated" : "created"} successfully.`,
+        );
+        setOpen(false);
+      } else {
+        ErrorToast(res.message || "Failed to save plan.");
       }
-    });
+    } catch {
+      ErrorToast("An error occurred while saving the plan.");
+    }
   };
 
   return (
     <ModalWrapper
       open={open}
-      onOpenChange={(next) => {
-        if (!isPending) {
-          setOpen(next);
-          if (next && plan) {
-            form.reset({
-              name: plan.name,
-              code: plan.code,
-              description: plan.description || "",
-              price: plan.price,
-              originalPrice: plan.originalPrice ?? undefined,
-              discountBadge: plan.discountBadge || "",
-              durationDays: plan.durationDays,
-              billingCycle: plan.billingCycle,
-              featuresText: plan.features?.join("\n") || "",
-              isPopular: plan.isPopular,
-              isActive: plan.isActive,
-              sortOrder: plan.sortOrder,
-            });
-          }
-        }
-      }}
+      onOpenChange={setOpen}
       title={isEditing ? "Edit Subscription Plan" : "Create Subscription Plan"}
       description={
         isEditing
@@ -172,11 +135,11 @@ export function PlanFormModal({ plan, trigger }: PlanFormModalProps) {
             size="icon"
             aria-label="Edit plan"
           >
-            <Edit  />
+            <Edit />
           </Button>
         ) : (
           <Button>
-            <Plus className="size-4" />
+            <Plus />
             Add Plan
           </Button>
         )
@@ -347,14 +310,11 @@ export function PlanFormModal({ plan, trigger }: PlanFormModalProps) {
         <div className="pt-2">
           <Button
             type="submit"
-            disabled={isPending}
             className="w-full"
+            loading={form.formState.isSubmitting}
+            loadingText="Saving Plan..."
           >
-            {isPending
-              ? "Saving..."
-              : isEditing
-                ? "Update Plan"
-                : "Create Plan"}
+            {isEditing ? "Update Plan" : "Create Plan"}
           </Button>
         </div>
       </form>

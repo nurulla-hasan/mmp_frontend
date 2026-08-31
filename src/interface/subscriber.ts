@@ -28,6 +28,7 @@ export interface TSubscriber {
   endDate: string;
   paymentMethod: string;
   transactionId: string;
+  senderPhone?: string;
   amountPaid: number;
   adminNote?: string;
   createdAt: string;
@@ -49,8 +50,29 @@ export interface CreateSubscriptionPayload {
   endDate?: string;
   paymentMethod?: string;
   transactionId?: string;
+  senderPhone?: string;
   amountPaid?: number;
   adminNote?: string;
+}
+
+export interface ManualCheckoutPayload {
+  planId: string;
+  paymentMethod: "BKASH" | "NAGAD" | "ROCKET" | "BANK" | "MANUAL";
+  senderPhone: string;
+  transactionId: string;
+}
+
+export interface PaymentNumbersResponse {
+  bkashNumber: string;
+  nagadNumber: string;
+  rocketNumber: string;
+  instructions: string;
+}
+
+export interface MySubscriptionResponse {
+  activeSubscription: TSubscriber | null;
+  pendingSubscription: TSubscriber | null;
+  isSubscribed: boolean;
 }
 
 export interface UpdateSubscriptionPayload {

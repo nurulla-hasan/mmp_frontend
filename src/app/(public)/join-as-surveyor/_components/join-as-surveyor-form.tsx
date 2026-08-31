@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import {
-  Loader2,
   Send,
   CheckCircle2,
   ShieldAlert,
@@ -48,7 +47,6 @@ export function JoinAsSurveyorForm({
   services,
 }: JoinAsSurveyorFormProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const form = useForm<JoinAsSurveyorFormValues>({
@@ -72,7 +70,6 @@ export function JoinAsSurveyorForm({
       return;
     }
 
-    setIsSubmitting(true);
     try {
       const res = await submitSurveyorApplicationAction(data);
       if (!res.success) {
@@ -89,8 +86,6 @@ export function JoinAsSurveyorForm({
           ? error.message
           : "কিছু সমস্যা হয়েছে। আবার চেষ্টা করুন।",
       );
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -98,27 +93,28 @@ export function JoinAsSurveyorForm({
   if (isSubmitted) {
     return (
       <div className="rounded-xl border bg-card p-8 text-center space-y-4 shadow-sm">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="size-8" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">
-          আবেদন সফলভাবে জমা হয়েছে!
-        </h2>
-        <p className="mx-auto max-w-lg text-sm text-muted-foreground leading-relaxed">
-          আপনার পেশাগত সার্ভেয়ার প্রোফাইল আবেদনটি অ্যাডমিন রিভিউয়ের জন্য জমা
-          নেওয়া হয়েছে। যাচাইকরণ সম্পন্ন হলে আপনার প্রোফাইলটি প্ল্যাটফর্মে
-          প্রকাশিত হবে।
-        </p>
-        <div className="pt-4 flex justify-center gap-3">
-          <Button nativeButton={false} render={<Link href="/" />}>
-            হোমপেজে যান
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold text-foreground">
+            আপনার আবেদন সফলভাবে জমা হয়েছে!
+          </h2>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+            ধন্যবাদ! মৌজা ম্যাপ প্রো এডমিন প্যানেল আপনার দেওয়া তথ্য ও সনদ যাচাই
+            করবেন। যাচাই সম্পন্ন হলে আপনার প্রোফাইল ভেরিফায়েড সার্ভেয়ার
+            হিসেবে তালিকাভুক্ত হবে।
+          </p>
+        </div>
+        <div className="pt-2 flex justify-center gap-3">
+          <Button render={<Link href="/dashboard" />}>
+            ড্যাশবোর্ডে যান
           </Button>
           <Button
             variant="outline"
-            nativeButton={false}
-            render={<Link href="/tools" />}
+            render={<Link href="/surveyors" />}
           >
-            ল্যান্ড টুলস দেখুন
+            অন্যান্য সার্ভেয়ারদের দেখুন
           </Button>
         </div>
       </div>
@@ -126,126 +122,143 @@ export function JoinAsSurveyorForm({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header Info */}
-      <div className="border-b pb-5">
-        <SectionHeading
-          title="সার্ভেয়ার হিসেবে আবেদন করুন"
-          description="আপনার পেশাগত অভিজ্ঞতা ও সেবার তথ্য প্রদান করে MMP ভেরিফাইড সার্ভেয়ার নেটওয়ার্কে যুক্ত হন।"
-          as="h3"
-          alignment="left"
-          constrain={false}
-        >
-          {isAuthenticated && user ? (
-            <div className="flex items-center gap-2.5 rounded-lg border bg-muted/40 px-3.5 py-2 text-xs text-muted-foreground shrink-0">
-              <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-              <div>
-                <p className="font-medium text-foreground">{user.name}</p>
-                <p className="text-muted-foreground/70">
-                  {user.email || user.phone}
-                </p>
-              </div>
+    <div className="space-y-8">
+      {/* 1. Header Intro */}
+      <div className="rounded-2xl border border-border/80 bg-gradient-to-br from-primary/5 via-card to-background p-6 sm:p-8 space-y-4">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
+          <Sparkles className="size-3.5" />
+          <span>সার্ভেয়ার পার্টনারশিপ প্রোগ্রাম</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-heading">
+          প্রফেশনাল সার্ভেয়ার হিসেবে যোগ দিন
+        </h1>
+        <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
+          আপনার পেশাদার ভূমি জরিপ সেবা দেশের হাজার হাজার ক্লায়েন্টের কাছে পৌঁছে
+          দিন। মৌজা ম্যাপ প্রো প্ল্যাটফর্মে তালিকাভুক্ত হয়ে নতুন ক্লায়েন্ট ও
+          কাজের সুযোগ তৈরি করুন।
+        </p>
+
+        {/* Benefits Badges */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div className="flex items-center gap-2.5 p-3 rounded-xl border bg-background/80">
+            <Users2 className="size-5 text-primary shrink-0" />
+            <div className="text-xs">
+              <p className="font-semibold text-foreground">সরাসরি ক্লায়েন্ট</p>
+              <p className="text-muted-foreground">এলাকাভিত্তিক সরাসরি কল ও বুকিং</p>
             </div>
-          ) : null}
-        </SectionHeading>
+          </div>
+          <div className="flex items-center gap-2.5 p-3 rounded-xl border bg-background/80">
+            <Award className="size-5 text-primary shrink-0" />
+            <div className="text-xs">
+              <p className="font-semibold text-foreground">ভেরিফায়েড ব্যাজ</p>
+              <p className="text-muted-foreground">বিশ্বস্ত সার্ভেয়ারের পরিচয়</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 p-3 rounded-xl border bg-background/80">
+            <ShieldCheck className="size-5 text-primary shrink-0" />
+            <div className="text-xs">
+              <p className="font-semibold text-foreground">সার্ভিস পোর্টফোলিও</p>
+              <p className="text-muted-foreground">কাজের বিবরণ ও রিভিউ শোকেস</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-
-      {/* Unauthenticated Alert Banner */}
+      {/* 2. Auth Warning Banner if not logged in */}
       {!isAuthenticated && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-200">
-          <div className="flex items-center gap-3">
-            <ShieldAlert className="size-5 shrink-0 text-amber-600 dark:text-amber-400" />
-            <p className="text-sm font-medium">
-              সার্ভেয়ার হিসেবে আবেদন করতে আপনার একটি একাউন্ট থাকা প্রয়োজন।
-            </p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div className="space-y-0.5 text-xs">
+              <p className="font-semibold">
+                আবেদন জমা দিতে আপনার মৌজা ম্যাপ প্রো অ্যাকাউন্ট প্রয়োজন
+              </p>
+              <p className="text-amber-800/80 dark:text-amber-300/80">
+                আপনি এখনও লগইন করেননি। ফর্ম পূরণ করতে পারেন, কিন্তু জমা দেওয়ার আগে লগইন করতে হবে।
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Button
-              size="sm"
               variant="outline"
-              className="bg-card hover:bg-muted"
-              nativeButton={false}
               render={<Link href="/login?callbackUrl=/join-as-surveyor" />}
             >
-              <LogIn className="size-3.5" />
-              লগইন
+              <LogIn />
+              লগইন করুন
             </Button>
             <Button
-              size="sm"
-              nativeButton={false}
               render={<Link href="/register?callbackUrl=/join-as-surveyor" />}
             >
-              <UserPlus className="size-3.5" />
-              রেজিস্টার
+              <UserPlus />
+              রেজিস্ট্রেশন
             </Button>
           </div>
         </div>
       )}
 
+      {/* 3. Multi-Section Application Form */}
       <FormProvider {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FieldSet>
-            <FieldGroup>
-              {/* Responsive 2-Column Grid on Desktop */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                {/* Left Column (5 Cols) */}
-                <div className="lg:col-span-5 space-y-6">
-                  <ProfessionalInfoSection />
+            <FieldGroup className="space-y-8">
+              {/* Section 1: Professional Bio & Headline */}
+              <div className="rounded-xl border bg-card p-5 sm:p-6 space-y-6">
+                <SectionHeading
+                  title="১. পেশাগত পরিচিতি ও সনদ"
+                  description="আপনার পদবী, অভিজ্ঞতা, বিবরণ ও শিক্ষাগত/পেশাদার সনদের লিঙ্ক দিন।"
+                />
+                <ProfessionalInfoSection />
+              </div>
 
-                  {/* Benefit / Verification Badge Note Card */}
-                  <div className="rounded-xl border bg-muted/20 p-5 space-y-3">
-                    <div className="flex items-center gap-2 text-primary font-semibold text-xs tracking-wider uppercase">
-                      <Sparkles className="size-4" />
-                      ভেরিফাইড সার্ভেয়ার হওয়ার সুবিধা
-                    </div>
-                    <ul className="space-y-2.5 text-xs text-muted-foreground">
-                      <li className="flex items-start gap-2">
-                        <ShieldCheck className="size-3.5 shrink-0 text-emerald-500 mt-0.5" />
-                        <span>
-                          প্রোফাইলে <strong>ভেরিফাইড ব্যাজ</strong> ও
-                          বিশ্বাসযোগ্যতা বৃদ্ধি
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Users2 className="size-3.5 shrink-0 text-primary mt-0.5" />
-                        <span>
-                          আপনার এলাকার ক্লায়েন্টদের থেকে সরাসরি জমি পরিমাপের
-                          কাজ পাওয়ার সুযোগ
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Award className="size-3.5 shrink-0 text-amber-500 mt-0.5" />
-                        <span>
-                          পেশাদার সার্ভে রেটিং ও ক্লায়েন্ট রিভিউ অর্জনের সুযোগ
-                        </span>
-                      </li>
-                    </ul>
+              {/* Section 2: Services Offered */}
+              <div className="rounded-xl border bg-card p-5 sm:p-6 space-y-6">
+                <SectionHeading
+                  title="২. আপনি যে সেবাসমূহ প্রদান করেন"
+                  description="কমপক্ষে ১টি সেবা নির্বাচন করুন এবং প্রতিটির প্রাথমিক শুরুর মূল্য (টাকায়) নির্ধারণ করুন।"
+                />
+                <ServicesSection services={services} />
+              </div>
+
+              {/* Section 3: Service Areas Coverage */}
+              <div className="rounded-xl border bg-card p-5 sm:p-6 space-y-6">
+                <SectionHeading
+                  title="৩. সেবার ভৌগোলিক এলাকা"
+                  description="আপনি যে জেলা এবং উপজেলাগুলোতে সশরীরে উপস্থিত হয়ে সেবা দিতে সক্ষম তা নির্বাচন করুন।"
+                />
+                <ServiceAreasSection districts={districts} />
+              </div>
+
+              {/* Section 4: Terms & Final Submission */}
+              <div className="rounded-xl border bg-card p-5 sm:p-6 space-y-5">
+                <SectionHeading
+                  title="৪. নিয়মনীতি ও সম্মতি"
+                  description="আবেদন জমা দেওয়ার পূর্বে শর্তাবলীতে সম্মতি প্রদান করুন।"
+                />
+
+                <div className="space-y-4">
+                  <div className="p-3.5 rounded-lg bg-muted/40 border text-xs text-muted-foreground leading-relaxed">
+                    <p className="font-semibold text-foreground mb-1">
+                      সার্ভেয়ার কোড অব কন্ডাক্ট:
+                    </p>
+                    আমি নিশ্চয়তা দিচ্ছি যে প্রদত্ত সকল তথ্য ও সনদ সত্য এবং
+                    সঠিক। ক্লায়েন্টের সাথে পেশাদারিত্ব ও সততার সাথে সেবা প্রদানে
+                    আমি প্রতিশ্রুতিবদ্ধ।
                   </div>
-                </div>
 
-                {/* Right Column (7 Cols) */}
-                <div className="lg:col-span-7 space-y-6">
-                  <ServicesSection services={services} />
-                  <ServiceAreasSection districts={districts} />
-
-                  {/* Terms & Submit Card */}
-                  <div className="rounded-xl border bg-card p-5 space-y-4 shadow-xs">
+                  <div className="space-y-4">
                     <Controller
                       name="terms"
                       control={form.control}
                       render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
-                          <label className="flex items-start gap-3 cursor-pointer select-none">
+                          <label className="flex items-start gap-2.5 cursor-pointer">
                             <Checkbox
                               checked={field.value}
-                              onCheckedChange={field.onChange}
+                              onCheckedChange={(c) => field.onChange(!!c)}
+                              className="mt-0.5"
                             />
-                            <span className="text-xs text-muted-foreground leading-relaxed">
-                              আমি নিশ্চিত করছি যে আমার প্রদত্ত পেশাগত তথ্য,
-                              অভিজ্ঞতা এবং সেবার এলাকা সঠিক। আমি শর্তাবলীতে
-                              সম্মতি জানাচ্ছি এবং যাচাইকরণের জন্য অ্যাডমিন
-                              পর্যালোচনার অনুমোদন দিচ্ছি।
+                            <span className="text-xs text-foreground leading-snug">
+                              আমি মৌজা ম্যাপ প্রো-এর সার্ভেয়ার শর্তাবলী ও নীতিমালা মেনে নিয়ে আবেদন করছি।
                             </span>
                           </label>
                           {fieldState.invalid && (
@@ -258,23 +271,15 @@ export function JoinAsSurveyorForm({
                     <Field>
                       <Button
                         type="submit"
-                        size="lg"
-                        className="w-full"
-                        disabled={isSubmitting || !isAuthenticated}
+                        className="w-full cursor-pointer"
+                        disabled={!isAuthenticated}
+                        loading={form.formState.isSubmitting}
+                        loadingText="আবেদন জমা হচ্ছে..."
                       >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="size-4 animate-spin" />
-                            আবেদন জমা হচ্ছে...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="size-4" />
-                            {isAuthenticated
-                              ? "সার্ভেয়ার আবেদন জমা দিন"
-                              : "আবেদন করতে প্রথমে লগইন করুন"}
-                          </>
-                        )}
+                        <Send />
+                        {isAuthenticated
+                          ? "সার্ভেয়ার আবেদন জমা দিন"
+                          : "আবেদন করতে প্রথমে লগইন করুন"}
                       </Button>
                     </Field>
                   </div>

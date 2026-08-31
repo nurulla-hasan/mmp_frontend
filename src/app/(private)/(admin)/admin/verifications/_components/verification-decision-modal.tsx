@@ -1,6 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -36,13 +35,11 @@ export function VerificationDecisionModal({
   onOpenChange,
   onSuccess,
 }: VerificationDecisionModalProps) {
-  const [isPending, startTransition] = useTransition();
-
   const {
     control,
     handleSubmit,
     reset,
-    formState: { isValid },
+    formState: { isValid, isSubmitting },
   } = useForm<RejectionFormValues>({
     resolver: zodResolver(rejectionSchema),
     mode: "onChange",
@@ -51,36 +48,32 @@ export function VerificationDecisionModal({
     },
   });
 
-  const onSubmit = (values: RejectionFormValues) => {
-    startTransition(async () => {
-      try {
-        const res = await verifySurveyorAction(userId, {
-          status: "REJECTED",
-          adminNote: values.adminNote.trim(),
-        });
+  const onSubmit = async (values: RejectionFormValues) => {
+    try {
+      const res = await verifySurveyorAction(userId, {
+        status: "REJECTED",
+        adminNote: values.adminNote.trim(),
+      });
 
-        if (res.success) {
-          SuccessToast(`Application for "${userName}" has been rejected.`);
-          reset();
-          onOpenChange(false);
-          onSuccess?.();
-        } else {
-          ErrorToast(res.message || "Failed to reject application.");
-        }
-      } catch {
-        ErrorToast("An error occurred while rejecting application.");
+      if (res.success) {
+        SuccessToast(`Application for "${userName}" has been rejected.`);
+        reset();
+        onOpenChange(false);
+        onSuccess?.();
+      } else {
+        ErrorToast(res.message || "Failed to reject application.");
       }
-    });
+    } catch {
+      ErrorToast("An error occurred while rejecting application.");
+    }
   };
 
   return (
     <ModalWrapper
       open={open}
       onOpenChange={(next) => {
-        if (!isPending) {
-          onOpenChange(next);
-          if (!next) reset();
-        }
+        onOpenChange(next);
+        if (!next) reset();
       }}
       title="Reject Surveyor Application"
       description={`Specify the reason for rejecting "${userName}'s" verification application.`}
@@ -105,7 +98,7 @@ export function VerificationDecisionModal({
           <Button
             type="button"
             variant="outline"
-            disabled={isPending}
+            disabled={isSubmitting}
             onClick={() => {
               onOpenChange(false);
               reset();
@@ -116,15 +109,15 @@ export function VerificationDecisionModal({
           <Button
             type="submit"
             variant="destructive"
-            disabled={isPending || !isValid}
-            className="gap-1.5"
+            loading={isSubmitting}
+            loadingText="Rejecting..."
+            disabled={!isValid}
           >
-            <X className="size-4" />
-            <span>{isPending ? "Rejecting..." : "Confirm Rejection"}</span>
+            <X />
+            Confirm Rejection
           </Button>
         </div>
       </form>
     </ModalWrapper>
   );
 }
-
