@@ -31,7 +31,6 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
   viewBoxHeight,
   baseScale,
   strokeW,
-  fontSize,
   labelPad,
   labelOffset,
   areaFontSize,

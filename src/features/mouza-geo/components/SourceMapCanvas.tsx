@@ -1,6 +1,5 @@
 "use client";
 
-import { MapPin } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ControlPair, Point2D } from "../types";

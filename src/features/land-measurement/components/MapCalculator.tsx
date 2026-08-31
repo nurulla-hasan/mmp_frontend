@@ -15,7 +15,6 @@ import { DistanceModal } from '@/features/land-measurement/components/DistanceMo
 import { ResultsDisplay } from '@/features/land-measurement/components/ResultsDisplay';
 import { SidebarControls } from '@/features/land-measurement/components/sidebar/SidebarControls';
 import { FloatingToolbar } from '@/features/land-measurement/components/toolbar/FloatingToolbar';
-import { TutorialGuide } from '@/features/land-measurement/components/tutorial-guide';
 import { SaveCalculationDialog } from '@/features/land-measurement/components/calculations/save-calculation-dialog';
 import { LoadCalculationDialog } from '@/features/land-measurement/components/calculations/load-calculation-dialog';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
@@ -50,7 +49,16 @@ export default function MapCalculator() {
 
   const [isLoadOpen, setIsLoadOpen] = useState(Boolean(calculationId));
   const [initialCalcId, setInitialCalcId] = useState<string | null>(calculationId);
+  const [prevCalcId, setPrevCalcId] = useState<string | null>(calculationId);
   const [isSaveOpen, setIsSaveOpen] = useState(false);
+
+  if (calculationId !== prevCalcId) {
+    setPrevCalcId(calculationId);
+    setInitialCalcId(calculationId);
+    if (calculationId) {
+      setIsLoadOpen(true);
+    }
+  }
 
   const {
     setStageSize,
@@ -67,13 +75,6 @@ export default function MapCalculator() {
       isProcessingFile: s.isProcessingFile,
     })),
   );
-
-  useEffect(() => {
-    if (calculationId) {
-      setInitialCalcId(calculationId);
-      setIsLoadOpen(true);
-    }
-  }, [calculationId]);
 
   useEffect(() => {
     const updateSize = () => {
@@ -221,7 +222,6 @@ export default function MapCalculator() {
       />
 
       <PrintLayout ref={printRef} />
-      <TutorialGuide />
     </>
   );
 }

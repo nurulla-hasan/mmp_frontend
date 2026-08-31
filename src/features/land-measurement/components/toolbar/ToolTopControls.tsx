@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useShallow } from "zustand/shallow";
 import {
@@ -49,13 +49,15 @@ export const ToolTopControls = ({
   const [isSaveOpen, setIsSaveOpen] = useState(false);
   const [isLoadOpen, setIsLoadOpen] = useState(Boolean(calcIdFromUrl));
   const [initialCalcId, setInitialCalcId] = useState<string | null>(calcIdFromUrl);
+  const [prevCalcId, setPrevCalcId] = useState<string | null>(calcIdFromUrl);
 
-  useEffect(() => {
+  if (calcIdFromUrl !== prevCalcId) {
+    setPrevCalcId(calcIdFromUrl);
+    setInitialCalcId(calcIdFromUrl);
     if (calcIdFromUrl) {
-      setInitialCalcId(calcIdFromUrl);
       setIsLoadOpen(true);
     }
-  }, [calcIdFromUrl]);
+  }
 
   return (
     <>
