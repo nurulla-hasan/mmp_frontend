@@ -103,7 +103,7 @@ export default function ScaleGuidePage() {
 
           {/* CTA */}
           <div className="mt-12 text-center">
-            <Button size="lg" className="px-8 shadow-md shadow-primary/20 transition-all hover:shadow-lg hover:shadow-primary/30" nativeButton={false} render={<Link href="/map-tool" />}>
+            <Button size="lg" className="px-8 shadow-md shadow-primary/20 transition-all hover:shadow-lg hover:shadow-primary/30" nativeButton={false} render={<Link href="/tools" />}>
               ম্যাপ টুলে ফিরে যান <ArrowRight className="ml-2 size-4" />
             </Button>
           </div>

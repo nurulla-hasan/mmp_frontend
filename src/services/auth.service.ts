@@ -72,6 +72,27 @@ export const resendOtp = (payload: ResendOtpPayload) =>
     auth: "none",
   });
 
+export const forgotPassword = (payload: { email: string }) =>
+  nextServerFetch<{ message: string }>("/auth/forgot-password", {
+    method: "POST",
+    body: payload,
+    auth: "none",
+  });
+
+export const resendResetOtp = (payload: { email: string }) =>
+  nextServerFetch<{ message: string }>("/auth/resend-reset-otp", {
+    method: "POST",
+    body: payload,
+    auth: "none",
+  });
+
+export const resetPassword = (payload: unknown) =>
+  nextServerFetch<{ message: string }>("/auth/reset-password", {
+    method: "POST",
+    body: payload,
+    auth: "none",
+  });
+
 export const logout = () =>
   nextServerFetch<null>("/auth/logout", {
     method: "POST",

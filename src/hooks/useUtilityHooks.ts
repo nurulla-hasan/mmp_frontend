@@ -1,9 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useSyncExternalStore,
+} from "react";
+
+const emptySubscribe = () => () => {};
 
 /**
- * Hook to copy text to clipboard
+ * Hook to check if component has mounted on client (prevents hydration mismatch using useSyncExternalStore)
+ */
+export function useHasMounted() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
+
+/**
+ * Hook to copy text to clipboard with auto-reset status
  */
 export function useCopyToClipboard() {
   const [isCopied, setIsCopied] = useState(false);
@@ -34,70 +52,80 @@ export function useCopyToClipboard() {
 }
 
 /**
- * Hook for a persistent countdown timer
+ * Hook to debounce any value (e.g. search query, numeric inputs)
  */
-export function useCountdown(initialSeconds: number, storageKey: string = "otp-timer") {
-  const [secondsLeft, setSecondsLeft] = useState(() => {
+export function useDebounce<T>(value: T, delay: number = 300): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+/**
+ * Hook for a persistent countdown timer (persists in localStorage)
+ */
+export function useCountdown(
+  initialSeconds: number,
+  storageKey: string = "otp-timer",
+) {
+  const [secondsLeft, setSecondsLeft] = useState<number>(() => {
     if (typeof window === "undefined") return initialSeconds;
     const savedTargetTime = localStorage.getItem(storageKey);
     if (!savedTargetTime) return initialSeconds;
 
-    const targetTime = parseInt(savedTargetTime, 10);
-    const now = Date.now();
-    const diff = Math.ceil((targetTime - now) / 1000);
-
-    if (diff > 0) {
-      return diff;
-    }
-
-    localStorage.removeItem(storageKey);
-    return 0;
+    const diff = Math.ceil((parseInt(savedTargetTime, 10) - Date.now()) / 1000);
+    return diff > 0 ? diff : 0;
   });
-  const [isRunning, setIsRunning] = useState(() => {
+
+  const [isRunning, setIsRunning] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     const savedTargetTime = localStorage.getItem(storageKey);
     if (!savedTargetTime) return false;
 
-    const targetTime = parseInt(savedTargetTime, 10);
-    const now = Date.now();
-    const diff = Math.ceil((targetTime - now) / 1000);
-    return diff > 0;
+    return parseInt(savedTargetTime, 10) > Date.now();
   });
 
   useEffect(() => {
-    let timerId: NodeJS.Timeout;
+    if (!isRunning) return;
 
-    if (isRunning) {
-      timerId = setInterval(() => {
-        setSecondsLeft((prev) => {
-          if (prev <= 1) {
-            setIsRunning(false);
-            localStorage.removeItem(storageKey);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+    const timerId = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          setIsRunning(false);
+          localStorage.removeItem(storageKey);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     return () => {
       if (timerId) clearInterval(timerId);
     };
-  }, [isRunning, storageKey]); // depends on isRunning and storageKey, but not secondsLeft
+  }, [isRunning, storageKey]);
 
-  const start = () => {
+  const start = useCallback(() => {
     const targetTime = Date.now() + initialSeconds * 1000;
     localStorage.setItem(storageKey, targetTime.toString());
-    
+
     setSecondsLeft(initialSeconds);
     setIsRunning(true);
-  };
+  }, [initialSeconds, storageKey]);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     localStorage.removeItem(storageKey);
     setIsRunning(false);
     setSecondsLeft(0);
-  };
+  }, [storageKey]);
 
   const formatTime = () => {
     const minutes = Math.floor(secondsLeft / 60);
@@ -105,11 +133,12 @@ export function useCountdown(initialSeconds: number, storageKey: string = "otp-t
     return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  return { 
-    secondsLeft: formatTime(), 
-    isRunning, 
-    start, 
-    reset 
+  return {
+    secondsLeft: formatTime(),
+    rawSeconds: secondsLeft,
+    isRunning,
+    start,
+    reset,
   };
 }
 
@@ -132,9 +161,9 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     try {
       const valueToStore =
         value instanceof Function ? value(storedValue) : value;
-      
+
       setStoredValue(valueToStore);
-      
+
       if (typeof window !== "undefined") {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
@@ -188,7 +217,76 @@ export function useNetworkStatus() {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []); // Run once on mount
+  }, []);
 
   return isOnline;
+}
+
+/**
+ * Hook for handling clicks outside of a referenced element
+ */
+export function useOnClickOutside<T extends HTMLElement = HTMLElement>(
+  ref: React.RefObject<T | null>,
+  handler: (event: MouseEvent | TouchEvent) => void,
+) {
+  useEffect(() => {
+    const listener = (event: MouseEvent | TouchEvent) => {
+      const el = ref?.current;
+      if (!el || el.contains((event?.target as Node) || null)) {
+        return;
+      }
+      handler(event);
+    };
+
+    document.addEventListener("mousedown", listener);
+    document.addEventListener("touchstart", listener);
+
+    return () => {
+      document.removeEventListener("mousedown", listener);
+      document.removeEventListener("touchstart", listener);
+    };
+  }, [ref, handler]);
+}
+
+/**
+ * Hook for tracking window dimensions (useful for canvas scaling & responsive charts)
+ */
+export function useWindowSize() {
+  const [windowSize, setWindowSize] = useState<{
+    width: number;
+    height: number;
+  }>({
+    width: typeof window !== "undefined" ? window.innerWidth : 1200,
+    height: typeof window !== "undefined" ? window.innerHeight : 800,
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    function handleResize() {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    }
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return windowSize;
+}
+
+/**
+ * Hook for simple boolean toggle state
+ */
+export function useToggle(initialValue: boolean = false) {
+  const [value, setValue] = useState<boolean>(initialValue);
+
+  const toggle = useCallback(() => setValue((prev) => !prev), []);
+  const setTrue = useCallback(() => setValue(true), []);
+  const setFalse = useCallback(() => setValue(false), []);
+
+  return [value, toggle, setTrue, setFalse, setValue] as const;
 }

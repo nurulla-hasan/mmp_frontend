@@ -21,6 +21,17 @@ interface FormInputProps<T extends FieldValues> {
   type?: string;
   autoComplete?: string;
   description?: string;
+  disabled?: boolean;
+  inputMode?:
+    | "none"
+    | "text"
+    | "tel"
+    | "url"
+    | "email"
+    | "numeric"
+    | "decimal"
+    | "search";
+  maxLength?: number;
 }
 
 export function FormInput<T extends FieldValues>({
@@ -31,6 +42,9 @@ export function FormInput<T extends FieldValues>({
   type,
   autoComplete,
   description,
+  disabled,
+  inputMode,
+  maxLength,
 }: FormInputProps<T>) {
   return (
     <Controller
@@ -46,6 +60,8 @@ export function FormInput<T extends FieldValues>({
                 id={field.name}
                 placeholder={placeholder}
                 autoComplete={autoComplete}
+                disabled={disabled}
+                maxLength={maxLength}
                 aria-invalid={fieldState.invalid}
               />
             ) : type === "textarea" ? (
@@ -53,6 +69,8 @@ export function FormInput<T extends FieldValues>({
                 {...field}
                 id={field.name}
                 placeholder={placeholder}
+                disabled={disabled}
+                maxLength={maxLength}
                 aria-invalid={fieldState.invalid}
               />
             ) : (
@@ -62,6 +80,9 @@ export function FormInput<T extends FieldValues>({
                 type={type || "text"}
                 placeholder={placeholder}
                 autoComplete={autoComplete}
+                disabled={disabled}
+                inputMode={inputMode}
+                maxLength={maxLength}
                 aria-invalid={fieldState.invalid}
               />
             )}

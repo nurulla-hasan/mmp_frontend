@@ -7,15 +7,18 @@ import { CACHE_TAGS } from "@/lib/cache-tags";
 import { decodeJwtPayload } from "@/lib/jwt";
 import { clearAuthCookies, setAuthCookies } from "@/services/auth.service";
 import {
+  forgotPassword,
   login,
   logout,
   register,
   resendOtp,
+  resendResetOtp,
+  resetPassword,
   verifyEmail,
 } from "@/services/auth.service";
 
 type AuthResult =
-  | { success: true }
+  | { success: true; message?: string }
   | { success: false; message?: string; errors?: Record<string, string[]> };
 
 export async function loginAction(
@@ -62,6 +65,36 @@ export async function resendOtpAction(data: {
 }): Promise<AuthResult> {
   const result = await resendOtp(data);
   return result.success ? { success: true } : result;
+}
+
+export async function forgotPasswordAction(data: {
+  email: string;
+}): Promise<AuthResult> {
+  const result = await forgotPassword(data);
+  return result.success
+    ? { success: true, message: result.data.message }
+    : result;
+}
+
+export async function resendResetOtpAction(data: {
+  email: string;
+}): Promise<AuthResult> {
+  const result = await resendResetOtp(data);
+  return result.success
+    ? { success: true, message: result.data.message }
+    : result;
+}
+
+export async function resetPasswordAction(data: {
+  email: string;
+  otp: string;
+  password: string;
+  confirmPassword: string;
+}): Promise<AuthResult> {
+  const result = await resetPassword(data);
+  return result.success
+    ? { success: true, message: result.data.message }
+    : result;
 }
 
 export async function logoutAction(): Promise<void> {

@@ -49,7 +49,7 @@ export function HeroSection({
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute top-0 right-1/4 h-160 w-160 -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/15" />
         <div className="absolute bottom-10 left-0 h-160 w-160 translate-y-1/3 -translate-x-1/3 rounded-full bg-primary/10" />
-        <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-chart-1/5" />
+        <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-yellow-500/10" />
       </div>
 
       <SectionWrapper
