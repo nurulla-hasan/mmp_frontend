@@ -1,9 +1,10 @@
-import { getAllPlans } from "@/services/plan.service";
+import { getAllPlans, getAutoProSetting } from "@/services/plan.service";
 import { DataTable } from "@/components/common/data-table";
 import { SectionHeading } from "@/components/common/section-heading";
 import { SearchInput } from "@/components/common/search-input";
 import { planColumns } from "./_components/plan-column";
 import { PlanFormModal } from "./_components/plan-form-modal";
+import { AutoProToggleCard } from "./_components/auto-pro-toggle-card";
 import type { TPlanQuery } from "@/interface/plan";
 
 interface PageProps {
@@ -12,13 +13,29 @@ interface PageProps {
 
 export default async function AdminPlansPage({ searchParams }: PageProps) {
   const query = await searchParams;
-  const res = await getAllPlans(query);
+  const [plansRes, autoProRes] = await Promise.all([
+    getAllPlans(query),
+    getAutoProSetting(),
+  ]);
 
-  const plans = res.success && res.data ? res.data : [];
-  const meta = res.success ? res.meta : undefined;
+  const plans = plansRes.success && plansRes.data ? plansRes.data : [];
+  const meta = plansRes.success ? plansRes.meta : undefined;
+  const autoProEnabled = autoProRes.success
+    ? (autoProRes.data?.autoProOnRegister ?? true)
+    : true;
+  const autoProPlanId = autoProRes.success
+    ? (autoProRes.data?.autoProPlanId ?? null)
+    : null;
 
   return (
     <div className="space-y-6">
+      {/* Auto-Grant Pro on Registration Control Banner */}
+      <AutoProToggleCard
+        initialEnabled={autoProEnabled}
+        initialPlanId={autoProPlanId}
+        plans={plans}
+      />
+
       {/* Header & Controls */}
       <div className="flex flex-col justify-between items-start gap-4 lg:flex-row lg:items-end">
         <SectionHeading
@@ -29,12 +46,12 @@ export default async function AdminPlansPage({ searchParams }: PageProps) {
           constrain={false}
         />
         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <PlanFormModal />
           <SearchInput
             filterKey="searchTerm"
             placeholder="Search plans by name or code..."
             className="w-full sm:w-72"
           />
-          <PlanFormModal />
         </div>
       </div>
 

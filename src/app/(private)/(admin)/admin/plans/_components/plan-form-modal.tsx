@@ -175,7 +175,7 @@ export function PlanFormModal({ plan, trigger }: PlanFormModalProps) {
             <Edit  />
           </Button>
         ) : (
-          <Button size="sm">
+          <Button>
             <Plus className="size-4" />
             Add Plan
           </Button>
@@ -189,7 +189,7 @@ export function PlanFormModal({ plan, trigger }: PlanFormModalProps) {
             control={form.control}
             name="name"
             label="Plan Name"
-            placeholder="e.g. Monthly Pro / মাসিক প্রো"
+            placeholder="e.g. Pro Monthly"
           />
           <FormInput
             control={form.control}
@@ -240,10 +240,10 @@ export function PlanFormModal({ plan, trigger }: PlanFormModalProps) {
                     <SelectValue placeholder="Select cycle" />
                   </SelectTrigger>
                   <SelectContent alignItemWithTrigger={false}>
-                    <SelectItem value="MONTHLY">Monthly (১ মাস)</SelectItem>
-                    <SelectItem value="SIX_MONTHS">6 Months (৬ মাস)</SelectItem>
-                    <SelectItem value="YEARLY">Yearly (১ বছর)</SelectItem>
-                    <SelectItem value="LIFETIME">Lifetime (আজীবন)</SelectItem>
+                    <SelectItem value="MONTHLY">Monthly (1 Month)</SelectItem>
+                    <SelectItem value="SIX_MONTHS">6 Months</SelectItem>
+                    <SelectItem value="YEARLY">Yearly (1 Year)</SelectItem>
+                    <SelectItem value="LIFETIME">Lifetime</SelectItem>
                     <SelectItem value="CUSTOM">Custom</SelectItem>
                   </SelectContent>
                 </Select>
@@ -301,7 +301,7 @@ export function PlanFormModal({ plan, trigger }: PlanFormModalProps) {
               <FieldGroup>
                 <Textarea
                   {...field}
-                  placeholder={"সকল প্রো টুলস আনলিমিটেড অ্যাক্সেস\nজমির ক্ষেত্রফল ও প্যান্টাগ্রাফ টুল\nPDF/PNG রিপোর্ট (আনলিমিটেড)\n২৪/৭ সাপোর্ট ও রিসোর্স গাইড"}
+                  placeholder={"Unlimited access to all Pro tools\nLand measurement & Pantagraph tools\nUnlimited PDF & PNG report exports\n24/7 Priority support"}
                   rows={4}
                 />
               </FieldGroup>

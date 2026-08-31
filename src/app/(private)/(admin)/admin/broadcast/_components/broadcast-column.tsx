@@ -158,7 +158,7 @@ export const broadcastColumns: ColumnDef<BroadcastRow>[] = [
     header: "Message",
     cell: ({ row }) => (
       <div className="flex flex-col gap-1 max-w-[320px]">
-        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+        <p className="text-xs text-muted-foreground line-clamp-2 truncate leading-relaxed">
           {row.original.message}
         </p>
         {row.original.linkUrl && (

@@ -22,7 +22,7 @@ export default async function AdminReviewsPage({ searchParams }: PageProps) {
       {/* Header & Controls */}
       <div className="flex flex-col justify-between items-start gap-4 lg:flex-row lg:items-end">
         <SectionHeading
-          title="Reviews"
+          title="Reviews Management"
           description="Moderate, verify, and manage customer reviews for surveyors."
           as="h3"
           alignment="left"

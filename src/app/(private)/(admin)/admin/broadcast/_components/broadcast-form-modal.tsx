@@ -167,7 +167,7 @@ export function BroadcastFormModal({
           control={form.control}
           name="title"
           label="Announcement Title"
-          placeholder="e.g. 🎉 নতুন ফিচার চালু হয়েছে / সিস্টেম মেইনটেনেন্স"
+          placeholder="e.g. 🎉 New Feature Released / System Maintenance"
         />
 
         {/* Row: Type & Target Audience */}
@@ -188,10 +188,10 @@ export function BroadcastFormModal({
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent alignItemWithTrigger={false}>
-                    <SelectItem value="INFO">ℹ️ General Info (তথ্য)</SelectItem>
-                    <SelectItem value="PROMO">🎉 Promo / Campaign (ক্যাম্পেইন)</SelectItem>
-                    <SelectItem value="WARNING">⚠️ Warning (সতর্কতা)</SelectItem>
-                    <SelectItem value="MAINTENANCE">🔧 Maintenance (রক্ষণাবেক্ষণ)</SelectItem>
+                    <SelectItem value="INFO">ℹ️ General Info</SelectItem>
+                    <SelectItem value="PROMO">🎉 Promo / Campaign</SelectItem>
+                    <SelectItem value="WARNING">⚠️ Warning</SelectItem>
+                    <SelectItem value="MAINTENANCE">🔧 Maintenance</SelectItem>
                   </SelectContent>
                 </Select>
                 {fieldState.invalid && (
@@ -217,10 +217,10 @@ export function BroadcastFormModal({
                     <SelectValue placeholder="Select audience" />
                   </SelectTrigger>
                   <SelectContent alignItemWithTrigger={false}>
-                    <SelectItem value="ALL">Everyone (সকল ব্যবহারকারী)</SelectItem>
-                    <SelectItem value="USERS">General Users (সাধারণ ইউজার)</SelectItem>
-                    <SelectItem value="SURVEYORS">Surveyors Only (সার্ভেয়ার)</SelectItem>
-                    <SelectItem value="PRO_USERS">Pro Subscribers (পেইড ইউজার)</SelectItem>
+                    <SelectItem value="ALL">Everyone (All Users)</SelectItem>
+                    <SelectItem value="USERS">General Users</SelectItem>
+                    <SelectItem value="SURVEYORS">Surveyors Only</SelectItem>
+                    <SelectItem value="PRO_USERS">Pro Subscribers</SelectItem>
                   </SelectContent>
                 </Select>
                 {fieldState.invalid && (
@@ -241,7 +241,7 @@ export function BroadcastFormModal({
               <FieldGroup>
                 <Textarea
                   {...field}
-                  placeholder="বিস্তারিত বার্তা লিখুন যা ব্যবহারকারীরা নোটিফিকেশনে দেখতে পাবেন..."
+                  placeholder="Write the detailed announcement message..."
                   rows={4}
                 />
               </FieldGroup>
@@ -264,7 +264,7 @@ export function BroadcastFormModal({
             control={form.control}
             name="linkText"
             label="Button Label (Optional)"
-            placeholder="e.g. বিস্তারিত দেখুন / টুলস ব্যবহার করুন"
+            placeholder="e.g. View Details / Open Tools"
           />
         </div>
 

@@ -157,9 +157,9 @@ export default function AboutPage() {
               size="lg"
               variant="outline"
               nativeButton={false}
-              render={<Link href="/surveyors" />}
+              render={<Link href="/join-as-surveyor" />}
             >
-              সার্ভেয়ার খুঁজুন
+              সার্ভেয়ার হিসেবে যোগ দিন
             </Button>
           </div>
         </div>

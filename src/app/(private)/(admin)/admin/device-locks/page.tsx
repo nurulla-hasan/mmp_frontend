@@ -10,7 +10,7 @@ import {
 const DeviceLocks: DeviceLockRow[] = [
   {
     id: "d-001",
-    user: "কামাল হোসেন",
+    user: "Kamal Hossain",
     device: "iPhone 14",
     reason: "Suspicious login",
     status: "locked",
@@ -18,7 +18,7 @@ const DeviceLocks: DeviceLockRow[] = [
   },
   {
     id: "d-002",
-    user: "সাবিনা ইয়াসমিন",
+    user: "Sabina Yasmin",
     device: "Samsung Galaxy S22",
     reason: "Too many attempts",
     status: "locked",
@@ -26,7 +26,7 @@ const DeviceLocks: DeviceLockRow[] = [
   },
   {
     id: "d-003",
-    user: "রহিম উদ্দিন",
+    user: "Rahim Uddin",
     device: "Pixel 7",
     reason: "Manual unlock",
     status: "unlocked",

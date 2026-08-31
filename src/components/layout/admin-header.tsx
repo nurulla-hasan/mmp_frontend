@@ -52,7 +52,11 @@ export default async function AdminHeader() {
               </Avatar>
 
               {/* Desktop Avatar (Large Size) */}
-              <Avatar isPro={user?.isSubscribed} size="lg" className={cn("hidden lg:flex")}>
+              <Avatar
+                isPro={user?.isSubscribed}
+                size="lg"
+                className={cn("hidden lg:flex")}
+              >
                 <AvatarImage
                   src={user?.imageUrl || "/assets/fallback-avatar.png"}
                 />
@@ -78,11 +82,11 @@ export default async function AdminHeader() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem
-                render={<Link href="/" />}
+                render={<Link href="/admin/profile" />}
                 className="flex items-center gap-2"
               >
                 <UserRound className="size-4" />
-                প্রোফাইল
+                Profile
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

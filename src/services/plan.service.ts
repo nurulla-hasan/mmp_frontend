@@ -62,3 +62,29 @@ export const deletePlan = (id: string) =>
     auth: "auth",
   });
 
+export type AutoProSettingResponse = {
+  autoProOnRegister: boolean;
+  autoProPlanId: string | null;
+};
+
+// 7. Get auto-pro on register setting
+export const getAutoProSetting = () =>
+  nextServerFetch<AutoProSettingResponse>("/plans/settings/auto-pro", {
+    auth: "none",
+    next: {
+      tags: [CACHE_TAGS.PLANS],
+      revalidate: CACHE_TIME.FIVE_MINUTES,
+    },
+  });
+
+// 8. Set auto-pro on register setting (Admin)
+export const setAutoProSetting = (payload: {
+  enabled?: boolean;
+  planId?: string | null;
+}) =>
+  nextServerFetch<AutoProSettingResponse>("/plans/settings/auto-pro", {
+    method: "PATCH",
+    body: payload,
+    auth: "auth",
+  });
+

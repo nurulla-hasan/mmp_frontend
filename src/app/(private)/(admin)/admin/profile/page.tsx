@@ -31,7 +31,7 @@ export default async function AdminProfilePage() {
   if (!user) {
     return (
       <PageWrapper paddingSize="small">
-        <p className="text-sm text-muted-foreground">প্রোফাইল লোড করা যায়নি।</p>
+        <p className="text-sm text-muted-foreground">Unable to load profile.</p>
       </PageWrapper>
     );
   }
@@ -40,14 +40,6 @@ export default async function AdminProfilePage() {
 
   return (
     <div className="space-y-6">
-      {/* <SectionHeading
-        title="অ্যাডমিনিস্ট্রেটর প্রোফাইল"
-        description="আপনার প্রশাসনিক অ্যাকাউন্ট আইডেন্টিটি, ব্যক্তিগত তথ্য এবং নিরাপত্তা পছন্দসমূহ পরিচালনা করুন।"
-        as="h3"
-        alignment="left"
-        constrain={false}
-      /> */}
-
       {/* 2-Column Grid Layout */}
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Left Column: Admin Identity Card */}
@@ -73,7 +65,7 @@ export default async function AdminProfilePage() {
                     ) : (
                       <ShieldCheck className="size-4 text-primary" />
                     )}
-                    <span>সিস্টেম পারমিশন ও এক্সেস</span>
+                    <span>System Permissions & Access</span>
                   </CardTitle>
                   <Badge variant={isSuper ? "admin" : "manager"}>
                     {isSuper ? "Super Admin" : "Admin"}
@@ -84,21 +76,21 @@ export default async function AdminProfilePage() {
                 <div className="space-y-2.5 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" />
-                    <span>ইউজার ও সাবস্ক্রিপশন ব্যবস্থাপনা</span>
+                    <span>User & Subscription Management</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" />
-                    <span>সার্ভেয়ার ভেরিফিকেশন ও অনুমোদন</span>
+                    <span>Surveyor Verification & Approvals</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" />
-                    <span>রিভিউ মডারেশন ও ব্রডকাস্ট নোটিস</span>
+                    <span>Review Moderation & Broadcast Notices</span>
                   </div>
                   {isSuper && (
                     <div className="flex items-center gap-2">
                       <Lock className="size-3.5 text-purple-600 shrink-0" />
                       <span className="font-medium text-foreground">
-                        অ্যাডমিন তৈরি ও ডিলিট করার পূর্ণ এক্সেস
+                        Full access to create and manage administrators
                       </span>
                     </div>
                   )}

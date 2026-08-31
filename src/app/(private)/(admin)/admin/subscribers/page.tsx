@@ -24,7 +24,7 @@ export default async function AdminSubscribersPage({
       {/* Header & Controls */}
       <div className="flex flex-col justify-between items-start gap-4 lg:flex-row lg:items-end">
         <SectionHeading
-          title="Subscribers"
+          title="Subscribers Management"
           description="Manage active memberships, subscription packages, validity periods, and manual extensions."
           as="h3"
           alignment="left"
