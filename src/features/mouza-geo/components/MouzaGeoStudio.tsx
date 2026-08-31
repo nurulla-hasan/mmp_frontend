@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { Globe, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
@@ -165,8 +165,7 @@ export default function MouzaGeoStudio() {
       resetAlignment();
       setActiveView("source");
       setWorldInitialized(false);
-      setSettingsOpen(false);
-      SuccessToast("মৌজা ম্যাপ প্রস্তুত হয়েছে");
+      // SuccessToast("মৌজা ম্যাপ প্রস্তুত হয়েছে");
     } catch (error: unknown) {
       ErrorToast(error instanceof Error ? error.message : "Map load করা যায়নি");
     } finally {
@@ -177,7 +176,7 @@ export default function MouzaGeoStudio() {
   const fitTransform = (
     pairs: ControlPair[],
     mode: AlignmentMode,
-    showToast = true,
+    showToast = false,
   ) => {
     if (!image) return;
 
@@ -339,8 +338,7 @@ export default function MouzaGeoStudio() {
       <main className="absolute inset-0 min-h-0 min-w-0 overflow-hidden">
         {!image ? (
           <EmptyState
-            loadingFile={loadingFile}
-            onUploadClick={() => fileInputRef.current?.click()}
+            onOpenSettings={() => setSettingsOpen(true)}
           />
         ) : (
           <>
@@ -448,24 +446,29 @@ export default function MouzaGeoStudio() {
       {settingsOpen && (
         <>
           {/* Desktop settings sidebar */}
-          <aside className="absolute left-4 top-16 z-50 hidden max-h-[85dvh] w-80 flex-col overflow-hidden rounded-2xl border border-border bg-card/95 text-card-foreground shadow-2xl backdrop-blur-md md:flex">
-            <header className="flex shrink-0 items-center justify-between border-b border-border bg-muted/30 px-4 py-3">
-              <div>
-                <h2 className="font-heading text-sm font-semibold">
-                  ম্যাপ ও সেটিংস
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Point pair → Align → KMZ
-                </p>
+          <aside className="absolute left-4 top-16 z-50 hidden max-h-[85dvh] w-84 flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/95 text-card-foreground shadow-xl md:flex">
+            <header className="flex shrink-0 items-center justify-between border-b border-border/70 bg-muted/40 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Globe className="size-3.5" />
+                </div>
+                <div>
+                  <h2 className="font-heading text-md text-foreground">
+                    মৌজা জিও-রেফারেন্সিং
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    পয়েন্ট পেয়ার → অ্যালাইন → KMZ
+                  </p>
+                </div>
               </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => setSettingsOpen(false)}
-                className="shrink-0 rounded-full"
+                className="size-7 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
               >
-                <X className="size-4" />
+                <X className="size-3.5" />
               </Button>
             </header>
             <div className="overflow-y-auto" style={{ minHeight: 0 }}>
@@ -519,23 +522,28 @@ export default function MouzaGeoStudio() {
                 <DrawerPortal>
                   <DrawerOverlay className="md:hidden" />
                   <DrawerContent className="flex max-h-[85dvh] flex-col md:hidden">
-                    <header className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
-                      <div>
-                        <h2 className="font-heading text-sm font-semibold">
-                          ম্যাপ ও সেটিংস
-                        </h2>
-                        <p className="text-xs text-muted-foreground">
-                          Point pair → Align → KMZ
-                        </p>
+                    <header className="flex shrink-0 items-center justify-between border-b border-border/70 px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <Globe className="size-3.5" />
+                        </div>
+                        <div>
+                          <h2 className="font-heading text-base font-bold text-foreground">
+                            মৌজা জিও-রেফারেন্সিং
+                          </h2>
+                          <p className="text-xs text-muted-foreground">
+                            পয়েন্ট পেয়ার → অ্যালাইন → KMZ
+                          </p>
+                        </div>
                       </div>
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
                         onClick={() => setSettingsOpen(false)}
-                        className="size-8 shrink-0 rounded-full"
+                        className="size-7 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
                       >
-                        <X className="size-4" />
+                        <X className="size-3.5" />
                       </Button>
                     </header>
                     <div

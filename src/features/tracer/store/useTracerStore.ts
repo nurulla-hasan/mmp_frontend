@@ -95,6 +95,7 @@ let layerCount = 0;
 
 export interface TracerStore {
   backgroundImage: HTMLImageElement | null;
+  backgroundImageName: string | null;
   imageLoading: boolean;
 
   layers: TracerLayer[];
@@ -110,7 +111,7 @@ export interface TracerStore {
   past: TracerLayer[][];
   future: TracerLayer[][];
 
-  setBackground(img: HTMLImageElement | null): void;
+  setBackground(img: HTMLImageElement | null, name?: string | null): void;
   setImageLoading(value: boolean): void;
 
   addLayer(): void;
@@ -144,6 +145,7 @@ export interface TracerStore {
 
 export const useTracerStore = create<TracerStore>()((set, get) => ({
   backgroundImage: null,
+  backgroundImageName: null,
   imageLoading: false,
 
   layers: cloneLayers(DEFAULT_LAYERS),
@@ -159,7 +161,11 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
   past: [],
   future: [],
 
-  setBackground: backgroundImage => set({ backgroundImage }),
+  setBackground: (backgroundImage, name = null) =>
+    set({
+      backgroundImage,
+      backgroundImageName: backgroundImage ? (name || 'মৌজা_ম্যাপ.png') : null,
+    }),
   setImageLoading: imageLoading => set({ imageLoading }),
 
   addLayer: () => {
@@ -237,6 +243,9 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
     set(state => ({
       pendingPoints: [...state.pendingPoints, ...points],
       pendingRedoPoints: [],
+      selectedPolygonId: null,
+      selectedLabelId: null,
+      selectedLayerId: null,
     })),
 
   undoPendingPoint: () => {
@@ -281,8 +290,8 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
       ),
       pendingPoints: [],
       pendingRedoPoints: [],
-      selectedLayerId: activeLayerId,
-      selectedPolygonId: boundaryPath.id,
+      selectedLayerId: null,
+      selectedPolygonId: null,
       selectedLabelId: null,
     });
   },

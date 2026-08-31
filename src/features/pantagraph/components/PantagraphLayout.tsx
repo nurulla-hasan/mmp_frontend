@@ -64,7 +64,7 @@ export default function PantagraphLayout({
               actions={
                 <Button className="w-full" onClick={() => setSidebarOpen(true)}>
                   <Settings2 className="size-4" />
-                  ম্যাপ ও সেটিংস খুলুন
+                  প্যান্টাগ্রাফ সেটিংস খুলুন
                 </Button>
               }
             />

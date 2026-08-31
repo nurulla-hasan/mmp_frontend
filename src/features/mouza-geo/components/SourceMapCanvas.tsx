@@ -319,7 +319,7 @@ export default function SourceMapCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative h-full w-full touch-none overflow-hidden bg-muted"
+      className="relative h-full w-full touch-none overflow-hidden bg-transparent"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={(event) => finishPointer(event)}
@@ -342,7 +342,7 @@ export default function SourceMapCanvas({
           }}
         >
           <MapPin className="absolute inset-0 size-9 fill-destructive text-destructive stroke-background stroke-[1.5]" />
-          <span className="absolute left-1/2 top-[5px] -translate-x-1/2 text-xs font-bold leading-none text-destructive-foreground">
+          <span className="absolute left-1/2 top-1.25 -translate-x-1/2 text-xs font-bold leading-none text-destructive-foreground">
             {marker.label}
           </span>
         </div>
