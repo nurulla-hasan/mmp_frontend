@@ -17,7 +17,7 @@ export const getAllBroadcasts = (query?: TBroadcastQuery) => {
     auth: "auth",
     next: {
       tags: [CACHE_TAGS.BROADCASTS],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 };
@@ -28,7 +28,7 @@ export const getActiveBroadcasts = () =>
     auth: "none",
     next: {
       tags: [CACHE_TAGS.BROADCASTS],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 
@@ -38,7 +38,7 @@ export const getBroadcastById = (id: string) =>
     auth: "auth",
     next: {
       tags: [CACHE_TAGS.BROADCASTS],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 

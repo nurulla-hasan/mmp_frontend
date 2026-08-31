@@ -20,7 +20,7 @@ export const getAllSubscribers = (query?: TSubscriberQuery) => {
     auth: "auth",
     next: {
       tags: [CACHE_TAGS.SUBSCRIBERS, CACHE_TAGS.USERS],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 };
@@ -31,7 +31,7 @@ export const getSubscriberById = (id: string) =>
     auth: "auth",
     next: {
       tags: [CACHE_TAGS.SUBSCRIBERS, CACHE_TAGS.USERS],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 
@@ -75,7 +75,7 @@ export const getPaymentNumbers = () =>
     auth: "none",
     next: {
       tags: [CACHE_TAGS.SUBSCRIBERS, CACHE_TAGS.PLANS],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 

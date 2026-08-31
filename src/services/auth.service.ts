@@ -109,7 +109,7 @@ export const exchangeGoogleCode = (code: string) =>
 export const getMe = () =>
   nextServerFetch<{ user: TAuthUser }>("/auth/me", {
     auth: "auth",
-    next: { tags: [CACHE_TAGS.ME], revalidate: 0 },
+    next: { tags: [CACHE_TAGS.ME], revalidate: CACHE_TIME.DAY },
   });
 
 export const updateMe = (payload: unknown) =>

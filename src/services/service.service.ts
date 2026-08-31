@@ -16,7 +16,7 @@ export const getServices = (query?: TServiceQuery) => {
     auth: "none",
     next: {
       tags: [CACHE_TAGS.SERVICES],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 };
@@ -26,7 +26,7 @@ export const getServiceById = (idOrSlug: string) =>
     auth: "none",
     next: {
       tags: [CACHE_TAGS.SERVICES],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 

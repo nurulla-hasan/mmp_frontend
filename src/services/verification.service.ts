@@ -18,7 +18,7 @@ export const getVerificationRequests = (query?: TVerificationQuery) => {
       auth: "auth",
       next: {
         tags: [CACHE_TAGS.SURVEYORS, CACHE_TAGS.USERS],
-        revalidate: CACHE_TIME.FIVE_MINUTES,
+        revalidate: CACHE_TIME.DAY,
       },
     },
   );
@@ -30,7 +30,7 @@ export const getVerificationRequestById = (id: string) =>
     auth: "auth",
     next: {
       tags: [CACHE_TAGS.SURVEYORS, CACHE_TAGS.USERS],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 

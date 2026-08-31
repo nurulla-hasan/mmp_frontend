@@ -17,7 +17,7 @@ export const getAllPlans = (query?: TPlanQuery) => {
     auth: "none",
     next: {
       tags: [CACHE_TAGS.PLANS],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 };
@@ -28,7 +28,7 @@ export const getPlanById = (id: string) =>
     auth: "none",
     next: {
       tags: [CACHE_TAGS.PLANS],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 
@@ -73,7 +73,7 @@ export const getAutoProSetting = () =>
     auth: "none",
     next: {
       tags: [CACHE_TAGS.PLANS],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 

@@ -16,7 +16,7 @@ export const getAllReviews = (query?: TReviewQuery) => {
     auth: "auth",
     next: {
       tags: [CACHE_TAGS.REVIEWS, CACHE_TAGS.SURVEYORS],
-      revalidate: CACHE_TIME.FIVE_MINUTES,
+      revalidate: CACHE_TIME.DAY,
     },
   });
 };

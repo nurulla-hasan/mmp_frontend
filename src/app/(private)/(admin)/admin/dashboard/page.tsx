@@ -1,7 +1,5 @@
 import {
-  Calculator,
   CreditCard,
-  Megaphone,
   Ruler,
   ShieldCheck,
   Star,
