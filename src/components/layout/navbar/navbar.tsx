@@ -30,7 +30,7 @@ export function Navbar({ user }: { user?: TAuthUser }) {
         {/* Left: Logo */}
         <div className="flex flex-1 items-center gap-2">
           <div className="lg:hidden flex items-center">
-            <Logo showText={true} size="sm" />
+            <Logo showText={true} showTextOnMobile size="sm" />
           </div>
           <div className="hidden lg:flex items-center">
             <Logo showText={true} size="md" />

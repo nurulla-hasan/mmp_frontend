@@ -8,16 +8,9 @@ import {
   Info,
   Sparkles,
   Wrench,
-  X,
 } from "lucide-react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ModalWrapper } from "@/components/common/modal-wrapper";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { TBroadcast, TBroadcastType } from "@/interface/broadcast";
@@ -40,15 +33,15 @@ function renderModalTypeBadge(type: TBroadcastType) {
       );
     case "MAINTENANCE":
       return (
-        <Badge variant="admin">
+        <Badge variant="destructive">
           <Wrench />
-          Maintenance Update
+          Maintenance Notice
         </Badge>
       );
     case "INFO":
     default:
       return (
-        <Badge variant="info">
+        <Badge variant="secondary">
           <Info />
           Announcement
         </Badge>
@@ -57,46 +50,30 @@ function renderModalTypeBadge(type: TBroadcastType) {
 }
 
 export function BroadcastAnnouncementModal() {
-  const [open, setOpen] = useState(false);
   const [broadcast, setBroadcast] = useState<TBroadcast | null>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    // Only run in browser
-    if (typeof window === "undefined") return;
-
-    const fetchActiveBroadcast = async () => {
+    async function fetchActiveBroadcast() {
       try {
-        const apiUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
-        const res = await fetch(`${apiUrl}/broadcasts/active`, {
+        const res = await fetch("/api/v1/broadcasts/active", {
           cache: "no-store",
         });
-        const json = await res.json();
-
-        if (json?.success && Array.isArray(json?.data) && json.data.length > 0) {
-          // Find the first pinned broadcast, or fallback to the latest active broadcast
-          const pinned =
-            json.data.find((b: TBroadcast) => b.isPinned && b.isActive) ||
-            json.data[0];
-
-          if (pinned) {
-            const storageKey = `mmp_broadcast_closed_${pinned.id}`;
-            const isAlreadyClosed = localStorage.getItem(storageKey);
-
-            if (!isAlreadyClosed) {
-              setBroadcast(pinned);
-              // Slight delay so page loads smoothly before showing modal
-              const timer = setTimeout(() => {
-                setOpen(true);
-              }, 700);
-              return () => clearTimeout(timer);
-            }
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.success && data?.data) {
+          const item: TBroadcast = data.data;
+          // Check if user already dismissed this announcement in this session/browser
+          const closedId = localStorage.getItem(`mmp_broadcast_closed_${item.id}`);
+          if (!closedId) {
+            setBroadcast(item);
+            setOpen(true);
           }
         }
       } catch {
-        // Silently fail if network unavailable
+        // Silently fail, announcements are non-critical
       }
-    };
+    }
 
     fetchActiveBroadcast();
   }, []);
@@ -115,61 +92,47 @@ export function BroadcastAnnouncementModal() {
   if (!broadcast) return null;
 
   return (
-    <Dialog open={open} onOpenChange={(val) => !val && handleClose()}>
-      <DialogContent className="max-w-md p-6" showCloseButton={false}>
-        <div className="flex flex-col gap-4">
-          {/* Header row: Badge + Close (X) button */}
-          <div className="flex items-center justify-between">
-            {renderModalTypeBadge(broadcast.type)}
+    <ModalWrapper
+      open={open}
+      onOpenChange={(val) => !val && handleClose()}
+      title={broadcast.title}
+      description=""
+    >
+      <div className="flex flex-col gap-4">
+        {/* Type Badge */}
+        <div>{renderModalTypeBadge(broadcast.type)}</div>
+
+        {/* Description Body */}
+        <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+          {broadcast.message}
+        </p>
+
+        {/* Footer Action Buttons */}
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 pt-3 border-t border-border">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            className="w-full sm:w-auto"
+          >
+            বন্ধ করুন
+          </Button>
+
+          {broadcast.linkUrl && (
             <Button
-              variant="ghost"
-              size="icon-xs"
-              onClick={handleClose}
-              aria-label="Close announcement"
+              render={
+                <Link
+                  href={broadcast.linkUrl}
+                  onClick={handleClose}
+                  className="w-full sm:w-auto"
+                />
+              }
             >
-              <X />
+              {broadcast.linkText || "বিস্তারিত দেখুন"}
+              <ArrowRight />
             </Button>
-          </div>
-
-          {/* Title & Description */}
-          <DialogHeader className="p-0 text-left">
-            <DialogTitle className="text-base sm:text-lg font-bold leading-snug">
-              {broadcast.title}
-            </DialogTitle>
-            <DialogDescription className="text-xs sm:text-sm text-muted-foreground whitespace-pre-line leading-relaxed pt-1.5">
-              {broadcast.message}
-            </DialogDescription>
-          </DialogHeader>
-
-          {/* Footer Action Buttons */}
-          <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 pt-2 border-t border-border">
-            <Button
-              variant="outline"
-             
-              onClick={handleClose}
-              className="w-full sm:w-auto"
-            >
-              বন্ধ করুন
-            </Button>
-
-            {broadcast.linkUrl && (
-              <Button
-                render={
-                  <Link
-                    href={broadcast.linkUrl}
-                    onClick={handleClose}
-                    className="w-full sm:w-auto"
-                  />
-                }
-               
-              >
-                {broadcast.linkText || "বিস্তারিত দেখুন"}
-                <ArrowRight />
-              </Button>
-            )}
-          </div>
+          )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ModalWrapper>
   );
 }

@@ -30,7 +30,7 @@ export default async function VerificationRequestsPage({
           alignment="left"
           constrain={false}
         />
-        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
           <VerificationStatusFilter />
           <SearchInput
             filterKey="searchTerm"

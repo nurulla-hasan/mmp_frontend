@@ -32,7 +32,7 @@ export function SubscriberStatusFilter() {
         }
       }}
     >
-      <SelectTrigger className="w-full sm:w-30 ">
+      <SelectTrigger className="w-full flex-1 sm:flex-initial sm:w-30">
         <SelectValue placeholder="Filter by status" />
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>

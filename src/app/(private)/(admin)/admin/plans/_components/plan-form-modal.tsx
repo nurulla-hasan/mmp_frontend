@@ -138,7 +138,7 @@ export function PlanFormModal({ plan, trigger }: PlanFormModalProps) {
             <Edit />
           </Button>
         ) : (
-          <Button>
+          <Button className="w-full sm:w-auto">
             <Plus />
             Add Plan
           </Button>

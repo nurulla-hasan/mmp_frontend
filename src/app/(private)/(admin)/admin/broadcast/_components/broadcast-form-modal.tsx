@@ -131,7 +131,7 @@ export function BroadcastFormModal({
             <Edit />
           </Button>
         ) : (
-          <Button>
+          <Button className="w-full flex-1 sm:flex-initial sm:w-auto">
             <Plus />
             New Broadcast
           </Button>

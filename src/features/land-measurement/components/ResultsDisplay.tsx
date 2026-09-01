@@ -14,15 +14,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { ModalWrapper } from "@/components/common/modal-wrapper";
 
 import { useMapStore } from "@/features/land-measurement/store/useMapStore";
 import { DECIMALS } from "@/features/land-measurement/utils/calculations";
@@ -257,15 +249,14 @@ export const ResultsDisplay = memo(function ResultsDisplay({
         </Card>
       </div>
 
-      <Dialog open={isPrintModalOpen} onOpenChange={setIsPrintModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>রিপোর্টের তথ্য দিন</DialogTitle>
-            <DialogDescription className="sr-only">
-              প্রিন্ট করার আগে রিপোর্টের তথ্য দিন।
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
+      <ModalWrapper
+        open={isPrintModalOpen}
+        onOpenChange={setIsPrintModalOpen}
+        title="রিপোর্টের তথ্য দিন"
+        description="প্রিন্ট করার আগে প্রয়োজনীয় রিপোর্টের তথ্য প্রদান করুন।"
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">
                 মৌজা
@@ -345,11 +336,17 @@ export const ResultsDisplay = memo(function ResultsDisplay({
               />
             </div>
           </div>
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline" />}>
-              বাতিল
-            </DialogClose>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/60">
             <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsPrintModalOpen(false)}
+            >
+              বাতিল
+            </Button>
+            <Button
+              type="button"
               onClick={() => {
                 setIsPrintModalOpen(false);
                 setTimeout(onPrint, 500);
@@ -357,9 +354,9 @@ export const ResultsDisplay = memo(function ResultsDisplay({
             >
               প্রিন্ট করুন
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </div>
+      </ModalWrapper>
 
       <SaveCalculationDialog
         open={isSaveModalOpen}

@@ -34,13 +34,13 @@ export default async function AdminManagementPage({ searchParams }: PageProps) {
           alignment="left"
           constrain={false}
         />
-        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
+          {isSuperAdmin && <AdminModal />}
           <SearchInput
             filterKey="searchTerm"
             placeholder="Search by name, email, or phone..."
             className="w-full sm:w-72"
           />
-          {isSuperAdmin && <AdminModal />}
         </div>
       </div>
 

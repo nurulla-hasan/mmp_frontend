@@ -28,13 +28,13 @@ export default async function AdminServicesPage({ searchParams }: PageProps) {
           alignment="left"
           constrain={false}
         />
-        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
+          <ServiceModal actionType="create" />
           <SearchInput
             filterKey="searchTerm"
             placeholder="Search by name or slug..."
             className="w-full sm:w-72"
           />
-          <ServiceModal actionType="create" />
         </div>
       </div>
 

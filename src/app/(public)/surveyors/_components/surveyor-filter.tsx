@@ -14,13 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { ModalWrapper } from "@/components/common/modal-wrapper";
 import { StarRating } from "@/components/common/star-rating";
 import { SearchInput } from "@/components/common/search-input";
 import { useNextFilter } from "@/hooks/useNextFilter";
@@ -88,252 +82,252 @@ export function SurveyorFilter({
   const activeCount = getActiveCount(filterKeys);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button variant="outline" className="gap-2 shrink-0">
-            <SlidersHorizontal className="size-4 text-primary" />
-            <span>ফিল্টার</span>
-            {activeCount > 0 && (
-              <Badge variant="secondary" className="px-1.5 py-0.5 text-xs font-semibold">
-                {activeCount}
-              </Badge>
-            )}
-          </Button>
-        }
-      />
-
-      <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden">
-        {/* ── Header ─────────────────────────────────────────── */}
-        <DialogHeader className="flex flex-row items-center justify-between border-b border-border/60 px-6 py-4 space-y-0">
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal className="size-4 text-primary" />
-            <DialogTitle className="text-base font-semibold">
-              ফিল্টার ও বাছাই
-            </DialogTitle>
-            {activeCount > 0 && (
-              <Badge variant="secondary" className="px-1.5 py-0.5 text-xs">
-                {activeCount} টি ফিল্টার সক্রিয়
-              </Badge>
-            )}
-          </div>
-
-          {hasFilters && (
+    <ModalWrapper
+      open={open}
+      onOpenChange={setOpen}
+      title="ফিল্টার ও বাছাই"
+      description={
+        activeCount > 0
+          ? `${activeCount} টি ফিল্টার সক্রিয় রয়েছে`
+          : "পছন্দের সার্ভেয়ার সহজে খুঁজে পেতে ফিল্টার ব্যবহার করুন"
+      }
+      actionTrigger={
+        <Button variant="outline" className="gap-2 shrink-0">
+          <SlidersHorizontal className="size-4 text-primary" />
+          <span>ফিল্টার</span>
+          {activeCount > 0 && (
+            <Badge
+              variant="secondary"
+              className="px-1.5 py-0.5 text-xs font-semibold"
+            >
+              {activeCount}
+            </Badge>
+          )}
+        </Button>
+      }
+    >
+      <div className="space-y-5">
+        {/* Reset Filter Button (if active) */}
+        {hasFilters && (
+          <div className="flex items-center justify-between bg-muted/40 p-2.5 rounded-lg border border-border/60">
+            <span className="text-xs text-muted-foreground">
+              ফিল্টার সক্রিয় করা আছে
+            </span>
             <Button
               type="button"
               variant="ghost"
               size="xs"
               onClick={() => clearAll()}
-              className="gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors mr-8"
+              className="gap-1 text-xs text-destructive hover:text-destructive/80 transition-colors"
             >
               <RotateCcw className="size-3" />
-              সব মুছুন
+              সব ফিল্টার রিসেট করুন
             </Button>
-          )}
-        </DialogHeader>
-
-        {/* ── Body ───────────────────────────────────────────── */}
-        <div className="max-h-[70vh] overflow-y-auto px-6 py-5 space-y-5">
-          {/* 1. Search Keyword */}
-          <div className="grid gap-1.5">
-            <label className="text-xs font-semibold text-foreground/80">
-              নাম বা বিশেষ শব্দ দিয়ে খুঁজুন
-            </label>
-            <SearchInput
-              filterKey="searchTerm"
-              placeholder="সার্ভেয়ারের নাম, বিবরণ বা কাজের ধরণ..."
-              className="xl:max-w-full"
-            />
           </div>
+        )}
 
-          <Separator />
+        {/* 1. Search Keyword */}
+        <div className="grid gap-1.5">
+          <label className="text-xs font-semibold text-foreground/80">
+            নাম বা বিশেষ শব্দ দিয়ে খুঁজুন
+          </label>
+          <SearchInput
+            filterKey="searchTerm"
+            placeholder="সার্ভেয়ারের নাম, বিবরণ বা কাজের ধরণ..."
+            className="w-full"
+          />
+        </div>
 
-          {/* 2. Services Filter */}
-          <div className="grid gap-2">
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
-              <Briefcase className="size-3.5 text-primary" />
-              সেবাসমূহ
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="xs"
-                onClick={() => updateFilter("service", null)}
-                className={cn(
-                  "transition-all duration-200 text-xs px-3 py-1",
-                  !activeService
-                    ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
-                    : "border border-border/60 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                )}
-              >
-                সকল সেবা
-              </Button>
-              {services.map((srv) => (
-                <Button
-                  key={srv.id}
-                  type="button"
-                  variant="ghost"
-                  size="xs"
-                  onClick={() =>
-                    updateFilter("service", activeService === srv.slug ? null : srv.slug)
-                  }
-                  className={cn(
-                    "transition-all duration-200 text-xs px-3 py-1",
-                    activeService === srv.slug
-                      ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
-                      : "border border-border/60 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                  )}
-                >
-                  {srv.name}
-                </Button>
-              ))}
-            </div>
-          </div>
+        <Separator />
 
-          <Separator />
-
-          {/* 3. District / Location Filter */}
-          <div className="grid gap-2">
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
-              <MapPin className="size-3.5 text-primary" />
-              সেবার জেলা
-            </label>
-            <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
-              <Button
-                type="button"
-                variant="ghost"
-                size="xs"
-                onClick={() => updateFilter("district", null)}
-                className={cn(
-                  "transition-all duration-200 text-xs px-3 py-1",
-                  !activeDistrict
-                    ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
-                    : "border border-border/60 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                )}
-              >
-                সকল জেলা
-              </Button>
-              {districts.map((dst) => (
-                <Button
-                  key={dst.value}
-                  type="button"
-                  variant="ghost"
-                  size="xs"
-                  onClick={() =>
-                    updateFilter(
-                      "district",
-                      activeDistrict === dst.value ? null : dst.value,
-                    )
-                  }
-                  className={cn(
-                    "transition-all duration-200 text-xs px-3 py-1",
-                    activeDistrict === dst.value
-                      ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
-                      : "border border-border/60 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                  )}
-                >
-                  {dst.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* 4. Minimum Rating */}
-          <div className="grid gap-2">
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
-              <Sparkles className="size-3.5 text-primary" />
-              সর্বনিম্ন রেটিং
-            </label>
-            <div className="flex items-center gap-3 pt-0.5">
-              <StarRating
-                rating={activeRating ? Number(activeRating) : 0}
-                totalStars={5}
-                size={20}
-                gap={3}
-                onRate={(value) => {
-                  updateFilter("rating", value > 0 ? String(value) : null);
-                }}
-              />
-              {activeRating ? (
-                <Badge variant="info">
-                  {activeRating}+ স্টার
-                </Badge>
-              ) : (
-                <span className="text-xs text-muted-foreground">
-                  (যে কোনো রেটিং)
-                </span>
+        {/* 2. Services Filter */}
+        <div className="grid gap-2">
+          <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
+            <Briefcase className="size-3.5 text-primary" />
+            সেবাসমূহ
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={() => updateFilter("service", null)}
+              className={cn(
+                "transition-all duration-200 text-xs px-3 py-1",
+                !activeService
+                  ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
+                  : "border border-border/60 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground",
               )}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* 5. Experience */}
-          <div className="grid gap-2">
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
-              <Award className="size-3.5 text-primary" />
-              কাজের অভিজ্ঞতা
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {EXPERIENCE_OPTIONS.map((exp) => (
-                <Button
-                  key={exp.label}
-                  type="button"
-                  variant="ghost"
-                  size="xs"
-                  onClick={() => updateFilter("experienceMin", exp.value)}
-                  className={cn(
-                    "transition-all duration-200 text-xs px-3 py-1",
-                    (exp.value === null && !activeExperience) ||
-                      activeExperience === exp.value
-                      ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
-                      : "border border-border/60 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                  )}
-                >
-                  {exp.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* 6. Sorting */}
-          <div className="grid gap-2">
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
-              <ArrowUpDown className="size-3.5 text-primary" />
-              সাজানোর ক্রম (Sort By)
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {SORT_OPTIONS.map((sort) => (
-                <Button
-                  key={sort.label}
-                  type="button"
-                  variant="ghost"
-                  size="xs"
-                  onClick={() => updateFilter("sortBy", sort.value)}
-                  className={cn(
-                    "transition-all duration-200 text-xs px-3 py-1",
-                    (sort.value === null && !activeSort) ||
-                      activeSort === sort.value
-                      ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
-                      : "border border-border/60 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                  )}
-                >
-                  {sort.label}
-                </Button>
-              ))}
-            </div>
+            >
+              সকল সেবা
+            </Button>
+            {services.map((srv) => (
+              <Button
+                key={srv.id}
+                type="button"
+                variant="ghost"
+                size="xs"
+                onClick={() =>
+                  updateFilter(
+                    "service",
+                    activeService === srv.slug ? null : srv.slug,
+                  )
+                }
+                className={cn(
+                  "transition-all duration-200 text-xs px-3 py-1",
+                  activeService === srv.slug
+                    ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
+                    : "border border-border/60 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                )}
+              >
+                {srv.name}
+              </Button>
+            ))}
           </div>
         </div>
 
-        {/* ── Footer ─────────────────────────────────────────── */}
-        <div className="border-t border-border/60 bg-muted/30 px-6 py-3.5 flex items-center justify-between gap-3">
+        <Separator />
+
+        {/* 3. District / Location Filter */}
+        <div className="grid gap-2">
+          <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
+            <MapPin className="size-3.5 text-primary" />
+            সেবার জেলা
+          </label>
+          <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={() => updateFilter("district", null)}
+              className={cn(
+                "transition-all duration-200 text-xs px-3 py-1",
+                !activeDistrict
+                  ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
+                  : "border border-border/60 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+              )}
+            >
+              সকল জেলা
+            </Button>
+            {districts.map((dst) => (
+              <Button
+                key={dst.value}
+                type="button"
+                variant="ghost"
+                size="xs"
+                onClick={() =>
+                  updateFilter(
+                    "district",
+                    activeDistrict === dst.value ? null : dst.value,
+                  )
+                }
+                className={cn(
+                  "transition-all duration-200 text-xs px-3 py-1",
+                  activeDistrict === dst.value
+                    ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
+                    : "border border-border/60 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                )}
+              >
+                {dst.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* 4. Minimum Rating */}
+        <div className="grid gap-2">
+          <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
+            <Sparkles className="size-3.5 text-primary" />
+            সর্বনিম্ন রেটিং
+          </label>
+          <div className="flex items-center gap-3 pt-0.5">
+            <StarRating
+              rating={activeRating ? Number(activeRating) : 0}
+              totalStars={5}
+              size={20}
+              gap={3}
+              onRate={(value) => {
+                updateFilter("rating", value > 0 ? String(value) : null);
+              }}
+            />
+            {activeRating ? (
+              <Badge variant="info">{activeRating}+ স্টার</Badge>
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                (যে কোনো রেটিং)
+              </span>
+            )}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* 5. Experience */}
+        <div className="grid gap-2">
+          <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
+            <Award className="size-3.5 text-primary" />
+            কাজের অভিজ্ঞতা
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            {EXPERIENCE_OPTIONS.map((exp) => (
+              <Button
+                key={exp.label}
+                type="button"
+                variant="ghost"
+                size="xs"
+                onClick={() => updateFilter("experienceMin", exp.value)}
+                className={cn(
+                  "transition-all duration-200 text-xs px-3 py-1",
+                  (exp.value === null && !activeExperience) ||
+                    activeExperience === exp.value
+                    ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
+                    : "border border-border/60 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                )}
+              >
+                {exp.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* 6. Sorting */}
+        <div className="grid gap-2">
+          <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
+            <ArrowUpDown className="size-3.5 text-primary" />
+            সাজানোর ক্রম (Sort By)
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            {SORT_OPTIONS.map((sort) => (
+              <Button
+                key={sort.label}
+                type="button"
+                variant="ghost"
+                size="xs"
+                onClick={() => updateFilter("sortBy", sort.value)}
+                className={cn(
+                  "transition-all duration-200 text-xs px-3 py-1",
+                  (sort.value === null && !activeSort) ||
+                    activeSort === sort.value
+                    ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
+                    : "border border-border/60 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                )}
+              >
+                {sort.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Action Footer ─────────────────────────────────── */}
+        <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
-            {totalResults != null ? `${totalResults} টি সার্ভেয়ার পাওয়া গেছে` : ""}
+            {totalResults != null
+              ? `${totalResults} টি সার্ভেয়ার পাওয়া গেছে`
+              : ""}
           </p>
           <Button
             type="button"
@@ -343,8 +337,7 @@ export function SurveyorFilter({
             ফলাফল দেখুন
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ModalWrapper>
   );
 }
-

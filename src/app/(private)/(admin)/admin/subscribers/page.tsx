@@ -37,9 +37,11 @@ export default async function AdminSubscribersPage({
           alignment="left"
           constrain={false}
         />
-        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-          <PaymentNumbersModal initialData={paymentNumbers} />
-          <SubscriberStatusFilter />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <PaymentNumbersModal initialData={paymentNumbers} />
+            <SubscriberStatusFilter />
+          </div>
           <SearchInput
             filterKey="searchTerm"
             placeholder="Search by name, email, phone, plan..."

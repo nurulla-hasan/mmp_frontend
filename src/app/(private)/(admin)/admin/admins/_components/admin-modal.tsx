@@ -76,7 +76,7 @@ export function AdminModal({
       description="Create a new administrator account with full platform administrative privileges."
       actionTrigger={
         actionTrigger || (
-          <Button>
+          <Button className="w-full sm:w-auto">
             <Plus className="size-4 mr-1.5" />
             Add Admin
           </Button>

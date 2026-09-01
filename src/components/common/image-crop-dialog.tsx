@@ -2,15 +2,9 @@
 
 import { useState, useCallback } from "react";
 import Cropper, { Area, Point } from "react-easy-crop";
-import { Crop, ZoomIn, ZoomOut, Loader2, Check, X } from "lucide-react";
+import { ZoomIn, ZoomOut, Check, X } from "lucide-react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { ModalWrapper } from "@/components/common/modal-wrapper";
 import { Button } from "@/components/ui/button";
 import { getCompressedCroppedAvatar } from "@/lib/cropImage";
 
@@ -76,18 +70,13 @@ export function ImageCropDialog({
   if (!imageSrc) return null;
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-md p-5 sm:p-6 overflow-hidden">
-        <DialogHeader className="pb-2">
-          <DialogTitle className="flex items-center gap-2 text-base font-bold">
-            <Crop className="size-4 text-primary" />
-            Crop & Adjust Profile Picture
-          </DialogTitle>
-          <p className="text-xs text-muted-foreground">
-            Drag and zoom to frame your photo inside the circular area.
-          </p>
-        </DialogHeader>
-
+    <ModalWrapper
+      open={open}
+      onOpenChange={(isOpen) => !isOpen && onClose()}
+      title="Crop & Adjust Profile Picture"
+      description="Drag and zoom to frame your photo inside the circular area."
+    >
+      <div className="space-y-4">
         {/* Cropper Container */}
         <div className="relative mx-auto h-72 w-full overflow-hidden rounded-xl bg-black/90 shadow-inner">
           <Cropper
@@ -104,7 +93,7 @@ export function ImageCropDialog({
         </div>
 
         {/* Zoom Slider Control */}
-        <div className="flex items-center gap-3 px-1 pt-2">
+        <div className="flex items-center gap-3 px-1 pt-1">
           <button
             type="button"
             onClick={() => setZoom((z) => Math.max(1, z - 0.2))}
@@ -135,7 +124,8 @@ export function ImageCropDialog({
           </span>
         </div>
 
-        <DialogFooter className="flex flex-row items-center justify-end gap-2 pt-3 border-t border-border/60">
+        {/* Action Buttons */}
+        <div className="flex flex-row items-center justify-end gap-2 pt-3 border-t border-border/60">
           <Button
             type="button"
             variant="outline"
@@ -154,8 +144,8 @@ export function ImageCropDialog({
             <Check />
             Crop & Save
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </ModalWrapper>
   );
 }

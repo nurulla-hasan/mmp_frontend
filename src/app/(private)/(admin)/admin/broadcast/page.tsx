@@ -29,9 +29,11 @@ export default async function AdminBroadcastPage({ searchParams }: PageProps) {
           alignment="left"
           constrain={false}
         />
-        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-          <BroadcastTypeFilter />
-          <BroadcastFormModal />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <BroadcastTypeFilter />
+            <BroadcastFormModal />
+          </div>
           <SearchInput
             filterKey="searchTerm"
             placeholder="Search by title, message..."

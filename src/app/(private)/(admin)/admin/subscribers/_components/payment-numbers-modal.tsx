@@ -74,7 +74,7 @@ export function PaymentNumbersModal({
       title="Configure Payment Numbers"
       description="Set the official MFS account numbers that will be shown to users on checkout."
       actionTrigger={
-        <Button variant="outline" className="cursor-pointer">
+        <Button variant="outline" className="w-full flex-1 sm:flex-initial sm:w-auto cursor-pointer">
           <Settings2 />
           Payment Numbers
         </Button>

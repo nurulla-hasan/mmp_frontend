@@ -95,7 +95,7 @@ export function ServiceModal({
             <SquarePen />
           </Button>
         ) : (
-          <Button>
+          <Button className="w-full sm:w-auto">
             <Plus />
             Add Service
           </Button>

@@ -18,7 +18,7 @@ export function UserFilters() {
   const status = getFilter("status", "ALL");
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex items-center gap-2 w-full sm:w-auto">
       {/* Role Filter */}
       <Select
         value={role}
@@ -26,7 +26,7 @@ export function UserFilters() {
           updateFilter("role", !val || val === "ALL" ? null : val)
         }
       >
-        <SelectTrigger className="min-w-32 text-xs">
+        <SelectTrigger className="w-full flex-1 sm:w-32 text-xs">
           <SelectValue placeholder="All Roles" />
         </SelectTrigger>
         <SelectContent alignItemWithTrigger={false}>
@@ -44,7 +44,7 @@ export function UserFilters() {
           updateFilter("status", !val || val === "ALL" ? null : val)
         }
       >
-        <SelectTrigger className="min-w-32 text-xs">
+        <SelectTrigger className="w-full flex-1 sm:w-32 text-xs">
           <SelectValue placeholder="All Status" />
         </SelectTrigger>
         <SelectContent alignItemWithTrigger={false}>
@@ -61,6 +61,7 @@ export function UserFilters() {
           variant="outline"
           onClick={() => clearAll()}
           title="Reset all filters"
+          className="shrink-0"
         >
           <RotateCcw className="size-3.5" />
           <span className="hidden sm:inline">Reset</span>

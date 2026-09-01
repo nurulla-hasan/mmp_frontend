@@ -31,7 +31,7 @@ export function BroadcastTypeFilter() {
         }
       }}
     >
-      <SelectTrigger className="w-full sm:w-36">
+      <SelectTrigger className="w-full flex-1 sm:flex-initial sm:w-36">
         <SelectValue placeholder="Filter by type" />
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>
