@@ -1,6 +1,8 @@
-﻿
+
 import { useShallow } from 'zustand/shallow';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
+import { Button } from '@/components/ui/button';
+import { X, FileText } from 'lucide-react';
 
 export const SidebarImagePanel = () => {
   const { selectedFile, handleImageUpload, confirmClearMap, isProcessingFile, isGeneratingTiles, tileProgress, pdfDpiInfo } = useMapStore(useShallow((s) => ({
@@ -43,28 +45,25 @@ export const SidebarImagePanel = () => {
           </div>
         ) : (
           <div className="flex flex-col w-full gap-2">
-            <div className="flex items-center justify-between w-full p-3 border rounded-md bg-background overflow-hidden gap-2">
+            <div className="flex items-center justify-between w-full p-2.5 border rounded-lg bg-background overflow-hidden gap-2">
               <div className="flex items-center space-x-2 overflow-hidden flex-1">
-                <svg className="w-5 h-5 text-muted-foreground shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                </svg>
+                <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-medium text-foreground truncate flex-1">
                   {selectedFile.name}
                 </span>
-                <span className="text-xs text-muted-foreground shrink-0">
+                <span className="text-xs text-muted-foreground shrink-0 font-mono">
                   {(selectedFile.size / 1024).toFixed(1)} KB
                 </span>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => confirmClearMap()}
-                className="p-1 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors shrink-0"
                 title="ফাইলটি সরান"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
+                <X />
+              </Button>
             </div>
 
             {/* Tile generation progress bar */}

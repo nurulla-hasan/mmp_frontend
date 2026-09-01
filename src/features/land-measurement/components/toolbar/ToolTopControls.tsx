@@ -68,9 +68,9 @@ export const ToolTopControls = ({
             onClick={() => setShowScratchSheet(!showScratchSheet)}
             variant={showScratchSheet ? "default" : "outline"}
             title="স্ক্র্যাচ শিট"
-            className="hidden md:flex"
+            className="hidden md:inline-flex"
           >
-            <FileText className="size-4" />
+            <FileText />
             <span className="hidden sm:inline">স্ক্র্যাচ শিট</span>
           </Button>
 
@@ -80,7 +80,7 @@ export const ToolTopControls = ({
             variant={isShowDiagonals ? "default" : "outline"}
             title="কর্ণ (Diagonals) দেখান/লুকান"
           >
-            {isShowDiagonals ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+            {isShowDiagonals ? <Eye /> : <EyeOff />}
             <span className="hidden sm:inline">কর্ণ</span>
           </Button>
 
@@ -89,7 +89,7 @@ export const ToolTopControls = ({
             onClick={() => setIsMagnifierEnabled(!isMagnifierEnabled)}
             variant={isMagnifierEnabled ? "default" : "outline"}
           >
-            <Search className="size-4" />
+            <Search />
             <span className="hidden sm:inline">ম্যাগনিফায়ার</span>
           </Button>
 
@@ -102,9 +102,8 @@ export const ToolTopControls = ({
             }}
             variant="outline"
             title="সংরক্ষিত পরিমাপসমূহ"
-            className="gap-1.5 text-xs"
           >
-            <FolderOpen className="size-4 text-primary" />
+            <FolderOpen className="text-primary" />
             <span>সংরক্ষিত পরিমাপ</span>
           </Button>
 
@@ -114,10 +113,9 @@ export const ToolTopControls = ({
               size="sm"
               onClick={() => setIsSaveOpen(true)}
               variant="default"
-              className="gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
               title="পরিমাপ সেভ করুন"
             >
-              <BookmarkCheck className="size-4" />
+              <BookmarkCheck />
               <span>সেভ করুন</span>
             </Button>
           )}
@@ -129,9 +127,8 @@ export const ToolTopControls = ({
             variant="outline"
             onClick={() => window.dispatchEvent(new Event("start-tutorial"))}
             title="টিউটোরিয়াল / সাহায্য"
-            className="text-muted-foreground"
           >
-            <HelpCircle className="size-4" />
+            <HelpCircle />
           </Button>
         </div>
       </div>

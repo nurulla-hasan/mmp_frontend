@@ -143,7 +143,12 @@ export const useMapStore = create<MapStore>((set, get, store) => {
           const dist = Math.hypot(pt.x - xLast, pt.y - yLast);
           if (dist < 1e-3) return; // Prevent duplicate points
 
-          set({ calibrationLine: [...state.calibrationLine, pt.x, pt.y], isDrawing: true });
+          const nextLine = [...state.calibrationLine, pt.x, pt.y];
+          if (nextLine.length >= 4) {
+            set({ calibrationLine: nextLine, isDrawing: false, isModalOpen: true });
+          } else {
+            set({ calibrationLine: nextLine, isDrawing: true });
+          }
         }
       } else if (state.mode === 'drawing_plot' && !state.isPlotFinished) {
         const SNAP_THRESHOLD = 20 / state.stageScale;
@@ -190,12 +195,12 @@ export const useMapStore = create<MapStore>((set, get, store) => {
     // Wrapper methods for backward compatibility
     handleManualScaleSubmit: (e) => {
       calibrationSlice.handleManualScaleSubmit(e);
-      set({ mode: 'none' });
+      set({ mode: 'none', isModalOpen: false, calibrationLine: [], isDrawing: false });
     },
 
     _handleModalSubmit: (realDistance) => {
       calibrationSlice._handleModalSubmit(realDistance);
-      set({ mode: 'none', isModalOpen: false });
+      set({ mode: 'none', isModalOpen: false, calibrationLine: [], isDrawing: false });
     },
 
     startPlotDrawing: () => {

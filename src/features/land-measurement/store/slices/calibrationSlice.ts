@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import { toast } from 'sonner';
+import { SuccessToast, ErrorToast } from '@/lib/utils';
 
 const readSavedScale = (): number | null => {
   if (typeof window === 'undefined') return null;
@@ -36,6 +36,7 @@ export const createCalibrationSlice: StateCreator<
   [],
   [],
   CalibrationSlice
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 > = (set, get, _store) => ({
   // State
   scale: readSavedScale(),
@@ -57,25 +58,25 @@ export const createCalibrationSlice: StateCreator<
     const ftPerPx = Number(state.manualScale);
     if (Number.isFinite(ftPerPx) && ftPerPx > 0) {
       const scaleValue = 1 / ftPerPx;
-      set({ scale: scaleValue, showManualScale: false });
+      set({ scale: scaleValue, showManualScale: false, calibrationLine: [], isDrawing: false });
       localStorage.setItem('mapScale', scaleValue.toString());
-      toast.success(`স্কেল সেট করা হয়েছে: 1 px = ${ftPerPx.toFixed(6)} ft`);
+      SuccessToast(`স্কেল সেট করা হয়েছে: 1 px = ${ftPerPx.toFixed(6)} ft`);
       
       // Need to set mode to 'none' but it's in UISlice
       // This will be handled in main store wrapper
     } else {
-      toast.error('দয়া করে ০ এর চেয়ে বড় একটি সংখ্যা লিখুন');
+      ErrorToast('দয়া করে ০ এর চেয়ে বড় একটি সংখ্যা লিখুন');
     }
   },
 
   _handleModalSubmit: (realDistance: number) => {
     const state = get();
     if (!Number.isFinite(realDistance) || realDistance <= 0) {
-      toast.error('দয়া করে ০ এর চেয়ে বড় দূরত্ব দিন');
+      ErrorToast('দয়া করে ০ এর চেয়ে বড় দূরত্ব দিন');
       return;
     }
     if (state.calibrationLine.length < 4) {
-      toast.error('স্কেল নির্ধারণের রেখাটি অসম্পূর্ণ');
+      ErrorToast('স্কেল নির্ধারণের রেখাটি অসম্পূর্ণ');
       return;
     }
     
@@ -89,18 +90,18 @@ export const createCalibrationSlice: StateCreator<
     }
     
     if (!Number.isFinite(pixelDistance) || pixelDistance <= 0) {
-      toast.error('স্কেল নির্ধারণের রেখার দূরত্ব অবৈধ');
+      ErrorToast('স্কেল নির্ধারণের রেখার দূরত্ব অবৈধ');
       return;
     }
 
     const newScale = pixelDistance / realDistance;
-    set({ scale: newScale, calibrationLine: [] });
+    set({ scale: newScale, calibrationLine: [], isDrawing: false });
     try {
       localStorage.setItem('mapScale', newScale.toString());
     } catch {
       // ignore
     }
-    toast.success(`স্কেল সেট হয়েছে (1 px = ${(1 / newScale).toFixed(6)} ft)`);
+    SuccessToast(`স্কেল সেট হয়েছে (1 px = ${(1 / newScale).toFixed(6)} ft)`);
     
     // Need to set mode and isModalOpen but they're in UISlice
     // This will be handled in main store wrapper

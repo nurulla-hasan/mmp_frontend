@@ -1,4 +1,4 @@
-﻿import { memo } from 'react';
+import { memo } from 'react';
 import { Line, Circle, Group } from 'react-konva';
 import { useShallow } from 'zustand/shallow';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
@@ -18,7 +18,7 @@ export const StageCalibration = memo(() => {
     }))
   );
   
-  if (calibrationLine.length === 0) return null;
+  if (calibrationLine.length === 0 || mode !== 'calibrating') return null;
 
   return (
     <Group>

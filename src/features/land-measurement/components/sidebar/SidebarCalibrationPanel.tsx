@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DECIMALS } from '@/features/land-measurement/utils/calculations';
@@ -48,7 +48,7 @@ export const SidebarCalibrationPanel = () => {
             <Button 
               size="sm" 
               variant="outline" 
-              className="w-full text-xs h-7 bg-transparent hover:bg-emerald-100 dark:hover:bg-emerald-500/20 border-emerald-300 dark:border-emerald-500/30" 
+              className="w-full" 
               onClick={() => setIsChangingScale(true)}
               disabled={!image}
               title={!image ? "স্কেল পরিবর্তন করতে আগে ম্যাপ আপলোড করুন" : ""}
@@ -112,7 +112,7 @@ export const SidebarCalibrationPanel = () => {
               value={manualScale}
               onChange={(e) => setManualScale(e.target.value)}
               placeholder="পিক্সেল প্রতি ফুট (যেমন: 2.30)"
-              className="flex-1 h-8"
+              className="flex-1 h-7 text-xs font-mono"
               step="0.000001"
               min="0.000001"
               required
@@ -122,7 +122,7 @@ export const SidebarCalibrationPanel = () => {
         )}
 
           {scale && isChangingScale && mode !== 'calibrating' && mode !== 'manual_scale' && (
-            <Button size="sm" variant="ghost" className="w-full text-xs h-7" onClick={() => setIsChangingScale(false)}>
+            <Button size="sm" variant="ghost" className="w-full" onClick={() => setIsChangingScale(false)}>
               পরিবর্তন বাতিল করুন
             </Button>
           )}

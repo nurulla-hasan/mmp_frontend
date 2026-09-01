@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import { toast } from 'sonner';
+import { ErrorToast } from '@/lib/utils';
 import { extractImageFromPDF, detectPdfDpi } from '../../utils/pdfHelper';
 import type { PdfDpiInfo } from '../../utils/pdfHelper';
 import { computeImageHash, generateTilePyramidChunked, clearTileUrlCache, clearTiles, TILING_MIN_PIXEL_COUNT } from '../../utils/tiling';
@@ -150,11 +150,11 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
 
   processFile: async (file: File) => {
     if (!ALLOWED_MAP_TYPES.has(file.type)) {
-      toast.error('শুধু পিডিএফ (PDF), পিএনজি (PNG) এবং জেপিজি (JPG) ফাইল আপলোড করা যাবে');
+      ErrorToast('শুধু পিডিএফ (PDF), পিএনজি (PNG) এবং জেপিজি (JPG) ফাইল আপলোড করা যাবে');
       return false;
     }
     if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-      toast.error('ফাইলটি অনেক বড়। দয়া করে ২৫ মেগাবাইটের (25 MB) কম সাইজের ফাইল আপলোড করুন।');
+      ErrorToast('ফাইলটি অনেক বড়। দয়া করে ২৫ মেগাবাইটের (25 MB) কম সাইজের ফাইল আপলোড করুন।');
       return false;
     }
 
@@ -216,7 +216,7 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
       } catch {
         if (get()._generationId === generationId) {
           set({ selectedFile: null, imageName: '', isProcessingFile: false });
-          toast.error('PDF লোড করা যায়নি (ফাইলটি ক্ষতিগ্রস্ত বা অবৈধ হতে পারে)');
+          ErrorToast('PDF লোড করা যায়নি (ফাইলটি ক্ষতিগ্রস্ত বা অবৈধ হতে পারে)');
         }
         return false;
       }
@@ -256,7 +256,7 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
           } catch {
             if (get()._generationId === generationId) {
               set({ selectedFile: null, imageName: '', isProcessingFile: false });
-              toast.error('ম্যাপের ছবি প্রস্তুত করা যায়নি');
+              ErrorToast('ম্যাপের ছবি প্রস্তুত করা যায়নি');
             }
             resolve(false);
           }
@@ -265,7 +265,7 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
           URL.revokeObjectURL(objectUrl);
           if (get()._generationId === generationId) {
             set({ selectedFile: null, imageName: '', isProcessingFile: false });
-            toast.error('ম্যাপের ছবি ডিকোড করা যায়নি');
+            ErrorToast('ম্যাপের ছবি ডিকোড করা যায়নি');
           }
           resolve(false);
         };

@@ -77,25 +77,19 @@ export const DistanceModal = () => {
         {/* Preset buttons */}
         <div className="flex flex-wrap gap-2 mb-4">
           {SCALE_PRESETS.map((preset) => (
-            <button
+            <Button
               key={preset.label}
               type="button"
+              variant={Number(distance) === preset.valueFt ? "default" : "outline"}
+              size="sm"
               onClick={() => handlePresetClick(preset.valueFt)}
-              className={`
-                px-3 py-1.5 text-xs font-medium rounded-md border transition-colors
-                ${Number(distance) === preset.valueFt
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-card hover:bg-accent border-border text-foreground'
-                }
-                ${preset.recommended ? 'ring-1 ring-primary/40' : ''}
-              `}
               title={preset.description}
             >
-              {preset.label}
+              <span>{preset.label}</span>
               {preset.recommended && (
-                <span className="ml-1 text-xs opacity-70">&#9733;</span>
+                <span className="opacity-70 font-bold">&#9733;</span>
               )}
-            </button>
+            </Button>
           ))}
         </div>
 

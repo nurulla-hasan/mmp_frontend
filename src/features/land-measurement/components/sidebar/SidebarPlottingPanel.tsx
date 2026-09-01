@@ -113,10 +113,10 @@ export const SidebarPlottingPanel = () => {
             onClick={() => setIsSaveOpen(true)}
             variant="default"
             size="sm"
-            className="w-full gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="w-full"
           >
-            <BookmarkCheck className="size-4" />
-            পরিমাপ সেভ করুন
+            <BookmarkCheck />
+            <span>পরিমাপ সেভ করুন</span>
           </Button>
         </div>
       )}
@@ -126,10 +126,10 @@ export const SidebarPlottingPanel = () => {
           onClick={() => setIsLoadOpen(true)}
           variant="outline"
           size="sm"
-          className="w-full gap-1.5 text-xs text-muted-foreground"
+          className="w-full text-muted-foreground"
         >
-          <FolderOpen className="size-3.5 text-primary" />
-          সংরক্ষিত পরিমাপসমূহ খুলুন
+          <FolderOpen className="text-primary" />
+          <span>সংরক্ষিত পরিমাপসমূহ খুলুন</span>
         </Button>
       </div>
 

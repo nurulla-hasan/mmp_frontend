@@ -1,8 +1,16 @@
 import { memo, useMemo, useState, useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { X, Trash2, Undo2, Redo2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { X, Undo2, Redo2, ChevronLeft, ChevronRight, ChevronDown, Plus, Check } from 'lucide-react';
+import { calculatePolygonData } from '@/features/land-measurement/utils/calculations';
 import { splitPolygonByPolyline } from '@/features/land-measurement/utils/polygonDivision';
 import {
   AlertDialog,
@@ -26,8 +34,6 @@ export const SidebarControls = memo(function SidebarControls() {
     plotPoints,
     plotPointsFuture,
     plots,
-    plotsHistory,
-    plotsFuture,
     setIsDrawing,
     setIsModalOpen,
     setSnapHint,
@@ -36,9 +42,11 @@ export const SidebarControls = memo(function SidebarControls() {
     pendingAction,
     setPendingAction,
     executePendingAction,
-    confirmClearPlot,
     manualDividePlotId,
     manualCutLine,
+    nudgeTarget,
+    setNudgeTarget,
+    nudgeManualCutLine,
     scale,
     setManualCutLine,
     executeManualDivide,
@@ -48,6 +56,7 @@ export const SidebarControls = memo(function SidebarControls() {
     manualScale,
     setManualScale,
     handleManualScaleSubmit,
+    addCenterPoint,
   } = useMapStore(
     useShallow((s) => ({
       mode: s.mode,
@@ -70,6 +79,9 @@ export const SidebarControls = memo(function SidebarControls() {
       confirmClearPlot: s.confirmClearPlot,
       manualDividePlotId: s.manualDividePlotId,
       manualCutLine: s.manualCutLine,
+      nudgeTarget: s.nudgeTarget,
+      setNudgeTarget: s.setNudgeTarget,
+      nudgeManualCutLine: s.nudgeManualCutLine,
       scale: s.scale,
       setManualCutLine: s.setManualCutLine,
       executeManualDivide: s.executeManualDivide,
@@ -79,6 +91,7 @@ export const SidebarControls = memo(function SidebarControls() {
       manualScale: s.manualScale,
       setManualScale: s.setManualScale,
       handleManualScaleSubmit: s.handleManualScaleSubmit,
+      addCenterPoint: s.addCenterPoint,
     })),
   );
 
@@ -101,214 +114,445 @@ export const SidebarControls = memo(function SidebarControls() {
     }
   }, [calibrationLine]);
 
-  const isManualCutValid = useMemo(() => {
-    if (!manualDividePlotId || !manualCutLine || manualCutLine.length < 2 || !scale) return false;
+  const manualCutSplits = useMemo(() => {
+    if (!manualDividePlotId || !manualCutLine || manualCutLine.length < 2 || !scale) return null;
     const plot = plots.find((item) => item.id === manualDividePlotId);
-    if (!plot) return false;
+    if (!plot) return null;
     const splits = splitPolygonByPolyline(plot.points, manualCutLine);
-    return Boolean(splits && splits.poly1.length >= 3 && splits.poly2.length >= 3);
+    if (!splits || splits.poly1.length < 3 || splits.poly2.length < 3) return null;
+    const resA = calculatePolygonData(splits.poly1, scale);
+    const resB = calculatePolygonData(splits.poly2, scale);
+    if (!resA || !resB) return null;
+    return { resA, resB };
   }, [manualDividePlotId, manualCutLine, plots, scale]);
+
+  const isManualCutValid = Boolean(manualCutSplits);
+
+  const _handleModalSubmit = (val: number) => {
+    setManualScale(val.toString());
+    setIsModalOpen(false);
+    setMode('none');
+  };
 
   return (
     <>
       {mode === 'calibrating' && (
-        <div className="absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 w-[93%] md:w-auto p-3 rounded-lg bg-background border border-border shadow-xl z-50 flex flex-col gap-2">
-          <div className="flex justify-evenly items-center gap-2 w-full">
-            <div className='flex gap-2'>
-            <Button size="sm" onClick={() => { setCalibrationLine([]); setIsDrawing(false); setMode('none'); }} variant="destructive" title="বাতিল করুন">
-              <X />
-            </Button>
-          </div>
-
-          <div className='flex gap-2'>
-            <Button
-              size="sm"
-              onClick={() => {
-                if (calibrationUndoStack.length > 0) {
-                  isUndoRedoingRef.current = true;
-                  const prevLine = calibrationUndoStack[calibrationUndoStack.length - 1];
-                  setCalibrationUndoStack((stack) => stack.slice(0, -1));
-                  setCalibrationRedoStack((stack) => [...stack, calibrationLine]);
-                  setCalibrationLine(prevLine);
-                  setIsDrawing(prevLine.length >= 2);
-                  setTimeout(() => { isUndoRedoingRef.current = false; });
-                }
-              }}
-              disabled={calibrationUndoStack.length === 0}
-              variant="secondary"
-              title="পূর্বাবস্থায় ফেরান"
-            >
-              <Undo2 className="h-4 w-4" />
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => {
-                if (calibrationRedoStack.length > 0) {
-                  isUndoRedoingRef.current = true;
-                  const nextLine = calibrationRedoStack[calibrationRedoStack.length - 1];
-                  setCalibrationRedoStack((stack) => stack.slice(0, -1));
-                  setCalibrationUndoStack((stack) => [...stack, calibrationLine]);
-                  setCalibrationLine(nextLine);
-                  setIsDrawing(nextLine.length >= 2);
-                  setTimeout(() => { isUndoRedoingRef.current = false; });
-                }
-              }}
-              disabled={calibrationRedoStack.length === 0}
-              variant="outline"
-              title="পুনরায় ফেরান"
-            >
-              <Redo2 className="h-4 w-4" />
-            </Button>
-          </div>
-
-            <div className='flex gap-2'>
+        <div className="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] max-w-md p-2 rounded-2xl bg-card/95 backdrop-blur-md border border-border shadow-2xl z-50 flex items-center justify-between gap-1.5">
+          {showManualScale ? (
+            <form onSubmit={handleManualScaleSubmit} className="flex items-center gap-1.5 w-full">
               <Button
-                size="sm"
-                onClick={() => {
-                  if (calibrationLine.length >= 4) {
-                    setIsDrawing(false);
-                    setMode('none');
-                    setIsModalOpen(true);
-                  }
-                }}
-                disabled={calibrationLine.length < 4}
+                variant="ghost"
+                size="icon-sm"
+                type="button"
+                onClick={() => setShowManualScale(false)}
+                title="রেখা দাগ দিয়ে স্কেল করুন"
               >
-                স্কেল নিশ্চিত করুন
+                <ChevronLeft />
               </Button>
-              <Button
-                size="sm"
-                variant={showManualScale ? 'default' : 'outline'}
-                onClick={() => setShowManualScale(!showManualScale)}
-              >
-                ম্যানুয়াল স্কেল
-              </Button>
-            </div>
-          </div>
-          
-          {showManualScale && (
-            <form onSubmit={handleManualScaleSubmit} className="flex gap-2 w-full mt-1">
               <Input
                 type="number"
+                step="any"
+                placeholder="পিক্সেল প্রতি ফুট (যেমন: ২.৩০)"
                 value={manualScale}
                 onChange={(e) => setManualScale(e.target.value)}
-                placeholder="পিক্সেল প্রতি ফুট (যেমন: 2.30)"
-                className="flex-1 h-8 text-xs"
-                step="any"
-                min="0.000001"
+                className="h-7 text-xs font-mono bg-background flex-1 min-w-0"
+                autoFocus
                 required
               />
-              <Button size="sm" type="submit" variant="default" className="h-8">সেট করুন</Button>
+              <Button variant="default" size="sm" type="submit">
+                <Check />
+                <span>সেট</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                type="button"
+                onClick={() => { setShowManualScale(false); setMode('none'); }}
+                title="বাতিল করুন"
+              >
+                <X />
+              </Button>
             </form>
+          ) : (
+            <>
+              {/* Cancel Button */}
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => { setCalibrationLine([]); setIsDrawing(false); setMode('none'); }}
+                title="স্কেলিং বাতিল করুন"
+              >
+                <X />
+              </Button>
+
+              {/* Undo / Redo */}
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => {
+                  if (calibrationUndoStack.length > 0) {
+                    isUndoRedoingRef.current = true;
+                    const prevLine = calibrationUndoStack[calibrationUndoStack.length - 1];
+                    setCalibrationUndoStack((stack) => stack.slice(0, -1));
+                    setCalibrationRedoStack((stack) => [...stack, calibrationLine]);
+                    setCalibrationLine(prevLine);
+                    setIsDrawing(prevLine.length >= 2);
+                    setTimeout(() => { isUndoRedoingRef.current = false; });
+                  }
+                }}
+                disabled={calibrationUndoStack.length === 0}
+                title="পূর্বাবস্থায় ফেরান (Undo)"
+              >
+                <Undo2 />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => {
+                  if (calibrationRedoStack.length > 0) {
+                    isUndoRedoingRef.current = true;
+                    const nextLine = calibrationRedoStack[calibrationRedoStack.length - 1];
+                    setCalibrationRedoStack((stack) => stack.slice(0, -1));
+                    setCalibrationUndoStack((stack) => [...stack, calibrationLine]);
+                    setCalibrationLine(nextLine);
+                    setIsDrawing(nextLine.length >= 2);
+                    setTimeout(() => { isUndoRedoingRef.current = false; });
+                  }
+                }}
+                disabled={calibrationRedoStack.length === 0}
+                title="পুনরায় করুন (Redo)"
+              >
+                <Redo2 />
+              </Button>
+
+              {/* Manual Scale Toggle */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowManualScale(true)}
+                title="সরাসরি স্কেল মান লিখে দিন"
+              >
+                ম্যানুয়াল
+              </Button>
+
+              {calibrationLine.length < 4 ? (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={addCenterPoint}
+                  className="ml-auto"
+                  title="টার্গেটের স্থানে পয়েন্ট যোগ করুন"
+                >
+                  <Plus />
+                  <span>পয়েন্ট যোগ</span>
+                  <span className="ml-0.5 px-1.5 py-0.2 bg-white/20 rounded-full font-mono text-[10px]">
+                    {calibrationLine.length / 2}/2
+                  </span>
+                </Button>
+              ) : (
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <Input
+                    id="modal-distance-input"
+                    type="number"
+                    placeholder="বাস্তব দূরত্ব (ফুট)"
+                    className="h-7 text-xs font-mono bg-background flex-1 min-w-0"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const val = parseFloat((e.target as HTMLInputElement).value);
+                        if (!isNaN(val) && val > 0) {
+                          _handleModalSubmit(val);
+                        }
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => {
+                      const input = document.getElementById('modal-distance-input') as HTMLInputElement;
+                      const val = parseFloat(input?.value);
+                      if (!isNaN(val) && val > 0) {
+                        _handleModalSubmit(val);
+                      }
+                    }}
+                  >
+                    <Check />
+                    <span>নিশ্চিত</span>
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
 
-      {(mode === 'drawing_plot' || plotsHistory.length > 0 || plotsFuture.length > 0 || plots.length > 0) && (
-        <div className="absolute top-4 md:top-auto md:bottom-4 left-1/2 -translate-x-1/2 w-max p-2 md:p-3 rounded-2xl bg-card/95 border border-border shadow-xl z-50 flex items-center gap-4">
-          <div className='flex gap-1.5'>
-            {mode === 'drawing_plot' && (
-              <Button size="sm" onClick={() => { setMode('none'); setIsDrawing(false); setSnapHint(false); }} variant="destructive" title="আঁকা বন্ধ করুন">
-                <X className="size-4" />
-              </Button>
-            )}
-            <Button size="sm" onClick={() => confirmClearPlot()} disabled={plots.length === 0 && plotPoints.length === 0} variant="outline" title="সব প্লট মুছুন">
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+      {mode === 'drawing_plot' && (
+        <div className="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] max-w-md p-2 rounded-2xl bg-card/95 backdrop-blur-md border border-border shadow-2xl z-50 flex items-center justify-between gap-1.5">
+          {/* Cancel */}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => { setMode('none'); setIsDrawing(false); setSnapHint(false); }}
+            title="আঁকা বাতিল করুন"
+          >
+            <X />
+          </Button>
 
-          <div className='flex gap-1.5'>
-            <Button size="sm" onClick={undoPlotAction} disabled={plotPoints.length === 0 && plotsHistory.length === 0} variant="secondary" title="পূর্বাবস্থায় ফেরান">
-              <Undo2 className="h-4 w-4" />
-            </Button>
-            <Button
-              size="sm"
-              onClick={redoPlotAction}
-              disabled={plotPointsFuture.length === 0 && (plotPoints.length > 0 || plotsFuture.length === 0)}
-              variant="outline"
-              title="পুনরায় ফেরান"
-            >
-              <Redo2 className="h-4 w-4" />
-            </Button>
-          </div>
+          {/* Undo / Redo */}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={undoPlotAction}
+            disabled={plotPoints.length === 0}
+            title="পূর্বাবস্থায় ফেরান (Undo)"
+          >
+            <Undo2 />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={redoPlotAction}
+            disabled={plotPointsFuture.length === 0}
+            title="পুনরায় করুন (Redo)"
+          >
+            <Redo2 />
+          </Button>
+
+          {/* Add Point */}
+          <Button
+            variant="default"
+            size="sm"
+            onClick={addCenterPoint}
+            className="ml-auto"
+            title="টার্গেটের স্থানে পয়েন্ট যোগ করুন"
+          >
+            <Plus />
+            <span>পয়েন্ট যোগ</span>
+            {plotPoints.length > 0 && (
+              <span className="ml-0.5 px-1.5 py-0.2 bg-white/20 rounded-full font-mono text-[10px]">
+                {plotPoints.length}
+              </span>
+            )}
+          </Button>
+
+          {/* Finish Plot */}
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => { setIsModalOpen(true); }}
+            disabled={plotPoints.length < 3}
+            title="প্লট সম্পন্ন করুন (কমপক্ষে ৩টি পয়েন্ট)"
+          >
+            <Check />
+            <span>শেষ করুন</span>
+          </Button>
         </div>
       )}
 
       {mode === 'manual_divide_plot' && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[93%] md:w-auto p-3 rounded-lg bg-background border border-border shadow-xl z-50 flex flex-wrap justify-center items-center gap-3">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            {manualDividePlotId ? (
-              <span className="text-primary font-semibold px-2">বিন্দুগুলো ড্র্যাগ করে লাইনটি সরান</span>
-            ) : (
-              <span className="text-amber-600 font-semibold px-2">যে প্লটটি কাটবেন তার ওপর ক্লিক করুন</span>
-            )}
-          </div>
-          {manualDividePlotId && (
-            <div className="flex items-center gap-1 bg-muted rounded-lg border">
+        <div className="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] max-w-lg p-2 sm:p-2.5 rounded-2xl bg-card/95 backdrop-blur-md border border-border shadow-2xl z-50 flex flex-col gap-1.5">
+          {!manualDividePlotId ? (
+            <div className="flex items-center justify-between px-1.5 py-0.5">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <span className="text-amber-600 dark:text-amber-400 font-semibold text-xs">
+                  যে প্লটটি কাটবেন তার ওপর ক্লিক করুন
+                </span>
+              </div>
               <Button
-                size="sm"
                 variant="ghost"
-                className="px-2"
-                disabled={!manualCutLine || manualCutLine.length <= 2}
-                onClick={() => {
-                  if (manualCutLine && manualCutLine.length > 2) {
-                    setManualCutLine(manualCutLine.slice(0, -1));
-                  }
-                }}
+                size="icon-sm"
+                onClick={cancelManualDivide}
+                title="বাতিল করুন"
               >
-                -
-              </Button>
-              <span className="w-6 text-center font-bold text-sm">
-                {manualCutLine ? manualCutLine.length : 2}
-              </span>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="px-2"
-                onClick={() => {
-                  if (manualCutLine && manualCutLine.length >= 2) {
-                    let insertIndex = 1;
-                    let longestDistance = -1;
-
-                    for (let i = 0; i < manualCutLine.length - 1; i++) {
-                      const start = manualCutLine[i];
-                      const end = manualCutLine[i + 1];
-                      const distance = Math.hypot(end.x - start.x, end.y - start.y);
-                      if (distance > longestDistance) {
-                        longestDistance = distance;
-                        insertIndex = i + 1;
-                      }
-                    }
-
-                    const start = manualCutLine[insertIndex - 1];
-                    const end = manualCutLine[insertIndex];
-                    const newPoint = {
-                      x: (start.x + end.x) / 2,
-                      y: (start.y + end.y) / 2,
-                    };
-
-                    setManualCutLine([
-                      ...manualCutLine.slice(0, insertIndex),
-                      newPoint,
-                      ...manualCutLine.slice(insertIndex),
-                    ]);
-                  }
-                }}
-              >
-                +
+                <X />
               </Button>
             </div>
+          ) : (
+            <>
+              {/* Row 1: Live Area Balance Display & Cancel */}
+              <div className="flex items-center justify-between gap-1 px-0.5">
+                {manualCutSplits ? (
+                  <div className="flex items-center gap-1.5 text-xs font-mono select-none">
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-muted border border-border text-xs">
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        ১: {manualCutSplits.resA.shotok.toFixed(2)}
+                      </span>
+                      <span className="text-muted-foreground/40">|</span>
+                      <span className="font-bold text-sky-600 dark:text-sky-400">
+                        ২: {manualCutSplits.resB.shotok.toFixed(2)}
+                      </span>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={`h-5 text-[10px] px-1.5 font-mono ${
+                        Math.abs(manualCutSplits.resA.shotok - manualCutSplits.resB.shotok) < 0.02
+                          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/40 font-bold"
+                          : "text-muted-foreground bg-muted/40 border-border/40"
+                      }`}
+                    >
+                      Δ {Math.abs(manualCutSplits.resA.shotok - manualCutSplits.resB.shotok).toFixed(2)}
+                    </Badge>
+                  </div>
+                ) : (
+                  <span className="text-primary font-medium text-xs">
+                    বিন্দুগুলো ড্র্যাগ বা নডজ করে লাইন সরান
+                  </span>
+                )}
+
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={cancelManualDivide}
+                  className="ml-auto"
+                  title="বাতিল করুন"
+                >
+                  <X />
+                </Button>
+              </div>
+
+              {/* Row 2: Controls (Micro-Nudge, Points, Final Cut) */}
+              <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-border/40">
+                {/* 1. Micro-Nudge Fine Tuning Controls */}
+                <div className="flex items-center gap-0.5 p-0.5 bg-muted rounded-lg border border-border">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => nudgeManualCutLine(-1)}
+                    title="কাটিং লাইন বামে/পেছনে সূক্ষ্ম সরান"
+                  >
+                    <ChevronLeft />
+                  </Button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      nativeButton={false}
+                      render={<div className="inline-flex" />}
+                    >
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        title="নডজের লক্ষ্য সিলেক্ট করুন"
+                      >
+                        <span>
+                          {nudgeTarget === 'all'
+                            ? 'লাইন'
+                            : nudgeTarget === 'start'
+                            ? '১ম'
+                            : '২য়'}
+                        </span>
+                        <ChevronDown />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      side="top"
+                      align="center"
+                      sideOffset={8}
+                      className="w-28 p-1"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => setNudgeTarget('all')}
+                        className={nudgeTarget === 'all' ? 'font-semibold text-primary bg-primary/10' : ''}
+                      >
+                        পুরো লাইন
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setNudgeTarget('start')}
+                        className={nudgeTarget === 'start' ? 'font-semibold text-primary bg-primary/10' : ''}
+                      >
+                        ১ম পয়েন্ট
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setNudgeTarget('end')}
+                        className={nudgeTarget === 'end' ? 'font-semibold text-primary bg-primary/10' : ''}
+                      >
+                        ২য় পয়েন্ট
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => nudgeManualCutLine(1)}
+                    title="কাটিং লাইন ডানে/সামনে সূক্ষ্ম সরান"
+                  >
+                    <ChevronRight />
+                  </Button>
+                </div>
+
+                {/* 2. Number of Cut Points (+ / -) */}
+                <div className="flex items-center gap-0.5 p-0.5 bg-muted rounded-lg border border-border">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={!manualCutLine || manualCutLine.length <= 2}
+                    onClick={() => {
+                      if (manualCutLine && manualCutLine.length > 2) {
+                        setManualCutLine(manualCutLine.slice(0, -1));
+                      }
+                    }}
+                    title="কাট পয়েন্ট কমান"
+                  >
+                    -
+                  </Button>
+                  <span className="w-5 text-center font-bold text-xs font-mono">
+                    {manualCutLine ? manualCutLine.length : 2}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => {
+                      if (manualCutLine && manualCutLine.length >= 2) {
+                        let insertIndex = 1;
+                        let longestDistance = -1;
+
+                        for (let i = 0; i < manualCutLine.length - 1; i++) {
+                          const start = manualCutLine[i];
+                          const end = manualCutLine[i + 1];
+                          const distance = Math.hypot(end.x - start.x, end.y - start.y);
+                          if (distance > longestDistance) {
+                            longestDistance = distance;
+                            insertIndex = i + 1;
+                          }
+                        }
+
+                        const start = manualCutLine[insertIndex - 1];
+                        const end = manualCutLine[insertIndex];
+                        const newPoint = {
+                          x: (start.x + end.x) / 2,
+                          y: (start.y + end.y) / 2,
+                        };
+
+                        setManualCutLine([
+                          ...manualCutLine.slice(0, insertIndex),
+                          newPoint,
+                          ...manualCutLine.slice(insertIndex),
+                        ]);
+                      }
+                    }}
+                    title="কাট পয়েন্ট বাড়ান"
+                  >
+                    +
+                  </Button>
+                </div>
+
+                {/* 3. Execute / Final Cut Button */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={executeManualDivide}
+                  disabled={!isManualCutValid}
+                >
+                  ফাইনাল কাট
+                </Button>
+              </div>
+            </>
           )}
-          {manualDividePlotId && (
-            <Button
-              size="sm"
-              onClick={executeManualDivide}
-              disabled={!isManualCutValid}
-              className="bg-primary hover:bg-primary/90 text-white rounded-lg"
-            >
-              ফাইনাল কাট
-            </Button>
-          )}
-          <Button size="sm" onClick={cancelManualDivide} variant="destructive" className="rounded-lg">বাতিল</Button>
         </div>
       )}
 

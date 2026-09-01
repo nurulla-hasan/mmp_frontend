@@ -347,11 +347,11 @@ export function LoadCalculationDialog({
                 size="sm"
                 nativeButton={false}
                 render={<Link href="/calculations" />}
-                className="h-9 px-3 text-xs gap-1.5 shrink-0 hidden sm:flex"
+                className="shrink-0 hidden sm:inline-flex"
                 title="সব পরিমাপ টেবিল আকারে দেখুন"
               >
                 <span>সব দেখুন</span>
-                <ExternalLink className="size-3.5" />
+                <ExternalLink />
               </Button>
             </div>
 
@@ -415,7 +415,7 @@ export function LoadCalculationDialog({
                           onClick={() => setDeletingId(calc.id)}
                           title="মুছে ফেলুন"
                         >
-                          <Trash2 className="size-4" />
+                          <Trash2 />
                         </Button>
                       </div>
 
@@ -423,12 +423,13 @@ export function LoadCalculationDialog({
                       <div className="flex items-center justify-end pt-2 border-t border-border/50">
                         <Button
                           type="button"
+                          variant="default"
                           size="sm"
                           onClick={() => handleSelectCalculation(calc)}
-                          className="w-full sm:w-auto gap-1.5 text-xs font-medium"
+                          className="w-full sm:w-auto"
                         >
-                          লোড করুন
-                          <ArrowRight className="size-3.5" />
+                          <span>লোড করুন</span>
+                          <ArrowRight />
                         </Button>
                       </div>
                     </div>

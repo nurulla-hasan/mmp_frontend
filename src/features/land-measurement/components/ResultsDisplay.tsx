@@ -146,20 +146,21 @@ export const ResultsDisplay = memo(function ResultsDisplay({
         <div className="flex items-center gap-2">
           <Button
             size="sm"
+            variant="default"
             onClick={() => setIsSaveModalOpen(true)}
-            className="print:hidden whitespace-nowrap gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs"
+            className="print:hidden whitespace-nowrap"
             title="পরিমাপ সেভ করুন"
           >
-            <BookmarkCheck className="size-3.5" />
+            <BookmarkCheck />
             <span className="hidden sm:inline">সেভ করুন</span>
           </Button>
           <Button
             size="sm"
             variant="outline"
             onClick={() => setIsPrintModalOpen(true)}
-            className="print:hidden whitespace-nowrap text-xs gap-1"
+            className="print:hidden whitespace-nowrap"
           >
-            <Printer className="size-3.5" />
+            <Printer />
             <span className="hidden sm:inline">প্রিন্ট</span>
           </Button>
         </div>

@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import { toast } from 'sonner';
+import { SuccessToast, WarningToast } from '@/lib/utils';
 import type { SavedPlotRecord, PlotRecord } from '../../types/map';
 
 const SAVED_PLOTS_KEY = 'mouzaSavedPlots';
@@ -60,19 +60,19 @@ export const createSavedPlotsSlice: StateCreator<SavedPlotsSlice, [], [], SavedP
   savePlotsToLibrary: (plots, scale, imageName, selectedFileName) => {
     const state = get();
     if (!scale) {
-      toast.warning('সেভ করার আগে দয়া করে স্কেল সেট করে নিন');
+      WarningToast('সেভ করার আগে দয়া করে স্কেল সেট করে নিন');
       return false;
     }
 
     const targetPlots = plots.filter((plot) => !plot.isSaved);
     if (targetPlots.length === 0) {
-      toast.warning('সেভ করার আগে দয়া করে অন্তত একটি প্লট আঁকা শেষ করুন');
+      WarningToast('সেভ করার আগে দয়া করে অন্তত একটি প্লট আঁকা শেষ করুন');
       return false;
     }
 
     const cleanName = state.plotSaveName.trim();
     if (!cleanName) {
-      toast.warning('দয়া করে প্লটের নাম লিখুন');
+      WarningToast('দয়া করে প্লটের নাম লিখুন');
       return false;
     }
 
@@ -96,7 +96,7 @@ export const createSavedPlotsSlice: StateCreator<SavedPlotsSlice, [], [], SavedP
 
     set({ savedPlots: nextSavedPlots, plotSaveName: '' });
 
-    toast.success('স্ক্র্যাচ লাইব্রেরিতে প্লটটি সফলভাবে সেভ করা হয়েছে');
+    SuccessToast('স্ক্র্যাচ লাইব্রেরিতে প্লটটি সফলভাবে সেভ করা হয়েছে');
     return true;
   },
 
@@ -105,7 +105,7 @@ export const createSavedPlotsSlice: StateCreator<SavedPlotsSlice, [], [], SavedP
     const nextSavedPlots = state.savedPlots.filter((plot) => plot.id !== plotId);
     writeSavedPlots(nextSavedPlots);
     set({ savedPlots: nextSavedPlots });
-    toast.success('সেভ করা প্লটটি মুছে ফেলা হয়েছে');
+    SuccessToast('সেভ করা প্লটটি মুছে ফেলা হয়েছে');
   },
 
   updateSavedPlot: (plotId: string, updates: Partial<SavedPlotRecord>) => {

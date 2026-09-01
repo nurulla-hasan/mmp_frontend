@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import { toast } from 'sonner';
+import { ErrorToast } from '@/lib/utils';
 import { PLOT_COLOR_PALETTE } from '../../utils/canvas';
 import { calculatePolygonData } from '../../utils/calculations';
 import { normalizePolygonPoints } from '../../utils/geometry';
@@ -77,7 +77,7 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
 
     const nextResults = calculatePolygonData(normalizedPoints, scale);
     if (!nextResults) {
-      toast.error('প্লটের আকার সঠিক নয়। দয়া করে অন্তত ৩টি পয়েন্ট দিয়ে একটি পরিমাপযোগ্য এলাকা আঁকুন।');
+      ErrorToast('প্লটের আকার সঠিক নয়। দয়া করে অন্তত ৩টি পয়েন্ট দিয়ে একটি পরিমাপযোগ্য এলাকা আঁকুন।');
       return;
     }
 
