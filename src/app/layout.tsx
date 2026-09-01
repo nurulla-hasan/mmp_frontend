@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Geist_Mono,
   Hind_Siliguri,
@@ -38,10 +38,118 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mouzammappro.com";
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
-  title: { default: "Mouza Map Pro", template: "%s | Mouza Map Pro" },
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "মৌজা ম্যাপ প্রো — Mouza Map Pro | ডিজিটাল ভূমি পরিমাপ ও সার্ভেয়ার প্ল্যাটফর্ম",
+    template: "%s | Mouza Map Pro",
+  },
   description:
-    "ল্যান্ড টুলস, ভেরিফাইড সার্ভেয়ার মার্কেটপ্লেস এবং ডিজিটাল ল্যান্ড সার্ভিস প্ল্যাটফর্ম।",
+    "অনলাইন মৌজা ম্যাপ এনালাইসিস, জমি পরিমাপ ক্যালকুলেটর, খতিয়ান-দাগ যাচাই এবং সারাদেশের ভেরিফাইড আমিন ও সার্ভেয়ারদের সাথে সরাসরি যোগাযোগের বিশ্বস্ত প্ল্যাটফর্ম।",
+  applicationName: "Mouza Map Pro",
+  authors: [{ name: "Mouza Map Pro Team", url: siteUrl }],
+  generator: "Next.js",
+  keywords: [
+    "মৌজা ম্যাপ",
+    "জমি পরিমাপ ক্যালকুলেটর",
+    "আমিন",
+    "সার্ভেয়ার",
+    "ভূমি পরিমাপ",
+    "খতিয়ান",
+    "দাগ নম্বর",
+    "ডিজিটাল ট্রেসিং",
+    "প্যান্টাগ্রাফ",
+    "Mouza Map Pro",
+    "Land Measurement Bangladesh",
+    "Land Surveyor Directory",
+    "Mouza Geo Studio",
+    "Unit Converter",
+    "Inheritance Calculator",
+  ],
+  creator: "Mouza Map Pro",
+  publisher: "Mouza Map Pro",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "bn_BD",
+    url: siteUrl,
+    title: "মৌজা ম্যাপ প্রো — Mouza Map Pro | ডিজিটাল ভূমি পরিমাপ ও সার্ভেয়ার প্ল্যাটফর্ম",
+    description:
+      "অনলাইন মৌজা ম্যাপ এনালাইসিস, জমি পরিমাপ ক্যালকুলেটর, খতিয়ান-দাগ যাচাই এবং সারাদেশের ভেরিফাইড আমিন ও সার্ভেয়ারদের সাথে সরাসরি যোগাযোগের বিশ্বস্ত প্ল্যাটফর্ম।",
+    siteName: "Mouza Map Pro",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "মৌজা ম্যাপ প্রো — Mouza Map Pro | ডিজিটাল ভূমি পরিমাপ ও সার্ভেয়ার প্ল্যাটফর্ম",
+    description:
+      "অনলাইন মৌজা ম্যাপ এনালাইসিস, জমি পরিমাপ ক্যালকুলেটর, খতিয়ান-দাগ যাচাই এবং সারাদেশের ভেরিফাইড আমিন ও সার্ভেয়ারদের সাথে সরাসরি যোগাযোগের বিশ্বস্ত প্ল্যাটফর্ম।",
+    creator: "@mouzammappro",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  category: "technology",
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+      name: "Mouza Map Pro",
+      alternateName: "মৌজা ম্যাপ প্রো",
+      url: siteUrl,
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/favicon.ico`,
+      },
+      sameAs: [],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+      url: siteUrl,
+      name: "Mouza Map Pro",
+      alternateName: "মৌজা ম্যাপ প্রো",
+      publisher: {
+        "@id": `${siteUrl}/#organization`,
+      },
+      inLanguage: ["bn-BD", "en-US"],
+      potentialAction: {
+        "@type": "SearchAction",
+        target: `${siteUrl}/surveyors?searchTerm={search_term_string}`,
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -49,7 +157,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
-      lang="en"
+      lang="bn"
       suppressHydrationWarning
       className={cn(
         "h-full antialiased font-sans overflow-x-hidden",
@@ -59,6 +167,12 @@ export default function RootLayout({
         geistMono.variable,
       )}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="flex min-h-full flex-col max-w-480 mx-auto">
         <NextTopLoader
           color="var(--primary)"

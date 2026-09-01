@@ -1,17 +1,12 @@
-"use client";
-
-import { ChevronDown } from "lucide-react";
-import { useState } from "react";
-
 import { SectionHeading } from "@/components/common/section-heading";
 import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const faqs = [
   {
@@ -40,56 +35,23 @@ const faqs = [
   },
 ];
 
-function FaqItem({
-  question,
-  answer,
-  open,
-  onToggle,
-}: {
-  question: string;
-  answer: string;
-  open: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <Collapsible open={open} onOpenChange={onToggle} className="border-b last:border-b-0">
-      <CollapsibleTrigger className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium transition-colors hover:text-primary">
-        {question}
-        <ChevronDown
-          className={cn(
-            "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-            open && "rotate-180",
-          )}
-        />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="pb-4 text-sm leading-6 text-muted-foreground">
-        {answer}
-      </CollapsibleContent>
-    </Collapsible>
-  );
-}
-
 export function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
   return (
-    <SectionWrapper id="faq" >
+    <SectionWrapper id="faq">
       <div className="mx-auto max-w-2xl">
-        <SectionHeading
-          badge="FAQ"
-          title="সচরাচর জিজ্ঞাসা"
-        />
+        <SectionHeading badge="FAQ" title="সচরাচর জিজ্ঞাসা" />
         <Card className="mt-8">
-          <CardContent>
-            {faqs.map((faq, i) => (
-              <FaqItem
-                key={i}
-                question={faq.q}
-                answer={faq.a}
-                open={openIndex === i}
-                onToggle={() => setOpenIndex(openIndex === i ? null : i)}
-              />
-            ))}
+          <CardContent className="pt-6">
+            <Accordion>
+              {faqs.map((faq, i) => (
+                <AccordionItem key={i} value={`faq-${i}`}>
+                  <AccordionTrigger className="text-left font-medium hover:no-underline hover:text-primary">
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent>{faq.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </CardContent>
         </Card>
       </div>

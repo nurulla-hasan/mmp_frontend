@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { TSearchParams } from "@/interface/global";
 import { Badge } from "@/components/ui/badge";
 import { PageWrapper } from "@/components/common/page-wrapper";
@@ -11,6 +12,29 @@ import {
   getServices,
 } from "@/services/auth.service";
 import CustomPagination from "@/components/common/custom-pagination";
+
+export const metadata: Metadata = {
+  title: "সার্ভেয়ার ডিরেক্টরি — এলাকাভিত্তিক অভিজ্ঞ ও ভেরিফাইড আমিন খুঁজুন",
+  description:
+    "আপনার জেলা ও উপজেলা অনুযায়ী অভিজ্ঞ, প্রশিক্ষিত ও ভেরিফাইড আমিন/সার্ভেয়ারদের প্রোফাইল দেখুন, রেটিং ও সার্ভিস চার্জ যাচাই করুন এবং সরাসরি WhatsApp বা কলে যোগাযোগ করুন।",
+  keywords: [
+    "সার্ভেয়ার ডিরেক্টরি",
+    "আমিন খুঁজুন",
+    "ভেরিফাইড সার্ভেয়ার",
+    "জমি পরিমাপক",
+    "Land Surveyor Bangladesh",
+    "Surveyor Profile",
+  ],
+  alternates: {
+    canonical: "/surveyors",
+  },
+  openGraph: {
+    title: "সার্ভেয়ার ডিরেক্টরি — এলাকাভিত্তিক অভিজ্ঞ ও ভেরিফাইড আমিন খুঁজুন | Mouza Map Pro",
+    description:
+      "আপনার জেলা ও উপজেলা অনুযায়ী অভিজ্ঞ, প্রশিক্ষিত ও ভেরিফাইড আমিন/সার্ভেয়ারদের প্রোফাইল দেখুন, রেটিং যাচাই করুন এবং সরাসরি যোগাযোগ করুন।",
+    url: "/surveyors",
+  },
+};
 
 export default async function Page({
   searchParams,

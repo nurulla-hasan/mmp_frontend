@@ -1,9 +1,6 @@
-"use client";
-
-import { useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  ChevronDown,
   Clock,
   Mail,
   MapPin,
@@ -17,18 +14,35 @@ import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 
-// ---------------------------------------------------------------------------
-// Data
-// ---------------------------------------------------------------------------
+export const metadata: Metadata = {
+  title: "যোগাযোগ ও সহায়তা — আমাদের সাথে কথা বলুন",
+  description:
+    "Mouza Map Pro প্ল্যাটফর্ম সংক্রান্ত যেকোনো প্রশ্ন, মতামত বা কারিগরি সহায়তার জন্য আমাদের সাথে যোগাযোগ করুন।",
+  keywords: [
+    "যোগাযোগ",
+    "Contact Mouza Map Pro",
+    "কাস্টমার সাপোর্ট",
+    "হেল্পলাইন",
+  ],
+  alternates: {
+    canonical: "/contact",
+  },
+  openGraph: {
+    title: "যোগাযোগ ও সহায়তা — আমাদের সাথে কথা বলুন | Mouza Map Pro",
+    description:
+      "Mouza Map Pro প্ল্যাটফর্ম সংক্রান্ত যেকোনো প্রশ্ন, মতামত বা কারিগরি সহায়তার জন্য আমাদের সাথে যোগাযোগ করুন।",
+    url: "/contact",
+  },
+};
 
 const contactInfo = [
   {
@@ -60,63 +74,21 @@ const contactInfo = [
 const faqs = [
   {
     q: "কত দ্রুত উত্তর পাব?",
-    a: "আমরা সাধারণত ২৪-৪৮ ঘন্টার মধ্যে ইমেইল ও ফোন কলের উত্তর দেওয়ার চেষ্টা করি। জরুরি প্রয়োজনে ফোনে যোগাযোগ করুন।",
+    a: "আমরা সাধারণত ২৪-৪৮ ঘন্টার মধ্যে ইমেইল ও ফোন কলের উত্তর দেওয়ার চেষ্টা করি। জরুরি প্রয়োজনে সরাসরি ফোনে যোগাযোগ করুন।",
   },
   {
-    q: "সার্ভেয়ার সংক্রান্ত সমস্যা কোথায় জানাব?",
-    a: "সার্ভেয়ার সংক্রান্ত যেকোনো সমস্যা সরাসরি support@mouzamappro.com-এ ইমেইল করুন অথবা প্ল্যাটফর্মের Messages সিস্টেম ব্যবহার করুন।",
+    q: "সার্ভেয়ার সংক্রান্ত বিষয় কোথায় জানাব?",
+    a: "সার্ভেয়ার সংক্রান্ত যেকোনো প্রশ্ন বা সহায়তার জন্য সরাসরি support@mouzamappro.com-এ ইমেইল করুন অথবা আমাদের হেল্পলাইনে যোগাযোগ করুন।",
   },
   {
     q: "আমি কি অফিসে সরাসরি আসতে পারি?",
-    a: "পূর্বনির্ধারিত অ্যাপয়েন্টমেন্ট ছাড়া অফিসে আসার প্রয়োজন নেই। অধিকাংশ কাজ অনলাইনে সম্পন্ন করা যায়।",
+    a: "পূর্বনির্ধারিত অ্যাপয়েন্টমেন্ট ছাড়া অফিসে আসার প্রয়োজন নেই। ডিজিটাল প্ল্যাটফর্মের মাধ্যমেই সমস্ত সেবা গ্রহণ করা যায়।",
   },
   {
     q: "কোনো মতামত বা পরামর্শ দিতে চাইলে?",
-    a: "আমরা আপনার মতামত ও পরামর্শকে স্বাগত জানাই। নিচের ফর্মের মাধ্যমে অথবা সরাসরি ইমেইল করে জানাতে পারেন।",
+    a: "আমরা আপনার মূল্যবান মতামত ও পরামর্শকে স্বাগত জানাই। নিচের ফর্মের মাধ্যমে অথবা সরাসরি ইমেইল করে জানাতে পারেন।",
   },
 ];
-
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
-
-function FaqAccordion() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  return (
-    <div className="mx-auto max-w-2xl">
-      <Card>
-        <CardContent>
-          {faqs.map((faq, i) => (
-            <Collapsible
-              key={i}
-              open={openIndex === i}
-              onOpenChange={() => setOpenIndex(openIndex === i ? null : i)}
-              className="border-b last:border-b-0"
-            >
-              <CollapsibleTrigger className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium transition-colors hover:text-primary">
-                {faq.q}
-                <ChevronDown
-                  className={cn(
-                    "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                    openIndex === i && "rotate-180",
-                  )}
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pb-4 text-sm leading-6 text-muted-foreground">
-                {faq.a}
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 export default function ContactPage() {
   return (
@@ -124,7 +96,6 @@ export default function ContactPage() {
       {/* ─── Hero ──────────────────────────────────────────── */}
       <SectionWrapper padding="lg">
         <div className="relative mx-auto max-w-3xl text-center">
-          {/* Background glow */}
           <div className="pointer-events-none absolute top-0 left-1/2 -z-10 size-90 -translate-x-1/2 -translate-y-20 rounded-full bg-primary/20 blur-[100px]" />
           <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/10 shadow-lg shadow-primary/10">
             <MessageSquare className="size-8 text-primary" />
@@ -133,7 +104,7 @@ export default function ContactPage() {
             যোগাযোগ করুন
           </h1>
           <p className="mt-4 text-lg leading-7 text-muted-foreground">
-            আপনার প্রশ্ন, মতামত বা প্রয়োজন নিয়ে আমাদের জানান। আমরা সাহায্য করতে
+            আপনার প্রশ্ন, মতামত বা সহায়তার প্রয়োজন নিয়ে আমাদের জানান। আমরা সাহায্য করতে
             প্রস্তুত।
           </p>
           <p className="mt-4 rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">
@@ -196,7 +167,7 @@ export default function ContactPage() {
         <div className="mx-auto mt-10 max-w-2xl">
           <Card className="transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
             <CardContent>
-              <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+              <form className="space-y-6">
                 <div className="grid gap-6 sm:grid-cols-2">
                   <Field>
                     <FieldLabel htmlFor="name">আপনার নাম</FieldLabel>
@@ -251,8 +222,21 @@ export default function ContactPage() {
           title="সচরাচর জিজ্ঞাসা"
           alignment="center"
         />
-        <div className="mt-8">
-          <FaqAccordion />
+        <div className="mt-8 mx-auto max-w-2xl">
+          <Card>
+            <CardContent className="pt-6">
+              <Accordion>
+                {faqs.map((faq, i) => (
+                  <AccordionItem key={i} value={`contact-faq-${i}`}>
+                    <AccordionTrigger className="text-left font-medium hover:no-underline hover:text-primary">
+                      {faq.q}
+                    </AccordionTrigger>
+                    <AccordionContent>{faq.a}</AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </CardContent>
+          </Card>
         </div>
       </SectionWrapper>
 
@@ -263,7 +247,7 @@ export default function ContactPage() {
           <SectionHeading
             as="h2"
             title="আপনার জমির কাজ শুরু করতে প্রস্তুত?"
-            description="সার্ভেয়ার খুঁজুন, Request পোস্ট করুন বা Professional Profile তৈরি করুন।"
+            description="সার্ভেয়ার খুঁজুন, সরাসরি যোগাযোগ করুন বা Professional Profile তৈরি করুন।"
             alignment="center"
           />
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">

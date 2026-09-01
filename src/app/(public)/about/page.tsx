@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   BadgeCheck,
@@ -21,6 +22,27 @@ import { SectionHeading } from "@/components/common/section-heading";
 import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+
+export const metadata: Metadata = {
+  title: "আমাদের সম্পর্কে — ডিজিটাল ভূমি পরিমাপ ও সার্ভেয়ার নেটওয়ার্ক",
+  description:
+    "Mouza Map Pro বাংলাদেশের জমি সংক্রান্ত জটিল কাজগুলোকে ডিজিটালাইজ করে সহজ ও স্বচ্ছ করার লক্ষ্যে তৈরি একটি ডিজিটাল ল্যান্ড সার্ভিস প্ল্যাটফর্ম।",
+  keywords: [
+    "আমাদের সম্পর্কে",
+    "About Mouza Map Pro",
+    "ডিজিটাল ভূমি পরিমাপ",
+    "সার্ভেয়ার নেটওয়ার্ক বাংলাদেশ",
+  ],
+  alternates: {
+    canonical: "/about",
+  },
+  openGraph: {
+    title: "আমাদের সম্পর্কে — ডিজিটাল ভূমি পরিমাপ ও সার্ভেয়ার নেটওয়ার্ক | Mouza Map Pro",
+    description:
+      "Mouza Map Pro বাংলাদেশের জমি সংক্রান্ত জটিল কাজগুলোকে ডিজিটালাইজ করে সহজ ও স্বচ্ছ করার লক্ষ্যে তৈরি একটি ডিজিটাল ল্যান্ড সার্ভিস প্ল্যাটফর্ম।",
+    url: "/about",
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Data

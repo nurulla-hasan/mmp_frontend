@@ -1,12 +1,9 @@
-"use client";
-
-import { useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   AlertTriangle,
   Ban,
   BookOpen,
-  ChevronDown,
   FileSearch,
   Fingerprint,
   Landmark,
@@ -25,15 +22,33 @@ import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
-// ---------------------------------------------------------------------------
-// Data
-// ---------------------------------------------------------------------------
+export const metadata: Metadata = {
+  title: "ভূমি প্রতারণা সতর্কতা ও নিরাপত্তা নির্দেশিকা — নিরাপদ থাকুন",
+  description:
+    "জমি কেনাবেচা, দলিল-খতিয়ান যাচাই এবং সার্ভে সংক্রান্ত সাধারণ প্রতারণা থেকে বাঁচতে প্রয়োজনীয় সতর্কতা ও নির্দেশিকা জানুন।",
+  keywords: [
+    "ভূমি প্রতারণা সতর্কতা",
+    "জাল দলিল চেনার উপায়",
+    "খতিয়ান যাচাই",
+    "জমি সংক্রান্ত নিরাপত্তা",
+    "Land Fraud Awareness",
+  ],
+  alternates: {
+    canonical: "/fraud-awareness",
+  },
+  openGraph: {
+    title: "ভূমি প্রতারণা সতর্কতা ও নিরাপত্তা নির্দেশিকা | Mouza Map Pro",
+    description:
+      "জমি কেনাবেচা, দলিল-খতিয়ান যাচাই এবং সার্ভে সংক্রান্ত সাধারণ প্রতারণা থেকে বাঁচতে প্রয়োজনীয় সতর্কতা ও নির্দেশিকা জানুন।",
+    url: "/fraud-awareness",
+  },
+};
 
 const fraudTypes = [
   {
@@ -183,48 +198,6 @@ const steps = [
       "প্রতারণার শিকার হলে বা সন্দেহ হলে সংশ্লিষ্ট কর্তৃপক্ষকে জানান। অন্যদের সতর্ক করতে কমিউনিটিতে শেয়ার করুন।",
   },
 ];
-
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
-
-function FaqAccordion() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  return (
-    <div className="mx-auto max-w-2xl">
-      <Card>
-        <CardContent>
-          {faqs.map((faq, i) => (
-            <Collapsible
-              key={i}
-              open={openIndex === i}
-              onOpenChange={() => setOpenIndex(openIndex === i ? null : i)}
-              className="border-b last:border-b-0"
-            >
-              <CollapsibleTrigger className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium transition-colors hover:text-primary">
-                {faq.q}
-                <ChevronDown
-                  className={cn(
-                    "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                    openIndex === i && "rotate-180",
-                  )}
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pb-4 text-sm leading-6 text-muted-foreground">
-                {faq.a}
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 export default function FraudAwarenessPage() {
   return (
@@ -390,8 +363,21 @@ export default function FraudAwarenessPage() {
           title="সচরাচর জিজ্ঞাসা"
           alignment="center"
         />
-        <div className="mt-8">
-          <FaqAccordion />
+        <div className="mt-8 mx-auto max-w-2xl">
+          <Card>
+            <CardContent className="pt-6">
+              <Accordion>
+                {faqs.map((faq, i) => (
+                  <AccordionItem key={i} value={`fraud-faq-${i}`}>
+                    <AccordionTrigger className="text-left font-medium hover:no-underline hover:text-primary">
+                      {faq.q}
+                    </AccordionTrigger>
+                    <AccordionContent>{faq.a}</AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </CardContent>
+          </Card>
         </div>
       </SectionWrapper>
 
@@ -402,7 +388,7 @@ export default function FraudAwarenessPage() {
           <SectionHeading
             as="h2"
             title="নিরাপদে জমির কাজ শুরু করুন"
-            description="যাচাইকৃত সার্ভেয়ার খুঁজুন, প্রয়োজন পোস্ট করুন এবং নির্ভয়ে জমির কাজ এগিয়ে নিন।"
+            description="যাচাইকৃত সার্ভেয়ার খুঁজুন, সরাসরি যোগাযোগ করুন এবং নির্ভয়ে জমির কাজ এগিয়ে নিন।"
             alignment="center"
           />
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">

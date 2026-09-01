@@ -1,9 +1,31 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-
 import { PageWrapper } from "@/components/common/page-wrapper";
 
 function formatRouteValue(value: string) {
   return decodeURIComponent(value).replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const title = formatRouteValue(slug);
+
+  return {
+    title: `${title} — কমিউনিটি প্রশ্নোত্তর`,
+    description: `${title} সংক্রান্ত আলোচনা, বিশেষজ্ঞ সার্ভেয়ারদের সমাধান ও পরামর্শ।`,
+    alternates: {
+      canonical: `/community/questions/${slug}`,
+    },
+    openGraph: {
+      title: `${title} — কমিউনিটি প্রশ্নোত্তর | Mouza Map Pro`,
+      description: `${title} সংক্রান্ত আলোচনা, বিশেষজ্ঞ সার্ভেয়ারদের সমাধান ও পরামর্শ।`,
+      url: `/community/questions/${slug}`,
+    },
+  };
 }
 
 export default async function Page({
@@ -27,7 +49,7 @@ export default async function Page({
         <div className="space-y-2">
           <p className="text-sm font-medium text-primary">কমিউনিটি প্রশ্ন</p>
           <h1 className="text-2xl font-bold font-heading">{formatted}</h1>
-          <p className="text-muted-foreground">প্রশ্নের বিবরণ, ভেরিফাইড সার্ভেয়ার উত্তর, ভোটিং এবং মডারেশন প্লেসহোল্ডার এখানে থাকবে।</p>
+          <p className="text-muted-foreground">প্রশ্নের বিবরণ, ভেরিফাইড সার্ভেয়ার উত্তর, ভোটিং এবং আলোচনা।</p>
         </div>
       </div>
     </PageWrapper>

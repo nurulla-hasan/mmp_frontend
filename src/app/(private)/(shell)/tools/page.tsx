@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Calculator, Globe2, Layers3, Map, MoveDiagonal, PenLine, Scaling } from "lucide-react";
 import Link from "next/link";
 
@@ -5,6 +6,28 @@ import { PageWrapper } from "@/components/common/page-wrapper";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+
+export const metadata: Metadata = {
+  title: "ডিজিটাল ল্যান্ড টুলস — মৌজা ম্যাপ ও জমি পরিমাপের সফটওয়্যার",
+  description:
+    "মৌজা ম্যাপ ক্যালকুলেটর, ডিজিটাল ট্রেসিং, প্যান্টাগ্রাফ স্কেলিং, ইউনিট কনভার্টার এবং জমি বণ্টন ক্যালকুলেটরের সমন্বয়ে আধুনিক ডিজিটাল ভূমি পরিমাপ টুলবক্স।",
+  keywords: [
+    "ল্যান্ড টুলস",
+    "জমি পরিমাপের সফটওয়্যার",
+    "মৌজা ম্যাপ ক্যালকুলেটর",
+    "Land Measurement Tools",
+    "Digital Land Tools",
+  ],
+  alternates: {
+    canonical: "/tools",
+  },
+  openGraph: {
+    title: "ডিজিটাল ল্যান্ড টুলস — মৌজা ম্যাপ ও জমি পরিমাপের সফটওয়্যার | Mouza Map Pro",
+    description:
+      "মৌজা ম্যাপ ক্যালকুলেটর, ডিজিটাল ট্রেসিং, প্যান্টাগ্রাফ স্কেলিং, ইউনিট কনভার্টার এবং জমি বণ্টন ক্যালকুলেটর।",
+    url: "/tools",
+  },
+};
 
 const featuredTool = {
   icon: Map,

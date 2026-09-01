@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { PageWrapper } from "@/components/common/page-wrapper";
@@ -9,6 +10,55 @@ import { SurveyorVerification } from "../_components/surveyor-verification";
 import { SurveyorReviews } from "../_components/surveyor-reviews";
 import CustomBreadcrumb from "@/components/common/custom-breadcrumb";
 import { getMe, getSurveyorBySlug } from "@/services/auth.service";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const surveyorRes = await getSurveyorBySlug(slug);
+
+  if (!surveyorRes.success || !surveyorRes.data) {
+    return {
+      title: "সার্ভেয়ার পাওয়া যায়নি",
+      description: "এই সার্ভেয়ার প্রোফাইলটি খুঁজে পাওয়া যায়নি।",
+    };
+  }
+
+  const s = surveyorRes.data;
+  const name = s.user?.name || s.fullName || "সার্ভেয়ার";
+  const bio = s.bio || `${name} — অভিজ্ঞ এবং ভেরিফাইড পেশাদার আমিন/সার্ভেয়ার। জমি পরিমাপ, খতিয়ান যাচাই ও সার্ভে সেবা প্রদান করেন।`;
+  const avatar = s.user?.imageUrl;
+
+  return {
+    title: `${name} — ভেরিফাইড সার্ভেয়ার ও আমিন`,
+    description: bio.slice(0, 160),
+    keywords: [
+      name,
+      "সার্ভেয়ার",
+      "আমিন",
+      "জমি পরিমাপক",
+      "ভেরিফাইড সার্ভেয়ার প্রোফাইল",
+      "Mouza Map Pro Surveyor",
+    ],
+    alternates: {
+      canonical: `/surveyors/${slug}`,
+    },
+    openGraph: {
+      title: `${name} — ভেরিফাইড সার্ভেয়ার ও আমিন | Mouza Map Pro`,
+      description: bio.slice(0, 160),
+      url: `/surveyors/${slug}`,
+      images: avatar ? [{ url: avatar, alt: name }] : [],
+    },
+    twitter: {
+      card: "summary",
+      title: `${name} — ভেরিফাইড সার্ভেয়ার ও আমিন`,
+      description: bio.slice(0, 160),
+      images: avatar ? [avatar] : [],
+    },
+  };
+}
 
 export default async function Page({
   params,
@@ -43,8 +93,25 @@ export default async function Page({
   const fullName = surveyor.user?.name || surveyor.fullName || "সার্ভেয়ার";
   const surveyorUserId = surveyor.user?.id || surveyor.userId;
 
+  // JSON-LD Person schema for the surveyor
+  const personJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: fullName,
+    jobTitle: "Land Surveyor / আমিন",
+    description: surveyor.bio || undefined,
+    image: surveyor.user?.imageUrl || undefined,
+    telephone: surveyor.user?.phone || undefined,
+    email: surveyor.user?.email || undefined,
+  };
+
   return (
     <PageWrapper className="space-y-6" paddingSize="small">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
+
       <CustomBreadcrumb
         links={[
           { name: "হোম", href: "/" },
@@ -59,22 +126,22 @@ export default async function Page({
         <div className="space-y-8 lg:col-span-2">
           <SurveyorServices services={surveyor.surveyorServices} />
           <SurveyorServiceAreas serviceAreas={surveyor.serviceAreas} />
+          <SurveyorVerification verification={surveyor.verification} />
+          <SurveyorReviews
+            surveyorProfileId={surveyor.id}
+            surveyorSlug={slug}
+            surveyorUserId={surveyorUserId}
+            reviews={surveyor.reviews}
+            totalReviews={surveyor.totalReviews ?? surveyor.reviews?.length}
+            services={surveyor.surveyorServices}
+            currentUser={currentUser}
+          />
         </div>
+
         <div className="space-y-6">
           <SurveyorPricing surveyor={surveyor} />
-          <SurveyorVerification verification={surveyor.verification} />
         </div>
       </div>
-
-      <SurveyorReviews
-        surveyorProfileId={surveyor.id}
-        surveyorSlug={slug}
-        surveyorUserId={surveyorUserId}
-        reviews={surveyor.reviews}
-        totalReviews={surveyor.totalReviews}
-        services={surveyor.surveyorServices}
-        currentUser={currentUser}
-      />
     </PageWrapper>
   );
 }
