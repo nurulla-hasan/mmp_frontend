@@ -69,6 +69,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     distance: number;
     center: MercatorPoint;
   } | null>(null);
+  const viewActiveTimestampRef = useRef<number>(Date.now());
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -300,6 +301,11 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
           const current = propsRef.current;
           if (!current.pointMode) return;
 
+          // Prevent ghost click immediately after switching to world view on mobile
+          if (Date.now() - viewActiveTimestampRef.current < 400) {
+            return;
+          }
+
           if (!current.waitingForWorldPoint) {
             InfoToast("আগে মৌজা ম্যাপে (PDF/Image) একটি পয়েন্ট সিলেক্ট করুন");
             return;
@@ -374,6 +380,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
   useEffect(() => {
     if (!props.active) return;
+    viewActiveTimestampRef.current = Date.now();
 
     const frame = window.requestAnimationFrame(() => {
       mapRef.current?.invalidateSize({ pan: false });
@@ -603,23 +610,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
             <p className="font-semibold">ম্যাপ চালু করা যায়নি</p>
             <p className="mt-2 text-muted-foreground">{error}</p>
           </div>
-        </div>
-      )}
-
-      {!loading && !error && (
-        <div className="pointer-events-none absolute bottom-16 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-1.5 text-center text-xs text-foreground shadow-lg backdrop-blur flex items-center gap-2 md:bottom-4">
-          <span
-            className={`size-2 rounded-full ${
-              isCrosshair ? "bg-primary animate-pulse" : "bg-muted-foreground"
-            }`}
-          />
-          <span>
-            {props.pointMode
-              ? props.waitingForWorldPoint
-                ? "পয়েন্ট মোড: মৌজা পয়েন্টের অনুরূপ জায়গায় স্যাটেলাইট ম্যাপে ক্লিক করুন"
-                : "পয়েন্ট মোড চালু · স্যাটেলাইটে পয়েন্ট দিতে আগে মৌজা ম্যাপে পয়েন্ট দিন"
-              : "প্যান মোড: ম্যাপ ড্র্যাগ করুন · পয়েন্ট বসাতে পয়েন্ট মোড অন করুন"}
-          </span>
         </div>
       )}
 

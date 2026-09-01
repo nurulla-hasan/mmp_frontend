@@ -44,6 +44,7 @@ export default function SourceMapCanvas({
     centerY: number;
   } | null>(null);
   const drawFrameRef = useRef<number | null>(null);
+  const viewActiveTimestampRef = useRef<number>(Date.now());
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [view, setView] = useState<ViewState>({ scale: 1, x: 0, y: 0 });
 
@@ -267,6 +268,12 @@ export default function SourceMapCanvas({
     }
   };
 
+  useEffect(() => {
+    if (active) {
+      viewActiveTimestampRef.current = Date.now();
+    }
+  }, [active]);
+
   const finishPointer = (
     event: React.PointerEvent<HTMLDivElement>,
     cancelled = false,
@@ -288,7 +295,8 @@ export default function SourceMapCanvas({
       pointer &&
       wasOnlyPointer &&
       !pointer.moved &&
-      !gestureUsedMultipleRef.current
+      !gestureUsedMultipleRef.current &&
+      Date.now() - viewActiveTimestampRef.current >= 400
     ) {
       const point = getSourcePoint(event.clientX, event.clientY);
       if (point && pointMode) onPlacePoint(point);
@@ -375,19 +383,6 @@ export default function SourceMapCanvas({
           </svg>
         </div>
       ))}
-
-      <div className="pointer-events-none absolute bottom-16 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-1.5 text-center text-xs text-foreground shadow-lg backdrop-blur flex items-center gap-2 md:bottom-4">
-        <span
-          className={`size-2 rounded-full ${
-            pointMode ? "bg-primary animate-pulse" : "bg-muted-foreground"
-          }`}
-        />
-        <span>
-          {pointMode
-            ? "পয়েন্ট মোড চালু: ম্যাপে ক্লিক করে পয়েন্ট বসান · ড্র্যাগ: প্যান"
-            : "প্যান মোড: ম্যাপ ড্র্যাগ করুন · পয়েন্ট বসাতে পয়েন্ট মোড অন করুন"}
-        </span>
-      </div>
     </div>
   );
 }
