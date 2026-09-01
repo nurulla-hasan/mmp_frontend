@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function PublicLoading() {
   return (
-    <div className="relative flex min-h-[calc(100vh-12rem)] w-full flex-col items-center justify-center overflow-hidden py-16 select-none">
+    <div className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden py-16 select-none">
       {/* ── Ambient Background Aurora Glows ─────────────────────── */}
       <div className="pointer-events-none absolute -top-12 size-96 rounded-full bg-linear-to-tr from-primary/20 via-emerald-500/15 to-cyan-500/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-12 size-96 rounded-full bg-linear-to-bl from-yellow-500/10 via-primary/15 to-transparent blur-3xl" />

@@ -53,7 +53,7 @@ export function MobileBottomNav({ user }: { user?: TAuthUser }) {
 
       {/* 3. Land Tools (Center - Elevated Floating Button) */}
       <Link
-        href="/tools"
+        href="/tools/land-measurement"
         aria-current={isToolsActive ? "page" : undefined}
         className="flex flex-1 flex-col items-center -mt-5 group"
       >
