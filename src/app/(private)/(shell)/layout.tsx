@@ -10,7 +10,7 @@ export default function PrivateLayout({
 }) {
   return (
     <>
-      <Suspense fallback={null}>
+      <Suspense fallback={<div className="h-16"></div>}>
         <UserNavbar />
       </Suspense>
       <div className="pb-14 lg:pb-0 screen-height flex flex-col justify-between">
