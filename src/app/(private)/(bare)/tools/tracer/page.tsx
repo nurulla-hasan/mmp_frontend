@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import TracerClientWrapper from './tracer-client-wrapper';
 
 export const metadata = {
-  title: 'ডিজিটাল ম্যাপ ট্রেসিং | MMP',
+  title: 'ডিজিটাল ম্যাপ ট্রেসিং | Mouza Map Pro',
   description: 'পুরানো মৌজা ম্যাপের উপর C.S ও B.S দাগের সীমানা ট্রেস করে পরিষ্কার ভেক্টর ম্যাপ তৈরি করুন।',
 };
 

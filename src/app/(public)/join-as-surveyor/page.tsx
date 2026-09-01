@@ -6,9 +6,9 @@ import { getMe, getDistricts, getServices } from "@/services/auth.service";
 import { PageWrapper } from "@/components/common/page-wrapper";
 
 export const metadata: Metadata = {
-  title: "সার্ভেয়ার হিসেবে যোগ দিন — MMP",
+  title: "সার্ভেয়ার হিসেবে যোগ দিন — Mouza Map Pro",
   description:
-    "MMP প্ল্যাটফর্মে সার্ভেয়ার হিসেবে যোগ দিন। আবেদন ফর্ম পূরণ করে আপনার পেশাদার প্রোফাইল তৈরি করুন এবং নতুন ক্লায়েন্টদের সাথে যুক্ত হন।",
+    "Mouza Map Pro প্ল্যাটফর্মে সার্ভেয়ার হিসেবে যোগ দিন। আবেদন ফর্ম পূরণ করে আপনার পেশাদার প্রোফাইল তৈরি করুন এবং নতুন ক্লায়েন্টদের সাথে যুক্ত হন।",
 };
 
 export default async function Page() {

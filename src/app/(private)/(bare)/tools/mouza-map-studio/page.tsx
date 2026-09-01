@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import StudioClientWrapper from './studio-client-wrapper';
 
 export const metadata = {
-  title: 'মৌজা ম্যাপ স্টুডিও | MMP',
+  title: 'মৌজা ম্যাপ স্টুডিও | Mouza Map Pro',
   description: 'C.S ও B.S মৌজা ম্যাপ মিলিয়ে একই workspace-এ পরিষ্কার vector map trace করুন।',
 };
 

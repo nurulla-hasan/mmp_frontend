@@ -36,7 +36,7 @@ export function RoleBenefitsSection() {
       <SectionHeading
         badge="সবার জন্য এক প্ল্যাটফর্ম"
         title="জমির মালিক ও সার্ভেয়ার—দুই পক্ষের কাজই সহজ"
-        description="জমির নিখুঁত হিসাব-নিকাশ এবং দক্ষ সার্ভেয়ারের পেশাদার সেবাকে এক ছাদের নিচে নিয়ে এসেছে MMP।"
+        description="জমির নিখুঁত হিসাব-নিকাশ এবং দক্ষ সার্ভেয়ারের পেশাদার সেবাকে এক ছাদের নিচে নিয়ে এসেছে মৌজা ম্যাপ প্রো।"
       />
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         {/* Landowner card */}

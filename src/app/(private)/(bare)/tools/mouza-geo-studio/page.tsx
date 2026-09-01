@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import GeoStudioClient from './geo-studio-client';
 
 export const metadata = {
-  title: 'Mouza Geo Studio | MMP',
+  title: 'Mouza Geo Studio | Mouza Map Pro',
   description: 'মৌজা ম্যাপকে পৃথিবীর আসল জায়গায় align করে KMZ export করুন।',
 };
 
