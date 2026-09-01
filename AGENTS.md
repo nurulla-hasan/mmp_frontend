@@ -67,7 +67,7 @@ npm run lint -- --fix  # Auto-fix lint issues
 | Group | Path | Layout | Notes |
 |---|---|---|---|
 | `(public)` | `/`, `/about`, `/contact`, `/fraud-awareness`, `/pricing`, `/surveyors`, `/surveyors/[slug]` | `Navbar` + `PublicFooter` + `MobileBottomNav` | Public pages |
-| `(private)/(shell)` | `/tools`, `/tools/unit-converter`, `/tools/scale-guide`, `/tools/inheritance-calculator`, `/community`, `/join-as-surveyor`, `/dashboard/**`, `/surveyor/**` | `PrivateLayout` (Navbar + PublicFooter + MobileBottomNav) | Shell pages; route protection logic exists in `src/proxy.ts` but is currently disabled |
+| `(private)/(shell)` | `/tools`, `/tools/unit-converter`, `/tools/scale-guide`, `/tools/inheritance-calculator`, `/community`, `/join-as-surveyor`, `/dashboard/**`, `/surveyor/**` | `PrivateLayout` (Navbar + PublicFooter + MobileBottomNav) | Shell pages; route protection is enforced by `src/proxy.ts` |
 | `(private)/(bare)` | `/tools/tracer`, `/tools/pantagraph`, `/tools/land-measurement`, `/tools/mouza-map-studio`, `/tools/mouza-geo-studio` | `BareLayout` (empty wrapper, no shell) | Canvas-heavy tools — no header/footer wrapper |
 | `(auth)` | `/login`, `/register`, `/forgot-password`, etc. | Centered layout with Logo | Auth flows |
 | `(admin-dashboard)` | `/admin/**` | `AdminShell` | Admin panel |
@@ -134,7 +134,7 @@ Navigation configs in `src/constants/nav-links.ts` — three role-based arrays (
 
 ## Auth
 
-Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token is stored in `httpOnly` cookies. `src/proxy.ts` contains auth route detection, token refresh, cookie sync, and role redirect logic, but `IS_PROTECTION_ON = false` currently keeps private route protection effectively off. `nextServerFetch` reads the access/refresh tokens from cookies and forwards the access token as `Authorization` when `auth: "auth"` is set.
+Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token is stored in `httpOnly` cookies. `src/proxy.ts` contains auth route detection, token refresh, cookie sync, and role redirect logic. `IS_PROTECTION_ON = true`, so private route protection is enforced. `nextServerFetch` reads the access/refresh tokens from cookies and forwards the access token as `Authorization` when `auth: "auth"` is set.
 
 ## UI Components Library
 
@@ -228,13 +228,13 @@ Three roles: `USER`, `SURVEYOR`, `ADMIN`. Token is stored in `httpOnly` cookies.
 
 ## Potential Pitfalls
 
-1. **`src/proxy.ts` exists, but protection is disabled** — `IS_PROTECTION_ON = false` keeps private route protection effectively off; do not assume private pages are truly guarded just because proxy auth logic is present.
+1. **Route protection is enabled** — `IS_PROTECTION_ON = true` in `src/proxy.ts`; keep its public, auth, role, and subscription route rules synchronized when adding pages.
 2. **`nextServerFetch` is server-only** — cannot be used in client components; there is no documented client-side fetch wrapper yet.
 3. **Body has `max-w-480 mx-auto`** — full-width backgrounds, sticky sidebars, and fixed-position UI may behave unexpectedly due to the narrow centered viewport.
 4. **Map, tracer, and studio stores use browser-only types** like `HTMLImageElement` — they are client-side only and cannot be SSR'd.
 5. **`PublicPage` component does NOT exist** — use `SectionWrapper` + `PageWrapper` instead.
 6. **Navbar pattern** — the public/shell header is `Navbar` (`src/components/layout/navbar/navbar.tsx`) + `MobileDrawer` (`src/components/layout/navbar/mobile-drawer.tsx`), not `public-header.tsx`/`public-mobile-drawer.tsx`.
-6. **Auth and profile flows are still partly placeholder** — several forms still contain `console.log(...)` and `TODO` logic.
+6. **Auth and profile flows are connected to the backend** — login, registration, OTP verification, Google login, token refresh, logout, and profile updates use the backend API.
 7. **`zod ^4.4.3`** is used — some forms still rely on `zodResolver(... ) as any` casts.
 8. **Filename typo**: `custom-calender.tsx` (should be `calendar`).
 9. **Bangla-first content** — all public-facing content (home, community, surveyor search) is in Bengali. Assume Bengali text for public pages.

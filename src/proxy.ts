@@ -10,7 +10,7 @@ interface TokenPayload {
   isSubscribed?: boolean;
 }
 
-const PUBLIC_ROUTES = [
+const PUBLIC_PREFIXES = [
   "/",
   "/about",
   "/contact",
@@ -19,6 +19,51 @@ const PUBLIC_ROUTES = [
   "/surveyors",
   "/join-as-surveyor",
 ];
+
+const FREE_TOOL_ROUTES = [
+  "/tools/unit-converter",
+  "/tools/inheritance-calculator",
+  "/tools/scale-guide",
+];
+
+const PRO_ONLY_TOOL_ROUTES = [
+  "/tools/land-measurement",
+  "/tools/pantagraph",
+  "/tools/tracer",
+  "/tools/mouza-map-studio",
+  "/tools/mouza-geo-studio",
+];
+
+const isPublicRoute = (pathname: string): boolean => {
+  // 1. Pro tools must NEVER be public
+  if (
+    PRO_ONLY_TOOL_ROUTES.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    )
+  ) {
+    return false;
+  }
+
+  // 2. Exact "/tools" hub page
+  if (pathname === "/tools") {
+    return true;
+  }
+
+  // 3. Free specific tools
+  if (
+    FREE_TOOL_ROUTES.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    )
+  ) {
+    return true;
+  }
+
+  // 4. Other standard public prefixes
+  return PUBLIC_PREFIXES.some((route) => {
+    if (route === "/") return pathname === "/";
+    return pathname === route || pathname.startsWith(`${route}/`);
+  });
+};
 
 const AUTH_ROUTES = [
   "/login",
@@ -78,9 +123,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   const pathname = request.nextUrl.pathname;
 
-  const isPublic = PUBLIC_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`),
-  );
+  const isPublic = isPublicRoute(pathname);
 
   const isAuthRoute = AUTH_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
@@ -88,7 +131,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   let accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
-  let newAccessToken: string | undefined = undefined;
+  let newAccessToken: string | undefined;
 
   // Try to refresh token if missing or expired
   if ((!accessToken || isExpired(accessToken)) && refreshToken) {
@@ -140,7 +183,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   else if (isAuthRoute && role) {
     response = NextResponse.redirect(new URL(ROLE_HOME[role], request.url));
   }
-  // ── 4. Protected Private Routes Guard (/tools, /calculations, /dashboard, /admin, etc.) ──
+  // ── 4. Protected Private Routes Guard (/tools Pro routes, /calculations, /dashboard, /admin, etc.) ──
   else if (!isPublic && !isAuthRoute) {
     if (!accessToken || isExpired(accessToken)) {
       const loginUrl = new URL("/login", request.url);
@@ -153,8 +196,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       if (!role) {
         response = NextResponse.redirect(new URL("/login", request.url));
       }
-      // Subscription protection for /tools: Free users are redirected to /pricing
-      else if (pathname.startsWith("/tools") && !isSubscribed) {
+      // Subscription protection for Pro-only tools: Free users trying to access Pro tools are redirected to /pricing
+      else if (
+        PRO_ONLY_TOOL_ROUTES.some(
+          (route) => pathname === route || pathname.startsWith(`${route}/`),
+        ) &&
+        !isSubscribed
+      ) {
         response = NextResponse.redirect(new URL("/pricing", request.url));
       }
       // Role-based access control
@@ -189,6 +237,8 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   return response;
 }
+
+export default proxy;
 
 export const config = {
   matcher: [

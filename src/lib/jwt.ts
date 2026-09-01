@@ -4,7 +4,7 @@ type JwtPayload = {
   id: string;
   name: string;
   email: string;
-  role: "USER" | "SURVEYOR" | "ADMIN";
+  role: "USER" | "SURVEYOR" | "ADMIN" | "SUPER_ADMIN";
 };
 
 export function decodeJwtPayload(token: string): JwtPayload | null {

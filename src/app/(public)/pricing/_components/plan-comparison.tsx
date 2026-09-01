@@ -13,62 +13,85 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PRICING_PLANS } from "./pricing-data";
+import { toBengaliDigits } from "@/lib/utils";
+import type { TPlan } from "@/interface/plan";
 
-const COMPARISON_ROWS: { label: string; values: string[] }[] = [
-  {
-    label: "প্ল্যান মেয়াদ",
-    values: PRICING_PLANS.map((p) => p.duration),
-  },
-  {
-    label: "মূল্য",
-    values: PRICING_PLANS.map((p) => p.price),
-  },
-  {
-    label: "জমির একক রূপান্তর",
-    values: ["ফ্রি", "ফ্রি", "ফ্রি"],
-  },
-  {
-    label: "জমি বণ্টন ক্যালকুলেটর",
-    values: ["ফ্রি", "ফ্রি", "ফ্রি"],
-  },
-  {
-    label: "জমির ক্ষেত্রফল (প্লট মাপ)",
-    values: ["✓", "✓", "✓"],
-  },
-  {
-    label: "প্যান্টাগ্রাফ (ম্যাপ এলাইনমেন্ট)",
-    values: ["✓", "✓", "✓"],
-  },
-  {
-    label: "ডিজিটাল ম্যাপ ট্রেসিং",
-    values: ["—", "✓", "✓"],
-  },
-  {
-    label: "মৌজা ম্যাপ স্টুডিও",
-    values: ["—", "✓", "✓"],
-  },
-  {
-    label: "মৌজা জিও স্টুডিও (KMZ)",
-    values: ["—", "—", "✓"],
-  },
-  {
-    label: "প্রকল্প সেভ ও সম্পাদনা",
-    values: ["সীমিত", "আনলিমিটেড", "আনলিমিটেড"],
-  },
-  {
-    label: "PDF/Print/PNG এক্সপোর্ট",
-    values: ["সীমিত", "আনলিমিটেড", "আনলিমিটেড"],
-  },
-  {
-    label: "নতুন ফিচারে অগ্রাধিকার",
-    values: ["—", "—", "✓"],
-  },
-];
+interface PlanComparisonProps {
+  plans?: TPlan[];
+}
 
 const recomendedBg = "bg-primary/5";
 
-export function PlanComparison() {
+export function PlanComparison({ plans = [] }: PlanComparisonProps) {
+  if (!plans || plans.length === 0) {
+    return null;
+  }
+
+  const displayPlans = plans.map((p) => ({
+    name: p.name,
+    price: `৳${toBengaliDigits(p.price)}`,
+    duration:
+      p.durationDays === 30
+        ? "১ মাস"
+        : p.durationDays === 180
+        ? "৬ মাস"
+        : p.durationDays === 365
+        ? "১ বছর"
+        : `${toBengaliDigits(p.durationDays)} দিন`,
+    recommended: p.isPopular,
+  }));
+
+  const comparisonRows: { label: string; values: string[] }[] = [
+    {
+      label: "প্ল্যান মেয়াদ",
+      values: displayPlans.map((p) => p.duration),
+    },
+    {
+      label: "মূল্য",
+      values: displayPlans.map((p) => p.price),
+    },
+    {
+      label: "জমির একক রূপান্তর",
+      values: displayPlans.map(() => "ফ্রি"),
+    },
+    {
+      label: "জমি বণ্টন ক্যালকুলেটর",
+      values: displayPlans.map(() => "ফ্রি"),
+    },
+    {
+      label: "জমির ক্ষেত্রফল (প্লট মাপ)",
+      values: displayPlans.map(() => "✓"),
+    },
+    {
+      label: "প্যান্টাগ্রাফ (ম্যাপ এলাইনমেন্ট)",
+      values: displayPlans.map(() => "✓"),
+    },
+    {
+      label: "ডিজিটাল ম্যাপ ট্রেসিং",
+      values: displayPlans.map(() => "✓"),
+    },
+    {
+      label: "মৌজা ম্যাপ স্টুডিও",
+      values: displayPlans.map(() => "✓"),
+    },
+    {
+      label: "মৌজা জিও স্টুডিও (KMZ)",
+      values: displayPlans.map((p) => (p.recommended ? "✓" : "—")),
+    },
+    {
+      label: "প্রকল্প সেভ ও সম্পাদনা",
+      values: displayPlans.map(() => "আনলিমিটেড"),
+    },
+    {
+      label: "PDF/Print/PNG এক্সপোর্ট",
+      values: displayPlans.map(() => "আনলিমিটেড"),
+    },
+    {
+      label: "নতুন ফিচারে অগ্রাধিকার",
+      values: displayPlans.map((p) => (p.recommended ? "✓" : "—")),
+    },
+  ];
+
   return (
     <SectionWrapper id="plan-comparison">
       <SectionHeading
@@ -84,7 +107,7 @@ export function PlanComparison() {
               <TableHead className="px-6 py-4 text-left font-semibold text-foreground">
                 সুবিধা
               </TableHead>
-              {PRICING_PLANS.map((plan) => (
+              {displayPlans.map((plan) => (
                 <TableHead
                   key={plan.name}
                   className={
@@ -106,7 +129,7 @@ export function PlanComparison() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {COMPARISON_ROWS.map((row, i) => (
+            {comparisonRows.map((row, i) => (
               <TableRow
                 key={row.label}
                 className={
@@ -122,7 +145,7 @@ export function PlanComparison() {
                   <TableCell
                     key={j}
                     className={
-                      PRICING_PLANS[j].recommended
+                      displayPlans[j]?.recommended
                         ? `px-6 py-4 text-center text-muted-foreground ${recomendedBg}`
                         : "px-6 py-4 text-center text-muted-foreground"
                     }

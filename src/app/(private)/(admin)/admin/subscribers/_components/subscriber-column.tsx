@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Check, CheckCircle2, Clock, Copy, Phone, UserRound, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Phone, UserRound, XCircle } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

@@ -99,13 +99,6 @@ export const logout = () =>
     auth: "none",
   });
 
-export const exchangeGoogleCode = (code: string) =>
-  nextServerFetch<AuthTokens>("/auth/google/exchange", {
-    method: "POST",
-    body: { code },
-    auth: "none",
-  });
-
 export const getMe = () =>
   nextServerFetch<{ user: TAuthUser }>("/auth/me", {
     auth: "auth",

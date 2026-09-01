@@ -195,7 +195,7 @@ export function ManageSubscriptionModal({
         trigger ? (
           trigger
         ) : (
-          <Button variant="outline" size="sm">
+          <Button variant="outline">
             Manage Plan
           </Button>
         )
@@ -216,7 +216,7 @@ export function ManageSubscriptionModal({
                 <p className="font-semibold text-foreground text-sm">
                   {user.name}
                 </p>
-                <Badge variant="outline" size="sm" className="text-xs py-0 font-normal">
+                <Badge variant="outline" className="text-xs py-0 font-normal">
                   {user.role}
                 </Badge>
               </div>

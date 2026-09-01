@@ -13,14 +13,26 @@ import { buildQueryString } from "@/lib/buildQueryString";
 import { nextServerFetch } from "@/lib/nextServerFetch";
 import { CACHE_TAGS, CACHE_TIME } from "@/lib/cache-tags";
 
-// 1. Get all subscribers for Admin
+// 1. Get all unique subscribers for Admin
 export const getAllSubscribers = (query?: TSubscriberQuery) => {
   const params = buildQueryString(query ?? {});
   return nextServerFetch<TSubscriber[]>(`/subscribers${params}`, {
     auth: "auth",
     next: {
       tags: [CACHE_TAGS.SUBSCRIBERS, CACHE_TAGS.USERS],
-      revalidate: CACHE_TIME.DAY,
+      revalidate: CACHE_TIME.FIVE_MINUTES
+    },
+  });
+};
+
+// 1.1 Get complete subscription transaction history log
+export const getSubscriptionHistory = (query?: TSubscriberQuery) => {
+  const params = buildQueryString({ ...(query ?? {}), history: "true" });
+  return nextServerFetch<TSubscriber[]>(`/subscribers${params}`, {
+    auth: "auth",
+    next: {
+      tags: [CACHE_TAGS.SUBSCRIBERS, CACHE_TAGS.USERS],
+      revalidate: CACHE_TIME.FIVE_MINUTES,
     },
   });
 };
