@@ -13,6 +13,7 @@ import type {
   Point2D,
 } from "../types";
 import { applyGeoTransform, fromMercator, toMercator } from "../utils/geoMath";
+import { InfoToast } from "@/lib/utils";
 
 type InteractionTarget = "map" | "pdf";
 
@@ -37,9 +38,11 @@ type WorldMapCanvasProps = {
   transform: GeoTransform | null;
   controlPairs: ControlPair[];
   waitingForWorldPoint: boolean;
+  pointMode: boolean;
   opacity: number;
   mapStyle: "satellite" | "street";
   interactionTarget: InteractionTarget;
+  userLocation?: { lat: number; lng: number; timestamp: number } | null;
   onPlaceWorldPoint: (point: GeoPoint) => void;
   onTranslateOverlay: (delta: MercatorPoint) => void;
   onScaleOverlay: (factor: number, anchor?: Point2D) => void;
@@ -52,6 +55,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   const mapRef = useRef<LeafletMap | null>(null);
   const baseLayerRef = useRef<TileLayer | null>(null);
   const labelLayerRef = useRef<TileLayer | null>(null);
+  const userMarkerRef = useRef<import("leaflet").CircleMarker | null>(null);
   const propsRef = useRef(props);
   const dragRef = useRef<{ id: number; point: MercatorPoint } | null>(null);
   const drawFrameRef = useRef<number | null>(null);
@@ -294,7 +298,12 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
         const handleClick = (event: LeafletMouseEvent) => {
           const current = propsRef.current;
-          if (!current.waitingForWorldPoint) return;
+          if (!current.waitingForWorldPoint) {
+            if (current.pointMode) {
+              InfoToast("আগে মৌজা ম্যাপে (PDF/Image) একটি পয়েন্ট সিলেক্ট করুন");
+            }
+            return;
+          }
 
           current.onPlaceWorldPoint({
             lat: event.latlng.lat,
@@ -373,6 +382,48 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
     return () => window.cancelAnimationFrame(frame);
   }, [props.active, scheduleDraw]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const container = map.getContainer();
+    if (!container) return;
+
+    if (props.pointMode || props.waitingForWorldPoint) {
+      container.classList.add("leaflet-crosshair");
+      container.style.cursor = "crosshair";
+    } else {
+      container.classList.remove("leaflet-crosshair");
+      container.style.cursor = "";
+    }
+  }, [props.pointMode, props.waitingForWorldPoint]);
+
+  useEffect(() => {
+    if (!props.userLocation || !mapRef.current) return;
+    const { lat, lng } = props.userLocation;
+    const map = mapRef.current;
+
+    void import("leaflet").then((leaflet) => {
+      if (mapRef.current !== map) return;
+
+      map.flyTo([lat, lng], 18, { duration: 1.2 });
+
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove();
+      }
+
+      userMarkerRef.current = leaflet
+        .circleMarker([lat, lng], {
+          radius: 8,
+          fillColor: "#3B82F6",
+          color: "#FFFFFF",
+          weight: 3,
+          opacity: 1,
+          fillOpacity: 0.9,
+        })
+        .addTo(map);
+    });
+  }, [props.userLocation]);
 
   const getMercatorAtPointer = (clientX: number, clientY: number) => {
     const host = hostRef.current;
@@ -518,8 +569,16 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     }
   };
 
+  const isCrosshair = props.pointMode || props.waitingForWorldPoint;
+
   return (
-    <div className="relative h-full w-full overflow-hidden bg-muted">
+    <div
+      className={`relative h-full w-full overflow-hidden bg-muted ${
+        isCrosshair
+          ? "cursor-crosshair [&_.leaflet-container]:cursor-crosshair! [&_.leaflet-grab]:cursor-crosshair! [&_.leaflet-interactive]:cursor-crosshair!"
+          : "cursor-grab active:cursor-grabbing"
+      }`}
+    >
       <div ref={hostRef} className="absolute inset-0 z-0 bg-muted" />
 
       <canvas
@@ -534,27 +593,38 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
       {loading && (
         <div className="absolute inset-0 z-20 grid place-items-center bg-background/80 text-sm text-foreground">
-          Free OpenStreetMap load হচ্ছে…
+          স্যাটেলাইট ম্যাপ লোড হচ্ছে…
         </div>
       )}
 
       {error && (
         <div className="absolute inset-0 z-20 grid place-items-center bg-background p-6 text-center">
           <div className="max-w-md rounded-xl border border-border bg-card p-5 text-sm text-card-foreground shadow-lg">
-            <p className="font-semibold">OpenStreetMap চালু করা যায়নি</p>
+            <p className="font-semibold">ম্যাপ চালু করা যায়নি</p>
             <p className="mt-2 text-muted-foreground">{error}</p>
           </div>
         </div>
       )}
 
-      {!loading && !error && props.waitingForWorldPoint && (
-        <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-4 py-2 text-xs font-semibold text-foreground shadow-lg backdrop-blur">
-          PDF point-এর একই জায়গায় OpenStreetMap-এ click করুন
+      {!loading && !error && (
+        <div className="pointer-events-none absolute bottom-16 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-1.5 text-center text-xs text-foreground shadow-lg backdrop-blur flex items-center gap-2 md:bottom-4">
+          <span
+            className={`size-2 rounded-full ${
+              isCrosshair ? "bg-primary animate-pulse" : "bg-muted-foreground"
+            }`}
+          />
+          <span>
+            {props.waitingForWorldPoint
+              ? "পয়েন্ট মোড: মৌজা পয়েন্টের অনুরূপ জায়গায় স্যাটেলাইট ম্যাপে ক্লিক করুন"
+              : props.pointMode
+              ? "পয়েন্ট মোড চালু · স্যাটেলাইটে পয়েন্ট দিতে আগে মৌজা ম্যাপে পয়েন্ট দিন"
+              : "প্যান মোড: ম্যাপ ড্র্যাগ করুন · পয়েন্ট বসাতে পয়েন্ট মোড অন করুন"}
+          </span>
         </div>
       )}
 
       {pdfInteractionEnabled && (
-        <div className="pointer-events-none absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-2 text-center text-xs text-foreground shadow-lg backdrop-blur">
+        <div className="pointer-events-none absolute bottom-26 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-2 text-center text-xs text-foreground shadow-lg backdrop-blur md:bottom-14">
           Drag: PDF সরান · Pinch/Wheel: scale · Alt + Wheel: rotate
         </div>
       )}

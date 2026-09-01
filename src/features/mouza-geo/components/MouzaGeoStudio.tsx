@@ -47,7 +47,7 @@ export default function MouzaGeoStudio() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
-  const [overlayImage, setOverlayImage] = useState<HTMLImageElement | null>(
+  const [processedImage, setProcessedImage] = useState<HTMLImageElement | null>(
     null,
   );
   const [mapName, setMapName] = useState("mouza-map");
@@ -78,6 +78,15 @@ export default function MouzaGeoStudio() {
   const [interactionTarget, setInteractionTarget] =
     useState<InteractionTarget>("map");
 
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+    timestamp: number;
+  } | null>(null);
+  const [locating, setLocating] = useState(false);
+
+  const overlayImage = backgroundRemoved && processedImage ? processedImage : image;
+
   const imageSize = useMemo(() => {
     if (!image) return { width: 0, height: 0 };
     return {
@@ -100,18 +109,14 @@ export default function MouzaGeoStudio() {
   }, [transform, controlPairs]);
 
   useEffect(() => {
-    if (!image) {
-      setOverlayImage(null);
-      return;
-    }
-
-    if (!backgroundRemoved) {
-      setOverlayImage(image);
+    if (!image || !backgroundRemoved) {
       return;
     }
 
     let cancelled = false;
-    setProcessingBackground(true);
+    queueMicrotask(() => {
+      if (!cancelled) setProcessingBackground(true);
+    });
 
     void createProcessedPreview(image, {
       sensitivity: backgroundSensitivity,
@@ -119,13 +124,13 @@ export default function MouzaGeoStudio() {
     })
       .then((processed: HTMLImageElement) => {
         if (cancelled) return;
-        setOverlayImage(processed);
+        setProcessedImage(processed);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
         console.error("BG remove error:", error);
         ErrorToast("Background remove করা যায়নি");
-        setOverlayImage(image);
+        setProcessedImage(null);
       })
       .finally(() => {
         if (!cancelled) setProcessingBackground(false);
@@ -157,7 +162,7 @@ export default function MouzaGeoStudio() {
       if (!loadedImage) throw new Error("PDF থেকে map পাওয়া যায়নি");
 
       setImage(loadedImage);
-      setOverlayImage(loadedImage);
+      setProcessedImage(null);
       setBackgroundRemoved(false);
       setBackgroundSensitivity(75);
       setLineColor("#DC2626");
@@ -312,6 +317,39 @@ export default function MouzaGeoStudio() {
     );
   };
 
+  const handleLocateUser = () => {
+    if (!navigator.geolocation) {
+      ErrorToast("আপনার ব্রাউজারে Geolocation সাপোর্ট নেই");
+      return;
+    }
+
+    setLocating(true);
+    setWorldInitialized(true);
+    setActiveView("world");
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false);
+        setUserLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          timestamp: Date.now(),
+        });
+        SuccessToast("আপনার বর্তমান লোকেশন পাওয়া গেছে");
+      },
+      (err) => {
+        setLocating(false);
+        console.error("Location error:", err);
+        if (err.code === err.PERMISSION_DENIED) {
+          ErrorToast("লোকেশন পারমিশন দেওয়া হয়নি। ব্রাউজার সেটিংসে পারমিশন দিন");
+        } else {
+          ErrorToast("লোকেশন নির্ণয় করা যায়নি");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  };
+
   const handleExport = async () => {
     if (exportingKmz) return;
 
@@ -415,6 +453,8 @@ export default function MouzaGeoStudio() {
                   transform={transform}
                   controlPairs={controlPairs}
                   waitingForWorldPoint={Boolean(pendingSource)}
+                  pointMode={pointMode}
+                  userLocation={userLocation}
                   opacity={opacity}
                   mapStyle={mapStyle}
                   interactionTarget={interactionTarget}
@@ -440,6 +480,7 @@ export default function MouzaGeoStudio() {
           alignmentMode={alignmentMode}
           controlPairsCount={controlPairs.length}
           pointMode={pointMode}
+          locating={locating}
           canUndo={controlPairs.length > 0}
           canRedo={redoControlPairs.length > 0}
           canExport={Boolean(image) && !processingBackground && !exportingKmz}
@@ -449,6 +490,7 @@ export default function MouzaGeoStudio() {
             if (view === "world") setWorldInitialized(true);
             setActiveView(view);
           }}
+          onLocateUser={handleLocateUser}
           onSimilarityClick={() => fitTransform(controlPairs, "similarity", true)}
           onAffineClick={() => fitTransform(controlPairs, "affine", true)}
           onUndo={undoPair}
@@ -471,6 +513,7 @@ export default function MouzaGeoStudio() {
           alignmentMode={alignmentMode}
           controlPairsCount={controlPairs.length}
           pointMode={pointMode}
+          locating={locating}
           canUndo={controlPairs.length > 0}
           canRedo={redoControlPairs.length > 0}
           canExport={Boolean(image) && !processingBackground && !exportingKmz}
@@ -480,6 +523,7 @@ export default function MouzaGeoStudio() {
             if (view === "world") setWorldInitialized(true);
             setActiveView(view);
           }}
+          onLocateUser={handleLocateUser}
           onSimilarityClick={() => fitTransform(controlPairs, "similarity", true)}
           onAffineClick={() => fitTransform(controlPairs, "affine", true)}
           onUndo={undoPair}

@@ -376,7 +376,7 @@ export default function SourceMapCanvas({
         </div>
       ))}
 
-      <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-1.5 text-center text-xs text-foreground shadow-lg backdrop-blur flex items-center gap-2">
+      <div className="pointer-events-none absolute bottom-16 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-1.5 text-center text-xs text-foreground shadow-lg backdrop-blur flex items-center gap-2 md:bottom-4">
         <span
           className={`size-2 rounded-full ${
             pointMode ? "bg-primary animate-pulse" : "bg-muted-foreground"

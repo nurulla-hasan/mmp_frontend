@@ -3,6 +3,7 @@ import {
   Download,
   FileText,
   Globe2,
+  LocateFixed,
   Redo2,
   RotateCcw,
   Settings2,
@@ -24,9 +25,11 @@ type GeoStudioToolbarProps = {
   canUndo: boolean;
   canRedo: boolean;
   canExport: boolean;
+  locating?: boolean;
   onToggleSettings: () => void;
   onTogglePointMode: () => void;
   onSelectView: (view: "source" | "world") => void;
+  onLocateUser?: () => void;
   onSimilarityClick: () => void;
   onAffineClick: () => void;
   onUndo: () => void;
@@ -46,9 +49,11 @@ export default function GeoStudioToolbar({
   canUndo,
   canRedo,
   canExport,
+  locating = false,
   onToggleSettings,
   onTogglePointMode,
   onSelectView,
+  onLocateUser,
   onSimilarityClick,
   onAffineClick,
   onUndo,
@@ -106,6 +111,17 @@ export default function GeoStudioToolbar({
         onClick={() => onSelectView("world")}
         mobile={mobile}
       />
+
+      {/* GPS Location Button */}
+      {onLocateUser && (
+        <FloatingToolButton
+          icon={LocateFixed}
+          label="আমার বর্তমান লোকেশন (GPS)"
+          active={locating}
+          onClick={onLocateUser}
+          mobile={mobile}
+        />
+      )}
 
       {divider}
 
