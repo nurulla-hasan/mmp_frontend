@@ -3,7 +3,11 @@ import { Check, Lock, Star } from "lucide-react";
 import { SectionHeading } from "@/components/common/section-heading";
 import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
-import { FREE_TOOLS } from "./pricing-data";
+
+const FREE_TOOLS = [
+  "জমির একক রূপান্তর",
+  "জমি বণ্টন ক্যালকুলেটর",
+];
 
 const FREE_FEATURES = [
   "জমির একক রূপান্তর — শতক, কাঠা, বিঘা, একর, বর্গফুট",

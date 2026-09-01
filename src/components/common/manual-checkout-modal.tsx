@@ -22,7 +22,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { submitManualCheckoutAction } from "@/app/(private)/(admin)/admin/subscribers/_actions/subscriber.action";
 import { SuccessToast, ErrorToast } from "@/lib/utils";
 import type { TPlan } from "@/interface/plan";
-import type { PaymentNumbersResponse } from "@/interface/subscriber";
+import type { PaymentNumbersResponse, TSubscriber } from "@/interface/subscriber";
 
 const manualCheckoutFormSchema = z.object({
   senderPhone: z
@@ -40,6 +40,8 @@ type ManualCheckoutFormValues = z.infer<typeof manualCheckoutFormSchema>;
 interface ManualCheckoutModalProps {
   plan: TPlan;
   paymentNumbers?: PaymentNumbersResponse;
+  isPending?: boolean;
+  pendingData?: TSubscriber | null;
   trigger?: React.ReactNode;
 }
 
@@ -52,13 +54,15 @@ export function ManualCheckoutModal({
     instructions:
       "Please Send Money the required amount to any of the numbers above. After sending, enter your sender phone number and Transaction ID (TrxID) below to submit your payment request.",
   },
+  isPending = false,
+  pendingData,
   trigger,
 }: ManualCheckoutModalProps) {
   const [open, setOpen] = useState(false);
   const [method, setMethod] = useState<"BKASH" | "NAGAD" | "ROCKET">("BKASH");
   const [copied, setCopied] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [submittedTrxId, setSubmittedTrxId] = useState("");
+  const [submittedTrxId, setSubmittedTrxId] = useState(pendingData?.transactionId || "");
 
   const {
     control,
@@ -113,12 +117,19 @@ export function ManualCheckoutModal({
     }
   };
 
+  const showStatusView = isSuccess || isPending;
+  const currentTrx = submittedTrxId || pendingData?.transactionId || "";
+
   return (
     <ModalWrapper
       open={open}
       onOpenChange={handleModalClose}
-      title="Manual Payment Checkout"
-      description="Complete your payment via bKash, Nagad or Rocket to activate Pro access."
+      title={showStatusView ? "Payment Verification Status" : "Manual Payment Checkout"}
+      description={
+        showStatusView
+          ? "Your subscription request is being reviewed by the administration team."
+          : "Complete your payment via bKash, Nagad or Rocket to activate Pro access."
+      }
       actionTrigger={
         trigger || (
           <Button variant="default" className="w-full cursor-pointer">
@@ -128,22 +139,21 @@ export function ManualCheckoutModal({
         )
       }
     >
-      {isSuccess ? (
+      {showStatusView ? (
         <div className="py-4 flex flex-col items-center text-center space-y-4">
-          <div className="flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
-            <Clock className="size-8" />
+          <div className="flex size-14 items-center justify-center rounded-full bg-amber-500/10 text-amber-600">
+            <Clock className="size-8 animate-pulse" />
           </div>
           <div className="space-y-1">
             <h4 className="text-base font-bold text-foreground">
-              Payment Request Submitted!
+              {isSuccess ? "Payment Request Submitted!" : "Payment Under Verification"}
             </h4>
             <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
-              Thank you! Your payment for{" "}
+              Your payment for{" "}
               <span className="font-semibold text-foreground">
                 {plan.name} (৳{plan.price})
               </span>{" "}
-              is currently pending verification. An administrator will review your
-              TrxID shortly and activate your Pro membership.
+              is currently pending admin verification. Your Pro access will be activated immediately once approved.
             </p>
           </div>
 
@@ -156,10 +166,18 @@ export function ManualCheckoutModal({
               <span className="text-muted-foreground">Amount:</span>
               <span className="font-medium text-foreground">৳{plan.price}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">TrxID:</span>
-              <span className="font-mono font-medium text-primary">
-                {submittedTrxId}
+            {currentTrx && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">TrxID:</span>
+                <span className="font-mono font-medium text-primary">
+                  {currentTrx}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between pt-1 border-t border-border/50">
+              <span className="text-muted-foreground">Status:</span>
+              <span className="font-semibold text-amber-600 dark:text-amber-400">
+                ⏳ Pending Review
               </span>
             </div>
           </div>

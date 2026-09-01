@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Calculator, Globe2, Layers3, Map, MoveDiagonal, PenLine, Scaling } from "lucide-react";
+import { Calculator, Globe2, Layers3, Map, MoveDiagonal, PenLine, Ruler, Scaling } from "lucide-react";
 import Link from "next/link";
 
 import { PageWrapper } from "@/components/common/page-wrapper";
@@ -35,6 +35,7 @@ const featuredTool = {
   description:
     "মৌজা ম্যাপ আপলোড করে Plot আঁকুন, জমির পরিমাণ হিসাব করুন এবং প্রয়োজন হলে Plot ভাগ করুন।",
   href: "/tools/land-measurement",
+  isPro: true,
   features: [
     "ম্যাপ/PDF আপলোড",
     "স্কেল সেট",
@@ -53,6 +54,7 @@ const quickTools = [
       "C.S ও B.S ম্যাপ align করে cleanup, text/mark edit করুন এবং শেষে ব্যবহারযোগ্য sheet তৈরি করুন।",
     href: "/tools/mouza-map-studio",
     badge: "বেটা",
+    isPro: true,
     color: "text-emerald-600 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30",
   },
   {
@@ -62,6 +64,7 @@ const quickTools = [
       "মৌজা ম্যাপকে বাস্তব পৃথিবীর অবস্থানের সঙ্গে align করে Google Earth-এর জন্য KMZ তৈরি করুন।",
     href: "/tools/mouza-geo-studio",
     badge: "বেটা",
+    isPro: true,
     color: "text-primary bg-primary/10",
   },
   {
@@ -71,6 +74,7 @@ const quickTools = [
       "সাবেক ও হাল ম্যাপ আপলোড করে matching point বসিয়ে অবস্থান, rotation ও scale মিলিয়ে তুলনা করুন।",
     href: "/tools/pantagraph",
     badge: "নতুন",
+    isPro: true,
     color: "text-cyan-600 bg-cyan-100 dark:text-cyan-400 dark:bg-cyan-900/30",
   },
   {
@@ -80,6 +84,7 @@ const quickTools = [
       "পুরানো মৌজা ম্যাপের দাগের সীমানা ও দাগ নম্বর ট্রেস করে পরিষ্কার digital vector map তৈরি করুন।",
     href: "/tools/tracer",
     badge: "নতুন",
+    isPro: true,
     color: "text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30",
   },
   {
@@ -88,6 +93,7 @@ const quickTools = [
     description:
       "শতক, কাঠা, বিঘা, একর, বর্গফুট, বর্গমিটার ও হেক্টরে জমির পরিমাণ রূপান্তর করুন।",
     href: "/tools/unit-converter",
+    isPro: false,
     color:
       "text-purple-600 bg-purple-100 dark:text-purple-400 dark:bg-purple-900/30",
   },
@@ -97,6 +103,7 @@ const quickTools = [
     description:
       "মোট জমি ও অংশীদারদের অনুপাত অনুযায়ী প্রত্যেকের প্রাপ্য জমির পরিমাণ নির্ণয় করুন।",
     href: "/tools/inheritance-calculator",
+    isPro: false,
     color: "text-rose-600 bg-rose-100 dark:text-rose-400 dark:bg-rose-900/30",
   },
 ];
@@ -105,7 +112,7 @@ export default function ToolsPage() {
   const FeaturedIcon = featuredTool.icon;
 
   return (
-    <PageWrapper paddingSize="large" className="space-y-6">
+    <PageWrapper paddingSize="large" className="space-y-8">
       {/* ─── Featured Tool ──────────────────────────────────── */}
       <section>
         <Link href={featuredTool.href} className="group block">
@@ -123,6 +130,9 @@ export default function ToolsPage() {
                     <h2 className="text-xl font-bold tracking-tight sm:text-2xl font-heading">
                       {featuredTool.title}
                     </h2>
+                    <Badge className="bg-emerald-600 text-white text-xs font-semibold px-2 py-0.5 shadow-sm">
+                      PRO
+                    </Badge>
                     <Badge className="bg-primary/10 p-2 text-xs text-primary hover:bg-primary/20">
                       প্রধান টুল
                     </Badge>
@@ -161,7 +171,7 @@ export default function ToolsPage() {
           বিশেষায়িত ম্যাপ, ট্রেসিং, জিওরেফারেন্স ও ভূমি হিসাবের টুলসমূহ।
         </p>
 
-        <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {quickTools.map((tool) => {
             const Icon = tool.icon;
             return (
@@ -174,11 +184,22 @@ export default function ToolsPage() {
                       >
                         <Icon className="size-6" />
                       </div>
-                      {"badge" in tool && tool.badge && (
-                        <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs px-1.5 py-0.5">
-                          {tool.badge}
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {tool.isPro ? (
+                          <Badge className="bg-emerald-600/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs px-1.5 py-0.5 font-semibold">
+                            PRO
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-blue-600/15 text-blue-700 dark:text-blue-400 border border-blue-500/20 text-xs px-1.5 py-0.5 font-medium">
+                            ফ্রি
+                          </Badge>
+                        )}
+                        {"badge" in tool && tool.badge && (
+                          <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs px-1.5 py-0.5">
+                            {tool.badge}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     <h3 className="text-base font-semibold font-heading">
                       {tool.title}
@@ -195,6 +216,37 @@ export default function ToolsPage() {
             );
           })}
         </div>
+      </section>
+
+      {/* ─── Educational & Scale Guide Banner ───────────────── */}
+      <section className="pt-2">
+        <Link href="/tools/scale-guide" className="group block">
+          <Card className="border-dashed border-2 border-primary/25 bg-primary/5 transition-all duration-300 hover:border-primary/50 hover:bg-primary/10 hover:shadow-md">
+            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+                  <Ruler className="size-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold font-heading">
+                      মৌজা ম্যাপ স্কেল সেট ও ব্যবহার নির্দেশিকা
+                    </h3>
+                    <Badge variant="outline" className="border-primary/40 text-primary text-[11px] px-2">
+                      গাইডলাইন ও সহায়তা
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+                    মৌজা ম্যাপে নিখুঁত পরিমাপের জন্য ১৬ ইঞ্চি = ১ মাইল বা কাস্টম স্কেল কীভাবে সেট করতে হয় এবং কাজ করার নিয়মাবলী জেনে নিন।
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" className="shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                স্কেল গাইড দেখুন 📖
+              </Button>
+            </CardContent>
+          </Card>
+        </Link>
       </section>
     </PageWrapper>
   );

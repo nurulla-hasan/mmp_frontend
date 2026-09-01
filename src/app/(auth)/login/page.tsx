@@ -84,7 +84,7 @@ export default function LoginPage() {
           />
           <Field>
             <div className="w-full [&>button]:w-full">
-              <Button type="submit" size="lg" loading={isSubmitting}>
+              <Button type="submit" size="lg" loading={isSubmitting} loadingText="সাইন ইন করা হচ্ছে...">
                 সাইন ইন
               </Button>
             </div>
@@ -99,6 +99,7 @@ export default function LoginPage() {
                 className="gap-3"
                 onClick={startGoogleLogin}
                 loading={isGoogleLoading}
+                loadingText="Google দিয়ে চালিয়ে যাওয়া হচ্ছে..."
               >
                  {!isGoogleLoading && (
                 <svg className="size-5" viewBox="0 0 24 24" aria-hidden="true">
