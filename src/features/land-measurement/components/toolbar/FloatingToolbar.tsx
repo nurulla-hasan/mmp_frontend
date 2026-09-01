@@ -79,6 +79,10 @@ function VDivider() {
     return <div className="my-1 h-px w-7 self-center bg-border" />;
 }
 
+function HDivider() {
+    return <div className="mx-0.5 h-6 w-px shrink-0 bg-border/60" />;
+}
+
 interface FloatingToolbarProps {
     onOpenLoad?: () => void;
     onOpenSave?: () => void;
@@ -319,15 +323,16 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
                 </div>
             )}
 
-            <div id="step-toolbar" className={`absolute bottom-4 left-1/2 z-40 w-max max-w-[95vw] flex-wrap -translate-x-1/2 items-center justify-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl ${isDrawing ? 'hidden' : 'flex md:hidden'}`}>
+            <div id="step-toolbar" className={`absolute bottom-4 left-1/2 z-40 flex w-fit max-w-[calc(100vw-1rem)] -translate-x-1/2 items-center justify-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl ${isDrawing ? 'hidden' : 'flex md:hidden'}`}>
                 {commonTools.upload('sm')}
                 {commonTools.saved('sm')}
-                {plots.length > 0 && commonTools.save('sm')}
-                {commonTools.drive('sm')}
+                <HDivider />
                 {commonTools.calibrate('sm')}
                 {commonTools.draw('sm')}
                 {commonTools.divide('sm')}
+                <HDivider />
                 {commonTools.magnifier('sm')}
+                <HDivider />
                 <DropdownMenu>
                     <DropdownMenuTrigger nativeButton={false} render={<div className="inline-flex" />} className="focus-visible:outline-none focus:outline-none">
                         <ToolBtn
@@ -339,14 +344,17 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
                     <DropdownMenuContent
                         side="top"
                         align="end"
-                        alignOffset={-10}
                         sideOffset={12}
-                        className="w-fit"
+                        className="w-fit p-1 rounded-2xl border border-border bg-card/95 shadow-xl"
                     >
-                        <div>
+                        <div className="flex flex-row items-center gap-1">
+                            {plots.length > 0 && commonTools.save('sm')}
+                            {commonTools.drive('sm')}
+                            <div className="mx-0.5 h-6 w-px bg-border/60" />
                             {commonTools.diagonals('sm')}
                             {commonTools.themeToggle('sm')}
                             {commonTools.help('sm')}
+                            <div className="mx-0.5 h-6 w-px bg-border/60" />
                             {commonTools.reset('sm')}
                         </div>
                     </DropdownMenuContent>

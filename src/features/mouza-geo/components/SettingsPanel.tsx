@@ -8,22 +8,20 @@ import {
   Trash2,
   FileText,
   Crosshair,
-  SlidersHorizontal,
   Globe2,
-  Sparkles,
   HelpCircle,
+  LocateFixed,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import type { AlignmentMode, ControlPair, GeoTransform } from "../types";
+import type { ControlPair, GeoTransform } from "../types";
 import type { KmzExportQuality } from "../utils/kmz";
 
 type SettingsPanelProps = {
   image: HTMLImageElement | null;
   loadingFile: boolean;
   controlPairs: ControlPair[];
-  alignmentMode: AlignmentMode;
   transform: GeoTransform | null;
   backgroundRemoved: boolean;
   processingBackground: boolean;
@@ -33,13 +31,12 @@ type SettingsPanelProps = {
   mapStyle: "satellite" | "street";
   exportQuality: KmzExportQuality;
   exportingKmz: boolean;
-  residual: number | null;
   mapName: string;
   canExport: boolean;
+  locating?: boolean;
   onUploadClick: () => void;
   onRemovePair: (id: string) => void;
-  onSimilarityClick: () => void;
-  onAffineClick: () => void;
+  onLocateUser?: () => void;
   onBackgroundRemovedChange: (value: boolean) => void;
   onBackgroundSensitivityChange: (value: number) => void;
   onLineColorChange: (value: string) => void;
@@ -64,7 +61,6 @@ export default memo(function SettingsPanel({
   image,
   loadingFile,
   controlPairs,
-  alignmentMode,
   transform,
   backgroundRemoved,
   processingBackground,
@@ -74,13 +70,12 @@ export default memo(function SettingsPanel({
   mapStyle,
   exportQuality,
   exportingKmz,
-  residual,
   mapName,
   canExport,
+  locating = false,
   onUploadClick,
   onRemovePair,
-  onSimilarityClick,
-  onAffineClick,
+  onLocateUser,
   onBackgroundRemovedChange,
   onBackgroundSensitivityChange,
   onLineColorChange,
@@ -155,7 +150,7 @@ export default memo(function SettingsPanel({
         )}
       </section>
 
-      {/* ── When Image is Loaded: Show full Control Points & Alignment ── */}
+      {/* ── When Image is Loaded: Show Control Points, Background, Opacity ── */}
       {image && (
         <>
           <Separator className="bg-border/60" />
@@ -209,51 +204,7 @@ export default memo(function SettingsPanel({
 
           <Separator className="bg-border/60" />
 
-          {/* 3. Alignment Section */}
-          <section className="space-y-3">
-            <h3 className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <SlidersHorizontal className="size-3.5 text-primary" />
-              <span>অ্যালাইনমেন্ট ও ট্র্যান্সফর্ম</span>
-            </h3>
-
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant={alignmentMode === "similarity" && transform ? "default" : "outline"}
-                size="sm"
-                disabled={controlPairs.length < 2}
-                onClick={onSimilarityClick}
-                className="text-xs h-8.5"
-              >
-                Similarity (২+ পয়েন্ট)
-              </Button>
-              <Button
-                variant={alignmentMode === "affine" && transform ? "default" : "outline"}
-                size="sm"
-                disabled={controlPairs.length < 3}
-                onClick={onAffineClick}
-                className="text-xs h-8.5"
-              >
-                Affine (৩+ পয়েন্ট)
-              </Button>
-            </div>
-
-            {transform && (
-              <div className="flex items-center justify-between rounded-xl border border-primary/40 bg-primary/5 p-2.5 shadow-xs">
-                <span className="text-xs text-primary flex items-center gap-1.5">
-                  <Sparkles className="size-3.5" />
-                  {alignmentMode === "affine" ? "Affine Refined" : "Similarity"}{" "}
-                  Active
-                </span>
-                <Badge variant="outline" className="font-mono text-[10px] text-primary bg-primary/10 border-primary/30">
-                  RMS {residual?.toFixed(2)}m
-                </Badge>
-              </div>
-            )}
-          </section>
-
-          <Separator className="bg-border/60" />
-
-          {/* 4. PDF Background Removal Card */}
+          {/* 3. PDF Background Removal Card */}
           <section className="space-y-2.5 p-3 rounded-xl border border-border/70 bg-card shadow-xs">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-xs text-foreground">
@@ -332,7 +283,7 @@ export default memo(function SettingsPanel({
             )}
           </section>
 
-          {/* 5. PDF Opacity Slider */}
+          {/* 4. PDF Opacity Slider */}
           <section className="space-y-1.5 p-3 rounded-xl border border-border/70 bg-card shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs text-foreground">
@@ -358,7 +309,36 @@ export default memo(function SettingsPanel({
 
       <Separator className="bg-border/60" />
 
-      {/* ── World Map Style Toggle (Always accessible) ── */}
+      {/* ── 5. GPS Location Section ── */}
+      {onLocateUser && (
+        <>
+          <section className="space-y-2">
+            <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <LocateFixed className="size-3.5 text-primary" />
+              <span>GPS অবস্থান</span>
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={locating}
+              onClick={onLocateUser}
+              className="w-full text-xs h-8.5 gap-1.5 border-border/80 hover:bg-muted"
+            >
+              {locating ? (
+                <Loader2 className="size-3.5 animate-spin text-primary" />
+              ) : (
+                <LocateFixed className="size-3.5 text-primary" />
+              )}
+              <span>{locating ? "লোকেশন খোঁজা হচ্ছে…" : "আমার বর্তমান লোকেশন (GPS)"}</span>
+            </Button>
+          </section>
+
+          <Separator className="bg-border/60" />
+        </>
+      )}
+
+      {/* ── 6. World Map Style Toggle ── */}
       <section className="space-y-2">
         <span className="text-xs text-muted-foreground flex items-center gap-1.5">
           <Globe2 className="size-3.5 text-primary" />
@@ -388,7 +368,7 @@ export default memo(function SettingsPanel({
 
       <Separator className="bg-border/60" />
 
-      {/* ── KMZ Export Section ── */}
+      {/* ── 7. KMZ Export Section ── */}
       <section className="space-y-2.5">
         <h3 className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
           <Download className="size-3.5 text-primary" />
@@ -452,7 +432,7 @@ export default memo(function SettingsPanel({
         )}
       </section>
 
-      {/* ── Workflow Guide Card (Shown before upload so initial state is clean and zero scroll) ── */}
+      {/* ── Workflow Guide Card (Shown before upload) ── */}
       {!image && (
         <>
           <Separator className="bg-border/60" />

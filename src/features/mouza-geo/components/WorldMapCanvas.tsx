@@ -298,10 +298,10 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
         const handleClick = (event: LeafletMouseEvent) => {
           const current = propsRef.current;
+          if (!current.pointMode) return;
+
           if (!current.waitingForWorldPoint) {
-            if (current.pointMode) {
-              InfoToast("আগে মৌজা ম্যাপে (PDF/Image) একটি পয়েন্ট সিলেক্ট করুন");
-            }
+            InfoToast("আগে মৌজা ম্যাপে (PDF/Image) একটি পয়েন্ট সিলেক্ট করুন");
             return;
           }
 
@@ -389,14 +389,14 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     const container = map.getContainer();
     if (!container) return;
 
-    if (props.pointMode || props.waitingForWorldPoint) {
+    if (props.pointMode) {
       container.classList.add("leaflet-crosshair");
       container.style.cursor = "crosshair";
     } else {
       container.classList.remove("leaflet-crosshair");
       container.style.cursor = "";
     }
-  }, [props.pointMode, props.waitingForWorldPoint]);
+  }, [props.pointMode]);
 
   useEffect(() => {
     if (!props.userLocation || !mapRef.current) return;
@@ -569,7 +569,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     }
   };
 
-  const isCrosshair = props.pointMode || props.waitingForWorldPoint;
+  const isCrosshair = props.pointMode;
 
   return (
     <div
@@ -614,10 +614,10 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
             }`}
           />
           <span>
-            {props.waitingForWorldPoint
-              ? "পয়েন্ট মোড: মৌজা পয়েন্টের অনুরূপ জায়গায় স্যাটেলাইট ম্যাপে ক্লিক করুন"
-              : props.pointMode
-              ? "পয়েন্ট মোড চালু · স্যাটেলাইটে পয়েন্ট দিতে আগে মৌজা ম্যাপে পয়েন্ট দিন"
+            {props.pointMode
+              ? props.waitingForWorldPoint
+                ? "পয়েন্ট মোড: মৌজা পয়েন্টের অনুরূপ জায়গায় স্যাটেলাইট ম্যাপে ক্লিক করুন"
+                : "পয়েন্ট মোড চালু · স্যাটেলাইটে পয়েন্ট দিতে আগে মৌজা ম্যাপে পয়েন্ট দিন"
               : "প্যান মোড: ম্যাপ ড্র্যাগ করুন · পয়েন্ট বসাতে পয়েন্ট মোড অন করুন"}
           </span>
         </div>

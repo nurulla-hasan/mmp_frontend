@@ -278,8 +278,7 @@ export const TracerToolbar = memo(function TracerToolbar({
       </div>
 
       <div
-        className="absolute bottom-4 left-1/2 z-40 flex w-max max-w-[95vw] -translate-x-1/2 items-center gap-1 overflow-x-auto whitespace-nowrap rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl md:hidden"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="absolute bottom-4 left-1/2 z-40 flex w-fit max-w-[calc(100vw-1rem)] -translate-x-1/2 items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl md:hidden"
       >
         {tools.settings('sm')}
         <HDivider />
@@ -289,33 +288,32 @@ export const TracerToolbar = memo(function TracerToolbar({
         {tools.finish('sm')}
         {tools.delete('sm')}
         <HDivider />
-        {tools.undo('sm')}
-        {tools.redo('sm')}
-        <HDivider />
         <DropdownMenu>
           <DropdownMenuTrigger
             nativeButton={false}
             render={<div className="inline-flex" />}
             className="focus:outline-none focus-visible:outline-none"
           >
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
+            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-foreground">
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             side="top"
             align="end"
-            alignOffset={-10}
             sideOffset={12}
-            className="w-fit p-1"
+            className="w-fit p-1 rounded-2xl border border-border bg-card/95 shadow-xl"
           >
-            <div className="flex flex-row gap-1">
+            <div className="flex flex-row items-center gap-1">
+              {tools.undo('sm')}
+              {tools.redo('sm')}
+              <div className="mx-0.5 h-6 w-px bg-border/60" />
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => exportAsPNG(layers, backgroundImage)}
                 title="PNG ডাউনলোড করুন"
-                className="text-muted-foreground"
+                className="size-8 text-muted-foreground hover:text-foreground"
               >
                 <Download className="size-4" />
               </Button>
@@ -324,16 +322,17 @@ export const TracerToolbar = memo(function TracerToolbar({
                 size="icon"
                 onClick={() => exportAsPDF(layers, backgroundImage)}
                 title="PDF ডাউনলোড করুন"
-                className="text-muted-foreground"
+                className="size-8 text-muted-foreground hover:text-foreground"
               >
                 <FileDown className="size-4" />
               </Button>
+              <div className="mx-0.5 h-6 w-px bg-border/60" />
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={reset}
                 title="সব মুছুন"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
                 <RotateCcw className="size-4" />
               </Button>

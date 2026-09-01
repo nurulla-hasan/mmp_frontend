@@ -1,9 +1,9 @@
 import {
   Crosshair,
-  Download,
   FileText,
   Globe2,
   LocateFixed,
+  MoreHorizontal,
   Redo2,
   RotateCcw,
   Settings2,
@@ -12,6 +12,12 @@ import {
   Undo2,
 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { AlignmentMode } from "../types";
 import FloatingToolButton from "./FloatingToolButton";
 
@@ -24,7 +30,6 @@ type GeoStudioToolbarProps = {
   pointMode: boolean;
   canUndo: boolean;
   canRedo: boolean;
-  canExport: boolean;
   locating?: boolean;
   onToggleSettings: () => void;
   onTogglePointMode: () => void;
@@ -34,7 +39,6 @@ type GeoStudioToolbarProps = {
   onAffineClick: () => void;
   onUndo: () => void;
   onRedo: () => void;
-  onExport: () => void;
   onResetAlignment: () => void;
   mobile: boolean;
 };
@@ -48,7 +52,6 @@ export default function GeoStudioToolbar({
   pointMode,
   canUndo,
   canRedo,
-  canExport,
   locating = false,
   onToggleSettings,
   onTogglePointMode,
@@ -58,16 +61,141 @@ export default function GeoStudioToolbar({
   onAffineClick,
   onUndo,
   onRedo,
-  onExport,
   onResetAlignment,
   mobile,
 }: GeoStudioToolbarProps) {
-  const divider = mobile ? (
-    <div className="mx-0.5 h-6 w-px bg-border/60" />
-  ) : (
-    <div className="my-0.5 h-px w-6 bg-border/60" />
-  );
+  if (mobile) {
+    return (
+      <>
+        {/* 1. Settings Drawer */}
+        <FloatingToolButton
+          icon={Settings2}
+          label="ম্যাপ ও সেটিংস"
+          active={settingsOpen}
+          onClick={onToggleSettings}
+          mobile={true}
+        />
 
+        <div className="mx-0.5 h-6 w-px bg-border/60" />
+
+        {/* 2. Point Mode */}
+        <FloatingToolButton
+          icon={Crosshair}
+          label={
+            pointMode
+              ? "পয়েন্ট মোড চালু (ক্লিক করলে পয়েন্ট বসবে)"
+              : "প্যান মোড (ক্লিক করলে পয়েন্ট বসবে না)"
+          }
+          active={pointMode}
+          onClick={onTogglePointMode}
+          mobile={true}
+        />
+
+        <div className="mx-0.5 h-6 w-px bg-border/60" />
+
+        {/* 3. View Switchers */}
+        <FloatingToolButton
+          icon={FileText}
+          label="মৌজা PDF ভিউ"
+          active={activeView === "source"}
+          onClick={() => onSelectView("source")}
+          mobile={true}
+        />
+        <FloatingToolButton
+          icon={Globe2}
+          label="World Map স্যাটেলাইট ভিউ"
+          active={activeView === "world"}
+          onClick={() => onSelectView("world")}
+          mobile={true}
+        />
+
+        {/* 4. GPS Location Button */}
+        {onLocateUser && (
+          <FloatingToolButton
+            icon={LocateFixed}
+            label="আমার বর্তমান লোকেশন (GPS)"
+            active={locating}
+            onClick={onLocateUser}
+            mobile={true}
+          />
+        )}
+
+        <div className="mx-0.5 h-6 w-px bg-border/60" />
+
+        {/* 5. Similarity Alignment Button (6th tool button) */}
+        <FloatingToolButton
+          icon={SlidersHorizontal}
+          label="Similarity অ্যালাইনমেন্ট (২+ পয়েন্ট)"
+          active={alignmentMode === "similarity" && Boolean(transform)}
+          disabled={controlPairsCount < 2}
+          onClick={onSimilarityClick}
+          mobile={true}
+        />
+
+        {/* 6. 3-Dot More Tools Dropdown (7th button) */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            nativeButton={false}
+            render={<div className="inline-flex" />}
+            className="focus:outline-none focus-visible:outline-none"
+          >
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground hover:text-foreground"
+              title="অতিরিক্ত টুলস"
+              aria-label="অতিরিক্ত টুলস"
+            >
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="top"
+            align="end"
+            sideOffset={12}
+            className="w-fit p-1 rounded-2xl border border-border bg-card/95 shadow-xl"
+          >
+            <div className="flex items-center gap-1">
+              <FloatingToolButton
+                icon={Sparkles}
+                label="Affine রিফাইনমেন্ট (৩+ পয়েন্ট)"
+                active={alignmentMode === "affine" && Boolean(transform)}
+                disabled={controlPairsCount < 3}
+                onClick={onAffineClick}
+                mobile={true}
+              />
+              <div className="mx-0.5 h-6 w-px bg-border/60" />
+              <FloatingToolButton
+                icon={Undo2}
+                label="শেষ পয়েন্ট বাতিল (Undo)"
+                disabled={!canUndo}
+                onClick={onUndo}
+                mobile={true}
+              />
+              <FloatingToolButton
+                icon={Redo2}
+                label="পয়েন্ট ফিরিয়ে আনুন (Redo)"
+                disabled={!canRedo}
+                onClick={onRedo}
+                mobile={true}
+              />
+              <div className="mx-0.5 h-6 w-px bg-border/60" />
+              <FloatingToolButton
+                icon={RotateCcw}
+                label="অ্যালাইনমেন্ট রিসেট"
+                disabled={controlPairsCount === 0 && !transform}
+                onClick={onResetAlignment}
+                mobile={true}
+              />
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </>
+    );
+  }
+
+  // Desktop Vertical Toolbar
   return (
     <>
       {/* 1. Settings Drawer Toggle */}
@@ -76,10 +204,10 @@ export default function GeoStudioToolbar({
         label="ম্যাপ ও সেটিংস"
         active={settingsOpen}
         onClick={onToggleSettings}
-        mobile={mobile}
+        mobile={false}
       />
 
-      {divider}
+      <div className="my-0.5 h-px w-6 bg-border/60" />
 
       {/* 2. Point Mode Toggle (Crosshair) */}
       <FloatingToolButton
@@ -91,25 +219,25 @@ export default function GeoStudioToolbar({
         }
         active={pointMode}
         onClick={onTogglePointMode}
-        mobile={mobile}
+        mobile={false}
       />
 
-      {divider}
+      <div className="my-0.5 h-px w-6 bg-border/60" />
 
-      {/* 3. View Switchers */}
+      {/* 3. View Switchers & GPS */}
       <FloatingToolButton
         icon={FileText}
         label="মৌজা PDF ভিউ"
         active={activeView === "source"}
         onClick={() => onSelectView("source")}
-        mobile={mobile}
+        mobile={false}
       />
       <FloatingToolButton
         icon={Globe2}
         label="World Map স্যাটেলাইট ভিউ"
         active={activeView === "world"}
         onClick={() => onSelectView("world")}
-        mobile={mobile}
+        mobile={false}
       />
 
       {/* GPS Location Button */}
@@ -119,11 +247,11 @@ export default function GeoStudioToolbar({
           label="আমার বর্তমান লোকেশন (GPS)"
           active={locating}
           onClick={onLocateUser}
-          mobile={mobile}
+          mobile={false}
         />
       )}
 
-      {divider}
+      <div className="my-0.5 h-px w-6 bg-border/60" />
 
       {/* 4. Quick Alignment Methods */}
       <FloatingToolButton
@@ -132,7 +260,7 @@ export default function GeoStudioToolbar({
         active={alignmentMode === "similarity" && Boolean(transform)}
         disabled={controlPairsCount < 2}
         onClick={onSimilarityClick}
-        mobile={mobile}
+        mobile={false}
       />
       <FloatingToolButton
         icon={Sparkles}
@@ -140,10 +268,10 @@ export default function GeoStudioToolbar({
         active={alignmentMode === "affine" && Boolean(transform)}
         disabled={controlPairsCount < 3}
         onClick={onAffineClick}
-        mobile={mobile}
+        mobile={false}
       />
 
-      {divider}
+      <div className="my-0.5 h-px w-6 bg-border/60" />
 
       {/* 5. Undo / Redo */}
       <FloatingToolButton
@@ -151,32 +279,25 @@ export default function GeoStudioToolbar({
         label="শেষ পয়েন্ট বাতিল (Undo)"
         disabled={!canUndo}
         onClick={onUndo}
-        mobile={mobile}
+        mobile={false}
       />
       <FloatingToolButton
         icon={Redo2}
         label="পয়েন্ট ফিরিয়ে আনুন (Redo)"
         disabled={!canRedo}
         onClick={onRedo}
-        mobile={mobile}
+        mobile={false}
       />
 
-      {divider}
+      <div className="my-0.5 h-px w-6 bg-border/60" />
 
-      {/* 6. KMZ Export & Reset */}
-      <FloatingToolButton
-        icon={Download}
-        label="KMZ ফাইল ডাউনলোড"
-        disabled={!transform || !canExport}
-        onClick={onExport}
-        mobile={mobile}
-      />
+      {/* 6. Alignment Reset */}
       <FloatingToolButton
         icon={RotateCcw}
         label="অ্যালাইনমেন্ট রিসেট"
         disabled={controlPairsCount === 0 && !transform}
         onClick={onResetAlignment}
-        mobile={mobile}
+        mobile={false}
       />
     </>
   );

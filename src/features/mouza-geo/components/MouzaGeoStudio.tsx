@@ -483,7 +483,6 @@ export default function MouzaGeoStudio() {
           locating={locating}
           canUndo={controlPairs.length > 0}
           canRedo={redoControlPairs.length > 0}
-          canExport={Boolean(image) && !processingBackground && !exportingKmz}
           onToggleSettings={() => setSettingsOpen((open) => !open)}
           onTogglePointMode={() => setPointMode((prev) => !prev)}
           onSelectView={(view) => {
@@ -495,17 +494,13 @@ export default function MouzaGeoStudio() {
           onAffineClick={() => fitTransform(controlPairs, "affine", true)}
           onUndo={undoPair}
           onRedo={redoPair}
-          onExport={handleExport}
           onResetAlignment={resetAlignment}
           mobile={false}
         />
       </div>
 
       {/* Mobile floating toolbar */}
-      <div
-        className="absolute bottom-4 left-1/2 z-40 flex w-max max-w-[95vw] -translate-x-1/2 items-center gap-1 overflow-x-auto whitespace-nowrap rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl md:hidden"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
+      <div className="absolute bottom-4 left-1/2 z-40 flex w-fit max-w-[calc(100vw-1rem)] -translate-x-1/2 items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl md:hidden">
         <GeoStudioToolbar
           settingsOpen={settingsOpen}
           activeView={activeView}
@@ -516,7 +511,6 @@ export default function MouzaGeoStudio() {
           locating={locating}
           canUndo={controlPairs.length > 0}
           canRedo={redoControlPairs.length > 0}
-          canExport={Boolean(image) && !processingBackground && !exportingKmz}
           onToggleSettings={() => setSettingsOpen((open) => !open)}
           onTogglePointMode={() => setPointMode((prev) => !prev)}
           onSelectView={(view) => {
@@ -528,7 +522,6 @@ export default function MouzaGeoStudio() {
           onAffineClick={() => fitTransform(controlPairs, "affine", true)}
           onUndo={undoPair}
           onRedo={redoPair}
-          onExport={handleExport}
           onResetAlignment={resetAlignment}
           mobile={true}
         />
@@ -567,7 +560,6 @@ export default function MouzaGeoStudio() {
                 image={image}
                 loadingFile={loadingFile}
                 controlPairs={controlPairs}
-                alignmentMode={alignmentMode}
                 transform={transform}
                 backgroundRemoved={backgroundRemoved}
                 processingBackground={processingBackground}
@@ -577,17 +569,14 @@ export default function MouzaGeoStudio() {
                 mapStyle={mapStyle}
                 exportQuality={exportQuality}
                 exportingKmz={exportingKmz}
-                residual={residual}
                 mapName={mapName}
                 canExport={
                   Boolean(image) && !processingBackground && !exportingKmz
                 }
+                locating={locating}
                 onUploadClick={() => fileInputRef.current?.click()}
                 onRemovePair={removePair}
-                onSimilarityClick={() =>
-                  fitTransform(controlPairs, "similarity", true)
-                }
-                onAffineClick={() => fitTransform(controlPairs, "affine", true)}
+                onLocateUser={handleLocateUser}
                 onBackgroundRemovedChange={setBackgroundRemoved}
                 onBackgroundSensitivityChange={setBackgroundSensitivity}
                 onLineColorChange={setLineColor}
@@ -645,7 +634,6 @@ export default function MouzaGeoStudio() {
                         image={image}
                         loadingFile={loadingFile}
                         controlPairs={controlPairs}
-                        alignmentMode={alignmentMode}
                         transform={transform}
                         backgroundRemoved={backgroundRemoved}
                         processingBackground={processingBackground}
@@ -655,21 +643,16 @@ export default function MouzaGeoStudio() {
                         mapStyle={mapStyle}
                         exportQuality={exportQuality}
                         exportingKmz={exportingKmz}
-                        residual={residual}
                         mapName={mapName}
                         canExport={
                           Boolean(image) &&
                           !processingBackground &&
                           !exportingKmz
                         }
+                        locating={locating}
                         onUploadClick={() => fileInputRef.current?.click()}
                         onRemovePair={removePair}
-                        onSimilarityClick={() =>
-                          fitTransform(controlPairs, "similarity", true)
-                        }
-                        onAffineClick={() =>
-                          fitTransform(controlPairs, "affine", true)
-                        }
+                        onLocateUser={handleLocateUser}
                         onBackgroundRemovedChange={setBackgroundRemoved}
                         onBackgroundSensitivityChange={setBackgroundSensitivity}
                         onLineColorChange={setLineColor}
