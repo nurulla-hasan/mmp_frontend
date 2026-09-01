@@ -4,9 +4,10 @@ import {
   Clock,
   Mail,
   MapPin,
+  MessageCircle,
   MessageSquare,
   Phone,
-  Send,
+  Users,
 } from "lucide-react";
 
 import { SectionHeading } from "@/components/common/section-heading";
@@ -19,19 +20,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Field, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 export const metadata: Metadata = {
   title: "যোগাযোগ ও সহায়তা — আমাদের সাথে কথা বলুন",
   description:
-    "Mouza Map Pro প্ল্যাটফর্ম সংক্রান্ত যেকোনো প্রশ্ন, মতামত বা কারিগরি সহায়তার জন্য আমাদের সাথে যোগাযোগ করুন।",
+    "Mouza Map Pro প্ল্যাটফর্ম সংক্রান্ত যেকোনো প্রশ্ন, মতামত বা কারিগরি সহায়তার জন্য সরাসরি কল, WhatsApp বা ইমেইলে আমাদের সাথে যোগাযোগ করুন।",
   keywords: [
     "যোগাযোগ",
     "Contact Mouza Map Pro",
     "কাস্টমার সাপোর্ট",
     "হেল্পলাইন",
+    "WhatsApp সাপোর্ট",
   ],
   alternates: {
     canonical: "/contact",
@@ -39,7 +38,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "যোগাযোগ ও সহায়তা — আমাদের সাথে কথা বলুন | Mouza Map Pro",
     description:
-      "Mouza Map Pro প্ল্যাটফর্ম সংক্রান্ত যেকোনো প্রশ্ন, মতামত বা কারিগরি সহায়তার জন্য আমাদের সাথে যোগাযোগ করুন।",
+      "Mouza Map Pro প্ল্যাটফর্ম সংক্রান্ত যেকোনো প্রশ্ন, মতামত বা কারিগরি সহায়তার জন্য সরাসরি কল, WhatsApp বা ইমেইলে আমাদের সাথে যোগাযোগ করুন।",
     url: "/contact",
   },
 };
@@ -47,46 +46,63 @@ export const metadata: Metadata = {
 const contactInfo = [
   {
     icon: Phone,
-    title: "ফোন",
-    details: ["+880 1700-000000", "+880 1700-000001"],
-    action: { label: "কল করুন", href: "tel:+8801700000000" },
+    title: "সরাসরি কল",
+    details: ["+880 1750-974716", "যেকোনো জরুরি প্রয়োজনে"],
+    action: { label: "কল করুন", href: "tel:+8801750974716" },
+  },
+  {
+    icon: MessageCircle,
+    title: "WhatsApp চ্যাট",
+    details: ["তাৎক্ষণিক সহায়তা ও তথ্য", "+880 1750-974716"],
+    action: {
+      label: "WhatsApp-এ লিখুন",
+      href: "https://wa.me/8801750974716",
+      external: true,
+    },
   },
   {
     icon: Mail,
-    title: "ইমেইল",
-    details: ["support@mouzamappro.com", "info@mouzamappro.com"],
-    action: { label: "ইমেইল পাঠান", href: "mailto:support@mouzamappro.com" },
+    title: "অফিসিয়াল ইমেইল",
+    details: ["golaphasan379@gmail.com", "২৪ ঘন্টার মধ্যে রিপ্লাই"],
+    action: { label: "ইমেইল পাঠান", href: "mailto:golaphasan379@gmail.com" },
   },
   {
+    icon: Users,
+    title: "কমিউনিটি সাপোর্ট",
+    details: ["প্রশ্নোত্তর ফোরাম", "অভিজ্ঞ সার্ভেয়ারদের সমাধান"],
+    action: { label: "কমিউনিটিতে যান", href: "/community" },
+  },
+];
+
+const officeDetails = [
+  {
     icon: MapPin,
-    title: "ঠিকানা",
-    details: ["১২৩, বাংলামোটর", "ঢাকা-১০০০, বাংলাদেশ"],
-    action: { label: "Google Maps", href: "#" },
+    title: "প্রধান কার্যালয়",
+    value: "১২৩, বাংলামোটর, ঢাকা-১০০০, বাংলাদেশ",
   },
   {
     icon: Clock,
-    title: "অফিস সময়",
-    details: ["শনি-বৃহস্পতি: ৯AM - ৬PM", "শুক্রবার: বন্ধ"],
-    action: { label: "সাপোর্ট হাব", href: "/community" },
+    title: "সাপোর্ট সময়সূচী",
+    value: "শনিবার – বৃহস্পতিবার: সকাল ৯টা থেকে রাত ১০টা",
   },
 ];
 
 const faqs = [
   {
-    q: "কত দ্রুত উত্তর পাব?",
-    a: "আমরা সাধারণত ২৪-৪৮ ঘন্টার মধ্যে ইমেইল ও ফোন কলের উত্তর দেওয়ার চেষ্টা করি। জরুরি প্রয়োজনে সরাসরি ফোনে যোগাযোগ করুন।",
+    q: "কত দ্রুত সাপোর্ট থেকে উত্তর পাব?",
+    a: "আমরা ফোন ও WhatsApp-এ তাৎক্ষণিকভাবে এবং ইমেইলে সাধারণত দ্রুততম সময়ের মধ্যে উত্তর দেওয়ার চেষ্টা করি। জরুরি প্রয়োজনে সরাসরি ফোনে যোগাযোগ করুন।",
   },
   {
     q: "সার্ভেয়ার সংক্রান্ত বিষয় কোথায় জানাব?",
-    a: "সার্ভেয়ার সংক্রান্ত যেকোনো প্রশ্ন বা সহায়তার জন্য সরাসরি support@mouzamappro.com-এ ইমেইল করুন অথবা আমাদের হেল্পলাইনে যোগাযোগ করুন।",
+    a: "সার্ভেয়ার সংক্রান্ত যেকোনো প্রশ্ন বা সহায়তার জন্য সরাসরি golaphasan379@gmail.com-এ ইমেইল করুন অথবা আমাদের হেল্পলাইনে (+8801750974716) যোগাযোগ করুন।",
   },
   {
     q: "আমি কি অফিসে সরাসরি আসতে পারি?",
-    a: "পূর্বনির্ধারিত অ্যাপয়েন্টমেন্ট ছাড়া অফিসে আসার প্রয়োজন নেই। ডিজিটাল প্ল্যাটফর্মের মাধ্যমেই সমস্ত সেবা গ্রহণ করা যায়।",
+    a: "পূর্বনির্ধারিত অ্যাপয়েন্টমেন্ট ছাড়া অফিসে আসার প্রয়োজন নেই। ডিজিটাল প্ল্যাটফর্ম ও অনলাইন সাপোর্টের মাধ্যমেই সমস্ত সেবা দ্রুত গ্রহণ করা যায়।",
   },
   {
     q: "কোনো মতামত বা পরামর্শ দিতে চাইলে?",
-    a: "আমরা আপনার মূল্যবান মতামত ও পরামর্শকে স্বাগত জানাই। নিচের ফর্মের মাধ্যমে অথবা সরাসরি ইমেইল করে জানাতে পারেন।",
+    a: "আমরা আপনার মূল্যবান মতামত ও পরামর্শকে স্বাগত জানাই। সরাসরি ইমেইল (golaphasan379@gmail.com) অথবা WhatsApp-এ (+8801750974716) আমাদের জানাতে পারেন।",
   },
 ];
 
@@ -101,23 +117,46 @@ export default function ContactPage() {
             <MessageSquare className="size-8 text-primary" />
           </div>
           <h1 className="mt-6 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl font-heading">
-            যোগাযোগ করুন
+            যোগাযোগ ও সহায়তা
           </h1>
           <p className="mt-4 text-lg leading-7 text-muted-foreground">
-            আপনার প্রশ্ন, মতামত বা সহায়তার প্রয়োজন নিয়ে আমাদের জানান। আমরা সাহায্য করতে
-            প্রস্তুত।
+            আপনার যেকোনো প্রশ্ন, প্ল্যাটফর্ম ব্যবহারের সহায়তা বা পরামর্শের জন্য আমাদের সাথে সরাসরি যোগাযোগ করুন।
           </p>
-          <p className="mt-4 rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">
-            জরুরি প্রয়োজনে ফোন বা ইমেইলের মাধ্যমে সরাসরি যোগাযোগ করতে পারেন।
-          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Button
+              size="lg"
+              nativeButton={false}
+              render={
+                <a
+                  href="https://wa.me/8801750974716"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              }
+              className="gap-2 bg-[#25D366] text-white hover:bg-[#20bd5a]"
+            >
+              <MessageCircle className="size-5" />
+              WhatsApp-এ সরাসরি কথা বলুন
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              nativeButton={false}
+              render={<a href="tel:+8801750974716" />}
+              className="gap-2"
+            >
+              <Phone className="size-4" />
+              সরাসরি কল করুন
+            </Button>
+          </div>
         </div>
       </SectionWrapper>
 
-      {/* ─── Contact Info ──────────────────────────────────── */}
+      {/* ─── Contact Channels ──────────────────────────────── */}
       <SectionWrapper padding="lg" bg="muted">
         <SectionHeading
-          title="যোগাযোগের তথ্য"
-          description="নিচের যেকোনো মাধ্যমে আমাদের সাথে যোগাযোগ করুন।"
+          title="সরাসরি যোগাযোগের মাধ্যম"
+          description="নিচের যেকোনো মাধ্যমে আমাদের সাথে যোগাযোগ করতে পারেন।"
           alignment="center"
         />
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -146,7 +185,17 @@ export default function ContactPage() {
                     variant="outline"
                     size="xs"
                     nativeButton={false}
-                    render={<Link href={item.action.href} />}
+                    render={
+                      item.action.external ? (
+                        <a
+                          href={item.action.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      ) : (
+                        <Link href={item.action.href} />
+                      )
+                    }
                   >
                     {item.action.label}
                   </Button>
@@ -155,71 +204,35 @@ export default function ContactPage() {
             );
           })}
         </div>
-      </SectionWrapper>
 
-      {/* ─── Contact Form ──────────────────────────────────── */}
-      <SectionWrapper padding="lg">
-        <SectionHeading
-          title="আমাদের একটি বার্তা দিন"
-          description="নিচের ফর্মটি পূরণ করে আমাদের জানান। আমরা যত দ্রুত সম্ভব উত্তর দেব।"
-          alignment="center"
-        />
-        <div className="mx-auto mt-10 max-w-2xl">
-          <Card className="transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
-            <CardContent>
-              <form className="space-y-6">
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <Field>
-                    <FieldLabel htmlFor="name">আপনার নাম</FieldLabel>
-                    <Input
-                      id="name"
-                      type="text"
-                      placeholder="আপনার নাম লিখুন"
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="email">ইমেইল</FieldLabel>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="your@email.com"
-                    />
-                  </Field>
+        {/* Office & Timing cards */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {officeDetails.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.title}
+                className="flex items-center gap-4 rounded-xl border bg-card p-4 transition-colors"
+              >
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="size-5" />
                 </div>
-
-                <Field>
-                  <FieldLabel htmlFor="subject">বিষয়</FieldLabel>
-                  <Input
-                    id="subject"
-                    type="text"
-                    placeholder="আপনার বার্তার বিষয় নির্বাচন করুন"
-                  />
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="message">বার্তা</FieldLabel>
-                  <Textarea
-                    id="message"
-                    rows={5}
-                    placeholder="আপনার বার্তা বিস্তারিত লিখুন..."
-                  />
-                </Field>
-
-                <Button type="submit" size="lg" className="w-full sm:w-auto">
-                  <Send className="size-4" />
-                  বার্তা পাঠান
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                <div>
+                  <p className="text-xs text-muted-foreground">{item.title}</p>
+                  <p className="text-sm font-medium text-foreground">{item.value}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </SectionWrapper>
 
       {/* ─── FAQ ───────────────────────────────────────────── */}
-      <SectionWrapper padding="lg" bg="muted">
+      <SectionWrapper padding="lg">
         <SectionHeading
           badge="FAQ"
           title="সচরাচর জিজ্ঞাসা"
+          description="যোগাযোগ ও সহায়তা সংক্রান্ত সাধারণ প্রশ্নের উত্তর।"
           alignment="center"
         />
         <div className="mt-8 mx-auto max-w-2xl">

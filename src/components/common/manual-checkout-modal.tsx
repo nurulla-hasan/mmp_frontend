@@ -46,8 +46,8 @@ interface ManualCheckoutModalProps {
 export function ManualCheckoutModal({
   plan,
   paymentNumbers = {
-    bkashNumber: "01700-000000 (Personal / Send Money)",
-    nagadNumber: "01800-000000 (Personal / Send Money)",
+    bkashNumber: "01750-974716 (Personal / Send Money)",
+    nagadNumber: "01750-974716 (Personal / Send Money)",
     rocketNumber: "",
     instructions:
       "Please Send Money the required amount to any of the numbers above. After sending, enter your sender phone number and Transaction ID (TrxID) below to submit your payment request.",
