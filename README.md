@@ -1,132 +1,125 @@
-# Mouza Map Pro
+# Mouza Map Pro Frontend
 
-A Bangla-first land-surveying platform that combines surveyor discovery, land calculations, interactive map tools, PDF workflows, and geospatial export for users in Bangladesh.
+A high-performance, Bangla-first web platform for digital land surveying, cadastral map analysis, plot calculations, interactive canvas tools, PDF workflows, KMZ geospatial export, and surveyor networking in Bangladesh.
 
 [Live Product](https://mouzamappro.com/) · [Developer Portfolio](https://nurulla-hasan-portfolio-pink.vercel.app/)
 
-> **Status:** Version 2 is under active development. This repository contains the Next.js frontend.
+> **Status:** Version 2 is under active development. This repository contains the Next.js 16 App Router frontend.
 
-## Overview
+---
 
-Mouza Map Pro translates practical land-surveying workflows into responsive digital tools. Landowners can find and contact surveyors, while surveyors can manage professional profiles and use calculation, canvas, PDF, alignment, tracing, and export tools.
+## 🛠️ Tech Stack
 
-The product uses a deliberately simple service flow: users review a surveyor’s profile, services, starting prices, and approved reviews, then contact the surveyor directly through WhatsApp.
+| Layer | Technologies |
+|---|---|
+| **Core Framework** | Next.js 16.2.10 (App Router), React 19.2.4, TypeScript 5 (strict mode) |
+| **Styling & Theming** | Tailwind CSS v4, OKLCH Color System, Shadcn UI / `@base-ui/react`, Framer Motion |
+| **State & Filtering** | Zustand 5 (Canvas Stores), TanStack Table 8, URL-driven `useNextFilter` |
+| **Canvas & Interactive Mapping** | Konva, React Konva, Leaflet, OpenStreetMap |
+| **PDF & Image Processing** | PDF.js (`pdfjs-dist`), `pdf-lib`, `jsPDF`, `html2canvas`, `react-easy-crop` |
+| **Geospatial & Compression** | `fflate` (KMZ streaming & compression) |
+| **Security & Routing** | Next.js 16 `src/proxy.ts` (Route Protection & Token Refresh) |
 
-## Product Areas
+---
 
-### Visitors and landowners
+## 🗺️ Surveying, Calculation & Mapping Tools
 
-- Find surveyors by profile, service, and service area
-- Review experience, verification information, services, and starting prices
-- Read administrator-approved ratings and reviews
-- Contact surveyors directly through WhatsApp
-- Use free land-calculation utilities
+| Tool | Purpose | Access | Route |
+|---|---|---|---|
+| **Unit Converter** | Convert between Shotok, Katha, Bigha, Acre, Sq. Feet, Sq. Meter, and Hectare | Free | `/tools/unit-converter` |
+| **Inheritance Calculator** | Assist with inheritance-related land property distribution among heirs | Free | `/tools/inheritance-calculator` |
+| **Map Scale Guide** | Step-by-step tutorial on 16 inch = 1 mile and custom scale calibration | Free | `/tools/scale-guide` |
+| **Land Measurement** | Measure plots directly from mouza maps with custom scale, plot splitting & PDF reports | Pro | `/tools/land-measurement` |
+| **Pantagraph** | Overlay, superimpose, rotate, and compare C.S. and B.S. mouza maps | Pro | `/tools/pantagraph` |
+| **Digital Map Tracer** | Trace boundaries and plot numbers from old maps to create clean digital vector maps | Pro | `/tools/tracer` |
+| **Mouza Map Studio** | Align C.S/B.S maps, crop, clean up artifacts, annotate, and export printable sheets | Pro | `/tools/mouza-map-studio` |
+| **Mouza Geo Studio** | Georeference mouza-map PDFs against real-world satellite maps and export as KMZ | Pro | `/tools/mouza-geo-studio` |
 
-### Surveyors
+---
 
-- Create and maintain a professional public profile
-- Configure service areas, offered services, and service-specific starting prices
-- Manage calculation history
-- Use advanced mapping tools based on the active subscription plan
+## 🌟 Key Application Features
 
-### Administrators
+### 1. Visitors & Landowners
+- **Surveyor Directory**: Discover verified surveyors by district, division, and offered services.
+- **Direct Engagement**: View surveyor experience, starting prices, and client reviews with 1-click WhatsApp messaging.
+- **Free Calculation Tools**: Access unit conversions, inheritance calculation, and map scale guides without requiring a subscription.
 
-- Manage users, subscribers, plans, payments, and device access
-- Review surveyor verification requests
-- Approve, reject, and moderate reviews
-- Manage service categories, broadcasts, calculations, and administrator accounts
+### 2. Surveyors
+- **Professional Profile**: Manage bio, service areas, offered surveying services, and custom starting prices.
+- **Verification Badging**: Submit NID and professional certifications for administrator verification.
+- **Cloud Project Storage**: Automatically sync plot calculations, land measurements, and client reports.
 
-## Surveying and Mapping Tools
+### 3. Subscription & Manual Checkout System
+- **Transparent Plans**: Monthly Pro (৳২৯৯), 6 Months Pro (৳৯৯৯), and Yearly Pro (৳১,৫৯৯).
+- **Manual Payments**: bKash, Nagad, and Rocket payment checkout with TrxID submission modal.
+- **Validity Stacking (Accumulated Duration)**: When upgrading or renewing, remaining active days are preserved and added to the new subscription term.
+- **Downgrade Guard**: Prevents accidental subscription downgrades while on a higher active plan.
 
-| Tool | Purpose | Access |
-| --- | --- | --- |
-| Unit Converter | Convert common land-measurement units | Free |
-| Inheritance Calculator | Assist with inheritance-related land calculations | Free |
-| Land Measurement | Measure plots directly from a mouza map on desktop or mobile | Pro |
-| Pantagraph | Align and compare C.S. and B.S. mouza maps | Pro |
-| Tracer | Draw, label, snap, edit, and export plot boundaries | Pro |
-| Mouza Map Studio | Align maps, crop a combined result, clean it, annotate it, and prepare sheets | Pro |
-| Mouza Geo Studio | Georeference a mouza-map PDF against a world map and export it as KMZ | Pro |
+### 4. Administrator Panel
+- **User & Subscriber Roster**: Manage users and view active subscribers (1 row per user).
+- **Transaction Logs**: Dedicated chronological subscription history and payment audit log on the Plans page.
+- **Payment Verification**: 1-click Approve / Reject for manual bKash/Nagad payment requests.
+- **Dynamic Platform Settings**: Manage bKash/Nagad payment numbers, Auto-Grant Pro on registration toggle, and broadcast announcements.
 
-The application’s plan configuration is the source of truth for current tool availability and pricing.
+---
 
-## Engineering Highlights
+## ⚡ Engineering & Architecture Highlights
 
-- Built mobile-first canvas and PDF interactions with mouse, touch, and anchored pinch controls
-- Moved image cleanup and processing to Web Workers to keep heavy work off the main UI thread
-- Added low-memory previews and tiled, streaming KMZ generation for large map exports
-- Implemented snapping, path editing, undo/redo, composite cropping, opacity control, and configurable annotations
-- Uses a persistent map canvas and OpenStreetMap-based basemaps for georeferencing workflows
-- Provides a typed server-only API client with configurable authentication, validated request bodies, and structured API errors
-- Localized the product experience for Bangla-speaking users
+- **Next.js 16 Proxy Convention**: Implements `src/proxy.ts` for unified network-level route protection, token refresh, and role-based redirects.
+- **Mobile-First Canvas Controls**: Custom touch gesture handlers with anchored pinch-to-zoom, pan, and smooth stylus drawing.
+- **Multi-File State Isolation**: Dedicated Zustand stores (`useMapStore`, `usePantagraphStore`, `useTracerStore`, `useMouzaMapStudioStore`) for high-performance canvas rendering.
+- **Server-Only API Client**: Typed `nextServerFetch` client with automatic server-side token injection and tag-based cache revalidation (`updateTag`).
 
-## Simplified Service Workflow
+---
 
-1. A user searches for a surveyor.
-2. The user reviews the surveyor’s services, prices, verification information, and approved reviews.
-3. The user contacts the surveyor through WhatsApp.
-4. The surveyor and client discuss the work outside the platform.
-
-The current product intentionally excludes in-app bidding, quotation negotiation, job posting, and service-order management. This keeps the workflow understandable for users and easier to operate.
-
-## Tech Stack
-
-| Area | Technologies |
-| --- | --- |
-| Core | Next.js 16, React 19, TypeScript |
-| UI | Tailwind CSS 4, shadcn/Base UI, Framer Motion |
-| Forms and state | React Hook Form, Zod, Zustand, TanStack Table |
-| Canvas | Konva, React Konva |
-| Maps | Leaflet, OpenStreetMap |
-| PDF and export | PDF.js, pdf-lib, jsPDF, html2canvas |
-| Geospatial archive | fflate |
-
-## Main Application Areas
-
-- Public landing, pricing, tools, and surveyor discovery
-- User dashboard and calculation history
-- Surveyor dashboard and professional-profile management
-- Administrator dashboard and moderation workflows
-- Free land-calculation tools
-- Advanced canvas, PDF, georeferencing, and export tools
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-
-- Node.js 20 or newer
-- npm
-- Access to the Mouza Map Pro backend for API-connected features
+- **Node.js 20+** or **Node.js 22+**
+- **npm** or **pnpm**
+- Running **Mouza Map Pro Backend** instance (default: `http://localhost:5000`)
 
 ### Installation
 
 ```bash
-git clone https://github.com/nurulla-hasan/mmp_frontend.git
-cd mmp_frontend
+# Clone the repository
+git clone https://github.com/nurulla-hasan/mmp.git
+cd mmp/mmp_frontend
+
+# Install dependencies
 npm install
+
+# Configure environment
+cp .env.example .env
 ```
 
-Configure the required API environment variables for your local setup, then start the development server:
+### Configure `.env`
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
+```
 
+### Start Development Server
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Available Scripts
+---
+
+## 📦 Available Scripts
 
 | Command | Purpose |
-| --- | --- |
-| `npm run dev` | Start the development server |
-| `npm run build` | Create a production build |
-| `npm run start` | Start the production server |
-| `npm run lint` | Run ESLint |
+|---|---|
+| `npm run dev` | Start development server on port 3000 |
+| `npm run build` | Compile and build production bundle |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint checks |
 
-## Project Direction
+---
 
-The current focus is a stable, understandable surveying workflow—especially on mobile and lower-powered devices—while frontend and backend integration continues.
+## 👨‍💻 Author & Maintainer
 
-## Author
+Developed with ❤️ by **[Nurulla Hasan](https://github.com/nurulla-hasan)**.
+All rights reserved © 2026 **Mouza Map Pro**.
 
-Developed by [Nurulla Hasan](https://github.com/nurulla-hasan).
