@@ -314,17 +314,24 @@ export const isPointInPolygon = (point: Point, polygon: Point[]) => {
  * Return the intersection point of two line segments `(p1→p2)` and `(p3→p4)`,
  * or `null` if they are parallel or do not intersect.
  */
-export const getLineIntersection = (p1: Point, p2: Point, p3: Point, p4: Point): Point | null => {
+export const getLineIntersection = (
+  p1: Point,
+  p2: Point,
+  p3: Point,
+  p4: Point,
+  epsilon = 1e-6,
+): Point | null => {
   const d = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
-  if (d === 0) return null; // Parallel
+  if (Math.abs(d) < 1e-12) return null; // Parallel
 
   const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / d;
   const u = -((p1.x - p2.x) * (p1.y - p3.y) - (p1.y - p2.y) * (p1.x - p3.x)) / d;
 
-  if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+  if (t >= -epsilon && t <= 1 + epsilon && u >= -epsilon && u <= 1 + epsilon) {
+    const clampedT = Math.max(0, Math.min(1, t));
     return {
-      x: p1.x + t * (p2.x - p1.x),
-      y: p1.y + t * (p2.y - p1.y)
+      x: p1.x + clampedT * (p2.x - p1.x),
+      y: p1.y + clampedT * (p2.y - p1.y),
     };
   }
   return null;

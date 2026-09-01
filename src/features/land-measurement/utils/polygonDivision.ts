@@ -3,13 +3,13 @@ import { isPointInPolygon, getLineIntersection, normalizePolygonPoints } from '.
 import { DIVISION_VERTEX_SNAP_PX } from './mapCalculations';
 
 function getSegmentIntersection(p1: Point, p2: Point, p3: Point, p4: Point): (Point & { t: number }) | null {
-  const point = getLineIntersection(p1, p2, p3, p4);
+  const point = getLineIntersection(p1, p2, p3, p4, 1e-4);
   if (!point) return null;
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;
   const lengthSq = dx * dx + dy * dy;
   const t = lengthSq > 0 ? ((point.x - p1.x) * dx + (point.y - p1.y) * dy) / lengthSq : 0;
-  return { ...point, t };
+  return { ...point, t: Math.max(0, Math.min(1, t)) };
 }
 
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -26,7 +26,7 @@ const canonicalizeBoundaryIntersection = (
   polygon: Point[],
 ): BoundaryIntersection => {
   let nearestVertexIndex = -1;
-  let nearestDistance = DIVISION_VERTEX_SNAP_PX;
+  let nearestDistance = Math.max(DIVISION_VERTEX_SNAP_PX, 1.5);
 
   for (let i = 0; i < polygon.length; i++) {
     const dist = distance(intersection, polygon[i]);
@@ -63,8 +63,10 @@ const dedupeBoundaryIntersections = (
     const previous = deduped[deduped.length - 1];
     const isSameBoundaryHit =
       previous &&
-      distance(previous, intersection) <= INTERSECTION_EPSILON_PX &&
-      Math.abs(previous.dist - intersection.dist) <= INTERSECTION_EPSILON_PX;
+      (distance(previous, intersection) <= Math.max(INTERSECTION_EPSILON_PX, 0.5) ||
+        (previous.edgeIdx === intersection.edgeIdx &&
+          distance(previous, intersection) <= 1.5) ||
+        Math.abs(previous.dist - intersection.dist) <= 0.5);
 
     if (!isSameBoundaryHit) deduped.push(intersection);
   }
@@ -136,7 +138,7 @@ export function splitPolygonByPolyline(polygon: Point[], polyline: Point[]): { p
       const dy = pA.y - pB.y;
       const mag = Math.hypot(dx, dy);
       if (mag > 0) {
-        pA = { x: pA.x + (dx / mag) * 1e-5, y: pA.y + (dy / mag) * 1e-5 };
+        pA = { x: pA.x + (dx / mag) * 0.2, y: pA.y + (dy / mag) * 0.2 };
       }
     }
     // Extend the last segment forwards slightly for math precision
@@ -145,7 +147,7 @@ export function splitPolygonByPolyline(polygon: Point[], polyline: Point[]): { p
       const dy = pB.y - pA.y;
       const mag = Math.hypot(dx, dy);
       if (mag > 0) {
-        pB = { x: pB.x + (dx / mag) * 1e-5, y: pB.y + (dy / mag) * 1e-5 };
+        pB = { x: pB.x + (dx / mag) * 0.2, y: pB.y + (dy / mag) * 0.2 };
       }
     }
     
