@@ -12,10 +12,57 @@ import type {
   MercatorPoint,
   Point2D,
 } from "../types";
-import { applyGeoTransform, fromMercator, toMercator } from "../utils/geoMath";
+import {
+  applyGeoTransform,
+  fromMercator,
+  toMercator,
+} from "../utils/geoMath";
 import { InfoToast } from "@/lib/utils";
 
 type InteractionTarget = "map" | "pdf";
+
+type OverlayHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
+
+type OverlayHandleInfo = {
+  id: OverlayHandle;
+  source: Point2D;
+  anchor: Point2D;
+};
+
+function getOverlayHandles(
+  imageSize: { width: number; height: number },
+): OverlayHandleInfo[] {
+  const { width, height } = imageSize;
+
+  return [
+    { id: "nw", source: { x: 0, y: 0 }, anchor: { x: width, y: height } },
+    { id: "n", source: { x: width / 2, y: 0 }, anchor: { x: width / 2, y: height } },
+    { id: "ne", source: { x: width, y: 0 }, anchor: { x: 0, y: height } },
+    { id: "e", source: { x: width, y: height / 2 }, anchor: { x: 0, y: height / 2 } },
+    { id: "se", source: { x: width, y: height }, anchor: { x: 0, y: 0 } },
+    { id: "s", source: { x: width / 2, y: height }, anchor: { x: width / 2, y: 0 } },
+    { id: "sw", source: { x: 0, y: height }, anchor: { x: width, y: 0 } },
+    { id: "w", source: { x: 0, y: height / 2 }, anchor: { x: width, y: height / 2 } },
+  ];
+}
+
+function decomposeAlongAxes(
+  vector: MercatorPoint,
+  xAxis: MercatorPoint,
+  yAxis: MercatorPoint,
+) {
+  const determinant = xAxis.u * yAxis.v - xAxis.v * yAxis.u;
+  if (Math.abs(determinant) < 1e-20) return null;
+
+  return {
+    x: (vector.u * yAxis.v - vector.v * yAxis.u) / determinant,
+    y: (xAxis.u * vector.v - xAxis.v * vector.u) / determinant,
+  };
+}
+
+function clampResizeFactor(value: number) {
+  return Math.max(0.08, Math.min(12, value));
+}
 
 function sourcePointAtWorld(
   transform: GeoTransform,
@@ -46,6 +93,11 @@ type WorldMapCanvasProps = {
   onPlaceWorldPoint: (point: GeoPoint) => void;
   onTranslateOverlay: (delta: MercatorPoint) => void;
   onScaleOverlay: (factor: number, anchor?: Point2D) => void;
+  onResizeOverlay: (
+    anchor: Point2D,
+    xFactor: number,
+    yFactor: number,
+  ) => void;
   onRotateOverlay: (angleRadians: number) => void;
 };
 
@@ -58,6 +110,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   const userMarkerRef = useRef<import("leaflet").CircleMarker | null>(null);
   const propsRef = useRef(props);
   const dragRef = useRef<{ id: number; point: MercatorPoint } | null>(null);
+  const resizeHandleRef = useRef<OverlayHandleInfo | null>(null);
   const drawFrameRef = useRef<number | null>(null);
   const interactionFrameRef = useRef<number | null>(null);
   const pendingTranslationRef = useRef<MercatorPoint>({ u: 0, v: 0 });
@@ -72,6 +125,8 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   const viewActiveTimestampRef = useRef<number>(Date.now());
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [manualAdjustmentEnabled, setManualAdjustmentEnabled] =
+    useState(false);
 
   const installBaseMap = useCallback(
     (
@@ -184,6 +239,55 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       }
     }
 
+    if (transform && manualAdjustmentEnabled) {
+      const topLeft = toScreenPoint({ x: 0, y: 0 });
+      const topRight = toScreenPoint({ x: imageSize.width, y: 0 });
+      const bottomRight = toScreenPoint({
+        x: imageSize.width,
+        y: imageSize.height,
+      });
+      const bottomLeft = toScreenPoint({ x: 0, y: imageSize.height });
+
+      if (topLeft && topRight && bottomRight && bottomLeft) {
+        context.save();
+        context.beginPath();
+        context.moveTo(topLeft.x, topLeft.y);
+        context.lineTo(topRight.x, topRight.y);
+        context.lineTo(bottomRight.x, bottomRight.y);
+        context.lineTo(bottomLeft.x, bottomLeft.y);
+        context.closePath();
+        context.strokeStyle = "#10B981";
+        context.lineWidth = 2;
+        context.setLineDash([7, 5]);
+        context.stroke();
+        context.setLineDash([]);
+
+        getOverlayHandles(imageSize).forEach((handle) => {
+          const point = toScreenPoint(handle.source);
+          if (!point) return;
+
+          const isCorner =
+            handle.id === "nw" ||
+            handle.id === "ne" ||
+            handle.id === "se" ||
+            handle.id === "sw";
+          const size = isCorner ? 12 : 10;
+
+          context.fillStyle = "#ECFDF5";
+          context.strokeStyle = "#059669";
+          context.lineWidth = 2;
+          context.fillRect(point.x - size / 2, point.y - size / 2, size, size);
+          context.strokeRect(
+            point.x - size / 2,
+            point.y - size / 2,
+            size,
+            size,
+          );
+        });
+        context.restore();
+      }
+    }
+
     controlPairs.forEach((pair, index) => {
       const point = map.latLngToContainerPoint([
         pair.world.lat,
@@ -231,7 +335,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       context.textBaseline = "middle";
       context.fillText(String(index + 1), tipX, tipY - 22);
     });
-  }, [toScreenPoint]);
+  }, [manualAdjustmentEnabled, toScreenPoint]);
 
   const scheduleDraw = useCallback(() => {
     if (drawFrameRef.current !== null) return;
@@ -447,9 +551,127 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   };
 
   const pdfInteractionEnabled =
-    props.interactionTarget === "pdf" &&
+    manualAdjustmentEnabled &&
+    props.interactionTarget === "map" &&
     Boolean(props.transform) &&
-    !props.waitingForWorldPoint;
+    !props.waitingForWorldPoint &&
+    !props.pointMode;
+
+  const getResizeHandleAtPointer = (
+    clientX: number,
+    clientY: number,
+  ): OverlayHandleInfo | null => {
+    const host = hostRef.current;
+    if (!host) return null;
+
+    const rect = host.getBoundingClientRect();
+    const pointerX = clientX - rect.left;
+    const pointerY = clientY - rect.top;
+
+    return (
+      getOverlayHandles(propsRef.current.imageSize).find((handle) => {
+        const point = toScreenPoint(handle.source);
+        return point ? Math.hypot(point.x - pointerX, point.y - pointerY) < 16 : false;
+      }) ?? null
+    );
+  };
+
+  const resizeFromHandle = (
+    handle: OverlayHandleInfo,
+    target: MercatorPoint,
+  ) => {
+    const transform = propsRef.current.transform;
+    const { imageSize } = propsRef.current;
+    if (!transform) return;
+
+    const topLeft = applyGeoTransform(transform, { x: 0, y: 0 });
+    const xAxis = {
+      u: transform.a * imageSize.width,
+      v: transform.c * imageSize.width,
+    };
+    const yAxis = {
+      u: transform.b * imageSize.height,
+      v: transform.d * imageSize.height,
+    };
+    const topRight = { u: topLeft.u + xAxis.u, v: topLeft.v + xAxis.v };
+    const bottomLeft = { u: topLeft.u + yAxis.u, v: topLeft.v + yAxis.v };
+    const bottomRight = {
+      u: topRight.u + yAxis.u,
+      v: topRight.v + yAxis.v,
+    };
+
+    let factors: { x: number; y: number } | null = null;
+
+    if (handle.id === "nw") {
+      factors = decomposeAlongAxes(
+        { u: bottomRight.u - target.u, v: bottomRight.v - target.v },
+        xAxis,
+        yAxis,
+      );
+    } else if (handle.id === "ne") {
+      const value = decomposeAlongAxes(
+        { u: target.u - bottomLeft.u, v: target.v - bottomLeft.v },
+        xAxis,
+        yAxis,
+      );
+      factors = value ? { x: value.x, y: -value.y } : null;
+    } else if (handle.id === "se") {
+      factors = decomposeAlongAxes(
+        { u: target.u - topLeft.u, v: target.v - topLeft.v },
+        xAxis,
+        yAxis,
+      );
+    } else if (handle.id === "sw") {
+      const value = decomposeAlongAxes(
+        { u: target.u - topRight.u, v: target.v - topRight.v },
+        xAxis,
+        yAxis,
+      );
+      factors = value ? { x: -value.x, y: value.y } : null;
+    } else if (handle.id === "e") {
+      factors = {
+        x:
+          ((target.u - bottomLeft.u + yAxis.u / 2) * xAxis.u +
+            (target.v - bottomLeft.v + yAxis.v / 2) * xAxis.v) /
+          (xAxis.u * xAxis.u + xAxis.v * xAxis.v),
+        y: 1,
+      };
+    } else if (handle.id === "w") {
+      factors = {
+        x:
+          ((topRight.u + yAxis.u / 2 - target.u) * xAxis.u +
+            (topRight.v + yAxis.v / 2 - target.v) * xAxis.v) /
+          (xAxis.u * xAxis.u + xAxis.v * xAxis.v),
+        y: 1,
+      };
+    } else if (handle.id === "s") {
+      factors = {
+        x: 1,
+        y:
+          ((target.u - topRight.u + xAxis.u / 2) * yAxis.u +
+            (target.v - topRight.v + xAxis.v / 2) * yAxis.v) /
+          (yAxis.u * yAxis.u + yAxis.v * yAxis.v),
+      };
+    } else if (handle.id === "n") {
+      factors = {
+        x: 1,
+        y:
+          ((bottomLeft.u + xAxis.u / 2 - target.u) * yAxis.u +
+            (bottomLeft.v + xAxis.v / 2 - target.v) * yAxis.v) /
+          (yAxis.u * yAxis.u + yAxis.v * yAxis.v),
+      };
+    }
+
+    if (!factors || !Number.isFinite(factors.x) || !Number.isFinite(factors.y)) {
+      return;
+    }
+
+    propsRef.current.onResizeOverlay(
+      handle.anchor,
+      clampResizeFactor(factors.x),
+      clampResizeFactor(factors.y),
+    );
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -488,7 +710,14 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     const point = getMercatorAtPointer(event.clientX, event.clientY);
     if (!point) return;
 
+    const resizeHandle = getResizeHandleAtPointer(event.clientX, event.clientY);
     event.currentTarget.setPointerCapture(event.pointerId);
+
+    if (resizeHandle) {
+      resizeHandleRef.current = resizeHandle;
+      dragRef.current = null;
+      return;
+    }
     touchPointsRef.current.set(event.pointerId, {
       x: event.clientX,
       y: event.clientY,
@@ -516,6 +745,13 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    const resizeHandle = resizeHandleRef.current;
+    if (resizeHandle) {
+      const target = getMercatorAtPointer(event.clientX, event.clientY);
+      if (target) resizeFromHandle(resizeHandle, target);
+      return;
+    }
+
     if (touchPointsRef.current.has(event.pointerId)) {
       touchPointsRef.current.set(event.pointerId, {
         x: event.clientX,
@@ -565,6 +801,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   };
 
   const finishPointer = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    resizeHandleRef.current = null;
     touchPointsRef.current.delete(event.pointerId);
     pinchRef.current = null;
     dragRef.current = null;
@@ -613,9 +850,24 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
         </div>
       )}
 
+      {Boolean(props.transform) && !props.pointMode && (
+        <button
+          type="button"
+          onClick={() => setManualAdjustmentEnabled((enabled) => !enabled)}
+          className={
+            "absolute bottom-26 left-1/2 z-30 -translate-x-1/2 rounded-lg border px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur md:bottom-14 " +
+            (manualAdjustmentEnabled
+              ? "border-emerald-400 bg-emerald-600 text-white"
+              : "border-border bg-background/90 text-foreground")
+          }
+        >
+          {manualAdjustmentEnabled ? "Done adjusting map" : "Adjust map manually"}
+        </button>
+      )}
+
       {pdfInteractionEnabled && (
-        <div className="pointer-events-none absolute bottom-26 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-2 text-center text-xs text-foreground shadow-lg backdrop-blur md:bottom-14">
-          Drag: move PDF · Pinch/Wheel: scale · Alt + Wheel: rotate
+        <div className="pointer-events-none absolute bottom-38 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-2 text-center text-xs text-foreground shadow-lg backdrop-blur md:bottom-26">
+          Drag inside: move PDF · Drag green handles: stretch map · Wheel: scale
         </div>
       )}
     </div>
