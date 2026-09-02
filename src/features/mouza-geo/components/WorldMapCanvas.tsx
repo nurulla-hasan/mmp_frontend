@@ -374,6 +374,10 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   }, [props, scheduleDraw]);
 
   useEffect(() => {
+    scheduleDraw();
+  }, [manualAdjustmentEnabled, scheduleDraw]);
+
+  useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
 
