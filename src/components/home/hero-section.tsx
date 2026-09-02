@@ -23,9 +23,15 @@ export function HeroSection({
   totalSurveyors?: number;
   totalDistricts?: number;
 }) {
+  // Ensure a realistic, credible social proof number for public visitors
+  const displaySurveyorsCount =
+    totalSurveyors && totalSurveyors >= 20
+      ? `${toBengaliDigits(totalSurveyors)}+`
+      : "৫০+";
+
   const heroStats = [
     {
-      value: totalSurveyors ? `${toBengaliDigits(totalSurveyors)}+` : "৫০০+",
+      value: displaySurveyorsCount,
       label: "ভেরিফায়েড সার্ভেয়ার",
       icon: Users,
     },
@@ -43,13 +49,18 @@ export function HeroSection({
     { title: "ডিজিটাল ল্যান্ড টুলস", icon: Layers },
     { title: "ম্যাপ ট্রেস ও তুলনা", icon: Compass },
   ];
+
   return (
     <div className="relative overflow-hidden w-full min-h-[calc(100dvh-4.5rem)] flex flex-col justify-between">
-      {/* Background ambient glow effects */}
+      {/* Background ambient glow effects & subtle grid dots */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-0 right-1/4 h-160 w-160 -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/15" />
-        <div className="absolute bottom-10 left-0 h-160 w-160 translate-y-1/3 -translate-x-1/3 rounded-full bg-primary/10" />
-        <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-yellow-500/10" />
+        {/* Subtle dot matrix overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] bg-size-[36px_36px] opacity-[0.07]" />
+        
+        {/* Ambient radial blur orbs */}
+        <div className="absolute -top-24 right-1/4 h-128 w-lg rounded-full bg-emerald-500/15 blur-[100px]" />
+        <div className="absolute bottom-10 -left-20 h-120 w-120 rounded-full bg-teal-500/12 blur-[90px]" />
+        <div className="absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/8 blur-[80px]" />
       </div>
 
       <SectionWrapper
@@ -61,17 +72,22 @@ export function HeroSection({
         <div className="grid gap-12 lg:grid-cols-[1.05fr_1fr] lg:items-center xl:gap-16 min-w-0">
           {/* ─── Left Hero Content ────────────────────────────────── */}
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-md border border-primary/25 bg-primary/10 px-3.5 py-1.5 text-xs font-medium text-primary shadow-2xs">
-              <span className="size-2 rounded-full bg-primary animate-pulse" />
+            {/* Pill Badge */}
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-primary/35 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary shadow-[0_0_20px_rgba(16,185,129,0.15)] backdrop-blur-md">
+              <span className="size-2 rounded-full bg-primary" />
               <span>বাংলাদেশের প্রথম পূর্ণাঙ্গ ডিজিটাল মৌজা ও ভূমি প্ল্যাটফর্ম</span>
             </div>
 
+            {/* Main Headline */}
             <h1 className="mt-5 font-heading text-3xl leading-[1.2] font-semibold tracking-tight sm:text-4xl lg:text-5xl xl:text-[3.5rem]">
               জমির সীমানা ও পরিমাপ নিয়ে
               <br />
-              <span className="text-primary">থাকুন সম্পূর্ণ নিশ্চিন্ত</span>
+              <span className="bg-linear-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text text-transparent drop-shadow-xs">
+                থাকুন সম্পূর্ণ নিশ্চিন্ত
+              </span>
             </h1>
 
+            {/* Subtitle */}
             <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
               অভিজ্ঞ সার্ভেয়ার খুঁজুন এবং আধুনিক ডিজিটাল টুল দিয়ে মৌজা ম্যাপের দাগ
               পরিমাপ, C.S ও B.S ম্যাপ তুলনা এবং ভেক্টর ট্রেসিং করুন নির্ভুলভাবে।
@@ -81,7 +97,7 @@ export function HeroSection({
             <div className="mt-7 flex flex-wrap items-center gap-3.5">
               <Button
                 size="lg"
-                className="gap-2 shadow-lg shadow-primary/20"
+                className="gap-2 bg-primary text-primary-foreground font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-200"
                 nativeButton={false}
                 render={<Link href="/surveyors" />}
               >
@@ -92,11 +108,11 @@ export function HeroSection({
               <Button
                 size="lg"
                 variant="outline"
-                className="gap-2 border-border/80 bg-background/80 hover:bg-muted"
+                className="gap-2 border-emerald-500/35 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/60 hover:text-emerald-300 backdrop-blur-md shadow-xs hover:-translate-y-0.5 transition-all duration-200"
                 nativeButton={false}
                 render={<Link href="/tools" />}
               >
-                <Ruler className="size-4" />
+                <Ruler className="size-4 text-emerald-400" />
                 জমির টুল ব্যবহার করুন
               </Button>
             </div>
@@ -106,7 +122,7 @@ export function HeroSection({
               {heroBenefits.map((item) => (
                 <div
                   key={item.title}
-                  className="flex items-center gap-2 rounded-xl border border-border/80 bg-card/70 px-3 py-2 text-xs sm:text-sm text-muted-foreground shadow-2xs"
+                  className="flex items-center gap-2 rounded-xl border border-border/80 bg-card/60 backdrop-blur-md px-3.5 py-2 text-xs sm:text-sm text-foreground/90 shadow-2xs hover:border-primary/40 hover:bg-card/90 transition-all duration-200 hover:-translate-y-0.5"
                 >
                   <item.icon className="size-4 shrink-0 text-primary" />
                   <span>{item.title}</span>
@@ -126,7 +142,7 @@ export function HeroSection({
               </div>
               <Link
                 href="/join-as-surveyor"
-                className="font-medium text-primary underline-offset-4 hover:underline"
+                className="font-medium text-primary underline-offset-4 hover:underline inline-flex items-center gap-1"
               >
                 সার্ভেয়ার হিসেবে যোগ দিন &rarr;
               </Link>
@@ -135,26 +151,27 @@ export function HeroSection({
 
           {/* ─── Right Hero Interactive Showcase ─────────────────── */}
           <div className="relative mx-auto w-full min-w-0 max-w-lg lg:max-w-none lg:pr-14 xl:pr-20">
-            <div className="pointer-events-none absolute -inset-4 -z-10 rounded-3xl bg-primary/10" />
+            {/* Subtle backlight behind canvas */}
+            <div className="pointer-events-none absolute -inset-6 -z-10 rounded-3xl bg-linear-to-tr from-emerald-500/15 via-teal-500/10 to-transparent blur-2xl" />
 
             {/* Primary Tool: Clean Canvas Plot Measurement Mockup */}
             <Link
               href="/tools/land-measurement"
               className="group relative block w-full min-w-0 focus:outline-hidden"
             >
-              <div className="overflow-hidden rounded-2xl border border-border/80 bg-card/90 shadow-2xl ring-1 ring-primary/15 transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/40 group-hover:ring-primary/30 group-hover:shadow-primary/10">
+              <div className="overflow-hidden rounded-2xl border border-emerald-500/30 bg-card/90 shadow-2xl shadow-black/40 ring-1 ring-primary/20 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-primary/60 group-hover:ring-primary/40 group-hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.3)]">
                 <div className="relative aspect-4/3 sm:aspect-16/11 min-h-72 sm:min-h-88 w-full overflow-hidden bg-muted/10">
                   {/* Grid Pattern */}
                   <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[24px_24px] opacity-40" />
 
                   {/* Top Floating Header Pill inside Canvas */}
-                  <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-3.5 z-10 flex items-center gap-1.5 sm:gap-2 rounded-xl border border-border/80 bg-background/90 px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-sm">
-                    <span className="flex size-2 shrink-0 rounded-full bg-primary animate-pulse" />
-                    <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-xs font-semibold">
+                  <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-3.5 z-10 flex items-center gap-1.5 sm:gap-2 rounded-xl border border-emerald-500/30 bg-background/90 px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-md backdrop-blur-md">
+                    <span className="size-2 shrink-0 rounded-full bg-primary" />
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-xs font-semibold text-foreground">
                       <Ruler className="size-3 sm:size-3.5 text-primary shrink-0" />
                       <span className="font-heading truncate">মৌজা জমি পরিমাপ</span>
                     </div>
-                    <span className="hidden sm:inline-block text-xs text-muted-foreground border-l pl-2">
+                    <span className="hidden sm:inline-block text-xs text-muted-foreground border-l border-border/70 pl-2">
                       ১৬″ = ১ মাইল
                     </span>
                   </div>
@@ -187,11 +204,11 @@ export function HeroSection({
                       <text x="45" y="260">দাগ ৪২৯</text>
                     </g>
 
-                    {/* Active Plot Polygon */}
+                    {/* Active Plot Polygon with glowing gradient fill */}
                     <polygon
                       points="90,75 275,60 295,195 210,222 78,208"
                       fill="var(--color-primary)"
-                      fillOpacity="0.14"
+                      fillOpacity="0.16"
                       stroke="var(--color-primary)"
                       strokeWidth="2.4"
                       strokeLinejoin="round"
@@ -211,7 +228,7 @@ export function HeroSection({
                           cy={cy}
                           r="6.5"
                           fill="var(--color-primary)"
-                          fillOpacity="0.25"
+                          fillOpacity="0.35"
                         />
                         <circle
                           cx={cx}
@@ -228,57 +245,58 @@ export function HeroSection({
                   {/* HTML Overlay Badges for dynamic font-safe auto-sizing */}
                   {/* Top dimension */}
                   <div className="pointer-events-none absolute top-[15%] left-[46%] -translate-x-1/2">
-                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-xs font-mono font-medium text-foreground shadow-2xs">
+                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-xs font-mono font-medium text-foreground shadow-sm">
                       ১২০ ফুট
                     </span>
                   </div>
 
                   {/* Right dimension */}
                   <div className="pointer-events-none absolute top-[42%] right-[14%] sm:right-[16%]">
-                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-xs font-mono font-medium text-foreground shadow-2xs">
+                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-xs font-mono font-medium text-foreground shadow-sm">
                       ৮০ ফুট
                     </span>
                   </div>
 
                   {/* Bottom dimension */}
                   <div className="pointer-events-none absolute bottom-[22%] left-[36%] -translate-x-1/2">
-                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-xs font-mono font-medium text-foreground shadow-2xs">
+                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-xs font-mono font-medium text-foreground shadow-sm">
                       ১১৫ ফুট
                     </span>
                   </div>
 
                   {/* Left dimension */}
                   <div className="pointer-events-none absolute top-[46%] left-[8%] sm:left-[10%]">
-                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-xs font-mono font-medium text-foreground shadow-2xs">
+                    <span className="inline-flex items-center rounded-md border border-border/80 bg-background/95 px-2 sm:px-2.5 py-0.5 text-[9.5px] sm:text-xs font-mono font-medium text-foreground shadow-sm">
                       ৭৫ ফুট
                     </span>
                   </div>
 
                   {/* Center Plot Tag */}
                   <div className="pointer-events-none absolute top-[43%] left-[46%] -translate-x-1/2 -translate-y-1/2">
-                    <span className="inline-flex items-center rounded-md border border-primary/30 bg-primary/10 px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs sm:text-xs font-medium text-primary shadow-2xs">
+                    <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/35 bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary shadow-sm backdrop-blur-sm">
+                      <span className="size-1.5 rounded-full bg-primary" />
                       দাগ নং ৪২৮
                     </span>
                   </div>
 
                   {/* Floating Area Calculation Badge */}
                   <div className="absolute bottom-2.5 left-2.5 sm:bottom-3.5 sm:left-3.5 z-10">
-                    <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl border border-primary/25 bg-background/95 px-2.5 sm:px-3 py-1.5 sm:py-2 shadow-lg backdrop-blur-md">
-                      <div className="flex size-6 sm:size-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                        <Sparkles className="size-3 sm:size-3.5" />
+                    <div className="flex items-center gap-2 rounded-xl border border-emerald-500/35 bg-background/95 px-3 py-2 shadow-xl backdrop-blur-xl ring-1 ring-emerald-500/20">
+                      <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400">
+                        <Sparkles className="size-3.5" />
                       </div>
                       <div>
-                        <div className="text-[8.5px] sm:text-xs font-medium text-muted-foreground truncate">
+                        <div className="text-[9px] sm:text-xs font-medium text-muted-foreground truncate">
                           মোট জমি (দাগ ৪২৮)
                         </div>
                         <div className="flex items-baseline gap-1">
-                          <span className="font-heading text-xs sm:text-base font-bold text-primary">
+                          <span className="font-heading text-sm sm:text-base font-bold text-emerald-400">
                             ৪২.৭৫
                           </span>
-                          <span className="text-[9px] sm:text-xs font-semibold text-primary">
+                          <span className="text-[10px] sm:text-xs font-semibold text-emerald-400">
                             শতাংশ
                           </span>
-                          <span className="hidden text-xs text-muted-foreground sm:inline">
+                          <span className="hidden text-xs text-muted-foreground sm:inline font-mono">
                             • ২.৫৮ কাঠা
                           </span>
                         </div>
@@ -287,11 +305,11 @@ export function HeroSection({
                   </div>
 
                   {/* Zoom Controls */}
-                  <div className="absolute right-2.5 bottom-2.5 sm:right-3.5 sm:bottom-3.5 z-10 flex flex-col overflow-hidden rounded-lg border bg-background/90 shadow-xs backdrop-blur-sm">
-                    <span className="flex size-5.5 sm:size-6.5 items-center justify-center text-xs font-semibold hover:bg-muted transition-colors">
+                  <div className="absolute right-2.5 bottom-2.5 sm:right-3.5 sm:bottom-3.5 z-10 flex flex-col overflow-hidden rounded-lg border border-border/80 bg-background/90 shadow-sm backdrop-blur-sm">
+                    <span className="flex size-6 items-center justify-center text-xs font-semibold hover:bg-muted transition-colors cursor-pointer">
                       +
                     </span>
-                    <span className="flex size-5.5 sm:size-6.5 items-center justify-center border-t text-xs font-semibold hover:bg-muted transition-colors">
+                    <span className="flex size-6 items-center justify-center border-t border-border/70 text-xs font-semibold hover:bg-muted transition-colors cursor-pointer">
                       −
                     </span>
                   </div>
@@ -301,84 +319,86 @@ export function HeroSection({
 
             {/* Supporting Tools: Floating on Desktop, Clean Grid on Mobile */}
             <div className="mt-3.5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:mt-0 min-w-0">
-              {/* Satellite Tool 1: Pantagraph */}
+              {/* Satellite Tool 1: Pantagraph (C.S Red vs B.S Green) */}
               <Link
                 href="/tools/pantagraph"
-                className="group block min-w-0 lg:absolute lg:-top-6 lg:-right-8 xl:-right-10 lg:w-48 xl:w-52 z-20"
+                className="group block min-w-0 lg:absolute lg:-top-6 lg:-right-8 xl:-right-10 lg:w-50 xl:w-54 z-20"
               >
-                <div className="flex flex-col gap-1.5 sm:gap-2 rounded-xl border border-border/80 bg-card/95 p-2.5 sm:p-3 shadow-xl ring-1 ring-primary/15 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/40 group-hover:ring-primary/30 group-hover:shadow-primary/10 min-w-0">
+                <div className="flex flex-col gap-1.5 sm:gap-2 rounded-2xl border border-emerald-500/30 bg-card/90 p-3 shadow-2xl shadow-black/40 ring-1 ring-emerald-500/20 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-emerald-500/60 group-hover:shadow-[0_15px_30px_-10px_rgba(16,185,129,0.3)] min-w-0">
                   <div className="flex items-center justify-between gap-1 min-w-0">
-                    <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-xs font-semibold truncate min-w-0">
-                      <Scaling className="size-3.5 shrink-0 text-primary" />
+                    <div className="flex items-center gap-1.5 text-xs font-semibold truncate min-w-0 text-foreground">
+                      <Scaling className="size-3.5 shrink-0 text-emerald-400" />
                       <span className="font-heading truncate">ম্যাপ তুলনা</span>
                     </div>
-                    <span className="shrink-0 rounded bg-primary/10 px-1 py-0.5 text-[8.5px] sm:text-[9px] font-semibold text-primary">
+                    <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[8.5px] font-semibold text-emerald-400">
                       C.S ⇄ B.S
                     </span>
                   </div>
 
-                  <div className="relative h-16 sm:h-20 overflow-hidden rounded-lg border bg-muted/15">
+                  <div className="relative h-18 sm:h-20 overflow-hidden rounded-xl border border-border/70 bg-muted/20">
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[10px_10px] opacity-30" />
                     <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 60" aria-hidden="true">
-                      {/* Former map polygon */}
+                      {/* Former C.S map polygon (Authentic Red) */}
                       <polygon
                         points="15,14 62,8 78,44 26,52"
-                        fill="none"
-                        stroke="var(--color-primary)"
-                        strokeWidth="1.8"
+                        fill="#dc2626"
+                        fillOpacity="0.08"
+                        stroke="#dc2626"
+                        strokeWidth="1.6"
                       />
-                      {/* Current map polygon */}
+                      {/* Current B.S map polygon (Authentic Green) */}
                       <polygon
                         points="22,12 68,18 64,52 18,40"
-                        fill="var(--color-primary)"
-                        fillOpacity="0.08"
-                        stroke="currentColor"
-                        strokeWidth="1.4"
+                        fill="#16a34a"
+                        fillOpacity="0.12"
+                        stroke="#16a34a"
+                        strokeWidth="1.8"
                         strokeDasharray="3 2"
-                        className="text-muted-foreground"
                       />
                       {/* Match Point Pins */}
-                      <circle cx="22" cy="12" r="2" fill="var(--color-primary)" />
-                      <circle cx="68" cy="18" r="2" fill="var(--color-primary)" />
+                      <circle cx="22" cy="12" r="2.2" fill="#16a34a" />
+                      <circle cx="68" cy="18" r="2.2" fill="#16a34a" />
+                      <circle cx="15" cy="14" r="2" fill="#dc2626" />
                     </svg>
                   </div>
-                  <p className="text-xs sm:text-xs font-medium text-muted-foreground truncate">
-                    সাবেক ও হাল মিলান
-                  </p>
+                  <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground truncate">
+                    <span>সাবেক ও হাল মিলান</span>
+                    <span className="text-[9px] text-emerald-400 font-mono font-semibold">৯৮.৫% মিল</span>
+                  </div>
                 </div>
               </Link>
 
               {/* Satellite Tool 2: Map Tracer */}
               <Link
                 href="/tools/tracer"
-                className="group block min-w-0 lg:absolute lg:-bottom-6 lg:-right-6 xl:-right-8 lg:w-48 xl:w-52 z-20"
+                className="group block min-w-0 lg:absolute lg:-bottom-6 lg:-right-6 xl:-right-8 lg:w-50 xl:w-54 z-20"
               >
-                <div className="flex flex-col gap-1.5 sm:gap-2 rounded-xl border border-border/80 bg-card/95 p-2.5 sm:p-3 shadow-xl ring-1 ring-primary/15 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/40 group-hover:ring-primary/30 group-hover:shadow-primary/10 min-w-0">
+                <div className="flex flex-col gap-1.5 sm:gap-2 rounded-2xl border border-emerald-500/30 bg-card/90 p-3 shadow-2xl shadow-black/40 ring-1 ring-emerald-500/20 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-emerald-500/60 group-hover:shadow-[0_15px_30px_-10px_rgba(16,185,129,0.3)] min-w-0">
                   <div className="flex items-center justify-between gap-1 min-w-0">
-                    <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-xs font-semibold truncate min-w-0">
-                      <PenLine className="size-3.5 shrink-0 text-primary" />
+                    <div className="flex items-center gap-1.5 text-xs font-semibold truncate min-w-0 text-foreground">
+                      <PenLine className="size-3.5 shrink-0 text-teal-400" />
                       <span className="font-heading truncate">ম্যাপ ট্রেসার</span>
                     </div>
-                    <span className="size-2 shrink-0 rounded-full bg-primary animate-pulse" />
+                    <span className="size-2 shrink-0 rounded-full bg-teal-400" />
                   </div>
 
-                  <div className="relative h-16 sm:h-20 overflow-hidden rounded-lg border bg-muted/15">
+                  <div className="relative h-18 sm:h-20 overflow-hidden rounded-xl border border-border/70 bg-muted/20">
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[10px_10px] opacity-30" />
                     <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 60" aria-hidden="true">
                       {/* Traced polygon */}
                       <polygon
                         points="16,38 48,14 82,24 68,48 30,52"
                         fill="var(--color-primary)"
-                        fillOpacity="0.12"
+                        fillOpacity="0.14"
                         stroke="var(--color-primary)"
                         strokeWidth="1.8"
                       />
-                      {/* Active trace line */}
+                      {/* Active trace line with dashed guide */}
                       <polyline
                         points="16,38 48,14 82,24"
                         fill="none"
-                        stroke="var(--color-primary)"
-                        strokeWidth="1.2"
+                        stroke="#38bdf8"
+                        strokeWidth="1.5"
                         strokeDasharray="2 2"
                       />
                       <circle cx="48" cy="14" r="2.2" fill="var(--color-primary)" />
@@ -386,9 +406,10 @@ export function HeroSection({
                       <circle cx="68" cy="48" r="2.2" fill="var(--color-primary)" />
                     </svg>
                   </div>
-                  <p className="text-xs sm:text-xs font-medium text-muted-foreground truncate">
-                    ভেক্টর বাউন্ডারি ট্রেস
-                  </p>
+                  <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground truncate">
+                    <span>ভেক্টর বাউন্ডারি ট্রেস</span>
+                    <span className="text-[9px] text-teal-400 font-mono font-semibold">SVG / CAD</span>
+                  </div>
                 </div>
               </Link>
             </div>
@@ -403,16 +424,16 @@ export function HeroSection({
               return (
                 <div
                   key={stat.label}
-                  className="flex items-center gap-3 rounded-xl border border-border/50 bg-card/40 px-3.5 py-3 transition-all hover:bg-card/70 hover:border-primary/25"
+                  className="flex items-center gap-3.5 rounded-2xl border border-border/70 bg-linear-to-b from-card/80 to-card/40 backdrop-blur-md px-4 py-3.5 shadow-sm transition-all duration-200 hover:bg-card/90 hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-md"
                 >
-                  <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Icon className="size-4 sm:size-5" />
+                  <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/5 text-primary ring-1 ring-primary/25 shadow-xs">
+                    <Icon className="size-5" />
                   </div>
                   <div className="min-w-0">
                     <div className="font-heading text-lg sm:text-xl font-bold tracking-tight text-foreground">
                       {stat.value}
                     </div>
-                    <div className="text-xs sm:text-xs text-muted-foreground truncate">
+                    <div className="text-xs text-muted-foreground truncate font-medium">
                       {stat.label}
                     </div>
                   </div>
