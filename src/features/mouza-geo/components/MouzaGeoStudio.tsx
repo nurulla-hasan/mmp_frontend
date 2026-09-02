@@ -30,6 +30,7 @@ import type {
 } from "../types";
 import {
   calculateResidualMeters,
+  resizeGeoTransform,
   rotateGeoTransform,
   scaleGeoTransform,
   solveGeoTransform,
@@ -308,6 +309,18 @@ export default function MouzaGeoStudio() {
     );
   };
 
+  const handleResize = (
+    anchor: Point2D,
+    xFactor: number,
+    yFactor: number,
+  ) => {
+    setTransform((current) =>
+      current
+        ? resizeGeoTransform(current, anchor, xFactor, yFactor)
+        : current,
+    );
+  };
+
   const handleRotate = (angleRadians: number) => {
     setTransform((current) =>
       current
@@ -461,6 +474,7 @@ export default function MouzaGeoStudio() {
                   onPlaceWorldPoint={handleWorldPoint}
                   onTranslateOverlay={handleTranslate}
                   onScaleOverlay={handleScale}
+                  onResizeOverlay={handleResize}
                   onRotateOverlay={handleRotate}
                 />
               </div>

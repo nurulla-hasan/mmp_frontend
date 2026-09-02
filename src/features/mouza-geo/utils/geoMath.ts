@@ -222,6 +222,31 @@ export function scaleGeoTransform(
   };
 }
 
+export function resizeGeoTransform(
+  transform: GeoTransform,
+  anchor: Point2D,
+  xFactor: number,
+  yFactor: number,
+): GeoTransform {
+  const safeXFactor = Math.max(0.05, Math.min(20, xFactor));
+  const safeYFactor = Math.max(0.05, Math.min(20, yFactor));
+  const worldAnchor = applyGeoTransform(transform, anchor);
+
+  const next = {
+    ...transform,
+    a: transform.a * safeXFactor,
+    c: transform.c * safeXFactor,
+    b: transform.b * safeYFactor,
+    d: transform.d * safeYFactor,
+  };
+
+  return {
+    ...next,
+    tx: worldAnchor.u - next.a * anchor.x - next.b * anchor.y,
+    ty: worldAnchor.v - next.c * anchor.x - next.d * anchor.y,
+  };
+}
+
 export function rotateGeoTransform(
   transform: GeoTransform,
   anchor: Point2D,
