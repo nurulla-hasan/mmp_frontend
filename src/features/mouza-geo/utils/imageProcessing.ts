@@ -13,7 +13,7 @@ function parseColor(color: string) {
 }
 
 function abortError() {
-  return new DOMException('Image processing বাতিল হয়েছে', 'AbortError');
+  return new DOMException('Image processing was cancelled', 'AbortError');
 }
 
 export function processGeoPixelBuffer(
@@ -51,7 +51,7 @@ export function processGeoPixelBuffer(
     };
     worker.onerror = () => {
       cleanup();
-      reject(new Error('Background worker চালু করা যায়নি'));
+      reject(new Error('Could not start background worker'));
     };
     signal?.addEventListener('abort', handleAbort, { once: true });
 
@@ -71,7 +71,7 @@ function canvasToBlob(canvas: HTMLCanvasElement) {
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
-      else reject(new Error('Background preview তৈরি করা যায়নি'));
+      else reject(new Error('Could not create background preview'));
     }, 'image/png');
   });
 }
@@ -86,7 +86,7 @@ function loadBlobImage(blob: Blob) {
     };
     image.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error('Background preview load করা যায়নি'));
+      reject(new Error('Could not load background preview'));
     };
     image.src = url;
   });
@@ -123,7 +123,7 @@ export async function createProcessedPreview(
   canvas.height = size.height;
   const context = canvas.getContext('2d', { willReadFrequently: true });
 
-  if (!context) throw new Error('Background canvas তৈরি করা যায়নি');
+  if (!context) throw new Error('Could not create background canvas');
   if (signal?.aborted) throw abortError();
 
   context.imageSmoothingEnabled = true;

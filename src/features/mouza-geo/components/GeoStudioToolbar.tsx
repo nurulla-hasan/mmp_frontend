@@ -70,7 +70,7 @@ export default function GeoStudioToolbar({
         {/* 1. Settings Drawer */}
         <FloatingToolButton
           icon={Settings2}
-          label="ম্যাপ ও সেটিংস"
+          label="Maps & Settings"
           active={settingsOpen}
           onClick={onToggleSettings}
           mobile={true}
@@ -83,8 +83,8 @@ export default function GeoStudioToolbar({
           icon={Crosshair}
           label={
             pointMode
-              ? "পয়েন্ট মোড চালু (ক্লিক করলে পয়েন্ট বসবে)"
-              : "প্যান মোড (ক্লিক করলে পয়েন্ট বসবে না)"
+              ? "Point Mode Active (Click to add point)"
+              : "Pan Mode (Click to pan without adding point)"
           }
           active={pointMode}
           onClick={onTogglePointMode}
@@ -96,14 +96,14 @@ export default function GeoStudioToolbar({
         {/* 3. View Switchers */}
         <FloatingToolButton
           icon={FileText}
-          label="মৌজা PDF ভিউ"
+          label="Mouza PDF View"
           active={activeView === "source"}
           onClick={() => onSelectView("source")}
           mobile={true}
         />
         <FloatingToolButton
           icon={Globe2}
-          label="World Map স্যাটেলাইট ভিউ"
+          label="World Satellite View"
           active={activeView === "world"}
           onClick={() => onSelectView("world")}
           mobile={true}
@@ -113,7 +113,7 @@ export default function GeoStudioToolbar({
         {onLocateUser && (
           <FloatingToolButton
             icon={LocateFixed}
-            label="আমার বর্তমান লোকেশন (GPS)"
+            label="My Current Location (GPS)"
             active={locating}
             onClick={onLocateUser}
             mobile={true}
@@ -125,7 +125,7 @@ export default function GeoStudioToolbar({
         {/* 5. Similarity Alignment Button (6th tool button) */}
         <FloatingToolButton
           icon={SlidersHorizontal}
-          label="Similarity অ্যালাইনমেন্ট (২+ পয়েন্ট)"
+          label="Similarity Alignment (2+ points)"
           active={alignmentMode === "similarity" && Boolean(transform)}
           disabled={controlPairsCount < 2}
           onClick={onSimilarityClick}
@@ -144,8 +144,8 @@ export default function GeoStudioToolbar({
               variant="ghost"
               size="icon"
               className="size-8 text-muted-foreground hover:text-foreground"
-              title="অতিরিক্ত টুলস"
-              aria-label="অতিরিক্ত টুলস"
+              title="More Tools"
+              aria-label="More Tools"
             >
               <MoreHorizontal className="size-4" />
             </Button>
@@ -159,7 +159,7 @@ export default function GeoStudioToolbar({
             <div className="flex items-center gap-1">
               <FloatingToolButton
                 icon={Sparkles}
-                label="Affine রিফাইনমেন্ট (৩+ পয়েন্ট)"
+                label="Affine Refinement (3+ points)"
                 active={alignmentMode === "affine" && Boolean(transform)}
                 disabled={controlPairsCount < 3}
                 onClick={onAffineClick}
@@ -168,14 +168,14 @@ export default function GeoStudioToolbar({
               <div className="mx-0.5 h-6 w-px bg-border/60" />
               <FloatingToolButton
                 icon={Undo2}
-                label="শেষ পয়েন্ট বাতিল (Undo)"
+                label="Undo Last Point"
                 disabled={!canUndo}
                 onClick={onUndo}
                 mobile={true}
               />
               <FloatingToolButton
                 icon={Redo2}
-                label="পয়েন্ট ফিরিয়ে আনুন (Redo)"
+                label="Redo Point"
                 disabled={!canRedo}
                 onClick={onRedo}
                 mobile={true}
@@ -183,7 +183,7 @@ export default function GeoStudioToolbar({
               <div className="mx-0.5 h-6 w-px bg-border/60" />
               <FloatingToolButton
                 icon={RotateCcw}
-                label="অ্যালাইনমেন্ট রিসেট"
+                label="Reset Alignment"
                 disabled={controlPairsCount === 0 && !transform}
                 onClick={onResetAlignment}
                 mobile={true}
@@ -201,7 +201,7 @@ export default function GeoStudioToolbar({
       {/* 1. Settings Drawer Toggle */}
       <FloatingToolButton
         icon={Settings2}
-        label="ম্যাপ ও সেটিংস"
+        label="Maps & Settings"
         active={settingsOpen}
         onClick={onToggleSettings}
         mobile={false}
@@ -214,8 +214,8 @@ export default function GeoStudioToolbar({
         icon={Crosshair}
         label={
           pointMode
-            ? "পয়েন্ট মোড চালু (ক্লিক করলে পয়েন্ট বসবে)"
-            : "প্যান মোড (ক্লিক করলে পয়েন্ট বসবে না)"
+            ? "Point Mode Active (Click to add point)"
+            : "Pan Mode (Click to pan without adding point)"
         }
         active={pointMode}
         onClick={onTogglePointMode}
@@ -227,14 +227,14 @@ export default function GeoStudioToolbar({
       {/* 3. View Switchers & GPS */}
       <FloatingToolButton
         icon={FileText}
-        label="মৌজা PDF ভিউ"
+        label="Mouza PDF View"
         active={activeView === "source"}
         onClick={() => onSelectView("source")}
         mobile={false}
       />
       <FloatingToolButton
         icon={Globe2}
-        label="World Map স্যাটেলাইট ভিউ"
+        label="World Satellite View"
         active={activeView === "world"}
         onClick={() => onSelectView("world")}
         mobile={false}
@@ -244,7 +244,7 @@ export default function GeoStudioToolbar({
       {onLocateUser && (
         <FloatingToolButton
           icon={LocateFixed}
-          label="আমার বর্তমান লোকেশন (GPS)"
+          label="My Current Location (GPS)"
           active={locating}
           onClick={onLocateUser}
           mobile={false}
@@ -256,7 +256,7 @@ export default function GeoStudioToolbar({
       {/* 4. Quick Alignment Methods */}
       <FloatingToolButton
         icon={SlidersHorizontal}
-        label="Similarity অ্যালাইনমেন্ট (২+ পয়েন্ট)"
+        label="Similarity Alignment (2+ points)"
         active={alignmentMode === "similarity" && Boolean(transform)}
         disabled={controlPairsCount < 2}
         onClick={onSimilarityClick}
@@ -264,7 +264,7 @@ export default function GeoStudioToolbar({
       />
       <FloatingToolButton
         icon={Sparkles}
-        label="Affine রিফাইনমেন্ট (৩+ পয়েন্ট)"
+        label="Affine Refinement (3+ points)"
         active={alignmentMode === "affine" && Boolean(transform)}
         disabled={controlPairsCount < 3}
         onClick={onAffineClick}
@@ -276,14 +276,14 @@ export default function GeoStudioToolbar({
       {/* 5. Undo / Redo */}
       <FloatingToolButton
         icon={Undo2}
-        label="শেষ পয়েন্ট বাতিল (Undo)"
+        label="Undo Last Point"
         disabled={!canUndo}
         onClick={onUndo}
         mobile={false}
       />
       <FloatingToolButton
         icon={Redo2}
-        label="পয়েন্ট ফিরিয়ে আনুন (Redo)"
+        label="Redo Point"
         disabled={!canRedo}
         onClick={onRedo}
         mobile={false}
@@ -294,7 +294,7 @@ export default function GeoStudioToolbar({
       {/* 6. Alignment Reset */}
       <FloatingToolButton
         icon={RotateCcw}
-        label="অ্যালাইনমেন্ট রিসেট"
+        label="Reset Alignment"
         disabled={controlPairsCount === 0 && !transform}
         onClick={onResetAlignment}
         mobile={false}

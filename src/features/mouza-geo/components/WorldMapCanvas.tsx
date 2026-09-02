@@ -307,7 +307,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
           }
 
           if (!current.waitingForWorldPoint) {
-            InfoToast("আগে মৌজা ম্যাপে (PDF/Image) একটি পয়েন্ট সিলেক্ট করুন");
+            InfoToast("Select a point on the mouza map (PDF/Image) first");
             return;
           }
 
@@ -339,7 +339,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
         setError(
           loadError instanceof Error
             ? loadError.message
-            : "OpenStreetMap load করা যায়নি",
+            : "Could not load OpenStreetMap",
         );
       });
 
@@ -600,14 +600,14 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
       {loading && (
         <div className="absolute inset-0 z-20 grid place-items-center bg-background/80 text-sm text-foreground">
-          স্যাটেলাইট ম্যাপ লোড হচ্ছে…
+          Loading satellite map…
         </div>
       )}
 
       {error && (
         <div className="absolute inset-0 z-20 grid place-items-center bg-background p-6 text-center">
           <div className="max-w-md rounded-xl border border-border bg-card p-5 text-sm text-card-foreground shadow-lg">
-            <p className="font-semibold">ম্যাপ চালু করা যায়নি</p>
+            <p className="font-semibold">Could not load map</p>
             <p className="mt-2 text-muted-foreground">{error}</p>
           </div>
         </div>
@@ -615,7 +615,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
       {pdfInteractionEnabled && (
         <div className="pointer-events-none absolute bottom-26 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-2 text-center text-xs text-foreground shadow-lg backdrop-blur md:bottom-14">
-          Drag: PDF সরান · Pinch/Wheel: scale · Alt + Wheel: rotate
+          Drag: move PDF · Pinch/Wheel: scale · Alt + Wheel: rotate
         </div>
       )}
     </div>

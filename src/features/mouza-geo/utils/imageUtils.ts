@@ -4,8 +4,8 @@ export const toDataUrl = (file: File) =>
     reader.onload = () =>
       typeof reader.result === 'string'
         ? resolve(reader.result)
-        : reject(new Error('Image read করা যায়নি'));
-    reader.onerror = () => reject(new Error('Image read করা যায়নি'));
+        : reject(new Error('Could not read image'));
+    reader.onerror = () => reject(new Error('Could not read image'));
     reader.readAsDataURL(file);
   });
 
@@ -13,7 +13,7 @@ export const loadImage = (src: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new window.Image();
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error('Image load করা যায়নি'));
+    image.onerror = () => reject(new Error('Could not load image'));
     image.src = src;
   });
 
@@ -25,7 +25,7 @@ export const normalizeAsPng = (image: HTMLImageElement) => {
   canvas.height = height;
   const context = canvas.getContext('2d');
 
-  if (!context) throw new Error('Image canvas তৈরি করা যায়নি');
+  if (!context) throw new Error('Could not create image canvas');
 
   context.fillStyle = '#ffffff';
   context.fillRect(0, 0, width, height);
@@ -43,7 +43,7 @@ export const imageAsPng = (image: HTMLImageElement) => {
   canvas.height = height;
   const context = canvas.getContext('2d');
 
-  if (!context) throw new Error('Image canvas তৈরি করা যায়নি');
+  if (!context) throw new Error('Could not create image canvas');
 
   context.clearRect(0, 0, width, height);
   context.drawImage(image, 0, 0, width, height);

@@ -92,14 +92,14 @@ export default memo(function SettingsPanel({
         <div className="flex items-center justify-between">
           <h3 className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
             <FileUp className="size-3.5 text-primary" />
-            <span>মৌজা ম্যাপ</span>
+            <span>Mouza Map</span>
           </h3>
           {image && (
             <Badge
               variant="outline"
               className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
             >
-              সংযুক্ত আছে
+              Connected
             </Badge>
           )}
         </div>
@@ -118,7 +118,7 @@ export default memo(function SettingsPanel({
                   {mapName || "mouza-map"}
                 </p>
                 <p className="text-[10px] text-primary">
-                  মৌজা ম্যাপ প্রস্তুত
+                  Mouza map ready
                 </p>
               </div>
             </div>
@@ -130,7 +130,7 @@ export default memo(function SettingsPanel({
                 className="size-7.5 border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted"
                 onClick={onUploadClick}
                 disabled={loadingFile}
-                title="ম্যাপ পরিবর্তন করুন"
+                title="Change Map"
               >
                 <FileUp className="size-3.5" />
               </Button>
@@ -145,7 +145,7 @@ export default memo(function SettingsPanel({
             className="w-full gap-1.5 text-xs h-9 border-primary/40 bg-primary/5 text-primary hover:bg-primary/15 hover:border-primary/60 transition-colors"
           >
             <FileUp className="size-3.5" />
-            {loadingFile ? "লোড হচ্ছে…" : "নতুন PDF / Image আপলোড করুন"}
+            {loadingFile ? "Loading…" : "Upload New PDF / Image"}
           </Button>
         )}
       </section>
@@ -160,7 +160,7 @@ export default memo(function SettingsPanel({
             <div className="flex items-center justify-between">
               <h3 className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Crosshair className="size-3.5 text-primary" />
-                <span>কন্ট্রোল পয়েন্ট</span>
+                <span>Control Points</span>
               </h3>
               <Badge variant="outline" className="font-mono text-[10px]">
                 {controlPairs.length} pair
@@ -185,8 +185,8 @@ export default memo(function SettingsPanel({
                     variant="outline"
                     size="icon"
                     className="size-6.5 border-border/80 text-destructive hover:bg-destructive/10 hover:border-destructive/40 shrink-0"
-                    title="পয়েন্ট pair মুছুন"
-                    aria-label="পয়েন্ট pair মুছুন"
+                    title="Remove point pair"
+                    aria-label="Remove point pair"
                     onClick={() => onRemovePair(pair.id)}
                   >
                     <Trash2 className="size-3" />
@@ -196,7 +196,7 @@ export default memo(function SettingsPanel({
 
               {controlPairs.length === 0 && (
                 <p className="text-[11px] leading-4 text-muted-foreground">
-                  PDF-এ পয়েন্ট ক্লিক করলে World Map খুলবে। একই অবস্থানে ক্লিক করে পেয়ার করুন।
+                  Click a point on the PDF to open World Map. Click the matching location to pair.
                 </p>
               )}
             </div>
@@ -208,7 +208,7 @@ export default memo(function SettingsPanel({
           <section className="space-y-2.5 p-3 rounded-xl border border-border/70 bg-card shadow-xs">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-xs text-foreground">
-                <span>PDF ব্যাকগ্রাউন্ড রিমুভ</span>
+                <span>Remove PDF Background</span>
                 {processingBackground && (
                   <Loader2 className="size-3.5 animate-spin text-primary" />
                 )}
@@ -217,7 +217,7 @@ export default memo(function SettingsPanel({
                 type="button"
                 role="switch"
                 aria-checked={backgroundRemoved}
-                aria-label="PDF background সরান"
+                aria-label="Remove PDF background"
                 onClick={() => onBackgroundRemovedChange(!backgroundRemoved)}
                 className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors ${
                   backgroundRemoved ? "bg-primary" : "bg-muted"
@@ -235,7 +235,7 @@ export default memo(function SettingsPanel({
               <div className="space-y-2.5 pt-2 border-t border-border/50">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">
-                    লাইন ধরার মাত্রা
+                    Line Detection Sensitivity
                   </span>
                   <Badge variant="outline" className="font-mono text-[11px] text-primary bg-primary/5 border-primary/30">
                     {backgroundSensitivity}%
@@ -255,19 +255,19 @@ export default memo(function SettingsPanel({
 
                 <div className="space-y-1.5 pt-1">
                   <span className="text-xs text-muted-foreground">
-                    লাইনের রং:
+                    Line Color:
                   </span>
                   <div className="flex gap-2 items-center">
                     {[
-                      { value: "#000000", label: "কালো" },
-                      { value: "#DC2626", label: "লাল" },
-                      { value: "#16A34A", label: "সবুজ" },
+                      { value: "#000000", label: "Black" },
+                      { value: "#DC2626", label: "Red" },
+                      { value: "#16A34A", label: "Green" },
                     ].map((option) => (
                       <button
                         key={option.value}
                         type="button"
                         title={option.label}
-                        aria-label={`${option.label} লাইন`}
+                        aria-label={`${option.label} line`}
                         onClick={() => onLineColorChange(option.value)}
                         className={`size-5 rounded-full transition-all border ${
                           lineColor === option.value
@@ -287,7 +287,7 @@ export default memo(function SettingsPanel({
           <section className="space-y-1.5 p-3 rounded-xl border border-border/70 bg-card shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs text-foreground">
-                PDF ওপাসিটি
+                PDF Opacity
               </span>
               <Badge variant="outline" className="font-mono text-[11px]">
                 {Math.round(opacity * 100)}%
@@ -315,7 +315,7 @@ export default memo(function SettingsPanel({
           <section className="space-y-2">
             <span className="text-xs text-muted-foreground flex items-center gap-1.5">
               <LocateFixed className="size-3.5 text-primary" />
-              <span>GPS অবস্থান</span>
+              <span>GPS Location</span>
             </span>
             <Button
               type="button"
@@ -330,7 +330,7 @@ export default memo(function SettingsPanel({
               ) : (
                 <LocateFixed className="size-3.5 text-primary" />
               )}
-              <span>{locating ? "লোকেশন খোঁজা হচ্ছে…" : "আমার বর্তমান লোকেশন (GPS)"}</span>
+              <span>{locating ? "Locating…" : "My Current Location (GPS)"}</span>
             </Button>
           </section>
 
@@ -342,7 +342,7 @@ export default memo(function SettingsPanel({
       <section className="space-y-2">
         <span className="text-xs text-muted-foreground flex items-center gap-1.5">
           <Globe2 className="size-3.5 text-primary" />
-          <span>World Map স্টাইল</span>
+          <span>World Map Style</span>
         </span>
         <div className="grid grid-cols-2 gap-2">
           <Button
@@ -372,7 +372,7 @@ export default memo(function SettingsPanel({
       <section className="space-y-2.5">
         <h3 className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
           <Download className="size-3.5 text-primary" />
-          <span>KMZ এক্সপোর্ট (Google Earth)</span>
+          <span>KMZ Export (Google Earth)</span>
         </h3>
 
         <div className="space-y-2 p-3 rounded-xl border border-border/70 bg-card shadow-xs">
@@ -384,7 +384,7 @@ export default memo(function SettingsPanel({
               onClick={() => onExportQualityChange("optimized")}
               className="text-xs h-8"
             >
-              High · ছোট ফাইল
+              High · Small File
             </Button>
             <Button
               type="button"
@@ -393,7 +393,7 @@ export default memo(function SettingsPanel({
               onClick={() => onExportQualityChange("original")}
               className="text-xs h-8"
             >
-              Original কোয়ালিটি
+              Original Quality
             </Button>
           </div>
         </div>
@@ -402,7 +402,7 @@ export default memo(function SettingsPanel({
           <>
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">
-                ফাইলের নাম:
+                File Name:
               </label>
               <input
                 value={mapName}
@@ -426,7 +426,7 @@ export default memo(function SettingsPanel({
               ) : (
                 <Download className="size-3.5" />
               )}
-              {exportingKmz ? "KMZ প্রস্তুত হচ্ছে…" : "KMZ ফাইল ডাউনলোড করুন"}
+              {exportingKmz ? "Preparing KMZ…" : "Download KMZ File"}
             </Button>
           </>
         )}
@@ -439,20 +439,20 @@ export default memo(function SettingsPanel({
           <div className="space-y-2 p-3 rounded-xl border border-primary/20 bg-primary/5 text-xs">
             <div className="flex items-center gap-1.5 text-primary font-medium">
               <HelpCircle className="size-3.5" />
-              <span>জিওরেফারেন্সিং গাইড</span>
+              <span>Georeferencing Guide</span>
             </div>
             <div className="space-y-1 text-muted-foreground text-[11px] leading-relaxed">
               <p className="flex items-start gap-1.5">
                 <span className="size-1.5 rounded-full bg-primary shrink-0 mt-1" />
-                <span>১. মৌজা ম্যাপের PDF / Image আপলোড করুন।</span>
+                <span>1. Upload a Mouza Map PDF / Image.</span>
               </p>
               <p className="flex items-start gap-1.5">
                 <span className="size-1.5 rounded-full bg-emerald-500 shrink-0 mt-1" />
-                <span>২. ম্যাপ ও স্যাটেলাইটের একই অবস্থানে পয়েন্ট পেয়ার করুন।</span>
+                <span>2. Pair corresponding points between the map and satellite view.</span>
               </p>
               <p className="flex items-start gap-1.5">
                 <span className="size-1.5 rounded-full bg-cyan-500 shrink-0 mt-1" />
-                <span>৩. এক ক্লিকে Google Earth KMZ ফাইল ডাউনলোড করুন।</span>
+                <span>3. Download Google Earth KMZ file with 1 click.</span>
               </p>
             </div>
           </div>

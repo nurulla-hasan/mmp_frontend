@@ -129,7 +129,7 @@ export default function MouzaGeoStudio() {
       .catch((error: unknown) => {
         if (cancelled) return;
         console.error("BG remove error:", error);
-        ErrorToast("Background remove করা যায়নি");
+        ErrorToast("Could not remove background");
         setProcessedImage(null);
       })
       .finally(() => {
@@ -159,7 +159,7 @@ export default function MouzaGeoStudio() {
           ? await extractImageFromPDF(file)
           : await loadImage(await toDataUrl(file));
 
-      if (!loadedImage) throw new Error("PDF থেকে map পাওয়া যায়নি");
+      if (!loadedImage) throw new Error("Could not extract map from PDF");
 
       setImage(loadedImage);
       setProcessedImage(null);
@@ -171,9 +171,8 @@ export default function MouzaGeoStudio() {
       setActiveView("source");
       setWorldInitialized(false);
       setPointMode(false);
-      // SuccessToast("মৌজা ম্যাপ প্রস্তুত হয়েছে");
     } catch (error: unknown) {
-      ErrorToast(error instanceof Error ? error.message : "Map load করা যায়নি");
+      ErrorToast(error instanceof Error ? error.message : "Could not load map");
     } finally {
       setLoadingFile(false);
     }
@@ -195,14 +194,14 @@ export default function MouzaGeoStudio() {
       if (showToast) {
         SuccessToast(
           mode === "affine"
-            ? "Affine refinement apply হয়েছে"
-            : "Similarity alignment apply হয়েছে",
+            ? "Affine refinement applied"
+            : "Similarity alignment applied",
         );
       }
     } catch (error: unknown) {
       if (showToast) {
         ErrorToast(
-          error instanceof Error ? error.message : "Alignment করা যায়নি",
+          error instanceof Error ? error.message : "Could not align map",
         );
       }
     }
@@ -319,7 +318,7 @@ export default function MouzaGeoStudio() {
 
   const handleLocateUser = () => {
     if (!navigator.geolocation) {
-      ErrorToast("আপনার ব্রাউজারে Geolocation সাপোর্ট নেই");
+      ErrorToast("Geolocation is not supported by your browser");
       return;
     }
 
@@ -335,15 +334,15 @@ export default function MouzaGeoStudio() {
           lng: pos.coords.longitude,
           timestamp: Date.now(),
         });
-        SuccessToast("আপনার বর্তমান লোকেশন পাওয়া গেছে");
+        SuccessToast("Your current location was found");
       },
       (err) => {
         setLocating(false);
         console.error("Location error:", err);
         if (err.code === err.PERMISSION_DENIED) {
-          ErrorToast("লোকেশন পারমিশন দেওয়া হয়নি। ব্রাউজার সেটিংসে পারমিশন দিন");
+          ErrorToast("Location permission denied. Please allow location access in your browser settings");
         } else {
-          ErrorToast("লোকেশন নির্ণয় করা যায়নি");
+          ErrorToast("Could not determine location");
         }
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
@@ -354,12 +353,12 @@ export default function MouzaGeoStudio() {
     if (exportingKmz) return;
 
     if (processingBackground) {
-      ErrorToast("Background processing শেষ হলে export করুন");
+      ErrorToast("Please wait for background processing to finish before exporting");
       return;
     }
 
     if (!transform || !image) {
-      ErrorToast("KMZ export-এর আগে map align করুন");
+      ErrorToast("Please align map before exporting KMZ");
       return;
     }
 
@@ -378,12 +377,12 @@ export default function MouzaGeoStudio() {
       });
       SuccessToast(
         exportQuality === "optimized"
-          ? "Optimized KMZ export হয়েছে"
-          : "Original quality KMZ export হয়েছে",
+          ? "Optimized KMZ exported successfully"
+          : "Original quality KMZ exported successfully",
       );
     } catch (error: unknown) {
       ErrorToast(
-        error instanceof Error ? error.message : "KMZ export করা যায়নি",
+        error instanceof Error ? error.message : "Could not export KMZ",
       );
     } finally {
       setExportingKmz(false);
@@ -538,10 +537,10 @@ export default function MouzaGeoStudio() {
                 </div>
                 <div>
                   <h2 className="font-heading text-md text-foreground">
-                    মৌজা জিও-রেফারেন্সিং
+                    Mouza Georeferencing
                   </h2>
                   <p className="text-xs text-muted-foreground">
-                    পয়েন্ট পেয়ার → অ্যালাইন → KMZ
+                    Pair Points → Align → Export KMZ
                   </p>
                 </div>
               </div>
@@ -609,10 +608,10 @@ export default function MouzaGeoStudio() {
                         </div>
                         <div>
                           <h2 className="font-heading text-base font-bold text-foreground">
-                            মৌজা জিও-রেফারেন্সিং
+                            Mouza Georeferencing
                           </h2>
                           <p className="text-xs text-muted-foreground">
-                            পয়েন্ট পেয়ার → অ্যালাইন → KMZ
+                            Pair Points → Align → Export KMZ
                           </p>
                         </div>
                       </div>

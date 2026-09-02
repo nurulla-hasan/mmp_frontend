@@ -339,7 +339,7 @@ export default function SourceMapCanvas({
       <canvas
         ref={canvasRef}
         className="pointer-events-none absolute inset-0 select-none"
-        aria-label="আপলোড করা মৌজা ম্যাপ"
+        aria-label="Uploaded mouza map"
       />
 
       {markers.map((marker) => (

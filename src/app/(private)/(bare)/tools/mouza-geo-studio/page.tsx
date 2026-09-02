@@ -4,7 +4,7 @@ import GeoStudioClient from './geo-studio-client';
 
 export const metadata = {
   title: 'Mouza Geo Studio | Mouza Map Pro',
-  description: 'মৌজা ম্যাপকে পৃথিবীর আসল জায়গায় align করে KMZ export করুন।',
+  description: 'Align mouza maps with real-world geographical coordinates and export as KMZ.',
 };
 
 export default function MouzaGeoStudioPage() {

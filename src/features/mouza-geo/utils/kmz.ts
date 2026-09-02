@@ -32,7 +32,7 @@ function canvasToBlob(
       (blob) =>
         blob
           ? resolve(blob)
-          : reject(new Error('KMZ image optimize করা যায়নি')),
+          : reject(new Error('Could not optimize KMZ image')),
       type,
       quality,
     );
@@ -160,7 +160,7 @@ export async function exportMouzaKmz(options: {
       canvas.width = tile.width;
       canvas.height = tile.height;
       const context = canvas.getContext('2d', { willReadFrequently: options.transparent });
-      if (!context) throw new Error('KMZ tile canvas তৈরি করা যায়নি');
+      if (!context) throw new Error('Could not create KMZ tile canvas');
 
       if (!options.transparent) {
         context.fillStyle = '#ffffff';

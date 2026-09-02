@@ -10,12 +10,12 @@ export default function EmptyState({ onOpenSettings }: EmptyStateProps) {
   return (
     <ToolEmptyState
       icon={Globe2}
-      title="মৌজা ম্যাপ জিওরেফারেন্স করুন"
-      description="PDF বা image আপলোড করে মৌজা ম্যাপকে বাস্তব পৃথিবীর অবস্থানের সঙ্গে মিলান এবং Google Earth-এর জন্য KMZ export করুন।"
+      title="Georeference Mouza Map"
+      description="Upload a PDF or image to align your mouza map with real-world geographical coordinates and export as KMZ for Google Earth."
       actions={
         <Button onClick={onOpenSettings} className="w-full gap-2">
           <Settings2 className="size-4" />
-          জিও সেটিংস খুলুন
+          Open Geo Settings
         </Button>
       }
     />

@@ -57,7 +57,7 @@ function solveLinearSystem(matrix: number[][], values: number[]): number[] {
     }
 
     if (Math.abs(augmented[pivotRow][column]) < 1e-10) {
-      throw new Error('Control pointগুলো একই লাইনে আছে বা যথেষ্ট আলাদা নয়');
+      throw new Error('Control points are collinear or insufficiently separated');
     }
 
     [augmented[column], augmented[pivotRow]] = [
@@ -110,8 +110,8 @@ export function solveGeoTransform(
   if (pairs.length < requiredPairs) {
     throw new Error(
       mode === 'affine'
-        ? 'Affine alignment-এর জন্য অন্তত ৩টি point pair দিন'
-        : 'Similarity alignment-এর জন্য অন্তত ২টি point pair দিন',
+        ? 'At least 3 point pairs are required for affine alignment'
+        : 'At least 2 point pairs are required for similarity alignment',
     );
   }
 
