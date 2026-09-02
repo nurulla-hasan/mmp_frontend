@@ -522,7 +522,11 @@ export default function MouzaGeoStudio() {
           }}
           onToggleManualAdjustment={toggleManualAdjustment}
           onSelectView={(view) => {
-            if (view === "world") setWorldInitialized(true);
+            if (view === "world") {
+              setWorldInitialized(true);
+            } else {
+              setManualAdjustmentEnabled(false);
+            }
             setActiveView(view);
           }}
           onLocateUser={handleLocateUser}
@@ -555,7 +559,11 @@ export default function MouzaGeoStudio() {
           }}
           onToggleManualAdjustment={toggleManualAdjustment}
           onSelectView={(view) => {
-            if (view === "world") setWorldInitialized(true);
+            if (view === "world") {
+              setWorldInitialized(true);
+            } else {
+              setManualAdjustmentEnabled(false);
+            }
             setActiveView(view);
           }}
           onLocateUser={handleLocateUser}
