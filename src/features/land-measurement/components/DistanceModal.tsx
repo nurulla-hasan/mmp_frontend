@@ -56,7 +56,7 @@ export const DistanceModal = () => {
       setDistance('');
       setError('');
     } else {
-      setError('দূরত্ব অবশ্যই ০ এর চেয়ে বড় একটি সংখ্যা হতে হবে');
+      setError('Distance must be a number greater than 0');
     }
   };
 
@@ -71,8 +71,8 @@ export const DistanceModal = () => {
   return (
     <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50 print:hidden">
       <div className="bg-card text-card-foreground p-6 rounded-lg shadow-xl w-11/12 md:w-1/3 border border-border">
-        <h3 className="text-lg font-semibold mb-1">স্কেল নির্ধারণ করুন</h3>
-        <p className="text-xs text-muted-foreground mb-4">ম্যাপের স্কেল বার অনুযায়ী দূরত্ব নির্বাচন করুন</p>
+        <h3 className="text-lg font-semibold mb-1">Set Scale Distance</h3>
+        <p className="text-xs text-muted-foreground mb-4">Select or enter distance matching the scale bar</p>
 
         {/* Preset buttons */}
         <div className="flex flex-wrap gap-2 mb-4">
@@ -98,7 +98,7 @@ export const DistanceModal = () => {
             <span className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-xs text-muted-foreground">
-            <span className="bg-card px-2">অথবা নিজে লিখুন</span>
+            <span className="bg-card px-2">Or enter manually</span>
           </div>
         </div>
 
@@ -106,15 +106,15 @@ export const DistanceModal = () => {
           type="number"
           value={distance}
           onChange={(e) => { setDistance(e.target.value); setError(''); }}
-          placeholder="যেমন: ৬৬০ (ফুট)"
+          placeholder="e.g. 660 (feet)"
           className="mb-1"
           min="0"
           step="any"
         />
         {error && <p className="text-sm text-destructive mb-2">{error}</p>}
         <div className="flex justify-end gap-4">
-          <Button size="sm" variant="outline" onClick={handleClose}>বাতিল করুন</Button>
-          <Button size="sm" onClick={handleSubmit}>জমা দিন</Button>
+          <Button size="sm" variant="outline" onClick={handleClose}>Cancel</Button>
+          <Button size="sm" onClick={handleSubmit}>Submit</Button>
         </div>
       </div>
     </div>

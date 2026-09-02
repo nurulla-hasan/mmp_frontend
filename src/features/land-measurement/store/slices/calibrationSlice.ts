@@ -60,23 +60,23 @@ export const createCalibrationSlice: StateCreator<
       const scaleValue = 1 / ftPerPx;
       set({ scale: scaleValue, showManualScale: false, calibrationLine: [], isDrawing: false });
       localStorage.setItem('mapScale', scaleValue.toString());
-      SuccessToast(`স্কেল সেট করা হয়েছে: 1 px = ${ftPerPx.toFixed(6)} ft`);
+      SuccessToast(`Scale calibrated: 1 px = ${ftPerPx.toFixed(6)} ft`);
       
       // Need to set mode to 'none' but it's in UISlice
       // This will be handled in main store wrapper
     } else {
-      ErrorToast('দয়া করে ০ এর চেয়ে বড় একটি সংখ্যা লিখুন');
+      ErrorToast('Please enter a value greater than 0');
     }
   },
 
   _handleModalSubmit: (realDistance: number) => {
     const state = get();
     if (!Number.isFinite(realDistance) || realDistance <= 0) {
-      ErrorToast('দয়া করে ০ এর চেয়ে বড় দূরত্ব দিন');
+      ErrorToast('Please provide a distance greater than 0');
       return;
     }
     if (state.calibrationLine.length < 4) {
-      ErrorToast('স্কেল নির্ধারণের রেখাটি অসম্পূর্ণ');
+      ErrorToast('Scale calibration line is incomplete');
       return;
     }
     
@@ -90,7 +90,7 @@ export const createCalibrationSlice: StateCreator<
     }
     
     if (!Number.isFinite(pixelDistance) || pixelDistance <= 0) {
-      ErrorToast('স্কেল নির্ধারণের রেখার দূরত্ব অবৈধ');
+      ErrorToast('Invalid calibration line length');
       return;
     }
 
@@ -101,7 +101,7 @@ export const createCalibrationSlice: StateCreator<
     } catch {
       // ignore
     }
-    SuccessToast(`স্কেল সেট হয়েছে (1 px = ${(1 / newScale).toFixed(6)} ft)`);
+    SuccessToast(`Scale calibrated (1 px = ${(1 / newScale).toFixed(6)} ft)`);
     
     // Need to set mode and isModalOpen but they're in UISlice
     // This will be handled in main store wrapper

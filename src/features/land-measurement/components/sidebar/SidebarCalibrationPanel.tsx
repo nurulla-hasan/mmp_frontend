@@ -38,12 +38,12 @@ export const SidebarCalibrationPanel = () => {
 
   return (
     <div id="step-calibration">
-      <label className="block text-sm font-medium text-foreground mb-1">2. স্কেল সেট করুন</label>
+      <label className="block text-sm font-medium text-foreground mb-1">2. Set Scale</label>
       <div className="space-y-2">
         {isScaleConfigured ? (
           <div className="flex flex-col gap-2 p-2 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-md">
             <div className="text-xs text-emerald-700 dark:text-emerald-400 text-center font-medium">
-              বর্তমান স্কেল: 1 পিক্সেল ≈ {(1/scale).toFixed(DECIMALS)} ফুট
+              Current Scale: 1 px ≈ {(1/scale).toFixed(DECIMALS)} ft
             </div>
             <Button 
               size="sm" 
@@ -51,9 +51,9 @@ export const SidebarCalibrationPanel = () => {
               className="w-full" 
               onClick={() => setIsChangingScale(true)}
               disabled={!image}
-              title={!image ? "স্কেল পরিবর্তন করতে আগে ম্যাপ আপলোড করুন" : ""}
+              title={!image ? "Upload a map before changing scale" : ""}
             >
-              {!image ? 'পরিবর্তন করতে ম্যাপ আপলোড করুন' : 'পরিবর্তন করুন'}
+              {!image ? 'Upload map to calibrate' : 'Change Scale'}
             </Button>
           </div>
         ) : (
@@ -74,7 +74,7 @@ export const SidebarCalibrationPanel = () => {
             disabled={!image || mode === 'calibrating'} 
             className="flex-1"
           >
-            {mode === 'calibrating' ? 'স্কেল আঁকা হচ্ছে...' : 'স্কেল বার আঁকুন'}
+            {mode === 'calibrating' ? 'Drawing scale...' : 'Draw Scale Bar'}
           </Button>
           <Button 
             size="sm"
@@ -91,7 +91,7 @@ export const SidebarCalibrationPanel = () => {
             disabled={!image}
             className="flex-1"
           >
-            {showManualScale ? 'বাতিল করুন' : 'ম্যানুয়াল স্কেল'}
+            {showManualScale ? 'Cancel' : 'Manual Scale'}
           </Button>
         </div>
 
@@ -99,9 +99,9 @@ export const SidebarCalibrationPanel = () => {
         {mode === 'calibrating' && (
           <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-md p-2">
             <p className="text-xs text-blue-700 dark:text-blue-400 text-center leading-relaxed">
-              ম্যাপের উপরে-বামের <strong>স্কেল বার</strong>-এর শুরুতে ও শেষে ক্লিক করুন
+              Click at the start and end of the <strong>scale bar</strong> (top-left)
               <br />
-              <span className="text-xs opacity-80">(যেমন: ০ থেকে ১০ চেইন পর্যন্ত)</span>
+              <span className="text-xs opacity-80">(e.g. 0 to 10 chains)</span>
             </p>
           </div>
         )}
@@ -111,19 +111,19 @@ export const SidebarCalibrationPanel = () => {
               type="number"
               value={manualScale}
               onChange={(e) => setManualScale(e.target.value)}
-              placeholder="পিক্সেল প্রতি ফুট (যেমন: 2.30)"
+              placeholder="Feet per pixel (e.g. 2.30)"
               className="flex-1 h-7 text-xs font-mono"
               step="0.000001"
               min="0.000001"
               required
             />
-            <Button size="sm" type="submit" variant="default">সেট করুন</Button>
+            <Button size="sm" type="submit" variant="default">Set Scale</Button>
           </form>
         )}
 
           {scale && isChangingScale && mode !== 'calibrating' && mode !== 'manual_scale' && (
             <Button size="sm" variant="ghost" className="w-full" onClick={() => setIsChangingScale(false)}>
-              পরিবর্তন বাতিল করুন
+              Cancel Change
             </Button>
           )}
         </>

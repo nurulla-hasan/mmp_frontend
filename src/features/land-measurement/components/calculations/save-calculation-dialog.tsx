@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ModalWrapper } from "@/components/common/modal-wrapper";
-import { SuccessToast, ErrorToast, WarningToast, toBengaliDigits } from "@/lib/utils";
+import { SuccessToast, ErrorToast, WarningToast } from "@/lib/utils";
 import { useMapStore } from "@/features/land-measurement/store/useMapStore";
 import { saveCalculationAction } from "@/features/land-measurement/actions/calculation.action";
 
@@ -37,9 +37,9 @@ export function SaveCalculationDialog({
     })),
   );
 
-  const defaultName = `পরিমাপ — ${new Date().toLocaleDateString("bn-BD", {
+  const defaultName = `Measurement — ${new Date().toLocaleDateString("en-GB", {
     day: "numeric",
-    month: "long",
+    month: "short",
     year: "numeric",
   })}`;
 
@@ -48,18 +48,18 @@ export function SaveCalculationDialog({
 
   const totalShotok = plots.reduce((sum, p) => sum + (p.results?.shotok || 0), 0);
   const totalKatha = plots.reduce((sum, p) => sum + (p.results?.katha || 0), 0);
-  const mapFileName = selectedFile?.name || imageName || "ম্যাপ ফাইল";
+  const mapFileName = selectedFile?.name || imageName || "Map File";
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name.trim()) {
-      WarningToast("দয়া করে পরিমাপের একটি নাম দিন।");
+      WarningToast("Please enter a name for the measurement.");
       return;
     }
 
     if (plots.length === 0) {
-      WarningToast("সেভ করার জন্য অন্তত একটি প্লট আঁকা প্রয়োজন।");
+      WarningToast("At least one plot is required to save.");
       return;
     }
 
@@ -73,7 +73,7 @@ export function SaveCalculationDialog({
         imageWidth: image?.naturalWidth,
         imageHeight: image?.naturalHeight,
         plots: plots.map((p, idx) => ({
-          plotNumber: p.name || `প্লট ${toBengaliDigits(idx + 1)}`,
+          plotNumber: p.name || `Plot ${idx + 1}`,
           points: p.points,
           areaSqLink: p.results?.sqft ? p.results.sqft * 2.29568 : 0,
           areaShotok: p.results?.shotok || 0,
@@ -83,15 +83,15 @@ export function SaveCalculationDialog({
 
       const result = await saveCalculationAction(payload);
       if (!result.success) {
-        ErrorToast(result.message || "পরিমাপ সেভ করতে সমস্যা হয়েছে।");
+        ErrorToast(result.message || "Failed to save measurement.");
         return;
       }
 
-      SuccessToast(`"${name}" পরিমাপ সফলভাবে সেভ করা হয়েছে!`);
+      SuccessToast(`"${name}" measurement saved successfully!`);
       onOpenChange(false);
     } catch (err: unknown) {
       ErrorToast(
-        err instanceof Error ? err.message : "সেভ করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।",
+        err instanceof Error ? err.message : "Failed to save. Please try again.",
       );
     } finally {
       setIsSaving(false);
@@ -102,8 +102,8 @@ export function SaveCalculationDialog({
     <ModalWrapper
       open={open}
       onOpenChange={onOpenChange}
-      title="পরিমাপ সেভ করুন"
-      description="বর্তমান ম্যাপ ও অঙ্কিত প্লটসমূহ আপনার প্রোফাইলে ক্যালকুলেশন হিসেবে সংরক্ষিত থাকবে।"
+      title="Save Measurement"
+      description="The current map and drawn plots will be saved to your profile calculations."
     >
       <form onSubmit={handleSave} className="space-y-4">
         {/* Calculation Summary Card */}
@@ -111,7 +111,7 @@ export function SaveCalculationDialog({
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <MapPin className="size-3.5 text-primary" />
-              ম্যাপ ফাইল:
+              Map File:
             </span>
             <span className="font-medium text-foreground truncate max-w-50">
               {mapFileName}
@@ -121,20 +121,20 @@ export function SaveCalculationDialog({
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <Layers className="size-3.5 text-primary" />
-              মোট প্লট:
+              Total Plots:
             </span>
             <span className="font-semibold text-foreground">
-              {plots.length}টি
+              {plots.length} {plots.length === 1 ? "plot" : "plots"}
             </span>
           </div>
 
           <div className="flex items-center justify-between text-muted-foreground border-t pt-1.5">
             <span className="flex items-center gap-1.5">
               <Calculator className="size-3.5 text-primary" />
-              মোট ক্ষেত্রফল:
+              Total Area:
             </span>
             <span className="font-semibold text-primary">
-              {totalShotok.toFixed(2)} শতক ({totalKatha.toFixed(2)} কাঠা)
+              {totalShotok.toFixed(2)} shotok ({totalKatha.toFixed(2)} katha)
             </span>
           </div>
         </div>
@@ -142,13 +142,13 @@ export function SaveCalculationDialog({
         {/* Input Name */}
         <div className="space-y-1.5">
           <Label htmlFor="calc-name" className="text-xs font-medium">
-            পরিমাপের নাম *
+            Measurement Name *
           </Label>
           <Input
             id="calc-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="যেমন: মৌজা ৪২ - প্লট হিসাব"
+            placeholder="e.g. Mouza 42 - Plot Calculation"
             className="w-full"
             autoFocus
           />
@@ -161,16 +161,16 @@ export function SaveCalculationDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSaving}
           >
-            বাতিল
+            Cancel
           </Button>
           <Button
             type="submit"
             disabled={plots.length === 0}
             loading={isSaving}
-            loadingText="সেভ হচ্ছে..."
+            loadingText="Saving..."
           >
             <BookmarkCheck className="size-4" />
-            সেভ করুন
+            Save
           </Button>
         </div>
       </form>

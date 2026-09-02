@@ -4,7 +4,8 @@ import { ProfileHeaderCard } from "./_components/profile-header-card";
 import { PersonalInfoCard } from "./_components/personal-info-card";
 import { ActivityCard } from "./_components/activity-card";
 import { AccountSettingsCard } from "./_components/account-settings-card";
-import { getMe, getDistricts } from "@/services/auth.service";
+import { getMe } from "@/services/auth.service";
+import { getDistricts } from "@/services/district.service";
 
 export default async function Page() {
   const [meResult, districtsResult] = await Promise.all([

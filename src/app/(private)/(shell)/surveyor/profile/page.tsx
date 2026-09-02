@@ -1,5 +1,7 @@
 import { PageWrapper } from "@/components/common/page-wrapper";
-import { getMe, getDistricts, getServices } from "@/services/auth.service";
+import { getMe } from "@/services/auth.service";
+import { getDistricts } from "@/services/district.service";
+import { getServices } from "@/services/service.service";
 import { ProfileHeroHeader } from "./_components/profile-hero-header";
 import { PersonalInfoSection } from "./_components/personal-info-section";
 import { ProfessionalInfoSection } from "./_components/professional-info-section";

@@ -9,11 +9,8 @@ import type {
   TAuthUser,
   VerifyEmailPayload,
 } from "@/interface/auth";
-import type { TSurveyorProfile, TSurveyorService } from "@/interface/surveyor-profile";
-import { buildQueryString } from "@/lib/buildQueryString";
 import { nextServerFetch } from "@/lib/nextServerFetch";
 import { CACHE_TAGS, CACHE_TIME } from "@/lib/cache-tags";
-import type { TQuery } from "@/interface/global";
 
 export type AuthTokens = {
   accessToken: string;
@@ -118,58 +115,3 @@ export const changePassword = (payload: unknown) =>
     body: payload,
     auth: "auth",
   });
-
-// ── Surveyor services (public catalog: id + slug + name) ──
-export const getServices = () =>
-  nextServerFetch<TSurveyorService[]>("/services", {
-    auth: "none",
-    next: { revalidate: CACHE_TIME.DAY },
-  });
-
-// ── Districts (public catalog: value + label + upazilas) ──
-export const getDistricts = () =>
-  nextServerFetch<{ value: string; label: string; upazilas: string[] }[]>(
-    "/districts",
-    {
-      auth: "none",
-      next: { revalidate: CACHE_TIME.DAY },
-    },
-  );
-
-// ── Surveyor profile ──
-export const getAllSurveyors = (query?: TQuery) => {
-  const params = buildQueryString(query ?? {});
-  return nextServerFetch<TSurveyorProfile[]>(`/surveyor${params}`, {
-    auth: "none",
-    next: { tags: [CACHE_TAGS.SURVEYORS], revalidate: CACHE_TIME.DAY },
-  });
-};
-
-export const getSurveyorBySlug = (slug: string) =>
-  nextServerFetch<TSurveyorProfile>(`/surveyor/${slug}`, {
-    auth: "none",
-    next: { tags: [CACHE_TAGS.SURVEYOR_PROFILE], revalidate: 60 },
-  });
-
-export const applyAsSurveyor = (payload: unknown) =>
-  nextServerFetch<TSurveyorProfile>("/surveyor/profile", {
-    method: "POST",
-    body: payload,
-    auth: "auth",
-  });
-
-export const updateMySurveyorProfile = (payload: unknown) =>
-  nextServerFetch<TSurveyorProfile>("/surveyor/profile", {
-    method: "PATCH",
-    body: payload,
-    auth: "auth",
-  });
-
-export const getTestimonials = () =>
-  nextServerFetch<import("@/interface/surveyor-profile").TTestimonial[]>(
-    "/reviews/testimonials",
-    {
-      auth: "none",
-      next: { tags: [CACHE_TAGS.REVIEWS], revalidate: CACHE_TIME.HOUR },
-    },
-  );

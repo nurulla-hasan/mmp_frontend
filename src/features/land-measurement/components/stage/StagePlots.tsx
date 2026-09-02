@@ -1,4 +1,4 @@
-﻿
+
 import { memo, useMemo, useCallback } from 'react';
 import Konva from 'konva';
 import { useShallow } from 'zustand/shallow';
@@ -100,7 +100,7 @@ const SinglePlot = memo(({
   const isManualSelected = mode === 'manual_divide_plot' && manualDividePlotId === id;
   const plotFill = hexToRgba(color, isManualSelected ? 0.18 : 0.10);
   const hoverFill = hexToRgba(color, 0.15);
-  const areaText = `${plotData.results.shotok.toFixed(2)} শতক`;
+  const areaText = `${plotData.results.shotok.toFixed(2)} shotok`;
   const areaFontSize = (UI_CONFIG.fontSize.small * AREA_LABEL_FONT_SCALE) / stageScale;
   const areaPadding = (UI_CONFIG.padding.small * AREA_LABEL_PADDING_FACTOR) / stageScale;
   const areaWidth = areaText.length * areaFontSize * AREA_LABEL_WIDTH_FACTOR + areaPadding * 2;

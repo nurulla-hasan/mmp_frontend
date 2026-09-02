@@ -17,7 +17,7 @@ export const SidebarImagePanel = () => {
   
   return (
     <div id="step-image-upload">
-      <label className="block text-sm font-medium text-foreground mb-1">1. ম্যাপ আপলোড করুন</label>
+      <label className="block text-sm font-medium text-foreground mb-1">1. Upload Map</label>
       <div className="grid w-full max-w-sm items-center gap-1.5">
         {!selectedFile ? (
           <div className="flex items-center justify-center w-full">
@@ -27,7 +27,7 @@ export const SidebarImagePanel = () => {
                   <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
                 </svg>
                 <p className="mb-2 text-sm text-muted-foreground px-2">
-                  <span className="font-semibold">আপলোড করতে ক্লিক করুন</span> অথবা ফাইলটি টেনে আনুন
+                  <span className="font-semibold">Click to upload</span> or drag and drop
                 </p>
                 <p className="text-xs text-muted-foreground">
                   PDF, PNG, JPG
@@ -60,7 +60,7 @@ export const SidebarImagePanel = () => {
                 variant="ghost"
                 size="icon-sm"
                 onClick={() => confirmClearMap()}
-                title="ফাইলটি সরান"
+                title="Remove file"
               >
                 <X />
               </Button>
@@ -70,7 +70,7 @@ export const SidebarImagePanel = () => {
             {isGeneratingTiles && (
               <div className="w-full">
                 <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                  <span>টাইল তৈরি হচ্ছে...</span>
+                  <span>Generating tiles...</span>
                   <span>{tileProgress}%</span>
                 </div>
                 <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
@@ -96,7 +96,7 @@ export const SidebarImagePanel = () => {
               ) : isProcessingFile ? (
                 <span className="italic">DPI detecting...</span>
               ) : selectedFile?.type === 'application/pdf' ? (
-                <span className="italic text-amber-600 dark:text-amber-400">DPI সনাক্ত করা যায়নি</span>
+                <span className="italic text-amber-600 dark:text-amber-400">DPI could not be detected</span>
               ) : null}
             </div>
           </div>

@@ -2,10 +2,8 @@
 
 import { updateTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
-import {
-  updateMe,
-  updateMySurveyorProfile,
-} from "@/services/auth.service";
+import { updateMe } from "@/services/auth.service";
+import { updateMySurveyorProfile } from "@/services/surveyor.service";
 import type { UpdateMeFormValues } from "@/validation/update-me.schema";
 import type { SurveyorProfileFormValues } from "@/validation/surveyor-profile.schema";
 

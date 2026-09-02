@@ -47,3 +47,14 @@ export const createReview = (payload: CreateReviewPayload) =>
     auth: "auth",
   });
 
+// 5. Get public testimonials
+export const getTestimonials = () =>
+  nextServerFetch<import("@/interface/surveyor-profile").TTestimonial[]>(
+    "/reviews/testimonials",
+    {
+      auth: "none",
+      next: { tags: [CACHE_TAGS.REVIEWS], revalidate: CACHE_TIME.HOUR },
+    },
+  );
+
+

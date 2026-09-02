@@ -150,11 +150,11 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
 
   processFile: async (file: File) => {
     if (!ALLOWED_MAP_TYPES.has(file.type)) {
-      ErrorToast('শুধু পিডিএফ (PDF), পিএনজি (PNG) এবং জেপিজি (JPG) ফাইল আপলোড করা যাবে');
+      ErrorToast('Only PDF, PNG, and JPG files are supported');
       return false;
     }
     if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-      ErrorToast('ফাইলটি অনেক বড়। দয়া করে ২৫ মেগাবাইটের (25 MB) কম সাইজের ফাইল আপলোড করুন।');
+      ErrorToast('File size is too large. Please upload a file smaller than 25 MB.');
       return false;
     }
 
@@ -216,7 +216,7 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
       } catch {
         if (get()._generationId === generationId) {
           set({ selectedFile: null, imageName: '', isProcessingFile: false });
-          ErrorToast('PDF লোড করা যায়নি (ফাইলটি ক্ষতিগ্রস্ত বা অবৈধ হতে পারে)');
+          ErrorToast('Could not load PDF (file may be corrupted or invalid)');
         }
         return false;
       }
@@ -256,7 +256,7 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
           } catch {
             if (get()._generationId === generationId) {
               set({ selectedFile: null, imageName: '', isProcessingFile: false });
-              ErrorToast('ম্যাপের ছবি প্রস্তুত করা যায়নি');
+              ErrorToast('Could not prepare map image');
             }
             resolve(false);
           }
@@ -265,7 +265,7 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
           URL.revokeObjectURL(objectUrl);
           if (get()._generationId === generationId) {
             set({ selectedFile: null, imageName: '', isProcessingFile: false });
-            ErrorToast('ম্যাপের ছবি ডিকোড করা যায়নি');
+            ErrorToast('Could not decode map image');
           }
           resolve(false);
         };

@@ -157,7 +157,7 @@ export default function MapCalculator() {
             minHeight: '400px',
           }}
         >
-          <ToolTopNav title="জমি পরিমাপ" icon={Ruler} backButtonId="step-home" />
+          <ToolTopNav title="Land Measurement" icon={Ruler} backButtonId="step-home" />
 
           <KonvaStage containerRef={containerRef} stageRef={stageRef} />
 
@@ -165,8 +165,8 @@ export default function MapCalculator() {
             <div className="absolute inset-0 z-10">
               <ToolEmptyState
                 icon={Upload}
-                title="জমি পরিমাপ শুরু করুন"
-                description="জমির ম্যাপ আপলোড করে স্কেল সেট করুন, প্লট আঁকুন এবং জমির পরিমাণ হিসাব করুন। প্রয়োজন হলে একই প্লট ভাগও করতে পারবেন।"
+                title="Start Land Measurement"
+                description="Upload a mouza map, set the scale, draw plots, and calculate land area accurately. You can also divide plots as needed."
                 actions={
                   <>
                     <Button
@@ -174,7 +174,7 @@ export default function MapCalculator() {
                       className="w-full gap-2 shadow-sm"
                     >
                       <Upload className="size-4" />
-                      ডিভাইস থেকে আপলোড করুন
+                      Upload from Device
                     </Button>
                     <Button
                       nativeButton={false}
@@ -189,7 +189,7 @@ export default function MapCalculator() {
                       className="w-full gap-2 bg-background/50 shadow-sm backdrop-blur-sm"
                     >
                       <HardDrive className="size-4 text-primary" />
-                      ড্রাইভ থেকে ডাউনলোড করুন
+                      Download from Drive
                     </Button>
                   </>
                 }

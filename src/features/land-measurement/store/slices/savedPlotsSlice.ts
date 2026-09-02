@@ -60,19 +60,19 @@ export const createSavedPlotsSlice: StateCreator<SavedPlotsSlice, [], [], SavedP
   savePlotsToLibrary: (plots, scale, imageName, selectedFileName) => {
     const state = get();
     if (!scale) {
-      WarningToast('সেভ করার আগে দয়া করে স্কেল সেট করে নিন');
+      WarningToast('Please calibrate the scale before saving');
       return false;
     }
 
     const targetPlots = plots.filter((plot) => !plot.isSaved);
     if (targetPlots.length === 0) {
-      WarningToast('সেভ করার আগে দয়া করে অন্তত একটি প্লট আঁকা শেষ করুন');
+      WarningToast('Please draw at least one plot before saving');
       return false;
     }
 
     const cleanName = state.plotSaveName.trim();
     if (!cleanName) {
-      WarningToast('দয়া করে প্লটের নাম লিখুন');
+      WarningToast('Please enter a name for the plot');
       return false;
     }
 
@@ -80,10 +80,10 @@ export const createSavedPlotsSlice: StateCreator<SavedPlotsSlice, [], [], SavedP
     const namedPlots: SavedPlotRecord[] = targetPlots.map((plot, index) => ({
       ...plot,
       id: `${now}-${index}`,
-      name: targetPlots.length > 1 ? `${cleanName} - প্লট ${index + 1}` : cleanName,
+      name: targetPlots.length > 1 ? `${cleanName} - Plot ${index + 1}` : cleanName,
       color: plot.color || '#0d9488',
       scale: scale,
-      sourceName: imageName || selectedFileName || 'আপলোড করা ম্যাপ',
+      sourceName: imageName || selectedFileName || 'Uploaded Map',
       createdAt: now,
       expiresAt: now + SAVED_PLOT_TTL_MS,
     }));
@@ -96,7 +96,7 @@ export const createSavedPlotsSlice: StateCreator<SavedPlotsSlice, [], [], SavedP
 
     set({ savedPlots: nextSavedPlots, plotSaveName: '' });
 
-    SuccessToast('স্ক্র্যাচ লাইব্রেরিতে প্লটটি সফলভাবে সেভ করা হয়েছে');
+    SuccessToast('Plot saved to library successfully');
     return true;
   },
 
@@ -105,7 +105,7 @@ export const createSavedPlotsSlice: StateCreator<SavedPlotsSlice, [], [], SavedP
     const nextSavedPlots = state.savedPlots.filter((plot) => plot.id !== plotId);
     writeSavedPlots(nextSavedPlots);
     set({ savedPlots: nextSavedPlots });
-    SuccessToast('সেভ করা প্লটটি মুছে ফেলা হয়েছে');
+    SuccessToast('Saved plot deleted successfully');
   },
 
   updateSavedPlot: (plotId: string, updates: Partial<SavedPlotRecord>) => {

@@ -77,13 +77,13 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
 
     const nextResults = calculatePolygonData(normalizedPoints, scale);
     if (!nextResults) {
-      ErrorToast('প্লটের আকার সঠিক নয়। দয়া করে অন্তত ৩টি পয়েন্ট দিয়ে একটি পরিমাপযোগ্য এলাকা আঁকুন।');
+      ErrorToast('Invalid plot shape. Please draw a measurable area with at least 3 points.');
       return;
     }
 
     const nextPlot: PlotRecord = {
       id: `${Date.now()}-${currentPlots.length}`,
-      name: `প্লট ${currentPlots.length + 1}`,
+      name: `Plot ${currentPlots.length + 1}`,
       points: normalizedPoints,
       results: nextResults,
       color: PLOT_COLOR_PALETTE[currentPlots.length % PLOT_COLOR_PALETTE.length],

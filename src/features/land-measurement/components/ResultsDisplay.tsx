@@ -41,21 +41,21 @@ export const ReportTable = memo(function ReportTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>একক</TableHead>
-          <TableHead>মান</TableHead>
+          <TableHead>Unit</TableHead>
+          <TableHead>Value</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         <TableRow>
-          <TableCell>শতক</TableCell>
+          <TableCell>Shotok</TableCell>
           <TableCell>{results.shotok.toFixed(DECIMALS)}</TableCell>
         </TableRow>
         <TableRow>
-          <TableCell>কাঠা</TableCell>
+          <TableCell>Katha</TableCell>
           <TableCell>{results.katha.toFixed(DECIMALS)}</TableCell>
         </TableRow>
         <TableRow>
-          <TableCell>বর্গফুট</TableCell>
+          <TableCell>Sq Ft</TableCell>
           <TableCell>{results.sqft.toFixed(DECIMALS)}</TableCell>
         </TableRow>
       </TableBody>
@@ -74,19 +74,19 @@ export const SideLengthsList = memo(function SideLengthsList({
       <ul className="list-disc list-inside print:hidden text-sm">
         {lengths.map((len, i) => (
           <li key={i}>
-            বাহু {i + 1}: {formatFeetInches(len)}
+            Side {i + 1}: {formatFeetInches(len)}
           </li>
         ))}
       </ul>
       {diagonals && diagonals.length > 0 && (
         <div className="mt-2 text-sm text-muted-foreground print:hidden">
           <span className="font-semibold text-foreground">
-            কর্ণ (Diagonals):
+            Diagonals:
           </span>
           <ul className="list-inside pl-4">
             {diagonals.map((d, i) => (
               <li key={`diag-${i}`}>
-                কোণা {d.p1Index + 1} থেকে {d.p2Index + 1}:{" "}
+                Corner {d.p1Index + 1} to {d.p2Index + 1}:{" "}
                 {formatFeetInches(d.lengthFt)}
               </li>
             ))}
@@ -95,7 +95,7 @@ export const SideLengthsList = memo(function SideLengthsList({
       )}
       {showPerimeter && (
         <p className="mt-2 font-semibold text-sm">
-          পরিসীমা: {formatFeetInches(perimeter)}
+          Perimeter: {formatFeetInches(perimeter)}
         </p>
       )}
     </>
@@ -141,7 +141,7 @@ export const ResultsDisplay = memo(function ResultsDisplay({
     >
       <div className="flex flex-row justify-between items-center mb-4 gap-2">
         <h3 className="text-lg sm:text-xl font-bold text-foreground">
-          হিসাবের ফলাফল
+          Calculation Results
         </h3>
         <div className="flex items-center gap-2">
           <Button
@@ -149,10 +149,10 @@ export const ResultsDisplay = memo(function ResultsDisplay({
             variant="default"
             onClick={() => setIsSaveModalOpen(true)}
             className="print:hidden whitespace-nowrap"
-            title="পরিমাপ সেভ করুন"
+            title="Save Measurement"
           >
             <BookmarkCheck />
-            <span className="hidden sm:inline">সেভ করুন</span>
+            <span className="hidden sm:inline">Save</span>
           </Button>
           <Button
             size="sm"
@@ -161,7 +161,7 @@ export const ResultsDisplay = memo(function ResultsDisplay({
             className="print:hidden whitespace-nowrap"
           >
             <Printer />
-            <span className="hidden sm:inline">প্রিন্ট</span>
+            <span className="hidden sm:inline">Print</span>
           </Button>
         </div>
       </div>
@@ -171,9 +171,9 @@ export const ResultsDisplay = memo(function ResultsDisplay({
           <CardHeader className="px-3 sm:px-6">
             <CardTitle
               className="text-xs sm:text-base font-medium text-foreground truncate"
-              title="মোট শতক"
+              title="Total Shotok"
             >
-              মোট শতক
+              Total Shotok
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-6">
@@ -187,9 +187,9 @@ export const ResultsDisplay = memo(function ResultsDisplay({
           <CardHeader className="px-3 sm:px-6">
             <CardTitle
               className="text-xs sm:text-base font-medium text-muted-foreground truncate"
-              title="মোট কাঠা"
+              title="Total Katha"
             >
-              মোট কাঠা
+              Total Katha
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-6">
@@ -203,9 +203,9 @@ export const ResultsDisplay = memo(function ResultsDisplay({
           <CardHeader className="px-3 sm:px-6">
             <CardTitle
               className="text-xs sm:text-base font-medium text-muted-foreground truncate"
-              title="মোট বর্গফুট"
+              title="Total Sq Ft"
             >
-              মোট বর্গফুট
+              Total Sq Ft
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-6">
@@ -217,22 +217,22 @@ export const ResultsDisplay = memo(function ResultsDisplay({
       </div>
 
       <div className="mt-4">
-        <Label className="mb-2 block">প্লটভিত্তিক ক্ষেত্রফল:</Label>
+        <Label className="mb-2 block">Area by Plot:</Label>
         <Card className="py-2 sm:py-6">
           <CardContent className="px-2 sm:px-6">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>প্লট</TableHead>
-                  <TableHead>শতক</TableHead>
-                  <TableHead>কাঠা</TableHead>
-                  <TableHead>বর্গফুট</TableHead>
+                  <TableHead>Plot</TableHead>
+                  <TableHead>Shotok</TableHead>
+                  <TableHead>Katha</TableHead>
+                  <TableHead>Sq Ft</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {plots.map((plot, index) => (
                   <TableRow key={plot.id}>
-                    <TableCell>{plot.name || `প্লট ${index + 1}`}</TableCell>
+                    <TableCell>{plot.name || `Plot ${index + 1}`}</TableCell>
                     <TableCell>
                       {plot.results.shotok.toFixed(DECIMALS)}
                     </TableCell>
@@ -253,17 +253,17 @@ export const ResultsDisplay = memo(function ResultsDisplay({
       <ModalWrapper
         open={isPrintModalOpen}
         onOpenChange={setIsPrintModalOpen}
-        title="রিপোর্টের তথ্য দিন"
-        description="প্রিন্ট করার আগে প্রয়োজনীয় রিপোর্টের তথ্য প্রদান করুন।"
+        title="প্রতিবেদন বিবরণ (Report Details)"
+        description="প্রিন্ট করার পূর্বে প্রতিবেদনের প্রয়োজনীয় তথ্য পূরণ করুন।"
       >
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">
-                মৌজা
+              <Label className="text-xs text-muted-foreground mb-1 block font-medium">
+                মৌজা (Mouza)
               </Label>
               <Input
-                placeholder="মৌজার নাম"
+                placeholder="যেমন: মৌজা ৪২"
                 value={reportInfo.mouza}
                 onChange={(e) =>
                   setReportInfo({ ...reportInfo, mouza: e.target.value })
@@ -272,11 +272,11 @@ export const ResultsDisplay = memo(function ResultsDisplay({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">
-                জে. এল. নং
+              <Label className="text-xs text-muted-foreground mb-1 block font-medium">
+                জে. এল. নং (J. L. No)
               </Label>
               <Input
-                placeholder="জে. এল. নম্বর"
+                placeholder="যেমন: ১৫"
                 value={reportInfo.jlNo}
                 onChange={(e) =>
                   setReportInfo({ ...reportInfo, jlNo: e.target.value })
@@ -285,11 +285,11 @@ export const ResultsDisplay = memo(function ResultsDisplay({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">
-                দাগ নং
+              <Label className="text-xs text-muted-foreground mb-1 block font-medium">
+                দাগ নং (Dag No)
               </Label>
               <Input
-                placeholder="দাগ নম্বর"
+                placeholder="যেমন: ৩৪০/১২"
                 value={reportInfo.dagNo}
                 onChange={(e) =>
                   setReportInfo({ ...reportInfo, dagNo: e.target.value })
@@ -298,11 +298,11 @@ export const ResultsDisplay = memo(function ResultsDisplay({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">
-                খতিয়ান নং
+              <Label className="text-xs text-muted-foreground mb-1 block font-medium">
+                খতিয়ান নং (Khatian No)
               </Label>
               <Input
-                placeholder="খতিয়ান নম্বর"
+                placeholder="যেমন: ১০৫"
                 value={reportInfo.khatianNo}
                 onChange={(e) =>
                   setReportInfo({ ...reportInfo, khatianNo: e.target.value })
@@ -311,11 +311,11 @@ export const ResultsDisplay = memo(function ResultsDisplay({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">
-                তারিখ
+              <Label className="text-xs text-muted-foreground mb-1 block font-medium">
+                তারিখ (Date)
               </Label>
               <Input
-                placeholder="যেমন: ১২/০৬/২০২৬"
+                placeholder="যেমন: ০২/০৯/২০২৬"
                 value={reportInfo.date}
                 onChange={(e) =>
                   setReportInfo({ ...reportInfo, date: e.target.value })
@@ -324,8 +324,8 @@ export const ResultsDisplay = memo(function ResultsDisplay({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">
-                সার্ভেয়ার
+              <Label className="text-xs text-muted-foreground mb-1 block font-medium">
+                সার্ভেয়ার / আমিনের নাম (Surveyor)
               </Label>
               <Input
                 placeholder="সার্ভেয়ারের নাম"
@@ -344,7 +344,7 @@ export const ResultsDisplay = memo(function ResultsDisplay({
               variant="outline"
               onClick={() => setIsPrintModalOpen(false)}
             >
-              বাতিল
+              বাতিল (Cancel)
             </Button>
             <Button
               type="button"
@@ -353,7 +353,8 @@ export const ResultsDisplay = memo(function ResultsDisplay({
                 setTimeout(onPrint, 500);
               }}
             >
-              প্রিন্ট করুন
+              <Printer className="size-4 mr-1.5" />
+              প্রিন্ট করুন (Print)
             </Button>
           </div>
         </div>

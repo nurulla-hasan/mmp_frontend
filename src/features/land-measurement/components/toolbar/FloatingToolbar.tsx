@@ -157,7 +157,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         upload: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={Upload}
-                label={selectedFile ? `${selectedFile.name} — পরিবর্তন করুন` : 'ম্যাপ আপলোড করুন'}
+                label={selectedFile ? `${selectedFile.name} — Change` : 'Upload Map'}
                 active={!!selectedFile}
                 onClick={handleUploadClick}
                 disabled={isProcessingFile}
@@ -168,7 +168,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         saved: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={FolderOpen}
-                label="সংরক্ষিত পরিমাপসমূহ"
+                label="Saved Measurements"
                 onClick={onOpenLoad}
                 size={size}
                 id="step-saved-calculations"
@@ -177,7 +177,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         save: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={BookmarkCheck}
-                label={plots.length > 0 ? "পরিমাপ সেভ করুন" : "সেভ করতে প্লট আঁকুন"}
+                label={plots.length > 0 ? "Save Measurement" : "Draw plots to save"}
                 active={plots.length > 0}
                 onClick={onOpenSave}
                 disabled={plots.length === 0}
@@ -188,7 +188,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         drive: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={HardDrive}
-                label="ড্রাইভ থেকে ডাউনলোড করুন"
+                label="Download from Drive"
                 href="https://drive.google.com/drive/folders/1r0ryb1SyCeYV-41CM1WweokGDKT5t9RB"
                 size={size}
                 id="step-drive"
@@ -197,7 +197,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         calibrate: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={Ruler}
-                label={scale ? `স্কেল: ১ px ≈ ${(1 / scale).toFixed(2)} ft — পরিবর্তন করুন` : 'স্কেল সেট করুন'}
+                label={scale ? `Scale: 1 px ≈ ${(1 / scale).toFixed(2)} ft — Change` : 'Set Scale'}
                 active={mode === 'calibrating' || !!scale}
                 onClick={handleCalibrateClick}
                 disabled={!image || mode === 'calibrating'}
@@ -208,7 +208,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         draw: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={PenTool}
-                label={mode === 'drawing_plot' ? 'আঁকা চলছে...' : plots.length > 0 ? 'আরেক প্লট আঁকুন' : 'প্লট আঁকুন'}
+                label={mode === 'drawing_plot' ? 'Drawing in progress...' : plots.length > 0 ? 'Draw Another Plot' : 'Draw Plot'}
                 active={mode === 'drawing_plot'}
                 onClick={startPlotDrawing}
                 disabled={!image || !scale || mode === 'drawing_plot' || mode === 'calibrating'}
@@ -219,7 +219,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         divide: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={Scissors}
-                label="জমি ভাগ করুন"
+                label="Divide Plot"
                 active={mode === 'manual_divide_plot'}
                 onClick={startManualDivide}
                 disabled={plots.length === 0 || isDrawing}
@@ -230,7 +230,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         diagonals: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={isShowDiagonals ? Eye : EyeOff}
-                label={isShowDiagonals ? 'কর্ণ লুকান' : 'কর্ণ দেখান'}
+                label={isShowDiagonals ? 'Hide Diagonals' : 'Show Diagonals'}
                 active={isShowDiagonals}
                 onClick={() => setIsShowDiagonals(!isShowDiagonals)}
                 size={size}
@@ -240,7 +240,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         magnifier: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={Search}
-                label={isMagnifierEnabled ? 'ম্যাগনিফায়ার বন্ধ' : 'ম্যাগনিফায়ার চালু'}
+                label={isMagnifierEnabled ? 'Disable Magnifier' : 'Enable Magnifier'}
                 active={isMagnifierEnabled}
                 onClick={() => setIsMagnifierEnabled(!isMagnifierEnabled)}
                 size={size}
@@ -250,7 +250,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         reset: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={RotateCcw}
-                label="সব মুছুন"
+                label="Clear All"
                 onClick={() => confirmClearMap()}
                 disabled={!image}
                 size={size}
@@ -262,7 +262,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
             return (
                 <ToolBtn
                     icon={isDark ? Sun : Moon}
-                    label={isDark ? 'লাইট থিম' : 'ডার্ক থিম'}
+                    label={isDark ? 'Light Theme' : 'Dark Theme'}
                     onClick={() => setTheme(isDark ? 'light' : 'dark')}
                     size={size}
                     id="step-theme"
@@ -272,7 +272,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         help: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={HelpCircle}
-                label="সাহায্য / টিউটোরিয়াল"
+                label="Help / Tutorial"
                 onClick={() => window.dispatchEvent(new Event('start-tutorial'))}
                 size={size}
                 id="step-help"
@@ -319,7 +319,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
 
             {scale && !isDrawing && (
                 <div className="absolute bottom-18 left-1/2 z-40 -translate-x-1/2 rounded-full border border-border bg-card/95 px-3 py-1 shadow-md text-xs font-medium md:hidden text-primary whitespace-nowrap">
-                    স্কেল: ১ px ≈ {(1 / scale).toFixed(2)} ft
+                    Scale: 1 px ≈ {(1 / scale).toFixed(2)} ft
                 </div>
             )}
 

@@ -9,7 +9,8 @@ import { SurveyorPricing } from "../_components/surveyor-pricing";
 import { SurveyorVerification } from "../_components/surveyor-verification";
 import { SurveyorReviews } from "../_components/surveyor-reviews";
 import CustomBreadcrumb from "@/components/common/custom-breadcrumb";
-import { getMe, getSurveyorBySlug } from "@/services/auth.service";
+import { getMe } from "@/services/auth.service";
+import { getSurveyorBySlug } from "@/services/surveyor.service";
 
 export async function generateMetadata({
   params,

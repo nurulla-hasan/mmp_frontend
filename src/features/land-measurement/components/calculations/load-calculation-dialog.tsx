@@ -114,7 +114,7 @@ export function LoadCalculationDialog({
         const results = calculatePolygonData(rawPoints, scaleValue);
         return {
           id: p.id || `${Date.now()}-${idx}`,
-          name: p.plotNumber || `প্লট ${toBengaliDigits(idx + 1)}`,
+          name: p.plotNumber || `Plot ${idx + 1}`,
           points: rawPoints,
           results: results || {
             sqft: 0,
@@ -128,7 +128,7 @@ export function LoadCalculationDialog({
       });
 
       setPlots(loadedPlots);
-      SuccessToast(`"${calc.name}" পরিমাপ সফলভাবে ক্যানভাসে লোড হয়েছে!`);
+      SuccessToast(`"${calc.name}" measurement loaded onto canvas!`);
       if (typeof window !== "undefined" && window.location.search.includes("calculationId")) {
         window.history.replaceState(null, "", window.location.pathname);
       }
@@ -179,7 +179,7 @@ export function LoadCalculationDialog({
       })
       .catch(() => {
         if (!ignore) {
-          ErrorToast("সংরক্ষিত পরিমাপ তালিকা লোড করা সম্ভব হয়নি।");
+          ErrorToast("Could not load saved measurements list.");
         }
       })
       .finally(() => {
@@ -214,7 +214,7 @@ export function LoadCalculationDialog({
         setHasMore(nextPage < totalPages);
       }
     } catch {
-      ErrorToast("পরবর্তী পরিমাপগুলো লোড করতে সমস্যা হয়েছে।");
+      ErrorToast("Failed to load more measurements.");
     } finally {
       setIsLoadingMore(false);
     }
@@ -240,7 +240,7 @@ export function LoadCalculationDialog({
         applyCalculationPlots(calcToApply);
       }
     } catch {
-      ErrorToast("ম্যাপ ফাইল প্রসেস করতে সমস্যা হয়েছে।");
+      ErrorToast("Failed to process map file.");
     } finally {
       setIsProcessingUpload(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -255,12 +255,12 @@ export function LoadCalculationDialog({
       if (res.success) {
         setCalculations((prev) => prev.filter((c) => c.id !== deletingId));
         setTotalCount((prev) => Math.max(0, prev - 1));
-        SuccessToast("পরিমাপ সফলভাবে মুছে ফেলা হয়েছে।");
+        SuccessToast("Measurement deleted successfully.");
       } else {
-        ErrorToast(res.message || "মুছতে সমস্যা হয়েছে।");
+        ErrorToast(res.message || "Failed to delete measurement.");
       }
     } catch {
-      ErrorToast("পরিমাপ মুছতে সমস্যা হয়েছে।");
+      ErrorToast("Failed to delete measurement.");
     } finally {
       setIsDeleting(false);
       setDeletingId(null);
@@ -272,8 +272,8 @@ export function LoadCalculationDialog({
       <ModalWrapper
         open={open}
         onOpenChange={handleOpenChange}
-        title="সংরক্ষিত পরিমাপসমূহ"
-        description="আপনার পূর্বে সংরক্ষিত পরিমাপ নির্বাচন করে ক্যানভাসে পুনরায় লোড করুন।"
+        title="Saved Measurements"
+        description="Select a previously saved measurement to reload onto the canvas."
       >
         {/* Pending Map Upload State */}
         {pendingCalculation ? (
@@ -284,14 +284,14 @@ export function LoadCalculationDialog({
               </div>
               <div className="space-y-1">
                 <h4 className="font-semibold text-sm text-foreground">
-                  ম্যাপ ইমেজ আপলোড প্রয়োজন
+                  Map Image Upload Required
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  <strong>&ldquo;{pendingCalculation.name}&rdquo;</strong> পরিমাপটি লোড করার জন্য{" "}
+                  To load <strong>&ldquo;{pendingCalculation.name}&rdquo;</strong> measurement, please upload{" "}
                   <span className="text-primary font-medium">
-                    &ldquo;{pendingCalculation.mapName || "ম্যাপ ফাইল"}&rdquo;
+                    &ldquo;{pendingCalculation.mapName || "Map File"}&rdquo;
                   </span>{" "}
-                  ইমেজটি আপলোড করুন।
+                  image.
                 </p>
               </div>
             </div>
@@ -311,18 +311,18 @@ export function LoadCalculationDialog({
                 size="sm"
                 onClick={() => setPendingCalculation(null)}
               >
-                তালিকায় ফিরে যান
+                Back to List
               </Button>
               <Button
                 type="button"
                 size="sm"
                 loading={isProcessingUpload}
-                loadingText="ম্যাপ লোড হচ্ছে..."
+                loadingText="Loading map..."
                 onClick={() => fileInputRef.current?.click()}
                 className="gap-2"
               >
                 <Upload className="size-4" />
-                ম্যাপ ফাইল নির্বাচন করুন
+                Select Map File
               </Button>
             </div>
           </div>
@@ -338,7 +338,7 @@ export function LoadCalculationDialog({
                     setSearchTerm(e.target.value);
                     setIsLoading(true);
                   }}
-                  placeholder="পরিমাপ বা ম্যাপের নাম দিয়ে খুঁজুন..."
+                  placeholder="Search by measurement or map name..."
                   className="pl-9 h-9 text-xs"
                 />
               </div>
@@ -348,9 +348,9 @@ export function LoadCalculationDialog({
                 nativeButton={false}
                 render={<Link href="/calculations" />}
                 className="shrink-0 hidden sm:inline-flex"
-                title="সব পরিমাপ টেবিল আকারে দেখুন"
+                title="View all measurements in table"
               >
-                <span>সব দেখুন</span>
+                <span>View All</span>
                 <ExternalLink />
               </Button>
             </div>
@@ -359,18 +359,18 @@ export function LoadCalculationDialog({
             {isLoading ? (
               <div className="py-14 text-center text-muted-foreground space-y-2">
                 <Loader2 className="mx-auto size-6 animate-spin text-primary" />
-                <p className="text-xs">পরিমাপ লোড হচ্ছে...</p>
+                <p className="text-xs">Loading measurements...</p>
               </div>
             ) : calculations.length === 0 ? (
               <div className="py-12 text-center space-y-2 rounded-lg border border-dashed p-6">
                 <FileQuestion className="mx-auto size-8 text-muted-foreground/60" />
                 <h4 className="font-semibold text-sm text-foreground">
-                  {searchTerm ? "কোনো ফলাফল পাওয়া যায়নি" : "কোনো সংরক্ষিত পরিমাপ নেই"}
+                  {searchTerm ? "No results found" : "No saved measurements"}
                 </h4>
                 <p className="text-xs text-muted-foreground max-w-xs mx-auto">
                   {searchTerm
-                    ? "ভিন্ন কোনো নাম লিখে অনুসন্ধান করুন।"
-                    : "প্লট আঁকার পর “সেভ করুন” বাটনে ক্লিক করে পরিমাপ সংরক্ষণ করতে পারেন।"}
+                    ? "Try searching with a different name."
+                    : "After drawing plots, tap 'Save' to keep your measurements."}
                 </p>
               </div>
             ) : (
@@ -393,7 +393,7 @@ export function LoadCalculationDialog({
                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
                             <span className="inline-flex items-center gap-1 font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-md">
                               <Layers className="size-3 text-primary" />
-                              {toBengaliDigits(plotCount)}টি প্লট
+                              {plotCount} {plotCount === 1 ? "Plot" : "Plots"}
                             </span>
                             {calc.mapName && (
                               <span className="inline-flex items-center gap-1 truncate max-w-44 sm:max-w-64" title={calc.mapName}>
@@ -413,7 +413,7 @@ export function LoadCalculationDialog({
                           size="icon-sm"
                           className="text-destructive/80 hover:text-destructive hover:bg-destructive/10 shrink-0"
                           onClick={() => setDeletingId(calc.id)}
-                          title="মুছে ফেলুন"
+                          title="Delete"
                         >
                           <Trash2 />
                         </Button>
@@ -428,7 +428,7 @@ export function LoadCalculationDialog({
                           onClick={() => handleSelectCalculation(calc)}
                           className="w-full sm:w-auto"
                         >
-                          <span>লোড করুন</span>
+                          <span>Load</span>
                           <ArrowRight />
                         </Button>
                       </div>
@@ -441,13 +441,13 @@ export function LoadCalculationDialog({
                   {isLoadingMore && (
                     <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                       <Loader2 className="size-4 animate-spin text-primary" />
-                      <span>আরও পরিমাপ লোড হচ্ছে...</span>
+                      <span>Loading more measurements...</span>
                     </div>
                   )}
                   {!hasMore && calculations.length > 0 && (
                     <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/70 py-1">
                       <CheckCircle2 className="size-3.5 text-primary/70" />
-                      <span>সবগুলো ({toBengaliDigits(totalCount)}টি) পরিমাপ দেখানো হয়েছে</span>
+                      <span>All {totalCount} measurements displayed</span>
                     </p>
                   )}
                 </div>
@@ -461,9 +461,9 @@ export function LoadCalculationDialog({
       <ConfirmationModal
         open={!!deletingId}
         onOpenChange={(val) => !val && setDeletingId(null)}
-        title="পরিমাপটি মুছে ফেলতে চান?"
-        description="এই পরিমাপ এবং এর সাথে সম্পর্কিত সমস্ত প্লট স্থায়ীভাবে মুছে ফেলা হবে।"
-        confirmText="মুছে ফেলুন"
+        title="Delete measurement?"
+        description="This measurement and all its associated plots will be permanently removed."
+        confirmText="Delete"
         variant="destructive"
         isLoading={isDeleting}
         onConfirm={handleDelete}

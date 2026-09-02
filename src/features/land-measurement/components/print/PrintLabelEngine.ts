@@ -9,6 +9,7 @@ import {
   getPolygonAreaLabelLayout,
   type PolygonAreaLabelLayout,
 } from '@/features/land-measurement/utils/polygon-label';
+import { toBengaliDigits } from '@/lib/utils';
 import type { Point, PlotRecord } from '@/features/land-measurement/types/map';
 
 export interface LabelDatum {
@@ -151,7 +152,7 @@ export function computePrintLabels(
         (sum, segment) => sum + (plot.results.lengths[segment.i] ?? 0),
         0,
       );
-      const labelText = formatFeetInches(totalLengthFt);
+      const labelText = toBengaliDigits(formatFeetInches(totalLengthFt));
       const rotation = getReadableRotation(Math.atan2(midDy, midDx) * (180 / Math.PI));
 
       // Normal print dimensions stay exactly the same size as the area label.

@@ -67,21 +67,21 @@ export const ToolTopControls = ({
             size="sm"
             onClick={() => setShowScratchSheet(!showScratchSheet)}
             variant={showScratchSheet ? "default" : "outline"}
-            title="স্ক্র্যাচ শিট"
+            title="Scratch Sheet"
             className="hidden md:inline-flex"
           >
             <FileText />
-            <span className="hidden sm:inline">স্ক্র্যাচ শিট</span>
+            <span className="hidden sm:inline">Scratch Sheet</span>
           </Button>
 
           <Button
             size="sm"
             onClick={() => setIsShowDiagonals(!isShowDiagonals)}
             variant={isShowDiagonals ? "default" : "outline"}
-            title="কর্ণ (Diagonals) দেখান/লুকান"
+            title="Show/Hide Diagonals"
           >
             {isShowDiagonals ? <Eye /> : <EyeOff />}
-            <span className="hidden sm:inline">কর্ণ</span>
+            <span className="hidden sm:inline">Diagonals</span>
           </Button>
 
           <Button
@@ -90,7 +90,7 @@ export const ToolTopControls = ({
             variant={isMagnifierEnabled ? "default" : "outline"}
           >
             <Search />
-            <span className="hidden sm:inline">ম্যাগনিফায়ার</span>
+            <span className="hidden sm:inline">Magnifier</span>
           </Button>
 
           {/* Saved Calculations Dialog Trigger */}
@@ -101,10 +101,10 @@ export const ToolTopControls = ({
               setIsLoadOpen(true);
             }}
             variant="outline"
-            title="সংরক্ষিত পরিমাপসমূহ"
+            title="Saved Measurements"
           >
             <FolderOpen className="text-primary" />
-            <span>সংরক্ষিত পরিমাপ</span>
+            <span>Saved Measurements</span>
           </Button>
 
           {/* Save Calculation Dialog Trigger */}
@@ -113,10 +113,10 @@ export const ToolTopControls = ({
               size="sm"
               onClick={() => setIsSaveOpen(true)}
               variant="default"
-              title="পরিমাপ সেভ করুন"
+              title="Save Measurement"
             >
               <BookmarkCheck />
-              <span>সেভ করুন</span>
+              <span>Save</span>
             </Button>
           )}
         </div>
@@ -126,7 +126,7 @@ export const ToolTopControls = ({
             size="icon-sm"
             variant="outline"
             onClick={() => window.dispatchEvent(new Event("start-tutorial"))}
-            title="টিউটোরিয়াল / সাহায্য"
+            title="Tutorial / Help"
           >
             <HelpCircle />
           </Button>

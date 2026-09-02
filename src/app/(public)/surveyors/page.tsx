@@ -6,11 +6,9 @@ import { SearchInput } from "@/components/common/search-input";
 import { ActiveFilterChips } from "./_components/active-filter-chips";
 import { SurveyorCard } from "./_components/surveyor-card";
 import { SurveyorFilter } from "./_components/surveyor-filter";
-import {
-  getAllSurveyors,
-  getDistricts,
-  getServices,
-} from "@/services/auth.service";
+import { getAllSurveyors } from "@/services/surveyor.service";
+import { getDistricts } from "@/services/district.service";
+import { getServices } from "@/services/service.service";
 import CustomPagination from "@/components/common/custom-pagination";
 
 export const metadata: Metadata = {

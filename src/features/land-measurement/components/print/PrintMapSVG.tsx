@@ -1,8 +1,9 @@
-﻿import React from 'react';
+import React from 'react';
 import {
   formatFeetInches,
   MIN_EDGE_LABEL_FT,
 } from '@/features/land-measurement/utils/canvas';
+import { toBengaliDigits } from '@/lib/utils';
 import { computePrintLabels } from './PrintLabelEngine';
 import type { PlotRecord } from '@/features/land-measurement/types/map';
 
@@ -80,7 +81,7 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
             const midX = (p1.x + p2.x) / 2;
             const midY = (p1.y + p2.y) / 2;
             const labelText =
-              d.lengthFt >= MIN_EDGE_LABEL_FT ? formatFeetInches(d.lengthFt) : '';
+              d.lengthFt >= MIN_EDGE_LABEL_FT ? toBengaliDigits(formatFeetInches(d.lengthFt)) : '';
 
             return (
               <g key={`diag-${plot.id}-${dIdx}`}>
@@ -143,7 +144,7 @@ export const PrintMapSVG: React.FC<PrintMapSVGProps> = ({
         if (!p.plot.results) return null;
 
         const { center, rotation } = p.areaLabelLayout;
-        const areaText = `${p.plot.results.shotok.toFixed(2)} শতক`;
+        const areaText = `${toBengaliDigits(p.plot.results.shotok.toFixed(2))} শতক`;
         const areaColor = p.plot.color || '#0F766E';
 
         return (

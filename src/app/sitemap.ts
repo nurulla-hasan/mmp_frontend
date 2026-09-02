@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getAllSurveyors } from "@/services/auth.service";
+import { getAllSurveyors } from "@/services/surveyor.service";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mouzammappro.com";

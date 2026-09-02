@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 
 import { JoinAsSurveyorForm } from "./_components/join-as-surveyor-form";
 import { ApplicationStatusView } from "./_components/application-status-view";
-import { getMe, getDistricts, getServices } from "@/services/auth.service";
+import { getMe } from "@/services/auth.service";
+import { getDistricts } from "@/services/district.service";
+import { getServices } from "@/services/service.service";
 import { PageWrapper } from "@/components/common/page-wrapper";
 
 export const metadata: Metadata = {

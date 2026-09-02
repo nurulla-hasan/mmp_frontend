@@ -110,14 +110,14 @@ export const createDivideSlice: StateCreator<DivideSlice, [], [], DivideSlice> =
 
     const polySplits = splitPolygonByPolyline(plot.points, state.manualCutLine);
     if (!polySplits) {
-      ErrorToast('সঠিকভাবে জমি ভাগ করা সম্ভব হয়নি। লাইনটি সম্পূর্ণ জমির উপর দিয়ে টানুন।');
+      ErrorToast('Could not divide plot. Please draw the line completely across the plot.');
       return null;
     }
 
     const { poly1: splitA, poly2: splitB } = polySplits;
 
     if (splitA.length < 3 || splitB.length < 3) {
-      ErrorToast('সঠিকভাবে জমি ভাগ করা সম্ভব হয়নি। লাইনটি সম্পূর্ণ জমির উপর দিয়ে টানুন।');
+      ErrorToast('Could not divide plot. Please draw the line completely across the plot.');
       return null;
     }
 
@@ -125,7 +125,7 @@ export const createDivideSlice: StateCreator<DivideSlice, [], [], DivideSlice> =
     const resultsB = calculatePolygonData(splitB, scale);
 
     if (!resultsA || !resultsB) {
-      ErrorToast('ভাগ করা জমির ক্ষেত্রফল হিসাব করা সম্ভব হয়নি।');
+      ErrorToast('Could not calculate divided plot areas.');
       return null;
     }
 

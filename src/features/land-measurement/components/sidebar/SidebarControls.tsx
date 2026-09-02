@@ -145,14 +145,14 @@ export const SidebarControls = memo(function SidebarControls() {
                 size="icon-sm"
                 type="button"
                 onClick={() => setShowManualScale(false)}
-                title="রেখা দাগ দিয়ে স্কেল করুন"
+                title="Calibrate by drawing scale line"
               >
                 <ChevronLeft />
               </Button>
               <Input
                 type="number"
                 step="any"
-                placeholder="পিক্সেল প্রতি ফুট (যেমন: ২.৩০)"
+                placeholder="Feet per pixel (e.g. 2.30)"
                 value={manualScale}
                 onChange={(e) => setManualScale(e.target.value)}
                 className="h-7 text-xs font-mono bg-background flex-1 min-w-0"
@@ -161,14 +161,14 @@ export const SidebarControls = memo(function SidebarControls() {
               />
               <Button variant="default" size="sm" type="submit">
                 <Check />
-                <span>সেট</span>
+                <span>Set</span>
               </Button>
               <Button
                 variant="ghost"
                 size="icon-sm"
                 type="button"
                 onClick={() => { setShowManualScale(false); setMode('none'); }}
-                title="বাতিল করুন"
+                title="Cancel"
               >
                 <X />
               </Button>
@@ -180,7 +180,7 @@ export const SidebarControls = memo(function SidebarControls() {
                 variant="ghost"
                 size="icon-sm"
                 onClick={() => { setCalibrationLine([]); setIsDrawing(false); setMode('none'); }}
-                title="স্কেলিং বাতিল করুন"
+                title="Cancel calibration"
               >
                 <X />
               </Button>
@@ -201,7 +201,7 @@ export const SidebarControls = memo(function SidebarControls() {
                   }
                 }}
                 disabled={calibrationUndoStack.length === 0}
-                title="পূর্বাবস্থায় ফেরান (Undo)"
+                title="Undo"
               >
                 <Undo2 />
               </Button>
@@ -220,7 +220,7 @@ export const SidebarControls = memo(function SidebarControls() {
                   }
                 }}
                 disabled={calibrationRedoStack.length === 0}
-                title="পুনরায় করুন (Redo)"
+                title="Redo"
               >
                 <Redo2 />
               </Button>
@@ -230,9 +230,9 @@ export const SidebarControls = memo(function SidebarControls() {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowManualScale(true)}
-                title="সরাসরি স্কেল মান লিখে দিন"
+                title="Enter scale value manually"
               >
-                ম্যানুয়াল
+                Manual
               </Button>
 
               {calibrationLine.length < 4 ? (
@@ -241,10 +241,10 @@ export const SidebarControls = memo(function SidebarControls() {
                   size="sm"
                   onClick={addCenterPoint}
                   className="ml-auto"
-                  title="টার্গেটের স্থানে পয়েন্ট যোগ করুন"
+                  title="Add point at crosshair target"
                 >
                   <Plus />
-                  <span>পয়েন্ট যোগ</span>
+                  <span>Add Point</span>
                   <span className="ml-0.5 px-1.5 py-0.2 bg-white/20 rounded-full font-mono text-[10px]">
                     {calibrationLine.length / 2}/2
                   </span>
@@ -254,7 +254,7 @@ export const SidebarControls = memo(function SidebarControls() {
                   <Input
                     id="modal-distance-input"
                     type="number"
-                    placeholder="বাস্তব দূরত্ব (ফুট)"
+                    placeholder="Real distance (ft)"
                     className="h-7 text-xs font-mono bg-background flex-1 min-w-0"
                     autoFocus
                     onKeyDown={(e) => {
@@ -278,7 +278,7 @@ export const SidebarControls = memo(function SidebarControls() {
                     }}
                   >
                     <Check />
-                    <span>নিশ্চিত</span>
+                    <span>Confirm</span>
                   </Button>
                 </div>
               )}
@@ -294,7 +294,7 @@ export const SidebarControls = memo(function SidebarControls() {
             variant="ghost"
             size="icon-sm"
             onClick={() => { setMode('none'); setIsDrawing(false); setSnapHint(false); }}
-            title="আঁকা বাতিল করুন"
+            title="Cancel drawing"
           >
             <X />
           </Button>
@@ -305,7 +305,7 @@ export const SidebarControls = memo(function SidebarControls() {
             size="icon-sm"
             onClick={undoPlotAction}
             disabled={plotPoints.length === 0}
-            title="পূর্বাবস্থায় ফেরান (Undo)"
+            title="Undo"
           >
             <Undo2 />
           </Button>
@@ -314,7 +314,7 @@ export const SidebarControls = memo(function SidebarControls() {
             size="icon-sm"
             onClick={redoPlotAction}
             disabled={plotPointsFuture.length === 0}
-            title="পুনরায় করুন (Redo)"
+            title="Redo"
           >
             <Redo2 />
           </Button>
@@ -325,10 +325,10 @@ export const SidebarControls = memo(function SidebarControls() {
             size="sm"
             onClick={addCenterPoint}
             className="ml-auto"
-            title="টার্গেটের স্থানে পয়েন্ট যোগ করুন"
+            title="Add point at crosshair target"
           >
             <Plus />
-            <span>পয়েন্ট যোগ</span>
+            <span>Add Point</span>
             {plotPoints.length > 0 && (
               <span className="ml-0.5 px-1.5 py-0.2 bg-white/20 rounded-full font-mono text-[10px]">
                 {plotPoints.length}
@@ -342,10 +342,10 @@ export const SidebarControls = memo(function SidebarControls() {
             size="sm"
             onClick={() => { setIsModalOpen(true); }}
             disabled={plotPoints.length < 3}
-            title="প্লট সম্পন্ন করুন (কমপক্ষে ৩টি পয়েন্ট)"
+            title="Finish plot (requires at least 3 points)"
           >
             <Check />
-            <span>শেষ করুন</span>
+            <span>Finish</span>
           </Button>
         </div>
       )}
@@ -360,14 +360,14 @@ export const SidebarControls = memo(function SidebarControls() {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                 </span>
                 <span className="text-amber-600 dark:text-amber-400 font-semibold text-xs">
-                  যে প্লটটি কাটবেন তার ওপর ক্লিক করুন
+                  Click on the plot you want to divide
                 </span>
               </div>
               <Button
                 variant="ghost"
                 size="icon-sm"
                 onClick={cancelManualDivide}
-                title="বাতিল করুন"
+                title="Cancel"
               >
                 <X />
               </Button>
@@ -380,11 +380,11 @@ export const SidebarControls = memo(function SidebarControls() {
                   <div className="flex items-center gap-1.5 text-xs font-mono select-none">
                     <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-muted border border-border text-xs">
                       <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                        ১: {manualCutSplits.resA.shotok.toFixed(2)}
+                        1: {manualCutSplits.resA.shotok.toFixed(2)}
                       </span>
                       <span className="text-muted-foreground/40">|</span>
                       <span className="font-bold text-sky-600 dark:text-sky-400">
-                        ২: {manualCutSplits.resB.shotok.toFixed(2)}
+                        2: {manualCutSplits.resB.shotok.toFixed(2)}
                       </span>
                     </div>
                     <Badge
@@ -400,7 +400,7 @@ export const SidebarControls = memo(function SidebarControls() {
                   </div>
                 ) : (
                   <span className="text-primary font-medium text-xs">
-                    বিন্দুগুলো ড্র্যাগ বা নডজ করে লাইন সরান
+                    Drag points or nudge to adjust cut line
                   </span>
                 )}
 
@@ -409,7 +409,7 @@ export const SidebarControls = memo(function SidebarControls() {
                   size="icon-sm"
                   onClick={cancelManualDivide}
                   className="ml-auto"
-                  title="বাতিল করুন"
+                  title="Cancel"
                 >
                   <X />
                 </Button>
@@ -423,7 +423,7 @@ export const SidebarControls = memo(function SidebarControls() {
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => nudgeManualCutLine(-1)}
-                    title="কাটিং লাইন বামে/পেছনে সূক্ষ্ম সরান"
+                    title="Nudge cut line left/backward"
                   >
                     <ChevronLeft />
                   </Button>
@@ -436,14 +436,14 @@ export const SidebarControls = memo(function SidebarControls() {
                       <Button
                         variant="outline"
                         size="sm"
-                        title="নডজের লক্ষ্য সিলেক্ট করুন"
+                        title="Select nudge target"
                       >
                         <span>
                           {nudgeTarget === 'all'
-                            ? 'লাইন'
+                            ? 'Line'
                             : nudgeTarget === 'start'
-                            ? '১ম'
-                            : '২য়'}
+                            ? '1st'
+                            : '2nd'}
                         </span>
                         <ChevronDown />
                       </Button>
@@ -458,19 +458,19 @@ export const SidebarControls = memo(function SidebarControls() {
                         onClick={() => setNudgeTarget('all')}
                         className={nudgeTarget === 'all' ? 'font-semibold text-primary bg-primary/10' : ''}
                       >
-                        পুরো লাইন
+                        Full Line
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setNudgeTarget('start')}
                         className={nudgeTarget === 'start' ? 'font-semibold text-primary bg-primary/10' : ''}
                       >
-                        ১ম পয়েন্ট
+                        1st Point
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setNudgeTarget('end')}
                         className={nudgeTarget === 'end' ? 'font-semibold text-primary bg-primary/10' : ''}
                       >
-                        ২য় পয়েন্ট
+                        2nd Point
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -479,7 +479,7 @@ export const SidebarControls = memo(function SidebarControls() {
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => nudgeManualCutLine(1)}
-                    title="কাটিং লাইন ডানে/সামনে সূক্ষ্ম সরান"
+                    title="Nudge cut line right/forward"
                   >
                     <ChevronRight />
                   </Button>
@@ -496,7 +496,7 @@ export const SidebarControls = memo(function SidebarControls() {
                         setManualCutLine(manualCutLine.slice(0, -1));
                       }
                     }}
-                    title="কাট পয়েন্ট কমান"
+                    title="Decrease cut points"
                   >
                     -
                   </Button>
@@ -535,7 +535,7 @@ export const SidebarControls = memo(function SidebarControls() {
                         ]);
                       }
                     }}
-                    title="কাট পয়েন্ট বাড়ান"
+                    title="Increase cut points"
                   >
                     +
                   </Button>
@@ -548,7 +548,7 @@ export const SidebarControls = memo(function SidebarControls() {
                   onClick={executeManualDivide}
                   disabled={!isManualCutValid}
                 >
-                  ফাইনাল কাট
+                  Final Cut
                 </Button>
               </div>
             </>
@@ -559,17 +559,17 @@ export const SidebarControls = memo(function SidebarControls() {
       <AlertDialog open={pendingAction !== null} onOpenChange={(open) => !open && setPendingAction(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>আপনি কি নিশ্চিত?</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               {pendingAction?.type === 'clearMap'
-                ? "আপনি কি নিশ্চিত যে আপনি ম্যাপ এবং সমস্ত ডেটা মুছে ফেলতে চান?"
-                : "আপনি কি নিশ্চিত যে সব প্লট মুছে ফেলতে চান?"}
+                ? "Are you sure you want to clear the map and all measurements?"
+                : "Are you sure you want to clear all plots?"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>বাতিল করুন</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={executePendingAction} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              হ্যাঁ, মুছে ফেলুন
+              Yes, Clear
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

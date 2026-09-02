@@ -2,7 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
-import { applyAsSurveyor } from "@/services/auth.service";
+import { applyAsSurveyor } from "@/services/surveyor.service";
 import type { JoinAsSurveyorFormValues } from "@/validation/join-as-surveyor.schema";
 
 export async function submitSurveyorApplicationAction(

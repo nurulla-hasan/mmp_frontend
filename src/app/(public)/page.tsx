@@ -14,11 +14,9 @@ import {
   TestimonialsSection,
   TrustHighlightsSection,
 } from "@/components/home";
-import {
-  getAllSurveyors,
-  getServices,
-  getTestimonials,
-} from "@/services/auth.service";
+import { getAllSurveyors } from "@/services/surveyor.service";
+import { getServices } from "@/services/service.service";
+import { getTestimonials } from "@/services/review.service";
 
 export default async function HomePage() {
   const [surveyorsRes, servicesRes, testimonialsRes] = await Promise.allSettled([

@@ -1,4 +1,4 @@
-﻿import React, { useDeferredValue, useEffect, useMemo, useRef } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Group, Line, Circle, Label as KonvaLabel, Tag, Text, Shape } from 'react-konva';
 import type Konva from 'konva';
@@ -179,11 +179,11 @@ export const StageManualCut = React.memo(() => {
           {/* Floating Area Labels */}
           <KonvaLabel x={splits.centerA.x} y={splits.centerA.y} opacity={1}>
             <Tag fill={plot.color || '#0F766E'} cornerRadius={areaRadius} shadowColor="rgba(0,0,0,0.25)" shadowBlur={2/stageScale} shadowOffsetX={1/stageScale} shadowOffsetY={1/stageScale} />
-            <Text text={`${splits.resA.shotok.toFixed(2)} শতক`} fill="white" padding={areaPadding} fontSize={areaFontSize} fontStyle="bold" />
+            <Text text={`${splits.resA.shotok.toFixed(2)} shotok`} fill="white" padding={areaPadding} fontSize={areaFontSize} fontStyle="bold" />
           </KonvaLabel>
           <KonvaLabel x={splits.centerB.x} y={splits.centerB.y} opacity={1}>
             <Tag fill="#0284C7" cornerRadius={areaRadius} shadowColor="rgba(0,0,0,0.25)" shadowBlur={2/stageScale} shadowOffsetX={1/stageScale} shadowOffsetY={1/stageScale} />
-            <Text text={`${splits.resB.shotok.toFixed(2)} শতক`} fill="white" padding={areaPadding} fontSize={areaFontSize} fontStyle="bold" />
+            <Text text={`${splits.resB.shotok.toFixed(2)} shotok`} fill="white" padding={areaPadding} fontSize={areaFontSize} fontStyle="bold" />
           </KonvaLabel>
         </>
       )}

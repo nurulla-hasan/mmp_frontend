@@ -43,7 +43,7 @@ export const SidebarPlottingPanel = () => {
     <div id="step-drawing" className="space-y-3">
       <div>
         <label className="block text-sm font-medium text-foreground mb-1">
-          3. প্লট আঁকুন ও সংরক্ষণ
+          3. Draw & Save Plots
         </label>
         <Button
           size="sm"
@@ -52,18 +52,18 @@ export const SidebarPlottingPanel = () => {
           className="w-full"
         >
           {mode === "drawing_plot"
-            ? "ম্যাপে কোণে ক্লিক করুন"
+            ? "Click corners on map"
             : plots.length > 0
-              ? "আরেক প্লট আঁকুন"
-              : "প্লট আঁকুন"}
+              ? "Draw Another Plot"
+              : "Draw Plot"}
         </Button>
       </div>
 
       <div className="text-xs text-muted-foreground">
         {plots.length === 1
-          ? "১টি প্লট সম্পন্ন হয়েছে"
+          ? "1 plot completed"
           : plots.length > 1
-            ? `${plots.length}টি প্লট সম্পন্ন হয়েছে`
+            ? `${plots.length} plots completed`
             : ""}
       </div>
 
@@ -76,7 +76,7 @@ export const SidebarPlottingPanel = () => {
             size="sm"
             className="flex-1"
           >
-            পূর্বাবস্থায় ফেরান
+            Undo
           </Button>
           <Button
             onClick={redoPlotAction}
@@ -85,7 +85,7 @@ export const SidebarPlottingPanel = () => {
             size="sm"
             className="flex-1"
           >
-            পুনরায় ফেরান
+            Redo
           </Button>
           <Button
             onClick={() => confirmClearPlot()}
@@ -93,7 +93,7 @@ export const SidebarPlottingPanel = () => {
             size="sm"
             className="flex-1"
           >
-            সব মুছুন
+            Clear All
           </Button>
         </div>
       )}
@@ -106,7 +106,7 @@ export const SidebarPlottingPanel = () => {
             size="sm"
             className="w-full"
           >
-            জমি ভাগ করুন
+            Divide Plot
           </Button>
 
           <Button
@@ -116,7 +116,7 @@ export const SidebarPlottingPanel = () => {
             className="w-full"
           >
             <BookmarkCheck />
-            <span>পরিমাপ সেভ করুন</span>
+            <span>Save Measurement</span>
           </Button>
         </div>
       )}
@@ -129,7 +129,7 @@ export const SidebarPlottingPanel = () => {
           className="w-full text-muted-foreground"
         >
           <FolderOpen className="text-primary" />
-          <span>সংরক্ষিত পরিমাপসমূহ খুলুন</span>
+          <span>Open Saved Measurements</span>
         </Button>
       </div>
 

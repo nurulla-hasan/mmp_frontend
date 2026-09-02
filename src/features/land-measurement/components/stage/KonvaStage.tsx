@@ -163,8 +163,8 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                     <div className="flex min-w-52 flex-col items-center gap-3 rounded-lg border border-border bg-card px-5 py-4 text-center shadow-lg">
                         <Loader2 className="h-7 w-7 animate-spin text-primary" />
                         <div>
-                            <p className="text-sm font-semibold text-foreground">ম্যাপ লোড হচ্ছে</p>
-                            <p className="mt-1 text-xs text-muted-foreground">বড় ফাইল হলে একটু সময় লাগতে পারে</p>
+                            <p className="text-sm font-semibold text-foreground">Loading Map</p>
+                            <p className="mt-1 text-xs text-muted-foreground">Large files may take a few moments</p>
                         </div>
                     </div>
                 </div>
@@ -176,7 +176,7 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                     <div className="flex w-60 flex-col gap-2 rounded-xl border border-border bg-card/95 backdrop-blur-md px-4 py-3 shadow-xl pointer-events-auto">
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-foreground">
-                                টাইল জেনারেট হচ্ছে...
+                                Generating tiles...
                             </span>
                             <span className="ml-auto text-xs font-semibold text-primary">{tileProgress}%</span>
                         </div>
