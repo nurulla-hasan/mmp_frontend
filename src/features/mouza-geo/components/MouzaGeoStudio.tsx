@@ -78,6 +78,8 @@ export default function MouzaGeoStudio() {
 
   const [interactionTarget, setInteractionTarget] =
     useState<InteractionTarget>("map");
+  const [manualAdjustmentEnabled, setManualAdjustmentEnabled] =
+    useState(false);
 
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -149,6 +151,7 @@ export default function MouzaGeoStudio() {
     setTransform(null);
     setAlignmentMode("similarity");
     setInteractionTarget("map");
+    setManualAdjustmentEnabled(false);
   };
 
   const handleFile = async (file: File) => {
@@ -329,6 +332,19 @@ export default function MouzaGeoStudio() {
     );
   };
 
+  const toggleManualAdjustment = () => {
+    if (!transform) {
+      ErrorToast("Please align the map before manual adjustment");
+      return;
+    }
+
+    setWorldInitialized(true);
+    setActiveView("world");
+    setPointMode(false);
+    setInteractionTarget("map");
+    setManualAdjustmentEnabled((enabled) => !enabled);
+  };
+
   const handleLocateUser = () => {
     if (!navigator.geolocation) {
       ErrorToast("Geolocation is not supported by your browser");
@@ -471,6 +487,7 @@ export default function MouzaGeoStudio() {
                   opacity={opacity}
                   mapStyle={mapStyle}
                   interactionTarget={interactionTarget}
+                  manualAdjustmentEnabled={manualAdjustmentEnabled}
                   onPlaceWorldPoint={handleWorldPoint}
                   onTranslateOverlay={handleTranslate}
                   onScaleOverlay={handleScale}
@@ -494,11 +511,16 @@ export default function MouzaGeoStudio() {
           alignmentMode={alignmentMode}
           controlPairsCount={controlPairs.length}
           pointMode={pointMode}
+          manualAdjustmentEnabled={manualAdjustmentEnabled}
           locating={locating}
           canUndo={controlPairs.length > 0}
           canRedo={redoControlPairs.length > 0}
           onToggleSettings={() => setSettingsOpen((open) => !open)}
-          onTogglePointMode={() => setPointMode((prev) => !prev)}
+          onTogglePointMode={() => {
+            setManualAdjustmentEnabled(false);
+            setPointMode((prev) => !prev);
+          }}
+          onToggleManualAdjustment={toggleManualAdjustment}
           onSelectView={(view) => {
             if (view === "world") setWorldInitialized(true);
             setActiveView(view);
@@ -522,11 +544,16 @@ export default function MouzaGeoStudio() {
           alignmentMode={alignmentMode}
           controlPairsCount={controlPairs.length}
           pointMode={pointMode}
+          manualAdjustmentEnabled={manualAdjustmentEnabled}
           locating={locating}
           canUndo={controlPairs.length > 0}
           canRedo={redoControlPairs.length > 0}
           onToggleSettings={() => setSettingsOpen((open) => !open)}
-          onTogglePointMode={() => setPointMode((prev) => !prev)}
+          onTogglePointMode={() => {
+            setManualAdjustmentEnabled(false);
+            setPointMode((prev) => !prev);
+          }}
+          onToggleManualAdjustment={toggleManualAdjustment}
           onSelectView={(view) => {
             if (view === "world") setWorldInitialized(true);
             setActiveView(view);
