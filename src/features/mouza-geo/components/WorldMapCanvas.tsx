@@ -109,7 +109,12 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   const labelLayerRef = useRef<TileLayer | null>(null);
   const userMarkerRef = useRef<import("leaflet").CircleMarker | null>(null);
   const propsRef = useRef(props);
-  const dragRef = useRef<{ id: number; point: MercatorPoint } | null>(null);
+  const dragRef = useRef<{
+    id: number;
+    point: MercatorPoint;
+    clientX: number;
+    clientY: number;
+  } | null>(null);
   const resizeHandleRef = useRef<OverlayHandleInfo | null>(null);
   const drawFrameRef = useRef<number | null>(null);
   const interactionFrameRef = useRef<number | null>(null);
@@ -123,6 +128,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     center: MercatorPoint;
   } | null>(null);
   const viewActiveTimestampRef = useRef<number>(Date.now());
+  const manualAdjustmentRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [manualAdjustmentEnabled, setManualAdjustmentEnabled] =
@@ -239,7 +245,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       }
     }
 
-    if (transform && manualAdjustmentEnabled) {
+    if (transform && manualAdjustmentRef.current) {
       const topLeft = toScreenPoint({ x: 0, y: 0 });
       const topRight = toScreenPoint({ x: imageSize.width, y: 0 });
       const bottomRight = toScreenPoint({
@@ -335,7 +341,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       context.textBaseline = "middle";
       context.fillText(String(index + 1), tipX, tipY - 22);
     });
-  }, [manualAdjustmentEnabled, toScreenPoint]);
+  }, [toScreenPoint]);
 
   const scheduleDraw = useCallback(() => {
     if (drawFrameRef.current !== null) return;
@@ -374,6 +380,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   }, [props, scheduleDraw]);
 
   useEffect(() => {
+    manualAdjustmentRef.current = manualAdjustmentEnabled;
     scheduleDraw();
   }, [manualAdjustmentEnabled, scheduleDraw]);
 
@@ -690,13 +697,17 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
         return;
       }
 
-      pendingScaleRef.current *= event.deltaY < 0 ? 1.04 : 1 / 1.04;
-      const world = getMercatorAtPointer(event.clientX, event.clientY);
-      const transform = propsRef.current.transform;
-      if (world && transform) {
-        pendingScaleAnchorRef.current = sourcePointAtWorld(transform, world);
-      }
-      scheduleInteraction();
+      const map = mapRef.current;
+      const host = hostRef.current;
+      if (!map || !host) return;
+
+      const rect = host.getBoundingClientRect();
+      const point = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
+      const nextZoom = map.getZoom() + (event.deltaY < 0 ? 1 : -1);
+      map.setZoomAround(point, nextZoom);
     };
 
     canvas.addEventListener("wheel", handleWheel, { passive: false });
@@ -745,7 +756,12 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       return;
     }
 
-    dragRef.current = { id: event.pointerId, point };
+    dragRef.current = {
+      id: event.pointerId,
+      point,
+      clientX: event.clientX,
+      clientY: event.clientY,
+    };
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
@@ -795,13 +811,15 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     const drag = dragRef.current;
     if (!drag || drag.id !== event.pointerId) return;
 
-    const next = getMercatorAtPointer(event.clientX, event.clientY);
-    if (!next) return;
+    const map = mapRef.current;
+    if (!map) return;
 
-    pendingTranslationRef.current.u += next.u - drag.point.u;
-    pendingTranslationRef.current.v += next.v - drag.point.v;
-    scheduleInteraction();
-    drag.point = next;
+    map.panBy(
+      [drag.clientX - event.clientX, drag.clientY - event.clientY],
+      { animate: false },
+    );
+    drag.clientX = event.clientX;
+    drag.clientY = event.clientY;
   };
 
   const finishPointer = (event: React.PointerEvent<HTMLCanvasElement>) => {
@@ -813,7 +831,14 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     if (touchPointsRef.current.size === 1) {
       const [id, pointer] = [...touchPointsRef.current.entries()][0];
       const point = getMercatorAtPointer(pointer.x, pointer.y);
-      if (point) dragRef.current = { id, point };
+      if (point) {
+        dragRef.current = {
+          id,
+          point,
+          clientX: pointer.x,
+          clientY: pointer.y,
+        };
+      }
     }
   };
 
@@ -871,7 +896,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
       {pdfInteractionEnabled && (
         <div className="pointer-events-none absolute bottom-38 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-2 text-center text-xs text-foreground shadow-lg backdrop-blur md:bottom-26">
-          Drag inside: move PDF · Drag green handles: stretch map · Wheel: scale
+          Drag map: navigate · Wheel: zoom · Drag green handles: stretch PDF
         </div>
       )}
     </div>
