@@ -192,20 +192,51 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
 
             {/* UI Overlays */}
             {!isProcessingFile && (mode === 'calibrating' || (mode === 'drawing_plot' && !isPlotFinished)) && (
-                <div
-                    className="pointer-events-none absolute z-50 size-6 -translate-x-1/2 -translate-y-1/2"
-                    style={{
-                        left: (stageSize.width || window.innerWidth) / 2,
-                        top: (stageSize.height || 400) / 2
-                    }}
-                >
-                    <svg width="24" height="24" viewBox="0 0 24 24" className="block" style={{ filter: 'drop-shadow(0px 0px 2px rgba(255,255,255,1))' }}>
-                        <line x1="12" y1="2" x2="12" y2="10" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" />
-                        <line x1="12" y1="14" x2="12" y2="22" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" />
-                        <line x1="2" y1="12" x2="10" y2="12" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" />
-                        <line x1="14" y1="12" x2="22" y2="12" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                </div>
+                <>
+                    <div
+                        className="pointer-events-none absolute z-50 size-6 -translate-x-1/2 -translate-y-1/2"
+                        style={{
+                            left: (stageSize.width || window.innerWidth) / 2,
+                            top: (stageSize.height || 400) / 2
+                        }}
+                    >
+                        <svg width="24" height="24" viewBox="0 0 24 24" className="block" style={{ filter: 'drop-shadow(0px 0px 2px rgba(255,255,255,1))' }}>
+                            <line x1="12" y1="2" x2="12" y2="10" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" />
+                            <line x1="12" y1="14" x2="12" y2="22" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" />
+                            <line x1="2" y1="12" x2="10" y2="12" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" />
+                            <line x1="14" y1="12" x2="22" y2="12" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                    </div>
+
+                    <div className="pointer-events-auto absolute bottom-3 right-3 z-50 flex items-center gap-2">
+                        {mode === 'drawing_plot' && (
+                            <Button
+                                variant="secondary"
+                                disabled={plotPoints.length < 3}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    finishPlot();
+                                }}
+                            >
+                                Finish
+                            </Button>
+                        )}
+
+                        <Button
+                            variant="default"
+                            onClick={(event) => {
+                                if (Date.now() - addButtonTouchRef.current < 600) return;
+                                addPointFromButton(event);
+                            }}
+                            onTouchStart={(event) => {
+                                addButtonTouchRef.current = Date.now();
+                                addPointFromButton(event);
+                            }}
+                        >
+                            Add Point
+                        </Button>
+                    </div>
+                </>
             )}
         </div>
     );
