@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Clock, MapPin, ShieldAlert, Star, Briefcase, Award } from "lucide-react";
+import { BadgeCheck, CheckCircle2, Clock, MapPin, ShieldAlert, Star, Briefcase, Award } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProfileAvatarUpload } from "@/components/common/profile-avatar-upload";
@@ -57,10 +57,10 @@ export function ProfileHeroHeader({ user, profile, districts = [] }: ProfileHero
                   {name}
                 </h1>
                 {isVerified ? (
-                  <Badge variant="success" className="gap-1">
-                    <CheckCircle2 className="size-3.5" />
-                    ভেরিফাইড সার্ভেয়ার
-                  </Badge>
+                  <BadgeCheck
+                    className="size-5 shrink-0 text-primary fill-primary/15"
+                    aria-label="ভেরিফাইড সার্ভেয়ার"
+                  />
                 ) : verificationStatus === "REJECTED" ? (
                   <Badge variant="rejected" className="gap-1">
                     <ShieldAlert className="size-3.5" />

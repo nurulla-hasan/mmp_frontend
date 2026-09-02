@@ -3,7 +3,7 @@ import { MessageCircle, BadgeCheck, CalendarDays, MapPin, Briefcase } from "luci
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn, getInitials, toBengaliDigits } from "@/lib/utils";
+import { getInitials, toBengaliDigits } from "@/lib/utils";
 import type { TSurveyorProfile } from "@/interface/surveyor-profile";
 import { StarRating } from "@/components/common/star-rating";
 
@@ -68,10 +68,10 @@ export function SurveyorHero({
                 {fullName}
               </h1>
               {isVerified && (
-                <Badge variant="success" className="gap-1">
-                  <BadgeCheck className="size-3.5" />
-                  ভেরিফাইড
-                </Badge>
+                <BadgeCheck
+                  className="size-6 shrink-0 text-primary fill-primary/15"
+                  aria-label="ভেরিফাইড"
+                />
               )}
             </div>
             <p className="mt-1.5 text-base font-medium text-muted-foreground">
