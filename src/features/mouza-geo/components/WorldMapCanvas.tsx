@@ -702,12 +702,13 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       if (!map || !host) return;
 
       const rect = host.getBoundingClientRect();
-      const point = {
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top,
-      };
+      const point = [
+        event.clientX - rect.left,
+        event.clientY - rect.top,
+      ] as [number, number];
+      const zoomLocation = map.containerPointToLatLng(point);
       const nextZoom = map.getZoom() + (event.deltaY < 0 ? 1 : -1);
-      map.setZoomAround(point, nextZoom);
+      map.setZoomAround(zoomLocation, nextZoom);
     };
 
     canvas.addEventListener("wheel", handleWheel, { passive: false });
