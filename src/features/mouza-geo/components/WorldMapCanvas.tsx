@@ -89,6 +89,7 @@ type WorldMapCanvasProps = {
   opacity: number;
   mapStyle: "satellite" | "street";
   interactionTarget: InteractionTarget;
+  manualAdjustmentEnabled: boolean;
   userLocation?: { lat: number; lng: number; timestamp: number } | null;
   onPlaceWorldPoint: (point: GeoPoint) => void;
   onTranslateOverlay: (delta: MercatorPoint) => void;
@@ -131,8 +132,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   const manualAdjustmentRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [manualAdjustmentEnabled, setManualAdjustmentEnabled] =
-    useState(false);
 
   const installBaseMap = useCallback(
     (
@@ -380,9 +379,9 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   }, [props, scheduleDraw]);
 
   useEffect(() => {
-    manualAdjustmentRef.current = manualAdjustmentEnabled;
+    manualAdjustmentRef.current = props.manualAdjustmentEnabled;
     scheduleDraw();
-  }, [manualAdjustmentEnabled, scheduleDraw]);
+  }, [props.manualAdjustmentEnabled, scheduleDraw]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -562,7 +561,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   };
 
   const pdfInteractionEnabled =
-    manualAdjustmentEnabled &&
+    props.manualAdjustmentEnabled &&
     props.interactionTarget === "map" &&
     Boolean(props.transform) &&
     !props.waitingForWorldPoint &&
@@ -880,26 +879,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
         </div>
       )}
 
-      {Boolean(props.transform) && !props.pointMode && (
-        <button
-          type="button"
-          onClick={() => setManualAdjustmentEnabled((enabled) => !enabled)}
-          className={
-            "absolute bottom-26 left-1/2 z-30 -translate-x-1/2 rounded-lg border px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur md:bottom-14 " +
-            (manualAdjustmentEnabled
-              ? "border-emerald-400 bg-emerald-600 text-white"
-              : "border-border bg-background/90 text-foreground")
-          }
-        >
-          {manualAdjustmentEnabled ? "Done adjusting map" : "Adjust map manually"}
-        </button>
-      )}
-
-      {pdfInteractionEnabled && (
-        <div className="pointer-events-none absolute bottom-38 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-border bg-background/90 px-3 py-2 text-center text-xs text-foreground shadow-lg backdrop-blur md:bottom-26">
-          Drag map: navigate · Wheel: zoom · Drag green handles: stretch PDF
-        </div>
-      )}
     </div>
   );
 }

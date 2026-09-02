@@ -3,6 +3,7 @@ import {
   FileText,
   Globe2,
   LocateFixed,
+  MoveDiagonal2,
   MoreHorizontal,
   Redo2,
   RotateCcw,
@@ -28,11 +29,13 @@ type GeoStudioToolbarProps = {
   alignmentMode: AlignmentMode;
   controlPairsCount: number;
   pointMode: boolean;
+  manualAdjustmentEnabled: boolean;
   canUndo: boolean;
   canRedo: boolean;
   locating?: boolean;
   onToggleSettings: () => void;
   onTogglePointMode: () => void;
+  onToggleManualAdjustment: () => void;
   onSelectView: (view: "source" | "world") => void;
   onLocateUser?: () => void;
   onSimilarityClick: () => void;
@@ -50,11 +53,13 @@ export default function GeoStudioToolbar({
   alignmentMode,
   controlPairsCount,
   pointMode,
+  manualAdjustmentEnabled,
   canUndo,
   canRedo,
   locating = false,
   onToggleSettings,
   onTogglePointMode,
+  onToggleManualAdjustment,
   onSelectView,
   onLocateUser,
   onSimilarityClick,
@@ -165,6 +170,18 @@ export default function GeoStudioToolbar({
                 onClick={onAffineClick}
                 mobile={true}
               />
+              <FloatingToolButton
+                icon={MoveDiagonal2}
+                label={
+                  manualAdjustmentEnabled
+                    ? "Finish Manual Map Adjustment"
+                    : "Adjust Map Manually"
+                }
+                active={manualAdjustmentEnabled}
+                disabled={!transform}
+                onClick={onToggleManualAdjustment}
+                mobile={true}
+              />
               <div className="mx-0.5 h-6 w-px bg-border/60" />
               <FloatingToolButton
                 icon={Undo2}
@@ -268,6 +285,18 @@ export default function GeoStudioToolbar({
         active={alignmentMode === "affine" && Boolean(transform)}
         disabled={controlPairsCount < 3}
         onClick={onAffineClick}
+        mobile={false}
+      />
+      <FloatingToolButton
+        icon={MoveDiagonal2}
+        label={
+          manualAdjustmentEnabled
+            ? "Finish Manual Map Adjustment"
+            : "Adjust Map Manually"
+        }
+        active={manualAdjustmentEnabled}
+        disabled={!transform}
+        onClick={onToggleManualAdjustment}
         mobile={false}
       />
 
