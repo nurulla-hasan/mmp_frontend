@@ -198,7 +198,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
             <ToolBtn
                 icon={Ruler}
                 label={scale ? `Scale: 1 px ≈ ${(1 / scale).toFixed(2)} ft — Change` : 'Set Scale'}
-                active={mode === 'calibrating' || !!scale}
+                active={mode === 'calibrating'}
                 onClick={handleCalibrateClick}
                 disabled={!image || mode === 'calibrating'}
                 size={size}

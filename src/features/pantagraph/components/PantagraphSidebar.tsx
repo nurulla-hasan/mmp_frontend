@@ -160,10 +160,10 @@ const MapUploadSection = memo(function MapUploadSection() {
       <div className="space-y-3">
         <h3 className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
           <ImageUp className="size-3.5 text-primary" />
-          <span>ম্যাপ আপলোড ও পেয়ারিং</span>
+          <span>Upload & Pair Maps</span>
         </h3>
 
-        {/* Former Map (CS / সাবেক) */}
+        {/* Former Map (CS) */}
         <div className="space-y-1.5">
           <input
             ref={formerInputRef}
@@ -182,12 +182,12 @@ const MapUploadSection = memo(function MapUploadSection() {
                 <div className="min-w-0 flex-1">
                   <p
                     className="text-xs text-foreground truncate font-mono"
-                    title={formerMapName || "সাবেক_ম্যাপ.png"}
+                    title={formerMapName || "former_map.png"}
                   >
-                    {formerMapName || "সাবেক_ম্যাপ.png"}
+                    {formerMapName || "former_map.png"}
                   </p>
                   <p className="text-[10px] text-destructive">
-                    সাবেক ম্যাপ (C.S / লাল)
+                    Former Map (C.S / Red)
                   </p>
                 </div>
               </div>
@@ -199,7 +199,7 @@ const MapUploadSection = memo(function MapUploadSection() {
                   className="size-7.5 border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted"
                   onClick={() => formerInputRef.current?.click()}
                   disabled={imageLoading}
-                  title="সাবেক ম্যাপ পরিবর্তন করুন"
+                  title="Change Former Map"
                 >
                   <ImageUp className="size-3.5" />
                 </Button>
@@ -208,7 +208,7 @@ const MapUploadSection = memo(function MapUploadSection() {
                   size="icon"
                   className="size-7.5 border-border/80 text-destructive hover:text-destructive hover:bg-destructive/10 hover:border-destructive/40"
                   onClick={() => setFormerMap(null)}
-                  title="সাবেক ম্যাপ মুছে ফেলুন"
+                  title="Remove Former Map"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
@@ -223,12 +223,12 @@ const MapUploadSection = memo(function MapUploadSection() {
               className="w-full gap-1.5 text-xs h-9 border-destructive/40 bg-destructive/5 text-destructive hover:bg-destructive/15 hover:border-destructive/60 transition-colors"
             >
               <ImageUp className="size-3.5 text-destructive" />
-              {imageLoading ? "লোড হচ্ছে..." : "সাবেক ম্যাপ আপলোড (C.S)"}
+              {imageLoading ? "Loading..." : "Upload Former Map (C.S)"}
             </Button>
           )}
         </div>
 
-        {/* Current Map (BS / হাল) */}
+        {/* Current Map (BS) */}
         <div className="space-y-1.5">
           <input
             ref={currentInputRef}
@@ -247,12 +247,12 @@ const MapUploadSection = memo(function MapUploadSection() {
                 <div className="min-w-0 flex-1">
                   <p
                     className="text-xs text-foreground truncate font-mono"
-                    title={currentMapName || "হাল_ম্যাপ.png"}
+                    title={currentMapName || "current_map.png"}
                   >
-                    {currentMapName || "হাল_ম্যাপ.png"}
+                    {currentMapName || "current_map.png"}
                   </p>
                   <p className="text-[10px] text-primary">
-                    হাল ম্যাপ (B.S / সবুজ)
+                    Current Map (B.S / Green)
                   </p>
                 </div>
               </div>
@@ -264,7 +264,7 @@ const MapUploadSection = memo(function MapUploadSection() {
                   className="size-7.5 border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted"
                   onClick={() => currentInputRef.current?.click()}
                   disabled={imageLoading}
-                  title="হাল ম্যাপ পরিবর্তন করুন"
+                  title="Change Current Map"
                 >
                   <ImageUp className="size-3.5" />
                 </Button>
@@ -273,7 +273,7 @@ const MapUploadSection = memo(function MapUploadSection() {
                   size="icon"
                   className="size-7.5 border-border/80 text-destructive hover:text-destructive hover:bg-destructive/10 hover:border-destructive/40"
                   onClick={() => setCurrentMap(null)}
-                  title="হাল ম্যাপ মুছে ফেলুন"
+                  title="Remove Current Map"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
@@ -288,7 +288,7 @@ const MapUploadSection = memo(function MapUploadSection() {
               className="w-full gap-1.5 text-xs h-9 border-primary/40 bg-primary/5 text-primary hover:bg-primary/15 hover:border-primary/60 transition-colors"
             >
               <ImageUp className="size-3.5 text-primary" />
-              {imageLoading ? "লোড হচ্ছে..." : "হাল ম্যাপ আপলোড (B.S)"}
+              {imageLoading ? "Loading..." : "Upload Current Map (B.S)"}
             </Button>
           )}
         </div>
@@ -299,7 +299,7 @@ const MapUploadSection = memo(function MapUploadSection() {
         <PantagraphCropDialog
           open={true}
           imageSrc={cropSrc}
-          mapLabel={cropTarget === "former" ? "সাবেক ম্যাপ" : "হাল ম্যাপ"}
+          mapLabel={cropTarget === "former" ? "Former Map" : "Current Map"}
           onClose={handleCropClose}
           onDone={handleCropDone}
         />
@@ -334,7 +334,7 @@ const FormerBgSection = memo(function FormerBgSection() {
           onClick={toggleFormerBgRemoval}
         >
           <span className="size-2 rounded-full bg-destructive shrink-0" />
-          <span>সাবেক ব্যাকগ্রাউন্ড রিমুভ</span>
+          <span>Remove Former BG</span>
         </span>
 
         {isRemovingFormerBg ? (
@@ -364,7 +364,7 @@ const FormerBgSection = memo(function FormerBgSection() {
         <div className="space-y-2 pt-2 border-t border-destructive/20">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
-              লাইন ধরার মাত্রা
+              Line Detection Sensitivity
             </span>
             <Badge
               variant="outline"
@@ -382,11 +382,11 @@ const FormerBgSection = memo(function FormerBgSection() {
             onChange={(event) =>
               setFormerBlackSensitivity(Number(event.target.value))
             }
-            aria-label="সাবেক ম্যাপের লাইন ধরার মাত্রা"
+            aria-label="Former map line detection sensitivity"
             className={sliderCls("destructive")}
           />
           <p className="text-[11px] leading-4 text-muted-foreground">
-            কমালে শুধু গাঢ় কালো, বাড়ালে ফিকে লাইনও থাকবে। C.S লাইন লাল দেখাবে।
+            Lower value keeps dark lines only; higher value includes lighter lines. C.S lines appear red.
           </p>
         </div>
       )}
@@ -420,7 +420,7 @@ const CurrentBgSection = memo(function CurrentBgSection() {
           onClick={toggleCurrentBgRemoval}
         >
           <span className="size-2 rounded-full bg-primary shrink-0" />
-          <span>হাল ব্যাকগ্রাউন্ড রিমুভ</span>
+          <span>Remove Current BG</span>
         </span>
 
         {isRemovingCurrentBg ? (
@@ -450,7 +450,7 @@ const CurrentBgSection = memo(function CurrentBgSection() {
         <div className="space-y-2 pt-2 border-t border-primary/20">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
-              লাইন ধরার মাত্রা
+              Line Detection Sensitivity
             </span>
             <Badge
               variant="outline"
@@ -468,11 +468,11 @@ const CurrentBgSection = memo(function CurrentBgSection() {
             onChange={(event) =>
               setCurrentBlackSensitivity(Number(event.target.value))
             }
-            aria-label="হাল ম্যাপের লাইন ধরার মাত্রা"
+            aria-label="Current map line detection sensitivity"
             className={sliderCls("primary")}
           />
           <p className="text-[11px] leading-4 text-muted-foreground">
-            কমালে শুধু গাঢ় কালো, বাড়ালে ফিকে লাইনও থাকবে। B.S লাইন সবুজ দেখাবে।
+            Lower value keeps dark lines only; higher value includes lighter lines. B.S lines appear green.
           </p>
         </div>
       )}
@@ -499,14 +499,14 @@ const OpacitySection = memo(function OpacitySection() {
     <div className="space-y-3 p-3 rounded-xl border border-border/70 bg-card shadow-xs">
       <h3 className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
         <SlidersHorizontal className="size-3.5 text-primary" />
-        <span>ওপাসিটি ও ট্রান্সপারেন্সি</span>
+        <span>Opacity & Transparency</span>
       </h3>
 
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span className="size-2 rounded-full bg-destructive shrink-0" />
-            <span>সাবেক (C.S)</span>
+            <span>Former (C.S)</span>
           </span>
           <Badge variant="outline" className="font-mono text-[11px]">
             {Math.round(formerOpacity * 100)}%
@@ -527,7 +527,7 @@ const OpacitySection = memo(function OpacitySection() {
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span className="size-2 rounded-full bg-primary shrink-0" />
-            <span>হাল (B.S)</span>
+            <span>Current (B.S)</span>
           </span>
           <Badge variant="outline" className="font-mono text-[11px]">
             {Math.round(currentOpacity * 100)}%
@@ -569,10 +569,10 @@ const LineSmoothingSection = memo(function LineSmoothingSection() {
     <div className="space-y-2 p-3 rounded-xl border border-border/70 bg-card shadow-xs">
       <div className="flex items-center justify-between">
         <span className="text-xs text-foreground">
-          লাইন মসৃণতা
+          Line Smoothing
         </span>
         <Badge variant="outline" className="font-mono text-[11px]">
-          {lineSmoothing === 0 ? "বন্ধ" : `${lineSmoothing}/10`}
+          {lineSmoothing === 0 ? "Off" : `${lineSmoothing}/10`}
         </Badge>
       </div>
       <input
@@ -585,7 +585,7 @@ const LineSmoothingSection = memo(function LineSmoothingSection() {
         className={sliderCls("primary")}
       />
       <p className="text-[10px] text-muted-foreground leading-tight">
-        স্লাইডার পরিবর্তন করলে লাইনগুলো আরও মসৃণ ও স্পষ্ট হবে
+        Adjust the slider to make lines smoother and clearer
       </p>
     </div>
   );
@@ -604,7 +604,7 @@ const ActiveMapSection = memo(function ActiveMapSection() {
     <div className="space-y-2.5">
       <span className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
         <Sparkles className="size-3.5 text-primary" />
-        <span>সক্রিয় ম্যাপ নির্বাচন</span>
+        <span>Active Map Selection</span>
       </span>
       <div className="grid grid-cols-2 gap-2">
         <Button
@@ -614,7 +614,7 @@ const ActiveMapSection = memo(function ActiveMapSection() {
           onClick={() => setActiveMap("former")}
         >
           <span className="size-2 rounded-full bg-white shrink-0" />
-          সাবেক ম্যাপ
+          Former Map
         </Button>
         <Button
           variant={activeMap === "current" ? "default" : "outline"}
@@ -623,7 +623,7 @@ const ActiveMapSection = memo(function ActiveMapSection() {
           onClick={() => setActiveMap("current")}
         >
           <span className="size-2 rounded-full bg-white shrink-0" />
-          হাল ম্যাপ
+          Current Map
         </Button>
       </div>
     </div>
@@ -646,7 +646,7 @@ const MatchPointsSection = memo(function MatchPointsSection() {
       <div className="flex items-center justify-between">
         <h3 className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
           <Crosshair className="size-3.5 text-primary" />
-          <span>ম্যাচিং পয়েন্ট ({matchPoints.length})</span>
+          <span>Match Points ({matchPoints.length})</span>
         </h3>
         <Badge variant="outline" className="font-mono text-[10px]">
           {matchPoints.length} pair
@@ -661,11 +661,11 @@ const MatchPointsSection = memo(function MatchPointsSection() {
           >
             <div className="flex items-center gap-2">
               <span className="text-xs text-foreground">
-                পয়েন্ট #{index + 1}
+                Point #{index + 1}
               </span>
               {point.current === null && (
                 <span className="text-[10px] text-destructive">
-                  (অসম্পূর্ণ)
+                  (Incomplete)
                 </span>
               )}
             </div>
@@ -700,7 +700,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
     <div className="space-y-2.5">
       <div className="flex items-center justify-between">
         <h3 className="text-xs text-muted-foreground uppercase tracking-wider">
-          অ্যালাইনমেন্ট রেজাল্ট
+          Alignment Results
         </h3>
         <Button
           variant="ghost"
@@ -708,14 +708,14 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
           onClick={clearAlignment}
           className="h-6 text-xs text-destructive hover:bg-destructive/10 px-2"
         >
-          রিসেট
+          Reset
         </Button>
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="bg-muted/40 border border-border/70 rounded-xl p-2.5">
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-0.5">
             <RotateCw className="size-3" />
-            রোটেশন
+            Rotation
           </div>
           <p className="text-sm text-foreground font-mono">
             {((alignmentResult.rotation! * 180) / Math.PI).toFixed(2)}°
@@ -726,7 +726,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
             <div className="bg-muted/40 border border-border/70 rounded-xl p-2.5">
               <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-0.5">
                 <ZoomIn className="size-3" />
-                স্কেল X
+                Scale X
               </div>
               <p className="text-sm text-foreground font-mono">
                 {alignmentResult.a!.toFixed(4)}×
@@ -735,7 +735,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
             <div className="bg-muted/40 border border-border/70 rounded-xl p-2.5">
               <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-0.5">
                 <ZoomIn className="size-3" />
-                স্কেল Y
+                Scale Y
               </div>
               <p className="text-sm text-foreground font-mono">
                 {alignmentResult.d!.toFixed(4)}×
@@ -746,7 +746,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
           <div className="bg-muted/40 border border-border/70 rounded-xl p-2.5">
             <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-0.5">
               <ZoomIn className="size-3" />
-              স্কেল
+              Scale
             </div>
             <p className="text-sm text-foreground font-mono">
               {alignmentResult.scale!.toFixed(4)}×
@@ -756,7 +756,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
         <div className="bg-muted/40 border border-border/70 rounded-xl p-2.5">
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-0.5">
             <Move className="size-3" />
-            স্থানান্তর X
+            Translation X
           </div>
           <p className="text-sm text-foreground font-mono">
             {alignmentResult.tx.toFixed(1)}px
@@ -765,7 +765,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
         <div className="bg-muted/40 border border-border/70 rounded-xl p-2.5">
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-0.5">
             <Move className="size-3" />
-            স্থানান্তর Y
+            Translation Y
           </div>
           <p className="text-sm text-foreground font-mono">
             {alignmentResult.ty.toFixed(1)}px
@@ -782,20 +782,20 @@ const WorkflowGuideCard = memo(function WorkflowGuideCard() {
     <div className="space-y-2 p-3 rounded-xl border border-primary/20 bg-primary/5 text-xs">
       <div className="flex items-center gap-1.5 text-primary font-medium">
         <HelpCircle className="size-3.5" />
-        <span>তুলনা ও অ্যালাইনমেন্ট গাইড</span>
+        <span>Comparison & Alignment Guide</span>
       </div>
       <div className="space-y-1 text-muted-foreground text-[11px] leading-relaxed">
         <p className="flex items-start gap-1.5">
           <span className="size-1.5 rounded-full bg-destructive shrink-0 mt-1" />
-          <span>১. সাবেক (C.S) ও হাল (B.S) ম্যাপ আপলোড করুন।</span>
+          <span>1. Upload Former (C.S) and Current (B.S) maps.</span>
         </p>
         <p className="flex items-start gap-1.5">
           <span className="size-1.5 rounded-full bg-primary shrink-0 mt-1" />
-          <span>২. কমন ল্যান্ডমার্কে ম্যাচিং পয়েন্ট পেয়ার করুন।</span>
+          <span>2. Pair matching points on common landmarks.</span>
         </p>
         <p className="flex items-start gap-1.5">
           <span className="size-1.5 rounded-full bg-amber-500 shrink-0 mt-1" />
-          <span>৩. নিখুঁত মিল দেখতে ব্যাকগ্রাউন্ড রিমুভ ও ওপাসিটি ব্যবহার করুন।</span>
+          <span>3. Use BG removal & opacity to verify alignment.</span>
         </p>
       </div>
     </div>
@@ -804,9 +804,9 @@ const WorkflowGuideCard = memo(function WorkflowGuideCard() {
 
 // ─── Canvas Background section ────────────────────────────────────────────────
 const bgOptions = [
-  { label: "সিস্টেম", key: "auto" as const, color: "#71717a" },
-  { label: "ডার্ক গ্রিড", key: "dark" as const, color: "#18181b" },
-  { label: "সাদা গ্রিড", key: "white" as const, color: "#ffffff" },
+  { label: "System", key: "auto" as const, color: "#71717a" },
+  { label: "Dark Grid", key: "dark" as const, color: "#18181b" },
+  { label: "White Grid", key: "white" as const, color: "#ffffff" },
 ];
 
 // ─── Shared Sidebar Content ───────────────────────────────────────────────────
@@ -856,7 +856,7 @@ const SidebarContent = memo(function SidebarContent() {
       <div className="space-y-2">
         <span className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
           <Palette className="size-3.5 text-primary" />
-          <span>ক্যানভাস ব্যাকগ্রাউন্ড</span>
+          <span>Canvas Background</span>
         </span>
         <div className="flex gap-2.5 items-center">
           {bgOptions.map((opt) => (
@@ -912,10 +912,10 @@ export const PantagraphSidebar = memo(function PantagraphSidebar({
             </div>
             <div>
               <h2 className="font-heading text-sm text-foreground">
-                ম্যাপ ও অ্যালাইনমেন্ট
+                Maps & Alignment
               </h2>
               <p className="text-xs text-muted-foreground">
-                সাবেক ও হাল ম্যাপ তুলনা → অ্যালাইন
+                Compare C.S & B.S Maps → Align
               </p>
             </div>
           </div>
@@ -953,10 +953,10 @@ export const PantagraphSidebar = memo(function PantagraphSidebar({
                     </div>
                     <div>
                       <h2 className="font-heading text-base text-foreground">
-                        ম্যাপ ও অ্যালাইনমেন্ট
+                        Maps & Alignment
                       </h2>
                       <p className="text-xs text-muted-foreground">
-                        সাবেক ও হাল ম্যাপ তুলনা → অ্যালাইন
+                        Compare C.S & B.S Maps → Align
                       </p>
                     </div>
                   </div>

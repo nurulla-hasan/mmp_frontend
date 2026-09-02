@@ -350,10 +350,10 @@ export function PantagraphCropDialog({
         <DialogHeader className="px-5 pt-5 pb-3">
           <DialogTitle className="flex items-center gap-2">
             <CropIcon className="w-4 h-4 text-primary" />
-            {mapLabel} ক্রপ করুন
+            Crop {mapLabel}
           </DialogTitle>
           <p className="text-xs text-muted-foreground">
-            যেকোনো হ্যান্ডেল টেনে প্রয়োজনীয় অংশ নির্বাচন করুন — চাইলে শুধু একটি দিক কাটতে পারেন।
+            Drag any handle to select the required area — you can crop from any side.
           </p>
         </DialogHeader>
 
@@ -452,10 +452,10 @@ export function PantagraphCropDialog({
           <span>
             {layout
               ? `${Math.round(sel.w / layout.scale)} × ${Math.round(sel.h / layout.scale)} px`
-              : 'লোড হচ্ছে...'}
+              : 'Loading...'}
           </span>
           <span className="text-[9px] text-muted-foreground/60">
-            কোণার বা পাশের হ্যান্ডেল টেনে যেকোনো দিক কাটুন
+            Drag corner or edge handles to adjust the crop area
           </span>
         </div>
 
@@ -467,16 +467,16 @@ export function PantagraphCropDialog({
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
           >
             <Maximize2 className="w-3.5 h-3.5" />
-            পুরো ইমেজ ব্যবহার করুন
+            Use Full Image
           </button>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={onClose} disabled={isBusy}>
-              বাতিল
+              Cancel
             </Button>
             <Button size="sm" onClick={handleCrop} disabled={isBusy || !ready}>
               {isBusy
-                ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />প্রক্রিয়াজাত...</>
-                : <><CropIcon className="w-3.5 h-3.5 mr-1.5" />ক্রপ করুন</>
+                ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Processing...</>
+                : <><CropIcon className="w-3.5 h-3.5 mr-1.5" />Crop</>
               }
             </Button>
           </div>

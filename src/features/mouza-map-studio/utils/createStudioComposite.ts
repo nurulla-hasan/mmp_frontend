@@ -46,7 +46,7 @@ function canvasToImage(canvas: HTMLCanvasElement): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (!blob) {
-        reject(new Error('Aligned map তৈরি করা যায়নি'));
+        reject(new Error('Could not generate aligned map'));
         return;
       }
 
@@ -58,7 +58,7 @@ function canvasToImage(canvas: HTMLCanvasElement): Promise<HTMLImageElement> {
       };
       image.onerror = () => {
         URL.revokeObjectURL(objectUrl);
-        reject(new Error('Aligned map load করা যায়নি'));
+        reject(new Error('Could not load aligned map'));
       };
       image.src = objectUrl;
     }, 'image/png');
@@ -68,7 +68,7 @@ function canvasToImage(canvas: HTMLCanvasElement): Promise<HTMLImageElement> {
 export async function createStudioComposite(state: PantagraphStore): Promise<StudioComposite> {
   const { formerMap, currentMap } = state;
   if (!formerMap || !currentMap) {
-    throw new Error('C.S এবং B.S—দুটি map-ই upload করুন');
+    throw new Error('Please upload both C.S and B.S maps');
   }
 
   const corners = [
@@ -100,7 +100,7 @@ export async function createStudioComposite(state: PantagraphStore): Promise<Stu
   const contentHeight = Math.ceil(maxY - minY);
 
   if (contentWidth <= 0 || contentHeight <= 0) {
-    throw new Error('Aligned map-এর dimension সঠিক নয়');
+    throw new Error('Invalid aligned map dimensions');
   }
 
   const dimensionScale = MAX_COMPOSITE_DIMENSION / Math.max(contentWidth, contentHeight);
@@ -111,7 +111,7 @@ export async function createStudioComposite(state: PantagraphStore): Promise<Stu
   canvas.width = Math.max(1, Math.round(contentWidth * outputScale));
   canvas.height = Math.max(1, Math.round(contentHeight * outputScale));
   const context = canvas.getContext('2d');
-  if (!context) throw new Error('Canvas তৈরি করা যায়নি');
+  if (!context) throw new Error('Could not create canvas');
 
   context.fillStyle = '#ffffff';
   context.fillRect(0, 0, canvas.width, canvas.height);
@@ -196,7 +196,7 @@ export async function cropStudioComposite(
   canvas.width = width;
   canvas.height = height;
   const context = canvas.getContext('2d');
-  if (!context) throw new Error('Crop canvas তৈরি করা যায়নি');
+  if (!context) throw new Error('Could not create crop canvas');
   context.drawImage(composite.image, startX, startY, width, height, 0, 0, width, height);
 
   const image = await canvasToImage(canvas);

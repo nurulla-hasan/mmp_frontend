@@ -11,9 +11,9 @@ const steps: Array<{
   label: string;
   icon: typeof Map;
 }> = [
-  { id: 'align', label: 'ম্যাপ মিলান', icon: Map },
-  { id: 'edit', label: 'ফাইনাল এডিট', icon: Paintbrush },
-  { id: 'layout', label: 'শিট তৈরি', icon: Sheet },
+  { id: 'align', label: 'Align Maps', icon: Map },
+  { id: 'edit', label: 'Final Edit', icon: Paintbrush },
+  { id: 'layout', label: 'Sheet Setup', icon: Sheet },
 ];
 
 type StudioStepNavProps = {
@@ -38,7 +38,7 @@ export default function StudioStepNav({
   onClearCrop,
 }: StudioStepNavProps) {
   return (
-    <ToolTopNav title="মৌজা ম্যাপ স্টুডিও" icon={Map}>
+    <ToolTopNav title="Mouza Map Studio" icon={Map}>
       {steps.map(({ id, label, icon: Icon }) => {
         const active = step === id;
         return (
@@ -61,12 +61,12 @@ export default function StudioStepNav({
             variant="outline"
             size="sm"
             loading={isPreparing}
-            loadingText={compositeCrop ? 'crop বদলান' : 'একসাথে crop'}
+            loadingText={compositeCrop ? 'Change Crop' : 'Combined Crop'}
             onClick={onOpenCrop}
           >
             <Crop className="size-3.5" />
             <span className="whitespace-nowrap">
-              {compositeCrop ? 'crop বদলান' : 'একসাথে crop'}
+              {compositeCrop ? 'Change Crop' : 'Combined Crop'}
             </span>
           </Button>
 
@@ -75,7 +75,7 @@ export default function StudioStepNav({
               variant="ghost"
               size="icon-sm"
               onClick={onClearCrop}
-              title="একসাথে crop সরান"
+              title="Remove Combined Crop"
             >
               <X className="size-3.5" />
             </Button>

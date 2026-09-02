@@ -366,7 +366,7 @@ export const PantagraphStage = memo(function PantagraphStage() {
           <div className="bg-background/90 backdrop-blur border border-border rounded-lg px-4 py-2 shadow-lg">
             <p className="text-xs text-foreground flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              {pickingTarget === 'former' ? 'সাবেক' : 'হাল'} ম্যাপ থেকে রঙ বেছে নিতে ক্লিক করুন
+              Click on the {pickingTarget === 'former' ? 'Former (C.S)' : 'Current (B.S)'} map to pick a color
             </p>
           </div>
         </div>

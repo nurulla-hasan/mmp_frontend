@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, ImageDown, Loader2 } from "lucide-react";
+import { Download, ImageDown, Loader2, Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ type StudioSheetSidebarProps = {
   exporting: ExportFormat | null;
   onChangeField: (field: keyof StudioSheetDetails, value: string) => void;
   onExport: (format: ExportFormat) => void;
+  onPrint?: () => void;
 };
 
 export default function StudioSheetSidebar({
@@ -22,24 +23,25 @@ export default function StudioSheetSidebar({
   exporting,
   onChangeField,
   onExport,
+  onPrint,
 }: StudioSheetSidebarProps) {
   return (
-    <aside className="absolute left-4 top-16 z-50 max-h-[85dvh] w-80 overflow-y-auto rounded-2xl border border-border bg-card/95 p-4 text-card-foreground shadow-2xl backdrop-blur-md">
-      <h2 className="text-lg font-semibold">শিট তৈরি</h2>
+    <aside className="print:hidden absolute left-4 top-16 z-50 max-h-[85dvh] w-80 overflow-y-auto rounded-2xl border border-border bg-card/95 p-4 text-card-foreground shadow-2xl backdrop-blur-md">
+      <h2 className="text-lg font-semibold">Sheet Setup</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        Edited real map-এ তথ্য যোগ করে professional sheet export করুন।
+        Add sheet details and export a professional map sheet.
       </p>
 
       <div className="mt-5 space-y-3">
         {(
           [
-            ["title", "শিটের শিরোনাম"],
-            ["ownerName", "Pantagraph For / যার জন্য তৈরি"],
-            ["mouzaName", "মৌজার নাম"],
-            ["sheetNo", "শিট নম্বর"],
-            ["khatianNo", "খতিয়ান নম্বর"],
-            ["surveyorName", "Surveyed by"],
-            ["preparedBy", "CAD/Prepared by"],
+            ["title", "Sheet Title"],
+            ["ownerName", "Client / Prepared For"],
+            ["mouzaName", "Mouza Name"],
+            ["sheetNo", "Sheet No"],
+            ["khatianNo", "Khatian No"],
+            ["surveyorName", "Surveyed By"],
+            ["preparedBy", "Prepared By"],
           ] as Array<[keyof StudioSheetDetails, string]>
         ).map(([field, label]) => (
           <label key={field} className="block text-xs">
@@ -52,7 +54,7 @@ export default function StudioSheetSidebar({
         ))}
 
         <label className="block text-xs">
-          <span className="mb-1 block text-muted-foreground">তারিখ</span>
+          <span className="mb-1 block text-muted-foreground">Date</span>
           <Input
             type="date"
             value={sheetDetails.date}
@@ -61,34 +63,47 @@ export default function StudioSheetSidebar({
         </label>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={Boolean(exporting) || !mapDataUrl}
-          onClick={() => onExport("png")}
-        >
-          {exporting === "png" ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <ImageDown className="size-4" />
-          )}
-          PNG
-        </Button>
-
+      <div className="mt-5 space-y-2">
         <Button
           type="button"
           variant="default"
-          disabled={Boolean(exporting) || !mapDataUrl}
-          onClick={() => onExport("pdf")}
+          className="w-full gap-2 font-semibold"
+          disabled={!mapDataUrl}
+          onClick={onPrint}
         >
-          {exporting === "pdf" ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Download className="size-4" />
-          )}
-          PDF
+          <Printer className="size-4" />
+          Print Sheet
         </Button>
+
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={Boolean(exporting) || !mapDataUrl}
+            onClick={() => onExport("png")}
+          >
+            {exporting === "png" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <ImageDown className="size-4" />
+            )}
+            PNG
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            disabled={Boolean(exporting) || !mapDataUrl}
+            onClick={() => onExport("pdf")}
+          >
+            {exporting === "pdf" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Download className="size-4" />
+            )}
+            PDF
+          </Button>
+        </div>
       </div>
     </aside>
   );

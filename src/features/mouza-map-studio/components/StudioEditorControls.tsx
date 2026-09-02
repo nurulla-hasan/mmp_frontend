@@ -75,7 +75,7 @@ export default function StudioEditorControls({
           type="color"
           value={annotationColor}
           onChange={(event) => onChangeAnnotationColor(event.target.value)}
-          title="রং"
+          title="Color"
           className="size-7 cursor-pointer rounded border-0 bg-transparent p-0"
         />
       )}

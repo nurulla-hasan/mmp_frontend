@@ -167,7 +167,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
     settings: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={Settings2}
-        label="ম্যাপ ও সেটিংস"
+        label="Maps & Settings"
         onClick={() => onToggleSidebar?.()}
         size={size}
       />
@@ -175,7 +175,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
     align: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={Crosshair}
-        label={isAligning ? 'পয়েন্ট মোড বন্ধ' : 'পয়েন্ট মেলাও'}
+        label={isAligning ? 'Exit Point Mode' : 'Match Points'}
         active={isAligning}
         onClick={handleToggleAligning}
         size={size}
@@ -184,7 +184,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
     similarity: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={AlignStartVertical}
-        label={`সিমিলারিটি (${pairedCount}/২)`}
+        label={`Similarity (${pairedCount}/2)`}
         disabled={!canSimilarity}
         onClick={handleSimilarity}
         size={size}
@@ -193,7 +193,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
     affine: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={Wand2}
-        label={`আফাইন (${pairedCount}/৩)`}
+        label={`Affine (${pairedCount}/3)`}
         disabled={!canAffine}
         onClick={handleAffine}
         size={size}
@@ -202,7 +202,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
     lock: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={isLocked ? Lock : LockOpen}
-        label={isLocked ? 'আনলক' : 'লক'}
+        label={isLocked ? 'Unlock' : 'Lock'}
         onClick={() => setIsLocked(!isLocked)}
         size={size}
       />
@@ -210,7 +210,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
     png: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={ImageDown}
-        label="PNG সেভ করুন"
+        label="Save PNG"
         disabled={!hasAnyMap}
         onClick={() => usePantagraphStore.getState().exportMap('png')}
         size={size}
@@ -219,7 +219,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
     pdf: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={FileDown}
-        label="PDF সেভ করুন"
+        label="Save PDF"
         disabled={!hasAnyMap}
         onClick={() => usePantagraphStore.getState().exportMap('pdf')}
         size={size}
@@ -228,7 +228,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
     undo: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={Undo2}
-        label="আনডু"
+        label="Undo"
         disabled={matchPoints.length === 0}
         onClick={removeLastMatchPoint}
         size={size}
@@ -237,7 +237,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
     redo: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={Redo2}
-        label="রিডু"
+        label="Redo"
         disabled={redoStack.length === 0}
         onClick={restoreLastMatchPoint}
         size={size}
@@ -246,7 +246,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
     reset: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={RotateCcw}
-        label="সব মুছুন"
+        label="Clear All"
         onClick={() => usePantagraphStore.getState().reset()}
         size={size}
       />
@@ -309,7 +309,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
                 size="icon"
                 onClick={() => usePantagraphStore.getState().exportMap('png')}
                 disabled={!hasAnyMap}
-                title="PNG ডাউনলোড করুন"
+                title="Download PNG"
                 className="text-muted-foreground"
               >
                 <ImageDown className="size-4" />
@@ -319,7 +319,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
                 size="icon"
                 onClick={() => usePantagraphStore.getState().exportMap('pdf')}
                 disabled={!hasAnyMap}
-                title="PDF ডাউনলোড করুন"
+                title="Download PDF"
                 className="text-muted-foreground"
               >
                 <FileDown className="size-4" />
@@ -328,7 +328,7 @@ export const PantagraphToolbar = memo(function PantagraphToolbar({
                 variant="ghost"
                 size="icon"
                 onClick={() => usePantagraphStore.getState().reset()}
-                title="সব মুছুন"
+                title="Clear All"
                 className="text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
                 <RotateCcw className="size-4" />

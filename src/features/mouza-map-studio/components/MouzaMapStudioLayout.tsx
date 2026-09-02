@@ -32,7 +32,7 @@ const imageToCropObjectUrl = (image: HTMLImageElement) =>
     const context = canvas.getContext('2d');
 
     if (!context) {
-      reject(new Error('Crop preview তৈরি করা যায়নি'));
+      reject(new Error('Could not create crop preview'));
       return;
     }
 
@@ -41,7 +41,7 @@ const imageToCropObjectUrl = (image: HTMLImageElement) =>
       canvas.width = 1;
       canvas.height = 1;
       if (blob) resolve(URL.createObjectURL(blob));
-      else reject(new Error('Crop preview তৈরি করা যায়নি'));
+      else reject(new Error('Could not create crop preview'));
     }, 'image/png');
   });
 
@@ -106,12 +106,12 @@ export default function MouzaMapStudioLayout() {
       contentAlreadyReset = false,
     ) {
       if (!mapsReady) {
-        ErrorToast('C.S এবং B.S—দুটি map-ই আগে upload করুন');
+        ErrorToast('Please upload both C.S and B.S maps first');
         return;
       }
 
       // if (!isLocked) {
-      //   ErrorToast('Alignment ঠিক করে map দুটিকে আগে lock করুন');
+      //   ErrorToast('Please lock both maps after alignment');
       //   return;
       // }
 
@@ -130,10 +130,10 @@ export default function MouzaMapStudioLayout() {
 
         if (hasEditorContent && geometryChanged && !contentAlreadyReset) {
           setPendingConfirmation({
-            title: 'বর্তমান edit মুছে নতুন map বসাবেন?',
+            title: 'Replace current map and clear edits?',
             description:
-              'Crop বা alignment-এর আকার বদলেছে। চালিয়ে গেলে বর্তমান cleanup, text ও mark মুছে যাবে।',
-            confirmText: 'চালিয়ে যান',
+              'Crop or alignment dimensions have changed. Continuing will clear all current cleanup, text, and markings.',
+            confirmText: 'Continue',
             onConfirm: () => {
               resetEditorContent();
               void prepareEditorFn(targetStep, cropOverride, true);
@@ -145,12 +145,11 @@ export default function MouzaMapStudioLayout() {
         setEditorImage(composite.image);
         setCompositeMeta(composite.meta);
         setStep(targetStep);
-        // SuccessToast('Aligned real map ফাইনাল এডিটের জন্য প্রস্তুত');
       } catch (error) {
         ErrorToast(
           error instanceof Error
             ? error.message
-            : 'Final edit map তৈরি করা যায়নি',
+            : 'Could not create final edit map',
         );
       } finally {
         setIsPreparing(false);
@@ -161,12 +160,12 @@ export default function MouzaMapStudioLayout() {
 
   const openCombinedCrop = useCallback(async () => {
     if (!mapsReady) {
-      ErrorToast('C.S এবং B.S—দুটি map-ই আগে upload করুন');
+      ErrorToast('Please upload both C.S and B.S maps first');
       return;
     }
 
     if (!isLocked) {
-      ErrorToast('Crop করার আগে map দুটি lock করুন');
+      ErrorToast('Please lock both maps before cropping');
       return;
     }
 
@@ -183,7 +182,7 @@ export default function MouzaMapStudioLayout() {
       });
     } catch (error) {
       ErrorToast(
-        error instanceof Error ? error.message : 'Aligned map crop করা যায়নি',
+        error instanceof Error ? error.message : 'Could not crop aligned map',
       );
     } finally {
       setIsPreparing(false);
@@ -213,7 +212,7 @@ export default function MouzaMapStudioLayout() {
       if (step === 'edit' || step === 'layout') {
         void prepareEditor('edit', normalizedCrop, true);
       } else {
-        SuccessToast('দুই ম্যাপের একসাথে crop সংরক্ষণ হয়েছে');
+        SuccessToast('Combined crop saved successfully');
       }
     },
     [cropSource, step, setCompositeCrop, setCompositeMeta, resetEditorContent, closeCombinedCrop, prepareEditor],
@@ -225,10 +224,10 @@ export default function MouzaMapStudioLayout() {
 
       if (hasEditorContent) {
         setPendingConfirmation({
-          title: 'Crop পরিবর্তন করবেন?',
+          title: 'Change Crop?',
           description:
-            'Crop বদলালে বর্তমান cleanup, text ও mark মুছে যাবে।',
-          confirmText: 'Crop পরিবর্তন করুন',
+            'Changing the crop will clear all current cleanup, text, and markings.',
+          confirmText: 'Change Crop',
           onConfirm: () => applyCombinedCrop(crop),
         });
         return;
@@ -247,17 +246,17 @@ export default function MouzaMapStudioLayout() {
     if (step === 'edit' || step === 'layout') {
       void prepareEditor('edit', null, true);
     } else {
-      SuccessToast('Aligned map crop সরানো হয়েছে');
+      SuccessToast('Aligned map crop removed');
     }
   }, [step, setCompositeCrop, setCompositeMeta, resetEditorContent, prepareEditor]);
 
   const clearCombinedCrop = useCallback(() => {
     if (hasEditorContent) {
       setPendingConfirmation({
-        title: 'Crop সরিয়ে ফেলবেন?',
+        title: 'Remove Crop?',
         description:
-          'Crop সরালে বর্তমান cleanup, text ও mark মুছে যাবে।',
-        confirmText: 'Crop সরান',
+          'Removing the crop will clear all current cleanup, text, and markings.',
+        confirmText: 'Remove Crop',
         onConfirm: applyClearCombinedCrop,
       });
       return;
@@ -307,7 +306,7 @@ export default function MouzaMapStudioLayout() {
         <PantagraphCropDialog
           open
           imageSrc={cropSource.src}
-          mapLabel="Aligned C.S + B.S ম্যাপ"
+          mapLabel="Aligned C.S + B.S Map"
           preserveResolution
           onClose={closeCombinedCrop}
           onDone={saveCombinedCrop}
@@ -323,7 +322,7 @@ export default function MouzaMapStudioLayout() {
         title={pendingConfirmation?.title}
         description={pendingConfirmation?.description}
         confirmText={pendingConfirmation?.confirmText}
-        cancelText="বাতিল"
+        cancelText="Cancel"
         variant="destructive"
         onConfirm={() => {
           const action = pendingConfirmation?.onConfirm;

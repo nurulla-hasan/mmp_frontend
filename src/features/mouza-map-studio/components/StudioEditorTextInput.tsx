@@ -26,7 +26,7 @@ export default function StudioEditorTextInput({
       <Input
         autoFocus
         value={selectedText.text}
-        placeholder="দাগ নম্বর / লেখা"
+        placeholder="Plot number / text"
         onChange={(event) => onChange(selectedText.id, event.target.value)}
         onBlur={() => onBlur(selectedText.id)}
         onKeyDown={(event) => {

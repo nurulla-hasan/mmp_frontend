@@ -24,7 +24,7 @@ type PantagraphLayoutProps = {
 
 export default function PantagraphLayout({
   embedded = false,
-  topNavTitle = 'ম্যাপ তুলনা',
+  topNavTitle = 'Map Comparison',
   emptyStateTitle,
   emptyStateDescription,
 }: PantagraphLayoutProps) {
@@ -39,12 +39,12 @@ export default function PantagraphLayout({
 
   const resolvedEmptyTitle =
     emptyStateTitle ??
-    (isStudioContext ? 'প্রথমে C.S ও B.S ম্যাপ মিলান' : 'সাবেক ও হাল ম্যাপ তুলনা করুন');
+    (isStudioContext ? 'First Align C.S & B.S Maps' : 'Compare Former & Current Maps');
   const resolvedEmptyDescription =
     emptyStateDescription ??
     (isStudioContext
-      ? 'C.S ও B.S ম্যাপ আপলোড করে matching point বসিয়ে align করুন। এরপর ফাইনাল এডিটে cleanup, লেখা ও mark যোগ করে শেষে sheet তৈরি করতে পারবেন।'
-      : 'সাবেক ও হাল ম্যাপ আপলোড করে matching point বসান, তারপর দুই ম্যাপের অবস্থান ও স্কেল মিলিয়ে নিন।');
+      ? 'Upload C.S & B.S maps, set matching points to align, then perform cleanup and export a professional survey sheet.'
+      : 'Upload former & current maps, place matching points, and align scale and orientation.');
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-background">
@@ -64,7 +64,7 @@ export default function PantagraphLayout({
               actions={
                 <Button className="w-full" onClick={() => setSidebarOpen(true)}>
                   <Settings2 className="size-4" />
-                  প্যান্টাগ্রাফ সেটিংস খুলুন
+                  Open Pantagraph Settings
                 </Button>
               }
             />

@@ -116,7 +116,7 @@ const appendHistory = (
 ) => [...history.slice(-(HISTORY_LIMIT - 1)), value];
 
 const defaultSheetDetails: StudioSheetDetails = {
-  title: 'C.S ও B.S মৌজা ম্যাপ তুলনা',
+  title: 'C.S & B.S Mouza Map Comparison',
   mouzaName: '',
   sheetNo: '',
   khatianNo: '',

@@ -714,7 +714,7 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => {
     const { formerMap, currentMap } = s;
 
     if (!formerMap && !currentMap) {
-      ErrorToast('কোনো ম্যাপ লোড নেই');
+      ErrorToast('No map loaded');
       return;
     }
 
@@ -859,7 +859,7 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => {
 
       if (format === 'png') {
         downloadBlob(await canvasToBlob(canvas, 'image/png'), 'pantagraph-alignment.png');
-        SuccessToast('PNG সফলভাবে ডাউনলোড হয়েছে!');
+        SuccessToast('PNG downloaded successfully!');
       } else {
         // ── 3. Fit into A4 and save PDF ─────────────────────────────────────────
         const A4_W = 210;
@@ -885,11 +885,11 @@ export const usePantagraphStore = create<PantagraphStore>()((set, get) => {
         const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
         pdf.addImage(imageBytes, 'JPEG', offsetX, offsetY, imgW, imgH);
         pdf.save('pantagraph-alignment.pdf');
-        SuccessToast('PDF সফলভাবে ডাউনলোড হয়েছে!');
+        SuccessToast('PDF downloaded successfully!');
       }
     } catch (error) {
       console.error('Export failed:', error);
-      ErrorToast('ফাইল জেনারেট করতে ব্যর্থ হয়েছে');
+      ErrorToast('Failed to generate export file');
     } finally {
       if (canvas) {
         canvas.width = 1;

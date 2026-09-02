@@ -27,10 +27,10 @@ const toolDefinitions: Array<{
   label: string;
   icon: typeof Hand;
 }> = [
-  { id: "pan", label: "সরান / Zoom", icon: Hand },
-  { id: "cleanup", label: "Cleanup brush", icon: Eraser },
-  { id: "text", label: "লেখা বসান", icon: Type },
-  { id: "mark", label: "Mark আঁকুন", icon: Pencil },
+  { id: "pan", label: "Pan / Zoom", icon: Hand },
+  { id: "cleanup", label: "Cleanup Brush", icon: Eraser },
+  { id: "text", label: "Add Text", icon: Type },
+  { id: "mark", label: "Draw Mark", icon: Pencil },
 ];
 
 function EditorTooltip({
@@ -84,12 +84,12 @@ export default function StudioEditorToolbar({
 }: StudioEditorToolbarProps) {
   return (
     <div className="absolute right-3 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl">
-      <EditorTooltip label="দুই ম্যাপ একসাথে crop করুন">
+      <EditorTooltip label="Crop Both Maps">
         <Button
           type="button"
           variant="ghost"
           size="icon-lg"
-          aria-label="দুই ম্যাপ একসাথে crop করুন"
+          aria-label="Crop Both Maps"
           className="text-muted-foreground"
           onClick={onOpenCrop}
         >
@@ -116,24 +116,24 @@ export default function StudioEditorToolbar({
 
       <div className="my-0.5 h-px w-6 bg-border/60" />
 
-      <EditorTooltip label={showEdits ? "Original map দেখুন" : "Edited map দেখুন"}>
+      <EditorTooltip label={showEdits ? "View Original Map" : "View Edited Map"}>
         <Button
           type="button"
           variant="ghost"
           size="icon-lg"
-          aria-label={showEdits ? "Original map দেখুন" : "Edited map দেখুন"}
+          aria-label={showEdits ? "View Original Map" : "View Edited Map"}
           className="text-muted-foreground"
           onClick={onToggleShowEdits}
         >
           {showEdits ? <Eye className="size-5" /> : <EyeOff className="size-5" />}
         </Button>
       </EditorTooltip>
-      <EditorTooltip label="শেষ edit ফিরিয়ে নিন">
+      <EditorTooltip label="Undo">
         <Button
           type="button"
           variant="ghost"
           size="icon-lg"
-          aria-label="শেষ edit ফিরিয়ে নিন"
+          aria-label="Undo"
           disabled={!canUndo}
           className="text-muted-foreground"
           onClick={onUndo}
@@ -141,12 +141,12 @@ export default function StudioEditorToolbar({
           <Undo2 className="size-5" />
         </Button>
       </EditorTooltip>
-      <EditorTooltip label="ফিরিয়ে নেওয়া edit আবার দিন">
+      <EditorTooltip label="Redo">
         <Button
           type="button"
           variant="ghost"
           size="icon-lg"
-          aria-label="ফিরিয়ে নেওয়া edit আবার দিন"
+          aria-label="Redo"
           disabled={!canRedo}
           className="text-muted-foreground"
           onClick={onRedo}
@@ -154,12 +154,12 @@ export default function StudioEditorToolbar({
           <Redo2 className="size-5" />
         </Button>
       </EditorTooltip>
-      <EditorTooltip label="সব edit মুছুন">
+      <EditorTooltip label="Clear All Edits">
         <Button
           type="button"
           variant="ghost"
           size="icon-lg"
-          aria-label="সব edit মুছুন"
+          aria-label="Clear All Edits"
           disabled={!hasContent}
           onClick={onClear}
           className="text-muted-foreground hover:text-destructive"

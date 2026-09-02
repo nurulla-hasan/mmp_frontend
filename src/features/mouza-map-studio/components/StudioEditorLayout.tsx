@@ -502,7 +502,7 @@ export default function StudioEditorLayout({
 
       {!editorImage && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
-          Aligned map প্রস্তুত হচ্ছে...
+          Preparing aligned map...
         </div>
       )}
 
@@ -514,10 +514,10 @@ export default function StudioEditorLayout({
         open={showClearConfirmation}
         onOpenChange={setShowClearConfirmation}
         trigger={null}
-        title="সব edit মুছে ফেলবেন?"
-        description="সব cleanup, text ও mark মুছে যাবে। এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।"
-        confirmText="সব মুছুন"
-        cancelText="বাতিল"
+        title="Clear all edits?"
+        description="All cleanup brush strokes, text, and markings will be removed. This action cannot be undone."
+        confirmText="Clear All"
+        cancelText="Cancel"
         variant="destructive"
         onConfirm={() => {
           clearEditor();
