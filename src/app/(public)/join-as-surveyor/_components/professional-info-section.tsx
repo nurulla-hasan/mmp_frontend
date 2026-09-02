@@ -12,8 +12,19 @@ import {
   FieldDescription,
 } from "@/components/ui/field";
 import type { JoinAsSurveyorFormValues } from "@/validation/join-as-surveyor.schema";
+import { CertificateUpload } from "./certificate-upload";
 
-export function ProfessionalInfoSection() {
+interface ProfessionalInfoSectionProps {
+  certificateFile: File | null;
+  onCertificateFileChange: (file: File | null) => void;
+  isSubmitting?: boolean;
+}
+
+export function ProfessionalInfoSection({
+  certificateFile,
+  onCertificateFileChange,
+  isSubmitting = false,
+}: ProfessionalInfoSectionProps) {
   const { control } = useFormContext<JoinAsSurveyorFormValues>();
 
   return (
@@ -55,22 +66,19 @@ export function ProfessionalInfoSection() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="experienceYears">অভিজ্ঞতা (বছর) *</FieldLabel>
-              <div className="relative">
-                <Input
-                  {...field}
-                  id="experienceYears"
-                  type="number"
-                  min={0}
-                  max={50}
-                  placeholder="যেমন: ১০"
-                  value={field.value ?? ""}
-                  onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
-                  aria-invalid={fieldState.invalid}
-                />
-              </div>
+              <FieldLabel htmlFor="experienceYears">কাজের অভিজ্ঞতা (বছর) *</FieldLabel>
+              <Input
+                {...field}
+                id="experienceYears"
+                type="number"
+                min={0}
+                max={50}
+                placeholder="যেমন: ৫"
+                onChange={(e) => field.onChange(Number(e.target.value))}
+                aria-invalid={fieldState.invalid}
+              />
               <FieldDescription>
-                ভূমি জরিপ বা সার্ভে কাজের মোট অভিজ্ঞতার বছর।
+                সার্ভে বা জমি পরিমাপ পেশায় আপনার মোট কাজের অভিজ্ঞতা (বছরে)।
               </FieldDescription>
               {fieldState.invalid && (
                 <FieldError errors={[fieldState.error]} />
@@ -85,12 +93,12 @@ export function ProfessionalInfoSection() {
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="bio">সংক্ষিপ্ত পরিচিতি (Bio)</FieldLabel>
+              <FieldLabel htmlFor="bio">সংক্ষিপ্ত বিবরণ (Bio)</FieldLabel>
               <Textarea
                 {...field}
                 id="bio"
-                placeholder="যেমন: আমি দীর্ঘ ১০ বছর ধরে বিশ্বস্ততার সাথে জমি জরিপ, সীমানা চিহ্নিতকরণ, জমি বাটোয়ারা ও ডিজিটাল নকশার কাজ করে আসছি..."
-                rows={3}
+                placeholder="আপনার কাজের অভিজ্ঞতা, বিশেষত্ব, সার্টিফিকেট ইত্যাদি সম্পর্কে বিস্তারিত লিখুন..."
+                rows={4}
                 aria-invalid={fieldState.invalid}
               />
               <FieldDescription>
@@ -103,35 +111,24 @@ export function ProfessionalInfoSection() {
           )}
         />
 
-        {/* Certificate URL */}
-        <Controller
-          name="certificateUrl"
-          control={control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <div className="flex items-center gap-1.5">
-                <Award className="size-3.5 text-primary" />
-                <FieldLabel htmlFor="certificateUrl">
-                  সার্টিফিকেট বা সনদপত্র লিঙ্ক (ঐচ্ছিক)
-                </FieldLabel>
-              </div>
-              <Input
-                {...field}
-                id="certificateUrl"
-                placeholder="Google Drive, Dropbox বা ডকুমেন্টের পাবলিক লিংক"
-                aria-invalid={fieldState.invalid}
-              />
-              <FieldDescription>
-                সার্ভে বা আমিনশিপ সার্টিফিকেটের ড্রাইভ লিঙ্ক বা পিডিএফ ইউআরএল দিতে পারেন।
-              </FieldDescription>
-              {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
-              )}
-            </Field>
-          )}
-        />
+        {/* Certificate File Upload */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5">
+            <Award className="size-3.5 text-primary" />
+            <span className="text-xs font-medium text-foreground">
+              সার্টিফিকেট বা সনদপত্র আপলোড (ঐচ্ছিক)
+            </span>
+          </div>
+          <CertificateUpload
+            file={certificateFile}
+            onFileChange={onCertificateFileChange}
+            disabled={isSubmitting}
+          />
+          <p className="text-xs text-muted-foreground">
+            আপনার সার্ভে বা আমিনশিপ সার্টিফিকেট, প্রশিক্ষণ সনদ বা প্রাতিষ্ঠানিক ডকুমেন্টের কপি (PDF বা ছবি) আপলোড করতে পারেন।
+          </p>
+        </div>
       </div>
     </div>
   );
 }
-

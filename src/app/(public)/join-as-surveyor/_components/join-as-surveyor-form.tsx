@@ -26,7 +26,11 @@ import type { TAuthUser } from "@/interface/auth";
 import type { TSurveyorService } from "@/interface/surveyor-profile";
 
 import { joinAsSurveyorSchema, type JoinAsSurveyorFormValues } from "@/validation/join-as-surveyor.schema";
-import { submitSurveyorApplicationAction } from "../_actions/apply.action";
+import {
+  submitSurveyorApplicationAction,
+  uploadCertificateAction,
+  deleteCertificateAction,
+} from "../_actions/apply.action";
 import { ProfessionalInfoSection } from "./professional-info-section";
 import { ServicesSection } from "./services-section";
 import { ServiceAreasSection } from "./service-areas-section";
@@ -42,12 +46,13 @@ interface JoinAsSurveyorFormProps {
 
 export function JoinAsSurveyorForm({
   isAuthenticated,
-  user,
   districts,
   services,
 }: JoinAsSurveyorFormProps) {
   const router = useRouter();
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
+  const [isUploadingCertificate, setIsUploadingCertificate] = useState(false);
 
   const form = useForm<JoinAsSurveyorFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -70,22 +75,59 @@ export function JoinAsSurveyorForm({
       return;
     }
 
+    let uploadedUrl: string | undefined = undefined;
+    let uploadedPublicId: string | undefined = undefined;
+
     try {
-      const res = await submitSurveyorApplicationAction(data);
+      // 1. If certificate file was selected, upload it only now after form validation passed
+      if (certificateFile) {
+        setIsUploadingCertificate(true);
+        const fileData = new FormData();
+        fileData.append("certificate", certificateFile);
+        const uploadRes = await uploadCertificateAction(fileData);
+
+        if (!uploadRes.success || !uploadRes.data) {
+          setIsUploadingCertificate(false);
+          ErrorToast(uploadRes.message || "সার্টিফিকেট আপলোড করতে ব্যর্থ হয়েছে।");
+          return;
+        }
+
+        uploadedUrl = uploadRes.data.url;
+        uploadedPublicId = uploadRes.data.publicId;
+      }
+
+      // 2. Submit application with uploaded certificate url
+      const res = await submitSurveyorApplicationAction({
+        ...data,
+        certificateUrl: uploadedUrl,
+        certificatePublicId: uploadedPublicId,
+      });
+
       if (!res.success) {
+        // Rollback: delete the uploaded file from Cloudinary so no orphaned files exist!
+        if (uploadedPublicId) {
+          await deleteCertificateAction(uploadedPublicId).catch(() => {});
+        }
         ErrorToast(res.message);
         return;
       }
 
       SuccessToast(res.message);
       setIsSubmitted(true);
+      setCertificateFile(null);
       form.reset();
     } catch (error: unknown) {
+      // Rollback on unexpected error
+      if (uploadedPublicId) {
+        await deleteCertificateAction(uploadedPublicId).catch(() => {});
+      }
       ErrorToast(
         error instanceof Error
           ? error.message
           : "কিছু সমস্যা হয়েছে। আবার চেষ্টা করুন।",
       );
+    } finally {
+      setIsUploadingCertificate(false);
     }
   }
 
@@ -124,7 +166,7 @@ export function JoinAsSurveyorForm({
   return (
     <div className="space-y-8">
       {/* 1. Header Intro */}
-      <div className="rounded-2xl border border-border/80 bg-gradient-to-br from-primary/5 via-card to-background p-6 sm:p-8 space-y-4">
+      <div className="rounded-2xl border border-border/80 bg-linear-to-br from-primary/5 via-card to-background p-6 sm:p-8 space-y-4">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
           <Sparkles className="size-3.5" />
           <span>সার্ভেয়ার পার্টনারশিপ প্রোগ্রাম</span>
@@ -205,9 +247,13 @@ export function JoinAsSurveyorForm({
               <div className="rounded-xl border bg-card p-5 sm:p-6 space-y-6">
                 <SectionHeading
                   title="১. পেশাগত পরিচিতি ও সনদ"
-                  description="আপনার পদবী, অভিজ্ঞতা, বিবরণ ও শিক্ষাগত/পেশাদার সনদের লিঙ্ক দিন।"
+                  description="আপনার পদবী, অভিজ্ঞতা, বিবরণ ও পেশাদার সনদপত্র (PDF বা ছবি) আপলোড করুন।"
                 />
-                <ProfessionalInfoSection />
+                <ProfessionalInfoSection
+                  certificateFile={certificateFile}
+                  onCertificateFileChange={setCertificateFile}
+                  isSubmitting={form.formState.isSubmitting || isUploadingCertificate}
+                />
               </div>
 
               {/* Section 2: Services Offered */}
@@ -272,9 +318,13 @@ export function JoinAsSurveyorForm({
                       <Button
                         type="submit"
                         className="w-full cursor-pointer"
-                        disabled={!isAuthenticated}
-                        loading={form.formState.isSubmitting}
-                        loadingText="আবেদন জমা হচ্ছে..."
+                        disabled={!isAuthenticated || isUploadingCertificate}
+                        loading={form.formState.isSubmitting || isUploadingCertificate}
+                        loadingText={
+                          isUploadingCertificate
+                            ? "সার্টিফিকেট আপলোড হচ্ছে..."
+                            : "আবেদন জমা হচ্ছে..."
+                        }
                       >
                         <Send />
                         {isAuthenticated

@@ -55,3 +55,21 @@ export const updateMySurveyorProfile = (payload: unknown) =>
     auth: "auth",
   });
 
+export const uploadCertificate = (formData: FormData) =>
+  nextServerFetch<{ url: string; publicId: string; format: string }>(
+    "/surveyor/certificate/upload",
+    {
+      method: "POST",
+      body: formData,
+      auth: "auth",
+    },
+  );
+
+export const deleteCertificate = (publicId: string) =>
+  nextServerFetch<null>("/surveyor/certificate/delete", {
+    method: "DELETE",
+    body: { publicId },
+    auth: "auth",
+  });
+
+
