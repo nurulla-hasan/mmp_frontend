@@ -88,6 +88,15 @@ function nextPaint() {
   });
 }
 
+function getKmlOverlayColor(opacity: number) {
+  const alpha = Math.round(Math.max(0, Math.min(1, opacity)) * 255)
+    .toString(16)
+    .padStart(2, '0');
+
+  // KML color format is AABBGGRR. White keeps the original map colors.
+  return `${alpha}ffffff`;
+}
+
 export async function exportMouzaKmz(options: {
   transform: GeoTransform;
   image: HTMLImageElement;
@@ -97,6 +106,7 @@ export async function exportMouzaKmz(options: {
   quality: KmzExportQuality;
   backgroundSensitivity: number;
   lineColor: string;
+  opacity: number;
   onProgress?: (progress: number) => void;
 }) {
   const sourceWidth = options.imageSize.width;
@@ -106,12 +116,14 @@ export async function exportMouzaKmz(options: {
   const mimeType = extension === 'png' ? 'image/png' : 'image/jpeg';
   const tiles = createTileDescriptors(sourceWidth, sourceHeight, extension);
   const safeName = options.name.replace(/[<>&]/g, '');
+  const overlayColor = getKmlOverlayColor(options.opacity);
   const overlays = tiles
     .map(
       (tile) => `
     <GroundOverlay>
       <name>${safeName} ${tile.row + 1}-${tile.column + 1}</name>
       <drawOrder>1</drawOrder>
+      <color>${overlayColor}</color>
       <Icon><href>${tile.path}</href></Icon>
       <altitudeMode>clampToGround</altitudeMode>
       <gx:LatLonQuad>
