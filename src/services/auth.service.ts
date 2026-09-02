@@ -17,28 +17,38 @@ export type AuthTokens = {
   refreshToken: string;
 };
 
+const isProduction = process.env.NODE_ENV === "production";
+
+const authCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: "lax" as const,
+  domain: isProduction ? ".mouzamappro.com" : undefined,
+  path: "/",
+};
+
 export async function setAuthCookies(tokens: AuthTokens) {
   const cookieStore = await cookies();
   cookieStore.set("accessToken", tokens.accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    path: "/",
+    ...authCookieOptions,
     maxAge: 15 * 60,
   });
   cookieStore.set("refreshToken", tokens.refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    path: "/",
+    ...authCookieOptions,
     maxAge: 7 * 24 * 60 * 60,
   });
 }
 
 export async function clearAuthCookies() {
   const cookieStore = await cookies();
-  cookieStore.delete("accessToken");
-  cookieStore.delete("refreshToken");
+  cookieStore.set("accessToken", "", {
+    ...authCookieOptions,
+    maxAge: 0,
+  });
+  cookieStore.set("refreshToken", "", {
+    ...authCookieOptions,
+    maxAge: 0,
+  });
 }
 
 export const login = (payload: LoginPayload) =>
