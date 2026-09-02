@@ -374,6 +374,7 @@ export default function MouzaGeoStudio() {
         quality: exportQuality,
         backgroundSensitivity,
         lineColor,
+        opacity,
       });
       SuccessToast(
         exportQuality === "optimized"
