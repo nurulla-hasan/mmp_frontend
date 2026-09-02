@@ -186,7 +186,6 @@ export function ReviewModal({
                         {item.service.name}
                       </SelectItem>
                     ))}
-                    <SelectItem value="অন্যান্য সেবা">অন্যান্য সেবা / General Survey</SelectItem>
                   </SelectContent>
                 </Select>
                 {fieldState.invalid && (
