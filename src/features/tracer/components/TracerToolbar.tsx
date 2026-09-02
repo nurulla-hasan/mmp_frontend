@@ -148,7 +148,7 @@ export const TracerToolbar = memo(function TracerToolbar({
     settings: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={Settings2}
-        label="ট্রেসার সেটিংস"
+        label="Tracer Settings"
         onClick={() => onToggleSidebar?.()}
         size={size}
       />
@@ -156,7 +156,7 @@ export const TracerToolbar = memo(function TracerToolbar({
     select: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={MousePointer2}
-        label="নির্বাচন (V)"
+        label="Select (V)"
         active={mode === 'select'}
         onClick={() => setMode('select')}
         size={size}
@@ -165,7 +165,7 @@ export const TracerToolbar = memo(function TracerToolbar({
     polygon: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={PenLine}
-        label="বাউন্ডারি লাইন (P)"
+        label="Boundary Line (P)"
         active={mode === 'polygon'}
         onClick={() => setMode('polygon')}
         size={size}
@@ -174,7 +174,7 @@ export const TracerToolbar = memo(function TracerToolbar({
     label: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={Type}
-        label="দাগ নম্বর বসান (T)"
+        label="Place Plot Number (T)"
         active={mode === 'label'}
         onClick={() => setMode('label')}
         size={size}
@@ -183,7 +183,7 @@ export const TracerToolbar = memo(function TracerToolbar({
     finish: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={Check}
-        label="লাইন শেষ করুন (Enter)"
+        label="Finish Line (Enter)"
         onClick={commitPolygon}
         disabled={mode !== 'polygon' || pendingPoints.length < 2}
         size={size}
@@ -193,7 +193,7 @@ export const TracerToolbar = memo(function TracerToolbar({
     delete: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={Trash2}
-        label="মুছুন"
+        label="Delete"
         onClick={() => {
           if (!selectedLayerId) return;
           if (selectedLabelId) deleteLabel(selectedLayerId, selectedLabelId);
@@ -211,7 +211,7 @@ export const TracerToolbar = memo(function TracerToolbar({
     undo: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={Undo2}
-        label="আনডু (Ctrl+Z)"
+        label="Undo (Ctrl+Z)"
         disabled={pendingPoints.length === 0 && past.length === 0}
         onClick={pendingPoints.length > 0 ? undoPendingPoint : undo}
         size={size}
@@ -223,7 +223,7 @@ export const TracerToolbar = memo(function TracerToolbar({
       return (
         <ToolBtn
           icon={Redo2}
-          label="রিডু (Ctrl+Y)"
+          label="Redo (Ctrl+Y)"
           disabled={!canRedoPoint && !canRedoGlobal}
           onClick={canRedoPoint ? redoPendingPoint : redo}
           size={size}
@@ -233,7 +233,7 @@ export const TracerToolbar = memo(function TracerToolbar({
     png: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={Download}
-        label="PNG ডাউনলোড করুন"
+        label="Download PNG"
         onClick={() => exportAsPNG(layers, backgroundImage)}
         size={size}
       />
@@ -241,7 +241,7 @@ export const TracerToolbar = memo(function TracerToolbar({
     pdf: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={FileDown}
-        label="PDF ডাউনলোড করুন"
+        label="Download PDF"
         onClick={() => exportAsPDF(layers, backgroundImage)}
         size={size}
       />
@@ -249,7 +249,7 @@ export const TracerToolbar = memo(function TracerToolbar({
     reset: (size: 'md' | 'sm' = 'md') => (
       <ToolBtn
         icon={RotateCcw}
-        label="সব মুছুন"
+        label="Clear All"
         onClick={reset}
         size={size}
         className="hover:bg-destructive/10 hover:text-destructive"
@@ -312,7 +312,7 @@ export const TracerToolbar = memo(function TracerToolbar({
                 variant="ghost"
                 size="icon"
                 onClick={() => exportAsPNG(layers, backgroundImage)}
-                title="PNG ডাউনলোড করুন"
+                title="Download PNG"
                 className="size-8 text-muted-foreground hover:text-foreground"
               >
                 <Download className="size-4" />
@@ -321,7 +321,7 @@ export const TracerToolbar = memo(function TracerToolbar({
                 variant="ghost"
                 size="icon"
                 onClick={() => exportAsPDF(layers, backgroundImage)}
-                title="PDF ডাউনলোড করুন"
+                title="Download PDF"
                 className="size-8 text-muted-foreground hover:text-foreground"
               >
                 <FileDown className="size-4" />
@@ -331,7 +331,7 @@ export const TracerToolbar = memo(function TracerToolbar({
                 variant="ghost"
                 size="icon"
                 onClick={reset}
-                title="সব মুছুন"
+                title="Clear All"
                 className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
                 <RotateCcw className="size-4" />

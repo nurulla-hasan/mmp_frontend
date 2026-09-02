@@ -28,7 +28,7 @@ export default function TracerLayout() {
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-background">
-      <ToolTopNav title="ডিজিটাল ট্রেসার" icon={PenTool} />
+      <ToolTopNav title="Digital Tracer" icon={PenTool} />
 
       <TracerToolbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
@@ -39,12 +39,12 @@ export default function TracerLayout() {
           <div className="absolute inset-0 z-10">
             <ToolEmptyState
               icon={PenTool}
-              title="পুরানো ম্যাপকে ডিজিটাল ট্রেসে রূপ দিন"
-              description="মৌজা ম্যাপ আপলোড করে দাগের সীমানা ও দাগ নম্বর ট্রেস করুন, যাতে পরিষ্কার digital vector map তৈরি করা যায়।"
+              title="Convert Old Maps to Digital Traces"
+              description="Upload a mouza map to trace plot boundaries and plot numbers to generate clean digital vector maps."
               actions={
                 <Button className="w-full" onClick={() => setSidebarOpen(true)}>
                   <Settings2 className="size-4" />
-                  ট্রেসার সেটিংস খুলুন
+                  Open Tracer Settings
                 </Button>
               }
             />

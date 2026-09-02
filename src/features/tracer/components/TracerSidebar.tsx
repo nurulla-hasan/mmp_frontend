@@ -114,14 +114,14 @@ const BackgroundSection = memo(function BackgroundSection() {
       <div className="flex items-center justify-between">
         <h3 className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
           <ImageUp className="size-3.5 text-primary" />
-          <span>ব্যাকগ্রাউন্ড ম্যাপ</span>
+          <span>Background Map</span>
         </h3>
         {backgroundImage && (
           <Badge
             variant="outline"
             className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
           >
-            সংযুক্ত আছে
+            Connected
           </Badge>
         )}
       </div>
@@ -143,12 +143,12 @@ const BackgroundSection = memo(function BackgroundSection() {
             <div className="min-w-0 flex-1">
               <p
                 className="text-xs text-foreground truncate font-mono"
-                title={backgroundImageName || "মৌজা_ম্যাপ.png"}
+                title={backgroundImageName || "mouza_map.png"}
               >
-                {backgroundImageName || "মৌজা_ম্যাপ.png"}
+                {backgroundImageName || "mouza_map.png"}
               </p>
               <p className="text-[10px] text-muted-foreground">
-                ক্যানভাস ম্যাপ
+                Canvas Map
               </p>
             </div>
           </div>
@@ -160,7 +160,7 @@ const BackgroundSection = memo(function BackgroundSection() {
               className="size-7.5 border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted"
               onClick={() => inputRef.current?.click()}
               disabled={imageLoading}
-              title="ম্যাপ পরিবর্তন করুন"
+              title="Change Map"
             >
               <ImageUp className="size-3.5" />
             </Button>
@@ -169,7 +169,7 @@ const BackgroundSection = memo(function BackgroundSection() {
               size="icon"
               className="size-7.5 border-border/80 text-destructive hover:text-destructive hover:bg-destructive/10 hover:border-destructive/40"
               onClick={() => setBackground(null)}
-              title="ম্যাপ মুছে ফেলুন"
+              title="Remove Map"
             >
               <Trash2 className="size-3.5" />
             </Button>
@@ -184,7 +184,7 @@ const BackgroundSection = memo(function BackgroundSection() {
           className="w-full gap-1.5 text-xs h-9 border-border/80 hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-colors"
         >
           <ImageUp className="size-3.5" />
-          {imageLoading ? "লোড হচ্ছে..." : "নতুন ম্যাপ আপলোড করুন"}
+          {imageLoading ? "Loading..." : "Upload New Map"}
         </Button>
       )}
     </div>
@@ -225,7 +225,7 @@ const LayersSection = memo(function LayersSection() {
       <div className="flex items-center justify-between">
         <h3 className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
           <Layers className="size-3.5 text-primary" />
-          <span>ট্রেসিং লেয়ার ({layers.length})</span>
+          <span>Tracing Layers ({layers.length})</span>
         </h3>
         <Button
           variant="outline"
@@ -234,7 +234,7 @@ const LayersSection = memo(function LayersSection() {
           className="h-7 text-xs px-2.5 gap-1 text-primary hover:bg-primary/10 border-primary/30"
         >
           <Plus className="size-3" />
-          যোগ করুন
+          Add
         </Button>
       </div>
 
@@ -261,7 +261,7 @@ const LayersSection = memo(function LayersSection() {
                 <div
                   className="size-3 rounded-full shrink-0 ring-1.5 ring-background shadow-xs transition-transform hover:scale-110"
                   style={{ backgroundColor: layer.color }}
-                  title="লেয়ার কালার"
+                  title="Layer Color"
                 />
 
                 {/* Layer Name / Edit */}
@@ -289,7 +289,7 @@ const LayersSection = memo(function LayersSection() {
                 ) : (
                   <span
                     className="flex-1 text-xs text-foreground truncate"
-                    title="ডাবল ক্লিক করে নাম পরিবর্তন করুন"
+                    title="Double click to rename"
                     onDoubleClick={(e) => {
                       e.stopPropagation();
                       setEditingId(layer.id);
@@ -301,7 +301,7 @@ const LayersSection = memo(function LayersSection() {
 
                 {/* Stats badge */}
                 <span className="text-[11px] text-muted-foreground font-mono shrink-0">
-                  {layer.polygons.length} লাইন · {layer.labels.length} দাগ
+                  {layer.polygons.length} lines · {layer.labels.length} plots
                 </span>
 
                 {/* Visibility Toggle */}
@@ -312,7 +312,7 @@ const LayersSection = memo(function LayersSection() {
                     toggleLayerVisibility(layer.id);
                   }}
                   className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted"
-                  title={layer.visible ? "হাইড করুন" : "শো করুন"}
+                  title={layer.visible ? "Hide" : "Show"}
                 >
                   {layer.visible ? (
                     <Eye className="size-3.5 text-primary" />
@@ -329,7 +329,7 @@ const LayersSection = memo(function LayersSection() {
                     setExpandedId(isExpanded ? null : layer.id);
                   }}
                   className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted"
-                  title="সেটিংস বিস্তার করুন"
+                  title="Expand Settings"
                 >
                   {isExpanded ? (
                     <ChevronDown className="size-3.5" />
@@ -345,7 +345,7 @@ const LayersSection = memo(function LayersSection() {
                   {/* Line Thickness */}
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">
-                      লাইনের পুরুত্ব:
+                      Line Width:
                     </span>
                     <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-lg border border-border/60">
                       {[1, 2, 3, 4, 5].map((w) => (
@@ -370,7 +370,7 @@ const LayersSection = memo(function LayersSection() {
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Palette className="size-3" />
-                        রং নির্বাচন করুন:
+                        Select Color:
                       </span>
                       <span className="font-mono text-[10px]">
                         {layer.color}
@@ -406,7 +406,7 @@ const LayersSection = memo(function LayersSection() {
                         className="text-xs text-destructive hover:underline inline-flex items-center gap-1"
                       >
                         <Trash2 className="size-3" />
-                        লেয়ার মুছে ফেলুন
+                        Delete Layer
                       </button>
                     </div>
                   )}
@@ -462,9 +462,9 @@ const DrawingListSection = memo(function DrawingListSection() {
       {activeLayer.polygons.length > 0 && (
         <div className="space-y-2">
           <h3 className="text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-between">
-            <span>বাউন্ডারি লাইন</span>
+            <span>Boundary Lines</span>
             <Badge variant="outline" className="text-[10px]">
-              {activeLayer.polygons.length}টি
+              {activeLayer.polygons.length}
             </Badge>
           </h3>
           <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
@@ -489,13 +489,13 @@ const DrawingListSection = memo(function DrawingListSection() {
                       style={{ backgroundColor: activeLayer.color }}
                     />
                     <span className="text-xs text-foreground truncate">
-                      লাইন #{index + 1}
+                      Line #{index + 1}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-[11px] font-mono text-muted-foreground">
-                      {path.points.length} পয়েন্ট
+                      {path.points.length} points
                     </span>
                     <button
                       type="button"
@@ -504,7 +504,7 @@ const DrawingListSection = memo(function DrawingListSection() {
                         deletePolygon(activeLayer.id, path.id);
                       }}
                       className="text-muted-foreground hover:text-destructive transition-colors p-0.5 rounded"
-                      title="লাইন মুছুন"
+                      title="Delete Line"
                     >
                       <Trash2 className="size-3" />
                     </button>
@@ -520,9 +520,9 @@ const DrawingListSection = memo(function DrawingListSection() {
       {activeLayer.labels.length > 0 && (
         <div className="space-y-2">
           <h3 className="text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-between">
-            <span>দাগ নম্বরসমূহ</span>
+            <span>Plot Numbers</span>
             <Badge variant="outline" className="text-[10px]">
-              {activeLayer.labels.length}টি
+              {activeLayer.labels.length}
             </Badge>
           </h3>
           <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
@@ -551,7 +551,7 @@ const DrawingListSection = memo(function DrawingListSection() {
                       setLabelText(activeLayer.id, label.id, event.target.value)
                     }
                     onClick={(event) => event.stopPropagation()}
-                    placeholder="দাগ নং লিখুন"
+                    placeholder="Enter plot no."
                     className="flex-1 text-xs bg-transparent outline-none placeholder:text-muted-foreground/40 min-w-0"
                   />
                   <button
@@ -561,7 +561,7 @@ const DrawingListSection = memo(function DrawingListSection() {
                       deleteLabel(activeLayer.id, label.id);
                     }}
                     className="text-muted-foreground hover:text-destructive transition-colors p-0.5 rounded"
-                    title="দাগ মুছুন"
+                    title="Delete Plot Number"
                   >
                     <Trash2 className="size-3" />
                   </button>
@@ -588,7 +588,7 @@ const ExportSection = memo(function ExportSection() {
     <div className="space-y-3">
       <h3 className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
         <Download className="size-3.5 text-primary" />
-        <span>এক্সপোর্ট ও ডাউনলোড</span>
+        <span>Export & Download</span>
       </h3>
 
       <div className="space-y-2.5">
@@ -608,7 +608,7 @@ const ExportSection = memo(function ExportSection() {
                 </span>
               </div>
               <span className="text-[10px] text-muted-foreground font-mono">
-                {l.polygons.length} বাউন্ডারি
+                {l.polygons.length} boundaries
               </span>
             </div>
 
@@ -620,7 +620,7 @@ const ExportSection = memo(function ExportSection() {
                 onClick={() => exportAsPDF(layers, backgroundImage, l.id)}
               >
                 <FileText className="size-3" />
-                PDF সেভ
+                Save PDF
               </Button>
               <Button
                 variant="outline"
@@ -629,7 +629,7 @@ const ExportSection = memo(function ExportSection() {
                 onClick={() => exportAsPNG(layers, backgroundImage, l.id)}
               >
                 <Download className="size-3" />
-                PNG সেভ
+                Save PNG
               </Button>
             </div>
           </div>
@@ -676,10 +676,10 @@ export const TracerSidebar = memo(function TracerSidebar({
             </div>
             <div>
               <h2 className="font-heading text-sm text-foreground">
-                ডিজিটাল ট্রেসার
+                Digital Tracer
               </h2>
               <p className="text-xs text-muted-foreground">
-                ম্যাপ ট্রেসিং → লেয়ার → এক্সপোর্ট
+                Map Tracing → Layers → Export
               </p>
             </div>
           </div>
@@ -709,10 +709,10 @@ export const TracerSidebar = memo(function TracerSidebar({
                   </div>
                   <div>
                     <DrawerTitle className="text-left text-base font-heading text-foreground">
-                      ডিজিটাল ট্রেসার
+                      Digital Tracer
                     </DrawerTitle>
                     <p className="text-xs text-muted-foreground text-left">
-                      ম্যাপ ট্রেসিং → লেয়ার → এক্সপোর্ট
+                      Map Tracing → Layers → Export
                     </p>
                   </div>
                 </div>

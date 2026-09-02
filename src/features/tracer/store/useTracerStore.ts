@@ -70,7 +70,7 @@ export function centroid(points: Point[]): Point {
 const DEFAULT_LAYERS: TracerLayer[] = [
   {
     id: 'cs',
-    name: 'C.S ম্যাপ',
+    name: 'C.S Map',
     color: '#DC2626',
     lineWidth: 3,
     visible: true,
@@ -79,7 +79,7 @@ const DEFAULT_LAYERS: TracerLayer[] = [
   },
   {
     id: 'bs',
-    name: 'B.S ম্যাপ',
+    name: 'B.S Map',
     color: '#16A34A',
     lineWidth: 3,
     visible: true,
@@ -164,7 +164,7 @@ export const useTracerStore = create<TracerStore>()((set, get) => ({
   setBackground: (backgroundImage, name = null) =>
     set({
       backgroundImage,
-      backgroundImageName: backgroundImage ? (name || 'মৌজা_ম্যাপ.png') : null,
+      backgroundImageName: backgroundImage ? (name || 'mouza_map.png') : null,
     }),
   setImageLoading: imageLoading => set({ imageLoading }),
 

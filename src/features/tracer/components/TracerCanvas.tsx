@@ -565,7 +565,7 @@ const TracerCanvas = memo(function TracerCanvas() {
                 e.currentTarget.blur();
               }
             }}
-            placeholder="নম্বর"
+            placeholder="No."
             className="w-16 h-8 text-center text-sm font-bold bg-background/90 border border-primary/50 text-foreground rounded shadow-lg outline-none focus:ring-2 focus:ring-primary/50"
             style={{ borderColor: selectedLayer?.color, color: selectedLayer?.color }}
             onPointerDown={(e) => e.stopPropagation()}
@@ -579,12 +579,12 @@ const TracerCanvas = memo(function TracerCanvas() {
       {/* ── Drawing status bar ────────────────────────────────────────────── */}
       {pendingPoints.length > 0 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm border border-border rounded-full px-4 py-1.5 text-xs text-muted-foreground shadow-lg whitespace-nowrap pointer-events-none">
-          {pendingPoints.length} পয়েন্ট
-          {edgeSnapped ? ' · পয়েন্ট/লাইনে স্ন্যাপ' : ''}
+          {pendingPoints.length} {pendingPoints.length === 1 ? 'point' : 'points'}
+          {edgeSnapped ? ' · Snapped to point/line' : ''}
           {pendingPoints.length >= 2
-            ? ' · Enter বা ✓ দিয়ে লাইন শেষ করুন'
-            : ' · আরেকটি পয়েন্ট দিন'}
-          {' · Esc = বাতিল'}
+            ? ' · Press Enter or ✓ to finish line'
+            : ' · Add another point'}
+          {' · Esc = Cancel'}
         </div>
       )}
 
