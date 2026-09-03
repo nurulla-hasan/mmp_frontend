@@ -18,6 +18,7 @@ const PUBLIC_PREFIXES = [
   "/pricing",
   "/surveyors",
   "/join-as-surveyor",
+  "/auth/success",
 ];
 
 const FREE_TOOL_ROUTES = [
