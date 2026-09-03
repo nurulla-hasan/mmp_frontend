@@ -1,5 +1,5 @@
 import { SectionHeading } from "@/components/common/section-heading";
-import { PricingCards } from "@/app/(public)/pricing/_components/pricing-cards";
+import { PricingCards } from "@/app/(shell)/pricing/_components/pricing-cards";
 import { SectionWrapper } from "@/components/common/section-wrapper";
 
 export function PricingSection() {

@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { submitManualCheckoutAction } from "@/app/(private)/(admin)/admin/subscribers/_actions/subscriber.action";
+import { submitManualCheckoutAction } from "@/app/(admin)/admin/subscribers/_actions/subscriber.action";
 import { SuccessToast, ErrorToast } from "@/lib/utils";
 import type { TPlan } from "@/interface/plan";
 import type { PaymentNumbersResponse, TSubscriber } from "@/interface/subscriber";

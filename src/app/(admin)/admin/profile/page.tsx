@@ -9,9 +9,9 @@ import { PageWrapper } from "@/components/common/page-wrapper";
 // import { SectionHeading } from "@/components/common/section-heading";
 import { getMe } from "@/services/auth.service";
 import { getDistricts } from "@/services/district.service";
-import { ProfileHeaderCard } from "@/app/(private)/(shell)/dashboard/profile/_components/profile-header-card";
-import { PersonalInfoCard } from "@/app/(private)/(shell)/dashboard/profile/_components/personal-info-card";
-import { AccountSettingsCard } from "@/app/(private)/(shell)/dashboard/profile/_components/account-settings-card";
+import { ProfileHeaderCard } from "@/app/(shell)/dashboard/profile/_components/profile-header-card";
+import { PersonalInfoCard } from "@/app/(shell)/dashboard/profile/_components/personal-info-card";
+import { AccountSettingsCard } from "@/app/(shell)/dashboard/profile/_components/account-settings-card";
 import {
   Card,
   CardContent,

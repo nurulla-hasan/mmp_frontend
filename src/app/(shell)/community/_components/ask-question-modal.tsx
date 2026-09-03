@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-import { categories } from "@/app/(private)/(shell)/community/_data";
+import { categories } from "@/app/(shell)/community/_data";
 
 export function AskQuestionModal({
   customTrigger,

@@ -3,7 +3,7 @@
 import { useState, useRef, useTransition } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { uploadProfileImageAction } from "@/app/(private)/(shell)/dashboard/profile/_actions/profile.action";
+import { uploadProfileImageAction } from "@/app/(shell)/dashboard/profile/_actions/profile.action";
 import { getInitials, ErrorToast } from "@/lib/utils";
 import { ImageCropDialog } from "./image-crop-dialog";
 

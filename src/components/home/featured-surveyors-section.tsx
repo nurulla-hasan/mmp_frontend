@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SectionHeading } from "@/components/common/section-heading";
 import { SectionWrapper } from "@/components/common/section-wrapper";
 import { Button } from "@/components/ui/button";
-import { SurveyorCard } from "@/app/(public)/surveyors/_components/surveyor-card";
+import { SurveyorCard } from "@/app/(shell)/surveyors/_components/surveyor-card";
 import type { TSurveyorProfile } from "@/interface/surveyor-profile";
 
 export function FeaturedSurveyorsSection({

@@ -1,6 +1,6 @@
 import { UserShellLayout } from "@/components/layout/user-shell-layout";
 
-export default function PublicLayout({
+export default function ShellLayout({
   children,
 }: {
   children: React.ReactNode;
