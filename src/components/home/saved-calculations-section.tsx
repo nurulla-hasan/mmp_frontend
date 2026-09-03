@@ -128,7 +128,7 @@ export function SavedCalculationsSection() {
                         </span>
                         <Badge
                           variant={r.statusVariant}
-                          className="mt-0.5 text-[10px] px-1.5 py-0"
+                          className="mt-0.5 text-xs px-1.5 py-0"
                         >
                           {r.status}
                         </Badge>

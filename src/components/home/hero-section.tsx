@@ -293,7 +293,7 @@ export function HeroSection({
                           <span className="font-heading text-sm sm:text-base font-bold text-emerald-400">
                             ৪২.৭৫
                           </span>
-                          <span className="text-[10px] sm:text-xs font-semibold text-emerald-400">
+                          <span className="text-xs sm:text-xs font-semibold text-emerald-400">
                             শতাংশ
                           </span>
                           <span className="hidden text-xs text-muted-foreground sm:inline font-mono">

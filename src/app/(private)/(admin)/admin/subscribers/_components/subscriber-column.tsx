@@ -77,7 +77,7 @@ function SubscriberActionsCell({ subscriber }: { subscriber: SubscriberRow }) {
   };
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5 justify-end">
       {subscriber.status === "PENDING" && (
         <>
           {/* Quick Approve Modal */}
@@ -205,7 +205,7 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
       return (
         <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
-            <Badge variant="outline" className="text-[10px] py-0 font-bold uppercase">
+            <Badge variant="outline" className="text-xs py-0 font-bold uppercase">
               {sub.paymentMethod || "MANUAL"}
             </Badge>
           </div>
@@ -282,7 +282,7 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
+    header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => <SubscriberActionsCell subscriber={row.original} />,
   },
 ];

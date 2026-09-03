@@ -76,7 +76,7 @@ export function TestimonialsSection({
                       {t.reviewerName}
                     </h4>
                     {t.reviewerDistrict && (
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {t.reviewerDistrict}
                       </p>
                     )}
@@ -84,7 +84,7 @@ export function TestimonialsSection({
                 </div>
 
                 {t.serviceName && (
-                  <Badge variant="outline" className="text-[10px] px-2 py-0.5">
+                  <Badge variant="outline" className="text-xs px-2 py-0.5">
                     {t.serviceName}
                   </Badge>
                 )}

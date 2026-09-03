@@ -60,14 +60,16 @@ function AdminActionsCell({ admin }: { admin: AdminRow }) {
   // Super Admins cannot be blocked or deleted
   if (isSuperAdmin) {
     return (
-      <span className="text-xs font-medium text-muted-foreground/60 italic">
-        Protected
-      </span>
+      <div className="text-right">
+        <span className="text-xs font-medium text-muted-foreground/60 italic">
+          Protected
+        </span>
+      </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 justify-end">
       {/* 1. Status Toggle Action */}
       <ConfirmationModal
         title={isBlocked ? "Activate Administrator?" : "Block Administrator?"}
@@ -198,7 +200,7 @@ export const adminColumns: ColumnDef<AdminRow>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
+    header: () => <div className="text-right">Actions</div>,
     cell: ({ row, table }) => {
       const isSuperAdmin = (
         table.options.meta as { isSuperAdmin?: boolean } | undefined
@@ -206,9 +208,11 @@ export const adminColumns: ColumnDef<AdminRow>[] = [
 
       if (!isSuperAdmin) {
         return (
-          <span className="text-xs font-medium text-muted-foreground/60 italic">
-            View only
-          </span>
+          <div className="text-right">
+            <span className="text-xs font-medium text-muted-foreground/60 italic">
+              View only
+            </span>
+          </div>
         );
       }
 

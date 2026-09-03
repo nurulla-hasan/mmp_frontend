@@ -94,7 +94,7 @@ export const PrintLayout = React.forwardRef<HTMLDivElement, unknown>((_, ref) =>
                   <h3 className="text-base font-black text-teal-900 tracking-tight leading-none">
                     মৌজা ম্যাপ প্রো
                   </h3>
-                  <span className="text-[10px] font-semibold text-teal-700 tracking-wider uppercase">
+                  <span className="text-xs font-semibold text-teal-700 tracking-wider uppercase">
                     স্মার্ট ডিজিটাল ভূমি পরিমাপ ও জরিপ
                   </span>
                 </div>
@@ -105,13 +105,13 @@ export const PrintLayout = React.forwardRef<HTMLDivElement, unknown>((_, ref) =>
                 <h1 className="text-xl font-black text-teal-950 tracking-tight leading-snug">
                   ভূমি পরিমাপ ও নকশা প্রতিবেদন
                 </h1>
-                <p className="text-[10px] text-gray-500 font-medium tracking-wide">
+                <p className="text-xs text-gray-500 font-medium tracking-wide">
                   LAND MEASUREMENT &amp; SURVEY REPORT
                 </p>
               </div>
 
               {/* Right Reference Meta */}
-              <div className="text-right text-[10px] text-gray-500 space-y-0.5 min-w-28">
+              <div className="text-right text-xs text-gray-500 space-y-0.5 min-w-28">
                 <div>তারিখ: <strong className="text-gray-800 font-semibold">{displayDate}</strong></div>
                 <div>প্লট সংখ্যা: <strong className="text-teal-800 font-semibold">{toBengaliDigits(plots.length)} টি</strong></div>
               </div>
@@ -150,7 +150,7 @@ export const PrintLayout = React.forwardRef<HTMLDivElement, unknown>((_, ref) =>
                   <span className="font-black text-teal-800 text-[12px]">
                     {toBengaliDigits(totalShotok)} শতক
                   </span>
-                  <span className="text-gray-600 text-[10px]">
+                  <span className="text-gray-600 text-xs">
                     ({toBengaliDigits(totalKatha)} কাঠা / {toBengaliDigits(totalSqft)} বর্গফুট)
                   </span>
                 </div>
@@ -210,7 +210,7 @@ export const PrintLayout = React.forwardRef<HTMLDivElement, unknown>((_, ref) =>
           {/* ── PLOTS BREAKDOWN TABLE (যদি একাধিক প্লট থাকে) ─── */}
           {plots.length > 1 && (
             <div className="mb-2">
-              <table className="w-full text-center border-collapse text-[10px] border border-gray-200">
+              <table className="w-full text-center border-collapse text-xs border border-gray-200">
                 <thead>
                   <tr className="bg-teal-800 text-white font-semibold">
                     <th className="py-1 px-2 border border-teal-700">প্লট নং</th>

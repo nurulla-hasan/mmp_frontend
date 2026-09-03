@@ -27,7 +27,7 @@ function ServiceActionsCell({ service }: { service: ServiceRow }) {
   };
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 justify-end">
       {/* 1. Edit Action Modal */}
       <ServiceModal actionType="edit" defaultData={service} />
 
@@ -114,7 +114,7 @@ export const serviceColumns: ColumnDef<ServiceRow>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
+    header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => <ServiceActionsCell service={row.original} />,
   },
 ];

@@ -95,7 +95,7 @@ function BroadcastActionsCell({ broadcast }: { broadcast: BroadcastRow }) {
   };
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 justify-end">
       {/* 1. Quick Power Toggle */}
       <Button
         variant={broadcast.isActive ? "default" : "outline"}
@@ -204,7 +204,7 @@ export const broadcastColumns: ColumnDef<BroadcastRow>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
+    header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => <BroadcastActionsCell broadcast={row.original} />,
   },
 ];

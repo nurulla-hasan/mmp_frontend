@@ -186,7 +186,7 @@ const MapUploadSection = memo(function MapUploadSection() {
                   >
                     {formerMapName || "former_map.png"}
                   </p>
-                  <p className="text-[10px] text-destructive">
+                  <p className="text-xs text-destructive">
                     Former Map (C.S / Red)
                   </p>
                 </div>
@@ -251,7 +251,7 @@ const MapUploadSection = memo(function MapUploadSection() {
                   >
                     {currentMapName || "current_map.png"}
                   </p>
-                  <p className="text-[10px] text-primary">
+                  <p className="text-xs text-primary">
                     Current Map (B.S / Green)
                   </p>
                 </div>
@@ -584,7 +584,7 @@ const LineSmoothingSection = memo(function LineSmoothingSection() {
         onChange={(e) => setLineSmoothing(Number(e.target.value))}
         className={sliderCls("primary")}
       />
-      <p className="text-[10px] text-muted-foreground leading-tight">
+      <p className="text-xs text-muted-foreground leading-tight">
         Adjust the slider to make lines smoother and clearer
       </p>
     </div>
@@ -648,7 +648,7 @@ const MatchPointsSection = memo(function MatchPointsSection() {
           <Crosshair className="size-3.5 text-primary" />
           <span>Match Points ({matchPoints.length})</span>
         </h3>
-        <Badge variant="outline" className="font-mono text-[10px]">
+        <Badge variant="outline" className="font-mono text-xs">
           {matchPoints.length} pair
         </Badge>
       </div>
@@ -664,7 +664,7 @@ const MatchPointsSection = memo(function MatchPointsSection() {
                 Point #{index + 1}
               </span>
               {point.current === null && (
-                <span className="text-[10px] text-destructive">
+                <span className="text-xs text-destructive">
                   (Incomplete)
                 </span>
               )}

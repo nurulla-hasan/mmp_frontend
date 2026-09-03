@@ -109,7 +109,7 @@ function UserActionsCell({ user }: { user: UserRow }) {
   const nextStatus: TUserStatus = user.status === "ACTIVE" ? "BLOCKED" : "ACTIVE";
 
   return (
-    <>
+    <div className="flex justify-end">
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
@@ -260,7 +260,7 @@ function UserActionsCell({ user }: { user: UserRow }) {
         isLoading={isDeleting}
         onConfirm={handleDelete}
       />
-    </>
+    </div>
   );
 }
 
@@ -348,7 +348,7 @@ export const userColumns: ColumnDef<UserRow>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
+    header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => <UserActionsCell user={row.original} />,
   },
 ];

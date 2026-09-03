@@ -61,7 +61,7 @@ function ReviewActionsCell({ review }: { review: ReviewRow }) {
   };
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 justify-end">
       {/* 1. Approve Button (if not already approved) */}
       {status !== "APPROVED" && (
         <ConfirmationModal
@@ -263,7 +263,7 @@ export const reviewColumns: ColumnDef<ReviewRow>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
+    header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => <ReviewActionsCell review={row.original} />,
   },
 ];

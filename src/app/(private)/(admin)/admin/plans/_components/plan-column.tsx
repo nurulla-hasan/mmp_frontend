@@ -52,7 +52,7 @@ function PlanActionsCell({ plan }: { plan: PlanRow }) {
   };
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 justify-end">
       {/* 1. Quick Toggle Active/Inactive */}
       <Button
         variant={plan.isActive ? "default" : "outline"}
@@ -178,7 +178,7 @@ export const planColumns: ColumnDef<PlanRow>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
+    header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => <PlanActionsCell plan={row.original} />,
   },
 ];

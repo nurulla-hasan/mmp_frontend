@@ -119,7 +119,7 @@ const BackgroundSection = memo(function BackgroundSection() {
         {backgroundImage && (
           <Badge
             variant="outline"
-            className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
+            className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
           >
             Connected
           </Badge>
@@ -147,7 +147,7 @@ const BackgroundSection = memo(function BackgroundSection() {
               >
                 {backgroundImageName || "mouza_map.png"}
               </p>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Canvas Map
               </p>
             </div>
@@ -372,7 +372,7 @@ const LayersSection = memo(function LayersSection() {
                         <Palette className="size-3" />
                         Select Color:
                       </span>
-                      <span className="font-mono text-[10px]">
+                      <span className="font-mono text-xs">
                         {layer.color}
                       </span>
                     </div>
@@ -463,7 +463,7 @@ const DrawingListSection = memo(function DrawingListSection() {
         <div className="space-y-2">
           <h3 className="text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-between">
             <span>Boundary Lines</span>
-            <Badge variant="outline" className="text-[10px]">
+            <Badge variant="outline" className="text-xs">
               {activeLayer.polygons.length}
             </Badge>
           </h3>
@@ -521,7 +521,7 @@ const DrawingListSection = memo(function DrawingListSection() {
         <div className="space-y-2">
           <h3 className="text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-between">
             <span>Plot Numbers</span>
-            <Badge variant="outline" className="text-[10px]">
+            <Badge variant="outline" className="text-xs">
               {activeLayer.labels.length}
             </Badge>
           </h3>
@@ -607,7 +607,7 @@ const ExportSection = memo(function ExportSection() {
                   {l.name}
                 </span>
               </div>
-              <span className="text-[10px] text-muted-foreground font-mono">
+              <span className="text-xs text-muted-foreground font-mono">
                 {l.polygons.length} boundaries
               </span>
             </div>

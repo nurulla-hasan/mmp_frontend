@@ -159,7 +159,7 @@ export function LandToolsSection() {
                       <span className="text-xs font-mono font-bold text-foreground">
                         {toBengaliDigits(sqFeet.toFixed(1))}
                       </span>
-                      <span className="text-[10px] text-muted-foreground mt-0.5">
+                      <span className="text-xs text-muted-foreground mt-0.5">
                         বর্গফুট
                       </span>
                     </div>
@@ -167,7 +167,7 @@ export function LandToolsSection() {
                       <span className="text-xs font-mono font-bold text-foreground">
                         {toBengaliDigits(katha.toFixed(2))}
                       </span>
-                      <span className="text-[10px] text-muted-foreground mt-0.5">
+                      <span className="text-xs text-muted-foreground mt-0.5">
                         কাঠা
                       </span>
                     </div>
@@ -175,7 +175,7 @@ export function LandToolsSection() {
                       <span className="text-xs font-mono font-bold text-foreground">
                         {toBengaliDigits(bigha.toFixed(3))}
                       </span>
-                      <span className="text-[10px] text-muted-foreground mt-0.5">
+                      <span className="text-xs text-muted-foreground mt-0.5">
                         বিঘা
                       </span>
                     </div>

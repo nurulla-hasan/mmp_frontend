@@ -97,7 +97,7 @@ export default memo(function SettingsPanel({
           {image && (
             <Badge
               variant="outline"
-              className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
+              className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
             >
               Connected
             </Badge>
@@ -117,7 +117,7 @@ export default memo(function SettingsPanel({
                 >
                   {mapName || "mouza-map"}
                 </p>
-                <p className="text-[10px] text-primary">
+                <p className="text-xs text-primary">
                   Mouza map ready
                 </p>
               </div>
@@ -162,7 +162,7 @@ export default memo(function SettingsPanel({
                 <Crosshair className="size-3.5 text-primary" />
                 <span>Control Points</span>
               </h3>
-              <Badge variant="outline" className="font-mono text-[10px]">
+              <Badge variant="outline" className="font-mono text-xs">
                 {controlPairs.length} pair
               </Badge>
             </div>
@@ -174,7 +174,7 @@ export default memo(function SettingsPanel({
                   className="flex items-center justify-between gap-2 rounded-xl border border-border/70 bg-card p-2 shadow-xs"
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-xs text-primary-foreground">
                       {index + 1}
                     </span>
                     <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-muted-foreground">

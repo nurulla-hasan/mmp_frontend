@@ -10,6 +10,7 @@ export const CACHE_TAGS = {
   PLANS: "plans",
   SUBSCRIBERS: "subscribers",
   BROADCASTS: "broadcasts",
+  DISTRICTS: "districts",
 } as const;
 
 export const CACHE_TIME = {

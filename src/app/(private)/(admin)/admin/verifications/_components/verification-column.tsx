@@ -54,7 +54,7 @@ function VerificationActionsCell({ request }: { request: VerificationRow }) {
   };
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 justify-end">
       {/* 1. View Details Modal */}
       <VerificationDetailsModal request={request} />
 
@@ -228,7 +228,7 @@ export const verificationColumns: ColumnDef<VerificationRow>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
+    header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => <VerificationActionsCell request={row.original} />,
   },
 ];

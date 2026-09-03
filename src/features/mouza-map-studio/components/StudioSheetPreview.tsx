@@ -58,7 +58,7 @@ export default function StudioSheetPreview({
                       <h1 className="text-lg font-black uppercase tracking-tight text-teal-950 leading-tight">
                         {sheetDetails.title || 'C.S & B.S MOUZA MAP COMPARISON'}
                       </h1>
-                      <p className="text-[10px] text-teal-700 font-semibold tracking-wider uppercase">
+                      <p className="text-xs text-teal-700 font-semibold tracking-wider uppercase">
                         DIGITAL OVERLAY &amp; BOUNDARY ALIGNMENT REPORT
                       </p>
                     </div>
@@ -176,8 +176,8 @@ export default function StudioSheetPreview({
                 </div>
 
                 {/* 2. Structured Technical Title Block */}
-                <div className="rounded border border-gray-300 bg-white overflow-hidden text-[10px] my-2">
-                  <div className="bg-teal-900 text-white font-bold px-2 py-1 text-center tracking-wider text-[10px] uppercase">
+                <div className="rounded border border-gray-300 bg-white overflow-hidden text-xs my-2">
+                  <div className="bg-teal-900 text-white font-bold px-2 py-1 text-center tracking-wider text-xs uppercase">
                     SHEET SPECIFICATIONS
                   </div>
                   <div className="divide-y divide-gray-200">
@@ -200,7 +200,7 @@ export default function StudioSheetPreview({
                     </span>
                     <div className="w-36 border-b border-gray-400" />
                   </div>
-                  <div className="text-[10px] font-bold text-gray-800 uppercase">
+                  <div className="text-xs font-bold text-gray-800 uppercase">
                     SURVEYOR SIGNATURE &amp; SEAL
                   </div>
                   <div className="text-[8px] text-gray-500">

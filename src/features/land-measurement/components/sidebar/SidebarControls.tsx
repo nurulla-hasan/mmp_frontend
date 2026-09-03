@@ -262,7 +262,7 @@ export const SidebarControls = memo(function SidebarControls() {
                 >
                   <Plus />
                   <span>Add Point</span>
-                  <span className="ml-0.5 px-1.5 py-0.2 bg-white/20 rounded-full font-mono text-[10px]">
+                  <span className="ml-0.5 px-1.5 py-0.2 bg-white/20 rounded-full font-mono text-xs">
                     {calibrationLine.length / 2}/2
                   </span>
                 </Button>
@@ -349,7 +349,7 @@ export const SidebarControls = memo(function SidebarControls() {
             <Plus />
             <span>Add Point</span>
             {plotPoints.length > 0 && (
-              <span className="ml-0.5 px-1.5 py-0.2 bg-white/20 rounded-full font-mono text-[10px]">
+              <span className="ml-0.5 px-1.5 py-0.2 bg-white/20 rounded-full font-mono text-xs">
                 {plotPoints.length}
               </span>
             )}
@@ -408,7 +408,7 @@ export const SidebarControls = memo(function SidebarControls() {
                     </div>
                     <Badge
                       variant="outline"
-                      className={`h-5 text-[10px] px-1.5 font-mono ${
+                      className={`h-5 text-xs px-1.5 font-mono ${
                         Math.abs(manualCutSplits.resA.shotok - manualCutSplits.resB.shotok) < 0.02
                           ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/40 font-bold"
                           : "text-muted-foreground bg-muted/40 border-border/40"

@@ -61,7 +61,7 @@ export function GrowthChart({ data }: GrowthChartProps) {
                   title={`Subscribers: ${item.subscribers}`}
                 />
               </div>
-              <span className="text-[10px] text-muted-foreground font-mono truncate">
+              <span className="text-xs text-muted-foreground font-mono truncate">
                 {item.month}
               </span>
             </div>

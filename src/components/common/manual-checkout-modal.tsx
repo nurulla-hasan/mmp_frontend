@@ -200,7 +200,7 @@ export function ManualCheckoutModal({
                   <span className="font-bold text-sm text-foreground">
                     {plan.name}
                   </span>
-                  <Badge variant="progress" className="text-[10px] py-0">
+                  <Badge variant="progress" className="text-xs py-0">
                     {plan.durationDays} Days
                   </Badge>
                 </div>

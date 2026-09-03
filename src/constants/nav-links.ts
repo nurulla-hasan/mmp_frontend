@@ -94,6 +94,11 @@ export const adminNavigation: NavigationItem[] = [
     icon: Wrench,
   },
   {
+    title: "Service Areas",
+    href: "/admin/service-areas",
+    icon: MapPin,
+  },
+  {
     title: "Broadcast",
     href: "/admin/broadcast",
     icon: Megaphone,
