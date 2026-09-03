@@ -2,70 +2,23 @@ import { jwtDecode } from "jwt-decode";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-type UserRole = "USER" | "SURVEYOR" | "ADMIN" | "SUPER_ADMIN";
-
 interface TokenPayload {
   exp?: number;
-  role?: unknown;
+  role?: string;
   isSubscribed?: boolean;
 }
 
-const PUBLIC_PREFIXES = [
-  "/",
-  "/about",
-  "/contact",
-  "/fraud-awareness",
-  "/pricing",
-  "/surveyors",
-  "/join-as-surveyor",
-  "/auth/success",
+// ── 1. Routes derived directly from app/(private) folder ──────────────────────
+const PRIVATE_ROUTES = [
+  "/admin",
+  "/dashboard",
+  "/surveyor",
+  "/tools",
+  "/calculations",
+  "/community",
 ];
 
-const FREE_TOOL_ROUTES = [
-  "/tools/unit-converter",
-  "/tools/inheritance-calculator",
-  "/tools/scale-guide",
-];
-
-const PRO_ONLY_TOOL_ROUTES = [
-  "/tools/land-measurement",
-  "/tools/pantagraph",
-  "/tools/tracer",
-  "/tools/mouza-map-studio",
-  "/tools/mouza-geo-studio",
-];
-
-const isPublicRoute = (pathname: string): boolean => {
-  // 1. Pro tools must NEVER be public
-  if (
-    PRO_ONLY_TOOL_ROUTES.some(
-      (route) => pathname === route || pathname.startsWith(`${route}/`),
-    )
-  ) {
-    return false;
-  }
-
-  // 2. Exact "/tools" hub page
-  if (pathname === "/tools") {
-    return true;
-  }
-
-  // 3. Free specific tools
-  if (
-    FREE_TOOL_ROUTES.some(
-      (route) => pathname === route || pathname.startsWith(`${route}/`),
-    )
-  ) {
-    return true;
-  }
-
-  // 4. Other standard public prefixes
-  return PUBLIC_PREFIXES.some((route) => {
-    if (route === "/") return pathname === "/";
-    return pathname === route || pathname.startsWith(`${route}/`);
-  });
-};
-
+// ── 2. Routes derived directly from app/(auth) folder ─────────────────────────
 const AUTH_ROUTES = [
   "/login",
   "/register",
@@ -74,57 +27,71 @@ const AUTH_ROUTES = [
   "/verify-code",
 ];
 
-// Set to true to enforce route protection
-const IS_PROTECTION_ON = true;
+// ── 3. Pro-only tools requiring active subscription ───────────────────────────
+const PRO_TOOL_ROUTES = [
+  "/tools/land-measurement",
+  "/tools/mouza-geo-studio",
+  "/tools/mouza-map-studio",
+  "/tools/pantagraph",
+  "/tools/tracer",
+];
 
-const ROLE_HOME: Record<UserRole, string> = {
+// ── 3. Default redirect destinations by user role ─────────────────────────────
+const ROLE_HOME: Record<string, string> = {
   USER: "/dashboard/profile",
   SURVEYOR: "/surveyor/profile",
   ADMIN: "/admin/dashboard",
   SUPER_ADMIN: "/admin/dashboard",
 };
 
-const decodeToken = (token: string): TokenPayload | null => {
+function decodeToken(token?: string): TokenPayload | null {
+  if (!token) return null;
   try {
     return jwtDecode<TokenPayload>(token);
   } catch {
     return null;
   }
-};
+}
 
-const isExpired = (token: string): boolean => {
+// ── Explicit Token Expiry Check ───────────────────────────────────────────────
+function isTokenExpired(token?: string): boolean {
+  if (!token) return true;
   const payload = decodeToken(token);
-
   if (!payload?.exp) return true;
-
+  // exp is in seconds, Date.now() is in milliseconds
   return Date.now() / 1000 >= payload.exp;
-};
+}
 
-const getRole = (token: string): UserRole | null => {
-  const payload = decodeToken(token);
-  const role = payload?.role as string;
+function getValidSession(token?: string): TokenPayload | null {
+  if (!token || isTokenExpired(token)) return null;
+  return decodeToken(token);
+}
 
-  return role === "USER" ||
-    role === "SURVEYOR" ||
-    role === "ADMIN" ||
-    role === "SUPER_ADMIN"
-    ? (role as UserRole)
-    : null;
-};
+async function refreshAccessToken(refreshToken: string): Promise<string | null> {
+  try {
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL || "https://apis.mouzamappro.com/api/v1";
+    const res = await fetch(`${apiUrl.replace(/\/$/, "")}/auth/refresh-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+      cache: "no-store",
+    });
 
-const getIsSubscribed = (token: string): boolean => {
-  const payload = decodeToken(token);
-  return !!payload?.isSubscribed;
-};
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.data?.accessToken || null;
+  } catch {
+    return null;
+  }
+}
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
-  if (!IS_PROTECTION_ON) {
-    return NextResponse.next();
-  }
+  const { pathname, search } = request.nextUrl;
 
-  const pathname = request.nextUrl.pathname;
-
-  const isPublic = isPublicRoute(pathname);
+  const isPrivateRoute = PRIVATE_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
 
   const isAuthRoute = AUTH_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
@@ -132,100 +99,77 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   let accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
-  let newAccessToken: string | undefined;
+  let newAccessToken: string | null = null;
 
-  // Try to refresh token if missing or expired
-  if ((!accessToken || isExpired(accessToken)) && refreshToken) {
-    try {
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
-      const res = await fetch(`${apiUrl}/auth/refresh-token`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
+  let session = getValidSession(accessToken);
 
-      const data = await res.json();
-
-      if (data?.success && data?.data?.accessToken) {
-        newAccessToken = data.data.accessToken;
-        accessToken = newAccessToken;
-      }
-    } catch (error) {
-      console.error("Token refresh failed in proxy:", error);
+  // ── Auto-refresh: If access token expired/missing but valid refresh token exists ───
+  if (!session && refreshToken && !isTokenExpired(refreshToken)) {
+    newAccessToken = await refreshAccessToken(refreshToken);
+    if (newAccessToken) {
+      accessToken = newAccessToken;
+      session = getValidSession(newAccessToken);
     }
   }
 
-  const role =
-    accessToken && !isExpired(accessToken) ? getRole(accessToken) : null;
-  const isSubscribed =
-    accessToken && !isExpired(accessToken)
-      ? getIsSubscribed(accessToken)
-      : false;
+  const isAuthenticated = Boolean(session);
+  let response = NextResponse.next();
 
-  let response: NextResponse;
+  // ── 1. Unauthenticated users trying to access private routes ────────────────
+  if (isPrivateRoute && !isAuthenticated) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", pathname + search);
+    response = NextResponse.redirect(loginUrl);
+  }
+  // ── 2. Already authenticated users trying to access auth routes ─────────────
+  else if (isAuthRoute && isAuthenticated) {
+    const role = session?.role || "USER";
+    const redirectUrl = ROLE_HOME[role] || "/dashboard/profile";
+    response = NextResponse.redirect(new URL(redirectUrl, request.url));
+  }
+  // ── 3. Strict Role Isolation: Nobody can enter another role's private portal ──
+  else if (isAuthenticated && session?.role) {
+    const role = session.role;
 
-  // ── 1. ADMIN & SUPER_ADMIN Rule: Admins can ONLY access /admin/* routes ─────────
-  // If an Admin/Super Admin tries to access ANY other route (/tools, /calculations, /, /about, etc.),
-  // they are strictly redirected to /admin/dashboard
-  if (
-    (role === "ADMIN" || role === "SUPER_ADMIN") &&
-    !pathname.startsWith("/admin")
-  ) {
-    response = NextResponse.redirect(new URL("/admin/dashboard", request.url));
-  }
-  // ── 2. SURVEYOR Rule: Stealth Mode on /join-as-surveyor ──────────
-  else if (role === "SURVEYOR" && pathname.startsWith("/join-as-surveyor")) {
-    response = NextResponse.redirect(new URL("/not-found", request.url));
-  }
-  // ── 3. Authenticated Users on Auth Routes (/login, /register, etc.) ──
-  else if (isAuthRoute && role) {
-    response = NextResponse.redirect(new URL(ROLE_HOME[role], request.url));
-  }
-  // ── 4. Protected Private Routes Guard (/tools Pro routes, /calculations, /dashboard, /admin, etc.) ──
-  else if (!isPublic && !isAuthRoute) {
-    if (!accessToken || isExpired(accessToken)) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set(
-        "callbackUrl",
-        pathname + request.nextUrl.search,
-      );
-      response = NextResponse.redirect(loginUrl);
+    // 1. Admin Jail: ADMIN & SUPER_ADMIN can ONLY access /admin/* routes
+    if (
+      (role === "ADMIN" || role === "SUPER_ADMIN") &&
+      !pathname.startsWith("/admin")
+    ) {
+      response = NextResponse.redirect(new URL("/admin/dashboard", request.url));
+    }
+    // 2. Non-admin trying to access /admin — blocked
+    else if (
+      pathname.startsWith("/admin") &&
+      role !== "ADMIN" &&
+      role !== "SUPER_ADMIN"
+    ) {
+      response = NextResponse.redirect(new URL("/not-found", request.url));
+    }
+    // 3. /surveyor — ONLY SURVEYOR allowed (neither USER nor ADMIN)
+    else if (pathname.startsWith("/surveyor") && role !== "SURVEYOR") {
+      response = NextResponse.redirect(new URL("/not-found", request.url));
+    }
+    // 4. /dashboard — ONLY regular USER allowed (neither SURVEYOR nor ADMIN)
+    else if (pathname.startsWith("/dashboard") && role !== "USER") {
+      response = NextResponse.redirect(new URL("/not-found", request.url));
+    }
+    // 5. Pro-only tools guard: Non-subscribed users redirected to /pricing
+    else if (
+      PRO_TOOL_ROUTES.some(
+        (route) => pathname === route || pathname.startsWith(`${route}/`),
+      ) &&
+      !session.isSubscribed
+    ) {
+      response = NextResponse.redirect(new URL("/pricing", request.url));
     } else {
-      if (!role) {
-        response = NextResponse.redirect(new URL("/login", request.url));
-      }
-      // Subscription protection for Pro-only tools: Free users trying to access Pro tools are redirected to /pricing
-      else if (
-        PRO_ONLY_TOOL_ROUTES.some(
-          (route) => pathname === route || pathname.startsWith(`${route}/`),
-        ) &&
-        !isSubscribed
-      ) {
-        response = NextResponse.redirect(new URL("/pricing", request.url));
-      }
-      // Role-based access control
-      else if (pathname.startsWith("/dashboard") && role !== "USER") {
-        response = NextResponse.redirect(new URL("/not-found", request.url));
-      } else if (pathname.startsWith("/surveyor") && role !== "SURVEYOR") {
-        response = NextResponse.redirect(new URL("/not-found", request.url));
-      } else if (
-        pathname.startsWith("/admin") &&
-        role !== "ADMIN" &&
-        role !== "SUPER_ADMIN"
-      ) {
-        response = NextResponse.redirect(new URL("/not-found", request.url));
-      } else {
-        response = NextResponse.next();
-      }
+      response = NextResponse.next();
     }
   } else {
     response = NextResponse.next();
   }
 
-  // If a new access token was fetched, set it in the response cookies
+  // ── Set newly refreshed accessToken in response cookie ──────────────────────
   if (newAccessToken) {
     response.cookies.set("accessToken", newAccessToken, {
       httpOnly: true,
@@ -243,6 +187,6 @@ export default proxy;
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|assets|.*\\..*).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|robots.txt|sitemap.xml|assets|.*\\..*).*)",
   ],
 };
