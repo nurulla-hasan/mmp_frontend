@@ -210,13 +210,13 @@ export const subscriberColumns: ColumnDef<SubscriberRow>[] = [
             </Badge>
           </div>
           {sub.transactionId && (
-            <div className="flex items-center gap-1 mt-0.5 font-mono text-[11px] text-foreground font-medium">
+            <div className="flex items-center gap-1 mt-0.5 font-mono text-xs text-foreground font-medium">
               <span className="text-muted-foreground">Trx:</span>
               <span className="text-primary font-bold">{sub.transactionId}</span>
             </div>
           )}
           {sub.senderPhone && (
-            <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <span>From:</span>
               <span>{sub.senderPhone}</span>
             </div>

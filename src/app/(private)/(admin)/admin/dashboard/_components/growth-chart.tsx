@@ -20,7 +20,7 @@ export function GrowthChart({ data }: GrowthChartProps) {
           <span className="text-xs font-semibold text-foreground">
             Platform Growth Trend
           </span>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             User registrations & active pro subscriptions over time
           </span>
         </div>

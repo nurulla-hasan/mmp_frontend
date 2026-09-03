@@ -75,7 +75,7 @@ export function QuickActionsSection() {
                       >
                         <Icon className="size-5" />
                       </div>
-                      <span className="rounded-sm bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                      <span className="rounded-sm bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                         {card.tag}
                       </span>
                     </div>

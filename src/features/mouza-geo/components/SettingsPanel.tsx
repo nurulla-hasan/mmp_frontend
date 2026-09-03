@@ -177,7 +177,7 @@ export default memo(function SettingsPanel({
                     <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-xs text-primary-foreground">
                       {index + 1}
                     </span>
-                    <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-muted-foreground">
+                    <span className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">
                       {pair.world.lat.toFixed(5)}, {pair.world.lng.toFixed(5)}
                     </span>
                   </div>
@@ -195,7 +195,7 @@ export default memo(function SettingsPanel({
               ))}
 
               {controlPairs.length === 0 && (
-                <p className="text-[11px] leading-4 text-muted-foreground">
+                <p className="text-xs leading-4 text-muted-foreground">
                   Click a point on the PDF to open World Map. Click the matching location to pair.
                 </p>
               )}
@@ -237,7 +237,7 @@ export default memo(function SettingsPanel({
                   <span className="text-xs text-muted-foreground">
                     Line Detection Sensitivity
                   </span>
-                  <Badge variant="outline" className="font-mono text-[11px] text-primary bg-primary/5 border-primary/30">
+                  <Badge variant="outline" className="font-mono text-xs text-primary bg-primary/5 border-primary/30">
                     {backgroundSensitivity}%
                   </Badge>
                 </div>
@@ -289,7 +289,7 @@ export default memo(function SettingsPanel({
               <span className="text-xs text-foreground">
                 PDF Opacity
               </span>
-              <Badge variant="outline" className="font-mono text-[11px]">
+              <Badge variant="outline" className="font-mono text-xs">
                 {Math.round(opacity * 100)}%
               </Badge>
             </div>
@@ -441,7 +441,7 @@ export default memo(function SettingsPanel({
               <HelpCircle className="size-3.5" />
               <span>Georeferencing Guide</span>
             </div>
-            <div className="space-y-1 text-muted-foreground text-[11px] leading-relaxed">
+            <div className="space-y-1 text-muted-foreground text-xs leading-relaxed">
               <p className="flex items-start gap-1.5">
                 <span className="size-1.5 rounded-full bg-primary shrink-0 mt-1" />
                 <span>1. Upload a Mouza Map PDF / Image.</span>

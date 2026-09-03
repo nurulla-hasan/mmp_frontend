@@ -134,7 +134,7 @@ export function LandToolsSection() {
                       <RefreshCw className="size-3.5 text-primary" />
                       <span>লাইভ একক হিসাব ডেমো</span>
                     </div>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       তাৎক্ষণিক রূপান্তর
                     </span>
                   </div>

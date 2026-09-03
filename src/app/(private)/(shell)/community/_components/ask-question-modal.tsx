@@ -17,12 +17,18 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { categories } from "@/app/(private)/(shell)/community/_data";
 
-export function AskQuestionModal() {
+export function AskQuestionModal({
+  customTrigger,
+}: {
+  customTrigger?: React.ReactNode;
+} = {}) {
  return (
  <ModalWrapper
  title="প্রশ্ন জিজ্ঞাসা করুন"
  description="আপনার জমি সংক্রান্ত সমস্যা বিস্তারিত লিখুন। অভিজ্ঞ সার্ভেয়ার ও কমিউনিটি সদস্যরা উত্তর দিতে সাহায্য করবেন।"
- actionTrigger={<Button size="lg">প্রশ্ন জিজ্ঞাসা করুন</Button>}
+ actionTrigger={
+  customTrigger || <Button size="lg">প্রশ্ন জিজ্ঞাসা করুন</Button>
+ }
  >
  <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
  {/* Title */}

@@ -130,7 +130,7 @@ export function CertificateUpload({
               ক্লিক করে ফাইল বাছুন অথবা এখানে ড্র্যাগ করে এনে ছাড়ুন
             </p>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/80 font-mono">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground/80 font-mono">
             <span>PDF, JPG, PNG বা WebP</span>
             <span>•</span>
             <span>সর্বোচ্চ ১০MB</span>
@@ -163,7 +163,7 @@ export function CertificateUpload({
               <p className="text-xs sm:text-sm font-medium text-foreground truncate max-w-50 sm:max-w-xs md:max-w-md">
                 {file.name}
               </p>
-              <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground font-mono">
+              <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground font-mono">
                 <span>{isPdf ? "PDF Document" : "Image File"}</span>
                 <span>•</span>
                 <span>{formattedSize}</span>

@@ -264,7 +264,7 @@ export function ManualCheckoutModal({
               {getTargetNumber()}
             </div>
 
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Send <span className="font-bold text-foreground">৳{plan.price}</span>{" "}
               via Send Money to the number above, then submit your details below.
             </p>

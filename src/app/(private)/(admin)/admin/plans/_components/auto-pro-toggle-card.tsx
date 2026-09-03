@@ -154,7 +154,7 @@ export function AutoProToggleCard({
                       </span>
                     )}
                   </div>
-                  <div className="mt-1.5 flex w-full items-center justify-between text-[11px] text-muted-foreground">
+                  <div className="mt-1.5 flex w-full items-center justify-between text-xs text-muted-foreground">
                     <span>{plan.durationDays} Days</span>
                     <span className="font-mono font-medium text-foreground">
                       ৳{plan.price}

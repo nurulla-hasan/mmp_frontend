@@ -200,7 +200,7 @@ export function PricingCards({
                     <div className="flex items-center gap-2">
                       <h3 className="text-xl font-bold font-heading">{plan.name}</h3>
                       {isActivePlan && (
-                        <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md">
                           সক্রিয়
                         </span>
                       )}
@@ -279,7 +279,7 @@ export function PricingCards({
                     >
                       ডাউনগ্রেড অনুপলব্ধ
                     </Button>
-                    <p className="text-[11px] text-center text-muted-foreground">
+                    <p className="text-xs text-center text-muted-foreground">
                       বর্তমান প্ল্যানের মেয়াদ শেষ হলে নিতে পারবেন
                     </p>
                   </div>

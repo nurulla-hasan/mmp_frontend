@@ -66,11 +66,11 @@ export default function StudioSheetPreview({
 
                   {/* Legend Badges */}
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 border border-red-200 text-[11px] font-bold text-red-700">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 border border-red-200 text-xs font-bold text-red-700">
                       <span className="size-2 rounded-full bg-red-600 shrink-0" />
                       C.S MAP (RED / সাবেক)
                     </span>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-800">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800">
                       <span className="size-2 rounded-full bg-emerald-600 shrink-0" />
                       B.S MAP (GREEN / হাল)
                     </span>
@@ -195,7 +195,7 @@ export default function StudioSheetPreview({
                 {/* 3. Surveyor Signature & Seal Block */}
                 <div className="rounded border border-dashed border-gray-400 p-2 text-center bg-gray-50/50">
                   <div className="h-10 flex flex-col justify-end items-center mb-1">
-                    <span className="font-bold text-[11px] text-teal-950 pb-0.5">
+                    <span className="font-bold text-xs text-teal-950 pb-0.5">
                       {sheetDetails.surveyorName || ''}
                     </span>
                     <div className="w-36 border-b border-gray-400" />

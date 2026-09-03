@@ -361,7 +361,7 @@ export function HeroSection({
                       <circle cx="15" cy="14" r="2" fill="#dc2626" />
                     </svg>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground truncate">
+                  <div className="flex items-center justify-between text-xs font-medium text-muted-foreground truncate">
                     <span>সাবেক ও হাল মিলান</span>
                     <span className="text-[9px] text-emerald-400 font-mono font-semibold">৯৮.৫% মিল</span>
                   </div>
@@ -406,7 +406,7 @@ export function HeroSection({
                       <circle cx="68" cy="48" r="2.2" fill="var(--color-primary)" />
                     </svg>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground truncate">
+                  <div className="flex items-center justify-between text-xs font-medium text-muted-foreground truncate">
                     <span>ভেক্টর বাউন্ডারি ট্রেস</span>
                     <span className="text-[9px] text-teal-400 font-mono font-semibold">SVG / CAD</span>
                   </div>

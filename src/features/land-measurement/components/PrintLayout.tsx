@@ -118,7 +118,7 @@ export const PrintLayout = React.forwardRef<HTMLDivElement, unknown>((_, ref) =>
             </div>
 
             {/* ── LAND RECORD METADATA BOX (তথ্য বিবরণী) ─── */}
-            <div className="rounded border border-teal-200 bg-teal-50/30 p-2.5 text-[11px] leading-relaxed">
+            <div className="rounded border border-teal-200 bg-teal-50/30 p-2.5 text-xs leading-relaxed">
               <div className="grid grid-cols-4 gap-x-4 gap-y-1.5">
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-gray-600 font-semibold shrink-0">মৌজা:</span>
@@ -147,7 +147,7 @@ export const PrintLayout = React.forwardRef<HTMLDivElement, unknown>((_, ref) =>
 
                 <div className="flex items-baseline gap-1.5 col-span-2">
                   <span className="text-teal-900 font-bold shrink-0">মোট ক্ষেত্রফল:</span>
-                  <span className="font-black text-teal-800 text-[12px]">
+                  <span className="font-black text-teal-800 text-xs">
                     {toBengaliDigits(totalShotok)} শতক
                   </span>
                   <span className="text-gray-600 text-xs">
@@ -247,7 +247,7 @@ export const PrintLayout = React.forwardRef<HTMLDivElement, unknown>((_, ref) =>
 
           {/* ── SIGNATURES & VERIFICATION (স্বাক্ষর ও প্রত্যয়ন) ─── */}
           <div className="pt-2 pb-1 border-t border-gray-200">
-            <div className="grid grid-cols-3 gap-6 text-center text-[11px] text-gray-800">
+            <div className="grid grid-cols-3 gap-6 text-center text-xs text-gray-800">
               {/* Applicant / Land owner */}
               <div>
                 <div className="h-9 flex items-end justify-center mb-1">
@@ -269,7 +269,7 @@ export const PrintLayout = React.forwardRef<HTMLDivElement, unknown>((_, ref) =>
               {/* Surveyor */}
               <div>
                 <div className="h-9 flex flex-col justify-end items-center mb-1">
-                  <span className="font-bold text-[11px] text-teal-900 pb-0.5">
+                  <span className="font-bold text-xs text-teal-900 pb-0.5">
                     {reportInfo?.surveyorName || ''}
                   </span>
                   <div className="w-44 border-b border-dashed border-gray-500" />

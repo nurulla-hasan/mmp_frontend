@@ -164,7 +164,7 @@ export function ProfileEditModal({
                 <button
                   type="button"
                   onClick={copyPhoneToWhatsapp}
-                  className="flex items-center gap-1 text-[11px] text-primary hover:underline"
+                  className="flex items-center gap-1 text-xs text-primary hover:underline"
                 >
                   <Copy className="size-3" />
                   <span>মোবাইল নম্বর কপি করুন</span>

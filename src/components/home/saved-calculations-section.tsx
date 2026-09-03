@@ -89,7 +89,7 @@ export function SavedCalculationsSection() {
                     <h4 className="font-heading font-semibold text-sm text-foreground">
                       সংরক্ষিত প্রজেক্ট তালিকা
                     </h4>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       ক্লাউড সিঙ্কড হিস্ট্রি
                     </p>
                   </div>

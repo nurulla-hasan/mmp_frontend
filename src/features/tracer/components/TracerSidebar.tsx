@@ -300,7 +300,7 @@ const LayersSection = memo(function LayersSection() {
                 )}
 
                 {/* Stats badge */}
-                <span className="text-[11px] text-muted-foreground font-mono shrink-0">
+                <span className="text-xs text-muted-foreground font-mono shrink-0">
                   {layer.polygons.length} lines · {layer.labels.length} plots
                 </span>
 
@@ -494,7 +494,7 @@ const DrawingListSection = memo(function DrawingListSection() {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[11px] font-mono text-muted-foreground">
+                    <span className="text-xs font-mono text-muted-foreground">
                       {path.points.length} points
                     </span>
                     <button

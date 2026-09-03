@@ -33,7 +33,7 @@ export function MobileBottomNav({ user }: { user?: TAuthUser }) {
         <span className="flex size-7 items-center justify-center">
           <Home className="size-5" aria-hidden />
         </span>
-        <span className="text-[11px] leading-none">হোম</span>
+        <span className="text-xs leading-none">হোম</span>
       </Link>
 
       {/* 2. Surveyors (Left-Center) */}
@@ -48,7 +48,7 @@ export function MobileBottomNav({ user }: { user?: TAuthUser }) {
         <span className="flex size-7 items-center justify-center">
           <MapPin className="size-5" aria-hidden />
         </span>
-        <span className="text-[11px] leading-none">সার্ভেয়ার</span>
+        <span className="text-xs leading-none">সার্ভেয়ার</span>
       </Link>
 
       {/* 3. Land Tools (Center - Elevated Floating Button) */}
@@ -62,7 +62,7 @@ export function MobileBottomNav({ user }: { user?: TAuthUser }) {
         </span>
         <span
           className={cn(
-            "text-[11px] mt-1 leading-none font-medium transition-colors",
+            "text-xs mt-1 leading-none font-medium transition-colors",
             isToolsActive ? "text-primary" : "text-foreground",
           )}
         >
@@ -82,7 +82,7 @@ export function MobileBottomNav({ user }: { user?: TAuthUser }) {
         <span className="flex size-7 items-center justify-center">
           <Calculator className="size-5" aria-hidden />
         </span>
-        <span className="text-[11px] leading-none">হিসাব</span>
+        <span className="text-xs leading-none">হিসাব</span>
       </Link>
 
       {/* 5. Menu (Right - Drawer Trigger) */}
@@ -99,7 +99,7 @@ export function MobileBottomNav({ user }: { user?: TAuthUser }) {
               <span className="flex size-7 items-center justify-center">
                 <Menu className="size-5" aria-hidden />
               </span>
-              <span className="text-[11px] leading-none">মেনু</span>
+              <span className="text-xs leading-none">মেনু</span>
             </button>
           }
         />

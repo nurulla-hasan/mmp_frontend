@@ -27,15 +27,18 @@ export type Stat = {
 
 export type Question = {
   id: number;
+  slug: string;
   title: string;
   category: string;
   author: string;
+  authorRole?: string;
   avatar: string;
   answers: number;
   votes: number;
   time: string;
   hasAccepted: boolean;
   preview: string;
+  tags?: string[];
 };
 
 export type Contributor = {
@@ -109,12 +112,23 @@ export const categories: Category[] = [
 // Recent Questions
 // ---------------------------------------------------------------------------
 
+export const trendingTags = [
+  { tag: "খতিয়ান_যাচাই", count: 48 },
+  { tag: "মৌজা_ম্যাপ", count: 35 },
+  { tag: "সীমানা_বিরোধ", count: 29 },
+  { tag: "ফারায়েজ_হিসাব", count: 24 },
+  { tag: "দলিল_হারিয়ে_গেলে", count: 19 },
+  { tag: "নামজারি_মিউটেশন", count: 16 },
+];
+
 export const recentQuestions: Question[] = [
   {
     id: 1,
+    slug: "3-katha-jomite-ki-4-tola-bhaban-nirman-sombhob",
     title: "৩ কাঠা জমিতে কি ৪ তলা ভবন নির্মাণ সম্ভব?",
     category: "জমি পরিমাপ",
     author: "রফিকুল ইসলাম",
+    authorRole: "জমির মালিক",
     avatar: "র",
     answers: 3,
     votes: 12,
@@ -122,12 +136,15 @@ export const recentQuestions: Question[] = [
     hasAccepted: true,
     preview:
       "আমার ৩ কাঠা জমি আছে। সেখানে ৪ তলা ভবন নির্মাণের জন্য কী কী অনুমতি লাগবে এবং জমির পরিমাণ কি যথেষ্ট?",
+    tags: ["পরিমাপ", "ভবন_নির্মাণ", "রাজউক"],
   },
   {
     id: 2,
+    slug: "dolil-hariye-gele-notun-kore-koranor-niyom-ki",
     title: "দলিল হারিয়ে গেলে নতুন করে করানোর নিয়ম কী?",
     category: "দলিল ও খতিয়ান",
     author: "সাবিনা ইয়াসমিন",
+    authorRole: "সদস্য",
     avatar: "সা",
     answers: 5,
     votes: 24,
@@ -135,12 +152,15 @@ export const recentQuestions: Question[] = [
     hasAccepted: true,
     preview:
       "আমার জমির দলিল হারিয়ে গেছে। নতুন করে দলিল করানোর প্রক্রিয়া কী এবং এতে কতদিন সময় লাগে? কোন অফিসে যোগাযোগ করতে হবে?",
+    tags: ["দলিল", "খতিয়ান", "সাব-রেজিস্ট্রি"],
   },
   {
     id: 3,
+    slug: "mouza-mape-dag-number-chenar-upay-ki",
     title: "মৌজা ম্যাপে দাগ নম্বর চেনার উপায় কী?",
     category: "মৌজা ম্যাপ",
     author: "আব্দুল করিম",
+    authorRole: "শিক্ষানবিস সার্ভেয়ার",
     avatar: "আ",
     answers: 2,
     votes: 8,
@@ -148,12 +168,15 @@ export const recentQuestions: Question[] = [
     hasAccepted: false,
     preview:
       "আমি মৌজা ম্যাপ দেখতে পাচ্ছি কিন্তু দাগ নম্বরগুলো চিনতে পারছি না। কীভাবে বুঝব কোন দাগ কোন জমির? সহজ কোনো উপায় আছে?",
+    tags: ["মৌজা_ম্যাপ", "দাগ_নম্বর", "নকশা"],
   },
   {
     id: 4,
+    slug: "protibeshir-sathe-semana-birodh-somadhaner-upay",
     title: "প্রতিবেশীর সাথে সীমানা বিরোধ সমাধানের উপায়?",
     category: "সীমানা নির্ধারণ",
     author: "নাছরিন আক্তার",
+    authorRole: "সদস্য",
     avatar: "না",
     answers: 4,
     votes: 18,
@@ -161,12 +184,15 @@ export const recentQuestions: Question[] = [
     hasAccepted: false,
     preview:
       "প্রতিবেশীর সাথে জমির সীমানা নিয়ে বিরোধ চলছে। একজন সার্ভেয়ার দিয়ে পরিমাপ করালেও মানছে না। আইনি উপায় কী?",
+    tags: ["সীমানা_বিরোধ", "আইন", "সার্ভে"],
   },
   {
     id: 5,
+    slug: "5-shotangsho-jomite-koto-square-feet-bari-kora-jabe",
     title: "৫ শতাংশ জমিতে কত স্কয়ার ফিট বাড়ি করা যাবে?",
     category: "জমি ভাগ ও হিসাব",
     author: "মোঃ জামাল হোসেন",
+    authorRole: "সদস্য",
     avatar: "জা",
     answers: 6,
     votes: 32,
@@ -174,12 +200,15 @@ export const recentQuestions: Question[] = [
     hasAccepted: true,
     preview:
       "আমার ৫ শতাংশ জমি আছে। এতে সর্বোচ্চ কত স্কয়ার ফিটের বাড়ি নির্মাণ সম্ভব এবং কী কী নিয়ম মেনে চলতে হবে?",
+    tags: ["শতাংশ", "স্কয়ার_ফিট", "হিসাব"],
   },
   {
     id: 6,
+    slug: "surveyor-niyoger-age-ki-ki-proshno-kora-uchit",
     title: "সার্ভেয়ার নিয়োগের আগে কী কী প্রশ্ন করা উচিত?",
     category: "সার্ভেয়ার সংক্রান্ত",
     author: "তানভীর আহমেদ",
+    authorRole: "জমির মালিক",
     avatar: "তা",
     answers: 3,
     votes: 15,
@@ -187,6 +216,7 @@ export const recentQuestions: Question[] = [
     hasAccepted: false,
     preview:
       "একজন সার্ভেয়ার নিয়োগ দেওয়ার আগে কী কী প্রশ্ন করা উচিত? সার্ভেয়ারের যোগ্যতা ও অভিজ্ঞতা যাচাইয়ের উপায় কী?",
+    tags: ["সার্ভেয়ার", "পেশাদার", "পরামর্শ"],
   },
 ];
 

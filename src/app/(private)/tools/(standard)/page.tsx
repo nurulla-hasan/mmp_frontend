@@ -232,7 +232,7 @@ export default function ToolsPage() {
                     <h3 className="text-base font-bold font-heading">
                       মৌজা ম্যাপ স্কেল সেট ও ব্যবহার নির্দেশিকা
                     </h3>
-                    <Badge variant="outline" className="border-primary/40 text-primary text-[11px] px-2">
+                    <Badge variant="outline" className="border-primary/40 text-primary text-xs px-2">
                       গাইডলাইন ও সহায়তা
                     </Badge>
                   </div>

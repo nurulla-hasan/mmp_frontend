@@ -368,7 +368,7 @@ const FormerBgSection = memo(function FormerBgSection() {
             </span>
             <Badge
               variant="outline"
-              className="font-mono text-[11px] text-destructive bg-destructive/10 border-destructive/30"
+              className="font-mono text-xs text-destructive bg-destructive/10 border-destructive/30"
             >
               {formerBlackSensitivity}%
             </Badge>
@@ -385,7 +385,7 @@ const FormerBgSection = memo(function FormerBgSection() {
             aria-label="Former map line detection sensitivity"
             className={sliderCls("destructive")}
           />
-          <p className="text-[11px] leading-4 text-muted-foreground">
+          <p className="text-xs leading-4 text-muted-foreground">
             Lower value keeps dark lines only; higher value includes lighter lines. C.S lines appear red.
           </p>
         </div>
@@ -454,7 +454,7 @@ const CurrentBgSection = memo(function CurrentBgSection() {
             </span>
             <Badge
               variant="outline"
-              className="font-mono text-[11px] text-primary bg-primary/10 border-primary/30"
+              className="font-mono text-xs text-primary bg-primary/10 border-primary/30"
             >
               {currentBlackSensitivity}%
             </Badge>
@@ -471,7 +471,7 @@ const CurrentBgSection = memo(function CurrentBgSection() {
             aria-label="Current map line detection sensitivity"
             className={sliderCls("primary")}
           />
-          <p className="text-[11px] leading-4 text-muted-foreground">
+          <p className="text-xs leading-4 text-muted-foreground">
             Lower value keeps dark lines only; higher value includes lighter lines. B.S lines appear green.
           </p>
         </div>
@@ -508,7 +508,7 @@ const OpacitySection = memo(function OpacitySection() {
             <span className="size-2 rounded-full bg-destructive shrink-0" />
             <span>Former (C.S)</span>
           </span>
-          <Badge variant="outline" className="font-mono text-[11px]">
+          <Badge variant="outline" className="font-mono text-xs">
             {Math.round(formerOpacity * 100)}%
           </Badge>
         </div>
@@ -529,7 +529,7 @@ const OpacitySection = memo(function OpacitySection() {
             <span className="size-2 rounded-full bg-primary shrink-0" />
             <span>Current (B.S)</span>
           </span>
-          <Badge variant="outline" className="font-mono text-[11px]">
+          <Badge variant="outline" className="font-mono text-xs">
             {Math.round(currentOpacity * 100)}%
           </Badge>
         </div>
@@ -571,7 +571,7 @@ const LineSmoothingSection = memo(function LineSmoothingSection() {
         <span className="text-xs text-foreground">
           Line Smoothing
         </span>
-        <Badge variant="outline" className="font-mono text-[11px]">
+        <Badge variant="outline" className="font-mono text-xs">
           {lineSmoothing === 0 ? "Off" : `${lineSmoothing}/10`}
         </Badge>
       </div>
@@ -713,7 +713,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="bg-muted/40 border border-border/70 rounded-xl p-2.5">
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-0.5">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5">
             <RotateCw className="size-3" />
             Rotation
           </div>
@@ -724,7 +724,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
         {alignmentType === "affine" ? (
           <>
             <div className="bg-muted/40 border border-border/70 rounded-xl p-2.5">
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-0.5">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5">
                 <ZoomIn className="size-3" />
                 Scale X
               </div>
@@ -733,7 +733,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
               </p>
             </div>
             <div className="bg-muted/40 border border-border/70 rounded-xl p-2.5">
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-0.5">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5">
                 <ZoomIn className="size-3" />
                 Scale Y
               </div>
@@ -744,7 +744,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
           </>
         ) : (
           <div className="bg-muted/40 border border-border/70 rounded-xl p-2.5">
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-0.5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5">
               <ZoomIn className="size-3" />
               Scale
             </div>
@@ -754,7 +754,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
           </div>
         )}
         <div className="bg-muted/40 border border-border/70 rounded-xl p-2.5">
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-0.5">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5">
             <Move className="size-3" />
             Translation X
           </div>
@@ -763,7 +763,7 @@ const AlignmentResultSection = memo(function AlignmentResultSection() {
           </p>
         </div>
         <div className="bg-muted/40 border border-border/70 rounded-xl p-2.5">
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-0.5">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5">
             <Move className="size-3" />
             Translation Y
           </div>
@@ -784,7 +784,7 @@ const WorkflowGuideCard = memo(function WorkflowGuideCard() {
         <HelpCircle className="size-3.5" />
         <span>Comparison & Alignment Guide</span>
       </div>
-      <div className="space-y-1 text-muted-foreground text-[11px] leading-relaxed">
+      <div className="space-y-1 text-muted-foreground text-xs leading-relaxed">
         <p className="flex items-start gap-1.5">
           <span className="size-1.5 rounded-full bg-destructive shrink-0 mt-1" />
           <span>1. Upload Former (C.S) and Current (B.S) maps.</span>
