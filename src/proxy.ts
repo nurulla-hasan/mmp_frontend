@@ -86,7 +86,7 @@ async function refreshAccessToken(refreshToken: string): Promise<string | null> 
   }
 }
 
-export async function proxy(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   const isPrivateRoute = PRIVATE_ROUTES.some(
@@ -130,28 +130,24 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   // ── 3. Strict Role Isolation: Nobody can enter another role's private portal ──
   else if (isAuthenticated && session?.role) {
     const role = session.role;
+    const isAdminPortal = pathname === "/admin" || pathname.startsWith("/admin/");
+    const isSurveyorPortal = pathname === "/surveyor" || pathname.startsWith("/surveyor/");
+    const isDashboardPortal = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
 
     // 1. Admin Jail: ADMIN & SUPER_ADMIN can ONLY access /admin/* routes
-    if (
-      (role === "ADMIN" || role === "SUPER_ADMIN") &&
-      !pathname.startsWith("/admin")
-    ) {
+    if ((role === "ADMIN" || role === "SUPER_ADMIN") && !isAdminPortal) {
       response = NextResponse.redirect(new URL("/admin/dashboard", request.url));
     }
     // 2. Non-admin trying to access /admin — blocked
-    else if (
-      pathname.startsWith("/admin") &&
-      role !== "ADMIN" &&
-      role !== "SUPER_ADMIN"
-    ) {
+    else if (isAdminPortal && role !== "ADMIN" && role !== "SUPER_ADMIN") {
       response = NextResponse.redirect(new URL("/not-found", request.url));
     }
-    // 3. /surveyor — ONLY SURVEYOR allowed (neither USER nor ADMIN)
-    else if (pathname.startsWith("/surveyor") && role !== "SURVEYOR") {
+    // 3. /surveyor portal — ONLY SURVEYOR allowed (public /surveyors directory is open)
+    else if (isSurveyorPortal && role !== "SURVEYOR") {
       response = NextResponse.redirect(new URL("/not-found", request.url));
     }
-    // 4. /dashboard — ONLY regular USER allowed (neither SURVEYOR nor ADMIN)
-    else if (pathname.startsWith("/dashboard") && role !== "USER") {
+    // 4. /dashboard portal — ONLY regular USER allowed (neither SURVEYOR nor ADMIN)
+    else if (isDashboardPortal && role !== "USER") {
       response = NextResponse.redirect(new URL("/not-found", request.url));
     }
     // 5. Pro-only tools guard: Non-subscribed users redirected to /pricing
