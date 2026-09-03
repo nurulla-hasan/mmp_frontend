@@ -1,7 +1,6 @@
 import React, { memo, useRef, useCallback, useEffect } from 'react';
 import { Stage, Layer } from 'react-konva';
 import { useShallow } from 'zustand/shallow';
-import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 
 import type Konva from 'konva';
@@ -21,7 +20,7 @@ import { clamp, cn } from "@/lib/utils";
 export const KonvaStage = memo((props: KonvaStageProps) => {
     const { stageRef } = props;
 
-    const { stageSize, mode, isPlotFinished, stageScale, stagePos, isPinching, plotPoints, isProcessingFile, isGeneratingTiles, tileProgress, image, addCenterPoint, finishPlot } =
+    const { stageSize, mode, isPlotFinished, stageScale, stagePos, isPinching, isProcessingFile, isGeneratingTiles, tileProgress, image } =
         useMapStore(
             useShallow(s => ({
                 stageSize: s.stageSize,
@@ -30,13 +29,10 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                 stageScale: s.stageScale,
                 stagePos: s.stagePos,
                 isPinching: s.isPinching,
-                plotPoints: s.plotPoints,
                 isProcessingFile: s.isProcessingFile,
                 isGeneratingTiles: s.isGeneratingTiles,
                 tileProgress: s.tileProgress,
                 image: s.image,
-                addCenterPoint: s.addCenterPoint,
-                finishPlot: s.finishPlot,
             }))
         );
 
@@ -108,15 +104,6 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
     }, [setStageTransform]);
 
     const events = useStageEvents();
-
-    const addButtonTouchRef = useRef(0);
-    const addPointFromButton = useCallback(
-        (event: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
-            event.stopPropagation();
-            addCenterPoint();
-        },
-        [addCenterPoint]
-    );
 
     return (
         <div id="step-map-stage" className={cn(

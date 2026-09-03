@@ -99,7 +99,6 @@ export default function LoginPage() {
                 className="gap-3"
                 onClick={startGoogleLogin}
                 loading={isGoogleLoading}
-                loadingText="Google দিয়ে চালিয়ে যাওয়া হচ্ছে..."
               >
                  {!isGoogleLoading && (
                 <svg className="size-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -121,7 +120,7 @@ export default function LoginPage() {
                   />
                 </svg>
                 )}
-                Google দিয়ে চালিয়ে যান
+                Google
               </Button>
             </div>
           </Field>

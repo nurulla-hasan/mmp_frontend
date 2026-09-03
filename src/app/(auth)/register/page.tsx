@@ -132,7 +132,7 @@ export default function RegisterPage() {
                   />
                 </svg>
                 )}
-                Google দিয়ে চালিয়ে যান
+                Google
               </Button>
             </div>
           </Field>

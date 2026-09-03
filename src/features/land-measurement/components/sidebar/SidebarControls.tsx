@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useEffect, useRef } from 'react';
+import { memo, useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -99,6 +99,21 @@ export const SidebarControls = memo(function SidebarControls() {
   const [calibrationRedoStack, setCalibrationRedoStack] = useState<number[][]>([]);
   const prevCalibrationLineRef = useRef<number[]>([]);
   const isUndoRedoingRef = useRef(false);
+
+  // Multi-touch-first point addition: fires instantly on pointerdown/touchstart
+  // while dragging the map with another finger, debouncing duplicate browser clicks.
+  const lastAddPointTriggerRef = useRef(0);
+  const handleAddCenterPoint = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const now = performance.now();
+      if (now - lastAddPointTriggerRef.current < 150) return;
+      lastAddPointTriggerRef.current = now;
+      addCenterPoint();
+    },
+    [addCenterPoint]
+  );
 
   // Track point additions → push previous state to undo stack
   useEffect(() => {
@@ -239,8 +254,10 @@ export const SidebarControls = memo(function SidebarControls() {
                 <Button
                   variant="default"
                   size="sm"
-                  onClick={addCenterPoint}
-                  className="ml-auto"
+                  onPointerDown={handleAddCenterPoint}
+                  onTouchStart={handleAddCenterPoint}
+                  onClick={handleAddCenterPoint}
+                  className="ml-auto touch-manipulation select-none active:scale-95 transition-transform"
                   title="Add point at crosshair target"
                 >
                   <Plus />
@@ -323,8 +340,10 @@ export const SidebarControls = memo(function SidebarControls() {
           <Button
             variant="default"
             size="sm"
-            onClick={addCenterPoint}
-            className="ml-auto"
+            onPointerDown={handleAddCenterPoint}
+            onTouchStart={handleAddCenterPoint}
+            onClick={handleAddCenterPoint}
+            className="ml-auto touch-manipulation select-none active:scale-95 transition-transform"
             title="Add point at crosshair target"
           >
             <Plus />
