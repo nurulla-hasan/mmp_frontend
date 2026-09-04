@@ -11,6 +11,8 @@ import { ThemeProvider } from "@/provider/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BroadcastAnnouncementModal } from "@/components/common/broadcast-announcement-modal";
+import { PwaInstallPrompt } from "@/components/pwa/pwa-install-prompt";
+import { PwaRegister } from "@/components/pwa/pwa-register";
 import { cn } from "@/lib/utils";
 
 import "./globals.css";
@@ -116,6 +118,21 @@ export const metadata: Metadata = {
     },
   },
   category: "technology",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Mouza Map Pro",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 const jsonLd = {
@@ -188,6 +205,8 @@ export default function RootLayout({
         <ThemeProvider>
           <TooltipProvider>{children}</TooltipProvider>
           <BroadcastAnnouncementModal />
+          <PwaRegister />
+          <PwaInstallPrompt />
           <Toaster richColors position="top-right" />
         </ThemeProvider>
       </body>
