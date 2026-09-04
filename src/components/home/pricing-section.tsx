@@ -7,8 +7,8 @@ export function PricingSection() {
     <div className="relative overflow-hidden bg-background">
       {/* Ambient Glows */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-1/2 left-0 h-125 w-125 -translate-y-1/2 -translate-x-1/4 rounded-full bg-primary/15 blur-[120px]" />
-        <div className="absolute top-1/2 right-0 h-100 w-100 -translate-y-1/2 translate-x-1/4 rounded-full bg-blue-500/10 blur-[100px]" />
+        <div className="absolute top-1/2 left-0 h-125 w-125 -translate-y-1/2 -translate-x-1/4 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.14)_0%,transparent_70%)]" />
+        <div className="absolute top-1/2 right-0 h-100 w-100 -translate-y-1/2 translate-x-1/4 rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.1)_0%,transparent_70%)]" />
       </div>
 
       <SectionWrapper id="pricing">

@@ -20,6 +20,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { ContactForm } from "@/components/contact/contact-form";
 
 export const metadata: Metadata = {
   title: "যোগাযোগ ও সহায়তা — আমাদের সাথে কথা বলুন",
@@ -112,7 +113,7 @@ export default function ContactPage() {
       {/* ─── Hero ──────────────────────────────────────────── */}
       <SectionWrapper padding="lg">
         <div className="relative mx-auto max-w-3xl text-center">
-          <div className="pointer-events-none absolute top-0 left-1/2 -z-10 size-90 -translate-x-1/2 -translate-y-20 rounded-full bg-primary/20 blur-[100px]" />
+          <div className="pointer-events-none absolute top-0 left-1/2 -z-10 size-90 -translate-x-1/2 -translate-y-20 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.18)_0%,transparent_70%)]" />
           <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/10 shadow-lg shadow-primary/10">
             <MessageSquare className="size-8 text-primary" />
           </div>
@@ -183,7 +184,7 @@ export default function ContactPage() {
                   <Button
                     className="mt-4 w-full"
                     variant="outline"
-                    size="xs"
+                    size="sm"
                     nativeButton={false}
                     render={
                       item.action.external ? (
@@ -204,26 +205,40 @@ export default function ContactPage() {
             );
           })}
         </div>
+      </SectionWrapper>
 
-        {/* Office & Timing cards */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          {officeDetails.map((item) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={item.title}
-                className="flex items-center gap-4 rounded-xl border bg-card p-4 transition-colors"
-              >
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Icon className="size-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{item.title}</p>
-                  <p className="text-sm font-medium text-foreground">{item.value}</p>
-                </div>
-              </div>
-            );
-          })}
+      {/* ─── Contact Form & Office Info ────────────────────── */}
+      <SectionWrapper padding="lg">
+        <div className="grid gap-10 lg:grid-cols-[1fr_1.25fr] lg:items-start">
+          <div>
+            <SectionHeading
+              badge="বার্তা পাঠান"
+              title="কোনো প্রশ্ন বা পরামর্শ আছে?"
+              description="অনলাইনে ফর্ম পূরণ করে আমাদের জানান। আমাদের টিম আপনার দেওয়া নম্বরে বা ইমেইলে দ্রুত উত্তর দেবে।"
+            />
+
+            <div className="mt-8 space-y-4">
+              {officeDetails.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.title}
+                    className="flex items-center gap-4 rounded-xl border bg-card p-4 shadow-2xs"
+                  >
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Icon className="size-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{item.title}</p>
+                      <p className="text-sm font-medium text-foreground">{item.value}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <ContactForm />
         </div>
       </SectionWrapper>
 

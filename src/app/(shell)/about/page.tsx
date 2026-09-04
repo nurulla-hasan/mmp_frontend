@@ -5,6 +5,7 @@ import {
   BarChart3,
   BookOpen,
   Briefcase,
+  CheckCircle2,
   Home,
   Landmark,
   Map,
@@ -15,6 +16,7 @@ import {
   Shield,
   Star,
   Target,
+  UserCheck,
   Users,
 } from "lucide-react";
 
@@ -117,26 +119,32 @@ const values = [
 
 const howItWorks = [
   {
-    step: "১",
+    step: "০১",
     title: "সার্ভেয়ার বা টুলস খুঁজুন",
     description:
       "আপনার জেলা অনুযায়ী ভেরিফাইড পেশাদার সার্ভেয়ার অথবা জমি পরিমাপের ডিজিটাল টুল নির্বাচন করুন।",
+    icon: Search,
   },
   {
-    step: "২",
+    step: "০২",
     title: "প্রোফাইল ও রিভিউ দেখুন",
-    description: "সার্ভেয়ারের কাজের অভিজ্ঞতা, রেটিং, সেবা এবং ফি যাচাই করুন।",
+    description:
+      "সার্ভেয়ারের কাজের অভিজ্ঞতা, রেটিং, সেবা এবং ফি স্বচ্ছভাবে যাচাই করে নিশ্চিন্ত হোন।",
+    icon: UserCheck,
   },
   {
-    step: "৩",
+    step: "০৩",
     title: "সরাসরি যোগাযোগ করুন",
     description:
       "WhatsApp বা সরাসরি ফোন কলের মাধ্যমে কথা বলে কাজের বিস্তারিত ও সময় নির্ধারণ করুন।",
+    icon: MessageSquare,
   },
   {
-    step: "৪",
-    title: "কাজ সম্পন্ন ও রিপোর্ট গ্রহণ",
-    description: "সরেজমিনে পরিমাপ ও নির্ভুল ডিজিটাল রিপোর্ট সংগ্রহের মাধ্যমে কাজ সম্পন্ন করুন।",
+    step: "০৪",
+    title: "পরিমাপ ও ডিজিটাল রিপোর্ট",
+    description:
+      "সরেজমিনে নির্ভুল পরিমাপ ও প্রফেশনাল ডিজিটাল রিপোর্ট সংগ্রহের মাধ্যমে কাজ সম্পন্ন করুন।",
+    icon: CheckCircle2,
   },
 ];
 
@@ -151,7 +159,7 @@ export default function AboutPage() {
       <SectionWrapper padding="lg">
         <div className="relative mx-auto max-w-3xl text-center">
           {/* Background glow */}
-          <div className="pointer-events-none absolute top-0 left-1/2 -z-10 size-90 -translate-x-1/2 -translate-y-20 rounded-full bg-primary/20 blur-[100px]" />
+          <div className="pointer-events-none absolute top-0 left-1/2 -z-10 size-90 -translate-x-1/2 -translate-y-20 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.18)_0%,transparent_70%)]" />
           <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/10 shadow-lg shadow-primary/10">
             <Landmark className="size-8 text-primary" />
           </div>
@@ -192,13 +200,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           {stats.map((stat) => (
             <div key={stat.label} className="group text-center">
-              <p
-                className="text-3xl font-bold text-primary sm:text-4xl"
-                style={{
-                  textShadow:
-                    "0 0 12px color-mix(in oklch, var(--primary) 40%, transparent)",
-                }}
-              >
+              <p className="text-3xl font-bold text-primary sm:text-4xl font-heading tracking-tight">
                 {stat.number}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
@@ -271,31 +273,48 @@ export default function AboutPage() {
         <SectionHeading
           badge="কীভাবে কাজ করে"
           title="চার ধাপে আপনার জমির কাজ এগিয়ে নিন"
+          description="সহজ ও স্বচ্ছ প্রক্রিয়ায় আপনার কাঙ্ক্ষিত সার্ভে সেবা গ্রহণ করুন।"
           alignment="center"
         />
-        <div className="mt-10 grid gap-8 md:grid-cols-4">
-          {howItWorks.map((item, i) => (
-            <div key={item.step} className="relative">
-              {i < howItWorks.length - 1 && (
-                <div className="absolute left-6 top-6 hidden h-0.5 w-[calc(100%-48px)] bg-border md:block" />
-              )}
-              <div className="flex items-start gap-4 md:flex-col md:items-center md:text-center">
-                <div className="relative shrink-0">
-                  <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 shadow-lg shadow-primary/10 ring-2 ring-primary/20">
-                    <span className="text-lg font-bold text-primary">
-                      {item.step}
+        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {howItWorks.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.title}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card p-6 shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+              >
+                {/* Top glowing accent line on hover */}
+                <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-transparent via-primary/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center rounded-lg border border-primary/25 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary font-mono">
+                      ধাপ {item.step}
                     </span>
+                    <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110">
+                      <Icon className="size-5" />
+                    </div>
                   </div>
-                </div>
-                <div className="md:mt-4">
-                  <h3 className="text-sm font-medium">{item.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+
+                  <h3 className="mt-5 font-heading text-base font-semibold text-foreground group-hover:text-primary transition-colors">
+                    {item.title}
+                  </h3>
+
+                  <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
                     {item.description}
                   </p>
                 </div>
+
+                {/* Flow indicator on desktop */}
+                {index < howItWorks.length - 1 && (
+                  <div className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 size-6 items-center justify-center rounded-full border border-border bg-background shadow-xs text-muted-foreground text-xs font-bold">
+                    &rarr;
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </SectionWrapper>
 
@@ -308,12 +327,17 @@ export default function AboutPage() {
         />
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           {/* Landowner */}
-          <Card className="border-primary/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 hover:ring-2 hover:ring-primary/20">
+          <Card className="border-emerald-500/25 bg-linear-to-b from-card to-emerald-500/5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10 hover:border-emerald-500/40">
             <CardContent>
-              <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Home className="size-6" />
+              <div className="flex items-center justify-between">
+                <div className="flex size-12 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-500">
+                  <Home className="size-6" />
+                </div>
+                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-500">
+                  জমির মালিক ও ক্রেতা
+                </span>
               </div>
-              <h3 className="mt-4 text-lg font-medium">জমির মালিকদের জন্য</h3>
+              <h3 className="mt-4 text-lg font-medium font-heading">জমির মালিকদের জন্য</h3>
               <ul className="mt-4 space-y-2.5">
                 {[
                   "জমি পরিমাপ ও হিসাব সংরক্ষণ",
@@ -326,7 +350,7 @@ export default function AboutPage() {
                     key={b}
                     className="flex items-start gap-2 text-sm text-muted-foreground"
                   >
-                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500">
                       <svg
                         className="size-2.5"
                         viewBox="0 0 24 24"
@@ -343,12 +367,17 @@ export default function AboutPage() {
           </Card>
 
           {/* Surveyor */}
-          <Card className="border-primary/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 hover:ring-2 hover:ring-primary/20">
+          <Card className="border-teal-500/25 bg-linear-to-b from-card to-teal-500/5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-teal-500/10 hover:border-teal-500/40">
             <CardContent>
-              <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Briefcase className="size-6" />
+              <div className="flex items-center justify-between">
+                <div className="flex size-12 items-center justify-center rounded-xl bg-teal-500/15 text-teal-400">
+                  <Briefcase className="size-6" />
+                </div>
+                <span className="rounded-full border border-teal-500/30 bg-teal-500/10 px-2.5 py-0.5 text-xs font-semibold text-teal-400">
+                  পেশাদার সার্ভেয়ার ও আমিন
+                </span>
               </div>
-              <h3 className="mt-4 text-lg font-medium">সার্ভেয়ারদের জন্য</h3>
+              <h3 className="mt-4 text-lg font-medium font-heading">সার্ভেয়ারদের জন্য</h3>
               <ul className="mt-4 space-y-2.5">
                 {[
                   "Professional Profile তৈরি",
@@ -361,7 +390,7 @@ export default function AboutPage() {
                     key={b}
                     className="flex items-start gap-2 text-sm text-muted-foreground"
                   >
-                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-teal-500/15 text-teal-400">
                       <svg
                         className="size-2.5"
                         viewBox="0 0 24 24"
@@ -428,26 +457,44 @@ export default function AboutPage() {
         </div>
       </SectionWrapper>
 
-      {/* ─── Team ──── */}
+      {/* ─── Team / Commitment ──── */}
       <SectionWrapper padding="lg" bg="muted">
         <SectionHeading
-          title="আমাদের টিম"
-          description="ভূমি জরিপ ও প্রযুক্তিতে অভিজ্ঞ একটি টিম আপনার সেবায়।"
+          badge="আমাদের টিম ও অঙ্গীকার"
+          title="কারিগরি সক্ষমতা ও নিষ্ঠাবান টিম"
+          description="ভূমি জরিপ ও আধুনিক সফটওয়্যার প্রযুক্তিতে অভিজ্ঞ একটি টিম আপনার সেবায়।"
           alignment="center"
         />
-        <div className="mx-auto mt-10 max-w-xl">
-          <Card className="text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 hover:ring-2 hover:ring-primary/20">
-            <CardContent>
-              <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10">
-                <Users className="size-8 text-primary" />
+        <div className="mx-auto mt-10 max-w-2xl">
+          <div className="rounded-2xl border bg-card p-6 sm:p-8 shadow-sm transition-all hover:shadow-md">
+            <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+              <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-xs">
+                <Users className="size-8" />
               </div>
-              <h3 className="mt-4 text-lg font-medium">Mouza Map Pro টিম</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                ভূমি জরিপ, সফটওয়্যার ডেভেলপমেন্ট ও গ্রাহক সেবায় অভিজ্ঞ একটি টিম
-                দেশের জমি সংক্রান্ত কাজকে সহজ ও ডিজিটাল করার লক্ষ্যে কাজ করছে।
-              </p>
-            </CardContent>
-          </Card>
+              <div>
+                <h3 className="text-base font-semibold text-foreground font-heading">
+                  Mouza Map Pro কারিগরি ও অপারেশনস টিম
+                </h3>
+                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                  দেশের মাঠপর্যায়ের পেশাদার সার্ভেয়ার, অভিজ্ঞ সফটওয়্যার ইঞ্জিনিয়ার ও বিশেষজ্ঞদের সমন্বয়ে আমরা কাজ করছি—যাতে মৌজা ম্যাপ ও জমি সংক্রান্ত হিসাব প্রতিটি নাগরিকের কাছে স্বচ্ছ ও সহজে পৌঁছায়।
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 pt-6 border-t">
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground justify-center sm:justify-start">
+                <BadgeCheck className="size-4 text-primary shrink-0" />
+                <span>যাচাইকৃত সার্ভেয়ার</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground justify-center sm:justify-start">
+                <Shield className="size-4 text-primary shrink-0" />
+                <span>তথ্য সুরক্ষা ও স্বচ্ছতা</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground justify-center sm:justify-start">
+                <Target className="size-4 text-primary shrink-0" />
+                <span>নির্ভুল ডিজিটাল হিসাব</span>
+              </div>
+            </div>
+          </div>
         </div>
       </SectionWrapper>
 

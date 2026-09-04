@@ -127,24 +127,29 @@ const emergencyContacts = [
     icon: Phone,
     label: "সাইবার ক্রাইম হেল্পলাইন",
     value: "০১৭৬৯-৬৭৪৮৮০",
+    phone: "+8801769674880",
     detail: "সাইবার প্রতারণা সংক্রান্ত অভিযোগ",
   },
   {
     icon: Siren,
     label: "জাতীয় জরুরি সেবা",
     value: "৯৯৯",
+    phone: "999",
     detail: "যেকোনো জরুরি সাহায্যের জন্য",
   },
   {
     icon: Landmark,
     label: "স্থানীয় ভূমি অফিস",
     value: "নিজ জেলা/উপজেলা ভূমি অফিস",
+    phone: null,
+    href: "https://land.gov.bd",
     detail: "দলিল ও খতিয়ান যাচাইয়ের জন্য",
   },
   {
     icon: Users,
     label: "পুলিশ হেল্পলাইন",
     value: "০১৩২০-০০০০০০",
+    phone: "+8801320000000",
     detail: "প্রতারণা সংক্রান্ত অভিযোগ জানাতে",
   },
 ];
@@ -174,28 +179,32 @@ const faqs = [
 
 const steps = [
   {
-    step: "১",
-    title: "থেমে যান",
+    step: "০১",
+    title: "সন্দেহ হলে থেমে যান",
     description:
-      "যদি কোনো অফার বা প্রস্তাব অস্বাভাবিক মনে হয়, তবে দ্রুত সিদ্ধান্ত নেবেন না। প্রতারকরা জরুরি অনুভূতি তৈরি করার চেষ্টা করে।",
+      "যদি কোনো জমির অফার বা প্রস্তাব অস্বাভাবিক লোভনীয় মনে হয়, তবে তাড়াহুড়া করবেন না। প্রতারকরা জরুরি চাপ সৃষ্টি করে সিদ্ধান্ত নিতে বাধ্য করে।",
+    icon: AlertTriangle,
   },
   {
-    step: "২",
-    title: "যাচাই করুন",
+    step: "০২",
+    title: "নথি ও দলিল যাচাই করুন",
     description:
-      "ব্যক্তি, নথি ও তথ্য যাচাই করুন। ভূমি অফিস, পুলিশ বা নির্ভরযোগ্য সূত্র থেকে নিশ্চিত হন। আমাদের প্ল্যাটফর্মের মাধ্যমে সার্ভেয়ার যাচাই করুন।",
+      "ব্যক্তি, দলিল, খতিয়ান ও নামজারি সরাসরি স্থানীয় ভূমি অফিস অথবা সরকারি পোর্টাল (land.gov.bd) থেকে নিশ্চিত হন।",
+    icon: FileSearch,
   },
   {
-    step: "৩",
-    title: "সংরক্ষণ করুন",
+    step: "০৩",
+    title: "সব প্রমাণ সংরক্ষণ করুন",
     description:
-      "সব নথি, রশিদ, স্ক্রিনশট ও কথোপকথনের প্রমাণ সংরক্ষণ করুন। প্রয়োজনে আইনি পদক্ষেপ নিতে এগুলো কাজে লাগবে।",
+      "সব আর্থিক রশিদ, ব্যাংক লেনদেন, কল রেকর্ড, হোয়াটসঅ্যাপ চ্যাট ও নথিপত্রের স্পষ্ট কপি সুরক্ষিত স্থানে সংরক্ষণ করুন।",
+    icon: Shield,
   },
   {
-    step: "৪",
-    title: "রিপোর্ট করুন",
+    step: "০৪",
+    title: "অবিলম্বে রিপোর্ট করুন",
     description:
-      "প্রতারণার শিকার হলে বা সন্দেহ হলে সংশ্লিষ্ট কর্তৃপক্ষকে জানান। অন্যদের সতর্ক করতে কমিউনিটিতে শেয়ার করুন।",
+      "প্রতারণার শিকার হলে বা সন্দেহ হলে সময় নষ্ট না করে জাতীয় হেল্পলাইন ৯৯৯, সাইবার ক্রাইম বা সংশ্লিষ্ট থানায় অভিযোগ জানান।",
+    icon: Siren,
   },
 ];
 
@@ -205,7 +214,7 @@ export default function FraudAwarenessPage() {
       {/* ─── Hero ──────────────────────────────────────────── */}
       <SectionWrapper padding="lg">
         <div className="relative mx-auto max-w-3xl text-center">
-          <div className="pointer-events-none absolute top-0 left-1/2 -z-10 size-90 -translate-x-1/2 -translate-y-20 rounded-full bg-destructive/10 blur-[100px]" />
+          <div className="pointer-events-none absolute top-0 left-1/2 -z-10 size-90 -translate-x-1/2 -translate-y-20 rounded-full bg-[radial-gradient(circle,rgba(239,68,68,0.14)_0%,transparent_70%)]" />
           <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-destructive/10 shadow-lg shadow-destructive/10">
             <ShieldAlert className="size-8 text-destructive" />
           </div>
@@ -261,33 +270,50 @@ export default function FraudAwarenessPage() {
       {/* ─── Safety Steps ──────────────────────────────────── */}
       <SectionWrapper padding="lg">
         <SectionHeading
-          title="প্রতারণা থেকে বাঁচার ৪টি ধাপ"
-          description="যে কোনো জমি সংক্রান্ত লেনদেনের আগে এই ধাপগুলো অনুসরণ করুন।"
+          badge="করণীয় পদক্ষেপ"
+          title="প্রতারণা থেকে বাঁচার ৪টি অপরিহার্য ধাপ"
+          description="যে কোনো জমি সংক্রান্ত লেনদেনের আগে এই ধারাবাহিক পদক্ষেপগুলো কঠোরভাবে অনুসরণ করুন।"
           alignment="center"
         />
-        <div className="mt-10 grid gap-8 md:grid-cols-4">
-          {steps.map((item, i) => (
-            <div key={item.step} className="relative">
-              {i < steps.length - 1 && (
-                <div className="absolute left-6 top-6 hidden h-0.5 w-[calc(100%-48px)] bg-destructive/20 md:block" />
-              )}
-              <div className="flex items-start gap-4 md:flex-col md:items-center md:text-center">
-                <div className="relative shrink-0">
-                  <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10 shadow-lg shadow-destructive/10 ring-2 ring-destructive/20">
-                    <span className="text-lg font-bold text-destructive">
-                      {item.step}
+        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {steps.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.title}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-destructive/25 bg-card p-6 shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-destructive/60 hover:shadow-lg hover:shadow-destructive/10"
+              >
+                {/* Top glowing red line on hover */}
+                <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-transparent via-destructive/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center rounded-lg border border-destructive/30 bg-destructive/10 px-2.5 py-1 text-xs font-semibold text-destructive font-mono">
+                      পদক্ষেপ {item.step}
                     </span>
+                    <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive transition-transform duration-300 group-hover:scale-110">
+                      <Icon className="size-5" />
+                    </div>
                   </div>
-                </div>
-                <div className="md:mt-4">
-                  <h3 className="text-sm font-medium">{item.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+
+                  <h3 className="mt-5 font-heading text-base font-semibold text-foreground group-hover:text-destructive transition-colors">
+                    {item.title}
+                  </h3>
+
+                  <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
                     {item.description}
                   </p>
                 </div>
+
+                {/* Flow indicator on desktop */}
+                {index < steps.length - 1 && (
+                  <div className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 size-6 items-center justify-center rounded-full border border-border bg-background shadow-xs text-muted-foreground text-xs font-bold">
+                    &rarr;
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </SectionWrapper>
 
@@ -336,19 +362,42 @@ export default function FraudAwarenessPage() {
             return (
               <div
                 key={item.label}
-                className="flex items-start gap-4 rounded-lg border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:shadow-destructive/5 hover:ring-1 hover:ring-destructive/20"
+                className="flex flex-col justify-between rounded-xl border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:shadow-destructive/5 hover:ring-1 hover:ring-destructive/20"
               >
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
-                  <Icon className="size-5" />
+                <div className="flex items-start gap-3.5">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                    <Icon className="size-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{item.label}</p>
+                    <p className="mt-0.5 text-base font-bold text-destructive font-mono">
+                      {item.value}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {item.detail}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">{item.label}</p>
-                  <p className="mt-0.5 text-sm font-semibold text-foreground">
-                    {item.value}
-                  </p>
-                  <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-                    {item.detail}
-                  </p>
+
+                <div className="mt-4 pt-3 border-t border-border/60">
+                  {item.phone ? (
+                    <a
+                      href={`tel:${item.phone}`}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition-colors w-full justify-center"
+                    >
+                      <Phone className="size-3.5" />
+                      <span>সরাসরি কল করুন</span>
+                    </a>
+                  ) : item.href ? (
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-3.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors w-full justify-center"
+                    >
+                      <span>পোর্টাল দেখুন &rarr;</span>
+                    </a>
+                  ) : null}
                 </div>
               </div>
             );
@@ -384,7 +433,7 @@ export default function FraudAwarenessPage() {
       {/* ─── Final CTA ─────────────────────────────────────── */}
       <SectionWrapper padding="lg" bg="primary">
         <div className="relative">
-          <div className="pointer-events-none absolute top-0 left-1/2 -z-10 h-80 w-80 -translate-x-1/2 -translate-y-10 rounded-full bg-primary/20 blur-[80px]" />
+          <div className="pointer-events-none absolute top-0 left-1/2 -z-10 h-80 w-80 -translate-x-1/2 -translate-y-10 rounded-full bg-primary/20" />
           <SectionHeading
             as="h2"
             title="নিরাপদে জমির কাজ শুরু করুন"

@@ -57,10 +57,10 @@ export function HeroSection({
         {/* Subtle dot matrix overlay */}
         <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] bg-size-[36px_36px] opacity-[0.07]" />
         
-        {/* Ambient radial blur orbs */}
-        <div className="absolute -top-24 right-1/4 h-128 w-lg rounded-full bg-emerald-500/15 blur-[100px]" />
-        <div className="absolute bottom-10 -left-20 h-120 w-120 rounded-full bg-teal-500/12 blur-[90px]" />
-        <div className="absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/8 blur-[80px]" />
+        {/* Ambient radial glow orbs (zero-blur radial gradients for 60fps smooth performance) */}
+        <div className="absolute -top-24 right-1/4 h-128 w-128 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.14)_0%,transparent_70%)]" />
+        <div className="absolute bottom-10 -left-20 h-120 w-120 rounded-full bg-[radial-gradient(circle,rgba(20,184,166,0.12)_0%,transparent_70%)]" />
+        <div className="absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(245,158,11,0.06)_0%,transparent_70%)]" />
       </div>
 
       <SectionWrapper
@@ -73,7 +73,7 @@ export function HeroSection({
           {/* ─── Left Hero Content ────────────────────────────────── */}
           <div className="min-w-0">
             {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-primary/35 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary shadow-[0_0_20px_rgba(16,185,129,0.15)] backdrop-blur-md">
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-primary/35 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary shadow-[0_0_20px_rgba(16,185,129,0.15)]">
               <span className="size-2 rounded-full bg-primary" />
               <span>বাংলাদেশের প্রথম পূর্ণাঙ্গ ডিজিটাল মৌজা ও ভূমি প্ল্যাটফর্ম</span>
             </div>
@@ -108,7 +108,7 @@ export function HeroSection({
               <Button
                 size="lg"
                 variant="outline"
-                className="gap-2 border-emerald-500/35 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/60 hover:text-emerald-300 backdrop-blur-md shadow-xs hover:-translate-y-0.5 transition-all duration-200"
+                className="gap-2 border-emerald-500/35 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/60 hover:text-emerald-300 shadow-xs hover:-translate-y-0.5 transition-all duration-200"
                 nativeButton={false}
                 render={<Link href="/tools" />}
               >
@@ -122,7 +122,7 @@ export function HeroSection({
               {heroBenefits.map((item) => (
                 <div
                   key={item.title}
-                  className="flex items-center gap-2 rounded-xl border border-border/80 bg-card/60 backdrop-blur-md px-3.5 py-2 text-xs sm:text-sm text-foreground/90 shadow-2xs hover:border-primary/40 hover:bg-card/90 transition-all duration-200 hover:-translate-y-0.5"
+                  className="flex items-center gap-2 rounded-xl border border-border/80 bg-card/90 px-3.5 py-2 text-xs sm:text-sm text-foreground/90 shadow-2xs hover:border-primary/40 hover:bg-card transition-all duration-200 hover:-translate-y-0.5"
                 >
                   <item.icon className="size-4 shrink-0 text-primary" />
                   <span>{item.title}</span>
@@ -152,20 +152,20 @@ export function HeroSection({
           {/* ─── Right Hero Interactive Showcase ─────────────────── */}
           <div className="relative mx-auto w-full min-w-0 max-w-lg lg:max-w-none lg:pr-14 xl:pr-20">
             {/* Subtle backlight behind canvas */}
-            <div className="pointer-events-none absolute -inset-6 -z-10 rounded-3xl bg-linear-to-tr from-emerald-500/15 via-teal-500/10 to-transparent blur-2xl" />
+            <div className="pointer-events-none absolute -inset-6 -z-10 rounded-3xl bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.12)_0%,transparent_70%)]" />
 
             {/* Primary Tool: Clean Canvas Plot Measurement Mockup */}
             <Link
               href="/tools/land-measurement"
               className="group relative block w-full min-w-0 focus:outline-hidden"
             >
-              <div className="overflow-hidden rounded-2xl border border-emerald-500/30 bg-card/90 shadow-2xl shadow-black/40 ring-1 ring-primary/20 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-primary/60 group-hover:ring-primary/40 group-hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.3)]">
+              <div className="overflow-hidden rounded-2xl border border-emerald-500/30 bg-card shadow-2xl shadow-black/40 ring-1 ring-primary/20 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-primary/60 group-hover:ring-primary/40 group-hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.3)]">
                 <div className="relative aspect-4/3 sm:aspect-16/11 min-h-72 sm:min-h-88 w-full overflow-hidden bg-muted/10">
                   {/* Grid Pattern */}
                   <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[24px_24px] opacity-40" />
 
                   {/* Top Floating Header Pill inside Canvas */}
-                  <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-3.5 z-10 flex items-center gap-1.5 sm:gap-2 rounded-xl border border-emerald-500/30 bg-background/90 px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-md backdrop-blur-md">
+                  <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-3.5 z-10 flex items-center gap-1.5 sm:gap-2 rounded-xl border border-emerald-500/30 bg-background/95 px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-md">
                     <span className="size-2 shrink-0 rounded-full bg-primary" />
                     <div className="flex items-center gap-1 sm:gap-1.5 text-xs font-semibold text-foreground">
                       <Ruler className="size-3 sm:size-3.5 text-primary shrink-0" />
@@ -273,7 +273,7 @@ export function HeroSection({
 
                   {/* Center Plot Tag */}
                   <div className="pointer-events-none absolute top-[43%] left-[46%] -translate-x-1/2 -translate-y-1/2">
-                    <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/35 bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary shadow-sm backdrop-blur-sm">
+                    <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/35 bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary shadow-sm">
                       <span className="size-1.5 rounded-full bg-primary" />
                       দাগ নং ৪২৮
                     </span>
@@ -281,7 +281,7 @@ export function HeroSection({
 
                   {/* Floating Area Calculation Badge */}
                   <div className="absolute bottom-2.5 left-2.5 sm:bottom-3.5 sm:left-3.5 z-10">
-                    <div className="flex items-center gap-2 rounded-xl border border-emerald-500/35 bg-background/95 px-3 py-2 shadow-xl backdrop-blur-xl ring-1 ring-emerald-500/20">
+                    <div className="flex items-center gap-2 rounded-xl border border-emerald-500/35 bg-background/95 px-3 py-2 shadow-xl ring-1 ring-emerald-500/20">
                       <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400">
                         <Sparkles className="size-3.5" />
                       </div>
@@ -305,7 +305,7 @@ export function HeroSection({
                   </div>
 
                   {/* Zoom Controls */}
-                  <div className="absolute right-2.5 bottom-2.5 sm:right-3.5 sm:bottom-3.5 z-10 flex flex-col overflow-hidden rounded-lg border border-border/80 bg-background/90 shadow-sm backdrop-blur-sm">
+                  <div className="absolute right-2.5 bottom-2.5 sm:right-3.5 sm:bottom-3.5 z-10 flex flex-col overflow-hidden rounded-lg border border-border/80 bg-background/95 shadow-sm">
                     <span className="flex size-6 items-center justify-center text-xs font-semibold hover:bg-muted transition-colors cursor-pointer">
                       +
                     </span>
@@ -324,7 +324,7 @@ export function HeroSection({
                 href="/tools/pantagraph"
                 className="group block min-w-0 lg:absolute lg:-top-6 lg:-right-8 xl:-right-10 lg:w-50 xl:w-54 z-20"
               >
-                <div className="flex flex-col gap-1.5 sm:gap-2 rounded-2xl border border-emerald-500/30 bg-card/90 p-3 shadow-2xl shadow-black/40 ring-1 ring-emerald-500/20 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-emerald-500/60 group-hover:shadow-[0_15px_30px_-10px_rgba(16,185,129,0.3)] min-w-0">
+                <div className="flex flex-col gap-1.5 sm:gap-2 rounded-2xl border border-emerald-500/30 bg-card p-3 shadow-2xl shadow-black/40 ring-1 ring-emerald-500/20 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-emerald-500/60 group-hover:shadow-[0_15px_30px_-10px_rgba(16,185,129,0.3)] min-w-0">
                   <div className="flex items-center justify-between gap-1 min-w-0">
                     <div className="flex items-center gap-1.5 text-xs font-semibold truncate min-w-0 text-foreground">
                       <Scaling className="size-3.5 shrink-0 text-emerald-400" />
@@ -373,7 +373,7 @@ export function HeroSection({
                 href="/tools/tracer"
                 className="group block min-w-0 lg:absolute lg:-bottom-6 lg:-right-6 xl:-right-8 lg:w-50 xl:w-54 z-20"
               >
-                <div className="flex flex-col gap-1.5 sm:gap-2 rounded-2xl border border-emerald-500/30 bg-card/90 p-3 shadow-2xl shadow-black/40 ring-1 ring-emerald-500/20 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-emerald-500/60 group-hover:shadow-[0_15px_30px_-10px_rgba(16,185,129,0.3)] min-w-0">
+                <div className="flex flex-col gap-1.5 sm:gap-2 rounded-2xl border border-emerald-500/30 bg-card p-3 shadow-2xl shadow-black/40 ring-1 ring-emerald-500/20 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-emerald-500/60 group-hover:shadow-[0_15px_30px_-10px_rgba(16,185,129,0.3)] min-w-0">
                   <div className="flex items-center justify-between gap-1 min-w-0">
                     <div className="flex items-center gap-1.5 text-xs font-semibold truncate min-w-0 text-foreground">
                       <PenLine className="size-3.5 shrink-0 text-teal-400" />
@@ -424,7 +424,7 @@ export function HeroSection({
               return (
                 <div
                   key={stat.label}
-                  className="flex items-center gap-3.5 rounded-2xl border border-border/70 bg-linear-to-b from-card/80 to-card/40 backdrop-blur-md px-4 py-3.5 shadow-sm transition-all duration-200 hover:bg-card/90 hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-md"
+                  className="flex items-center gap-3.5 rounded-2xl border border-border/70 bg-card/90 px-4 py-3.5 shadow-sm transition-all duration-200 hover:bg-card hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/5 text-primary ring-1 ring-primary/25 shadow-xs">
                     <Icon className="size-5" />
