@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
 import { useShallow } from 'zustand/shallow';
 import { AREA_LABEL_FONT_SCALE, AREA_LABEL_PADDING_FACTOR } from '@/features/land-measurement/utils/canvas';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';

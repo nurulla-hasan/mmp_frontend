@@ -13,7 +13,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import type { KmzData } from "../types";
-import KmzFloatingToolButton from "./KmzFloatingToolButton";
 
 type Props = {
   document: KmzData | null;
@@ -35,17 +34,19 @@ export default function KmzMorePopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        render={<div className="inline-flex" />}
-        className="focus:outline-none focus-visible:outline-none"
-      >
-        <KmzFloatingToolButton
-          icon={MoreHorizontal}
-          label="More Options"
-          active={open}
-          onClick={() => setOpen((prev) => !prev)}
-          mobile={mobile}
-        />
-      </PopoverTrigger>
+        render={
+          <Button
+            type="button"
+            variant={open ? "default" : "ghost"}
+            size={mobile ? "icon" : "icon-lg"}
+            aria-label="More Options"
+            title="More Options"
+            className={open ? "" : "text-muted-foreground"}
+          >
+            <MoreHorizontal className={mobile ? "size-4" : "size-5"} />
+          </Button>
+        }
+      />
       <PopoverContent
         side={mobile ? "top" : "left"}
         sideOffset={12}
@@ -109,7 +110,7 @@ export default function KmzMorePopover({
               className="w-full justify-start gap-2 text-xs font-normal"
             >
               <HelpCircle className="size-3.5 text-muted-foreground" />
-              <span>ব্যবহার নির্দেশিকা</span>
+              <span>User Guide</span>
             </Button>
           </a>
         </div>

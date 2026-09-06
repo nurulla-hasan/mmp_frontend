@@ -4,17 +4,8 @@ import "leaflet/dist/leaflet.css";
 
 import type { Map as LeafletMap, TileLayer } from "leaflet";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type {
-  InspectedCoordinate,
-  KmzData,
-  MapStyle,
-  UserLocation,
-} from "../types";
-import {
-  computeKmzBounds,
-  createBaseTileLayer,
-  drawKmzCanvas,
-} from "../utils/leafletMapUtils";
+import type { InspectedCoordinate, KmzData, MapStyle, UserLocation } from "../types";
+import { computeKmzBounds, createBaseTileLayer, drawKmzCanvas } from "../utils/leafletMapUtils";
 
 type Props = {
   kmzData: KmzData | null;
@@ -47,22 +38,9 @@ export default function KmzViewerMap({
   const imagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
   const [error, setError] = useState<string | null>(null);
 
-  const propsRef = useRef({
-    kmzData,
-    opacity,
-    mapStyle,
-    userLocation,
-    onInspectCoordinate,
-  });
-
+  const propsRef = useRef({ kmzData, opacity, mapStyle, userLocation, onInspectCoordinate });
   useEffect(() => {
-    propsRef.current = {
-      kmzData,
-      opacity,
-      mapStyle,
-      userLocation,
-      onInspectCoordinate,
-    };
+    propsRef.current = { kmzData, opacity, mapStyle, userLocation, onInspectCoordinate };
   });
 
   const drawOverlay = useCallback(() => {
@@ -75,10 +53,7 @@ export default function KmzViewerMap({
     const width = host.clientWidth;
     const height = host.clientHeight;
 
-    if (
-      canvas.width !== Math.round(width * ratio) ||
-      canvas.height !== Math.round(height * ratio)
-    ) {
+    if (canvas.width !== Math.round(width * ratio) || canvas.height !== Math.round(height * ratio)) {
       canvas.width = Math.round(width * ratio);
       canvas.height = Math.round(height * ratio);
       canvas.style.width = `${width}px`;
@@ -88,20 +63,8 @@ export default function KmzViewerMap({
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    const { kmzData: currentKmz, opacity: currentOpacity, userLocation: currentLoc } =
-      propsRef.current;
-
-    drawKmzCanvas(
-      context,
-      map,
-      currentKmz,
-      imagesRef.current,
-      currentOpacity,
-      currentLoc,
-      ratio,
-      width,
-      height,
-    );
+    const { kmzData: curKmz, opacity: curOpacity, userLocation: curLoc } = propsRef.current;
+    drawKmzCanvas(context, map, curKmz, imagesRef.current, curOpacity, curLoc, ratio, width, height);
   }, []);
 
   const scheduleDraw = useCallback(() => {
@@ -133,6 +96,9 @@ export default function KmzViewerMap({
           currentMap.set(tile.url, img);
           scheduleDraw();
         };
+        img.onerror = () => {
+          console.error("Failed to load KMZ tile image:", tile.url);
+        };
         img.src = tile.url;
         if (img.complete && img.naturalWidth > 0) {
           currentMap.set(tile.url, img);
@@ -159,10 +125,8 @@ export default function KmzViewerMap({
     void import("leaflet")
       .then((leaflet) => {
         if (cancelled) return;
-
-        const defaultCenter: [number, number] = [23.8103, 90.4125]; // Dhaka default
         map = leaflet.map(host, {
-          center: defaultCenter,
+          center: [23.8103, 90.4125],
           zoom: 13,
           maxZoom: 22,
           zoomControl: false,
@@ -171,8 +135,7 @@ export default function KmzViewerMap({
 
         mapRef.current = map;
         baseLayerRef.current = createBaseTileLayer(leaflet, propsRef.current.mapStyle).addTo(map);
-
-        map.on("move zoom resize", scheduleDraw);
+        map.on("move zoom resize moveend zoomend viewreset", scheduleDraw);
         map.on("click", (e) => {
           propsRef.current.onInspectCoordinate?.({
             latitude: e.latlng.lat,
@@ -184,6 +147,13 @@ export default function KmzViewerMap({
           if (cancelled) return;
           map?.invalidateSize({ pan: false });
           onMapReady?.();
+          const curKmz = propsRef.current.kmzData;
+          if (curKmz && map) {
+            const b = computeKmzBounds(curKmz);
+            if (b) {
+              map.fitBounds(b, { padding: [40, 40], maxZoom: 19, animate: false });
+            }
+          }
           scheduleDraw();
         });
 
@@ -194,8 +164,7 @@ export default function KmzViewerMap({
         resizeObserver.observe(host);
       })
       .catch((err: unknown) => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Map load error");
+        if (!cancelled) setError(err instanceof Error ? err.message : "Map load error");
       });
 
     return () => {
@@ -215,42 +184,43 @@ export default function KmzViewerMap({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-
     let cancelled = false;
     void import("leaflet").then((leaflet) => {
       if (cancelled || mapRef.current !== map) return;
       baseLayerRef.current?.remove();
       baseLayerRef.current = createBaseTileLayer(leaflet, mapStyle).addTo(map);
     });
-
     return () => {
       cancelled = true;
     };
   }, [mapStyle]);
 
-  // Fit bounds trigger
+  // Fit bounds on kmzData load or trigger
   useEffect(() => {
-    if (!fitBoundsTrigger || !kmzData || !mapRef.current) return;
+    const map = mapRef.current;
+    if (!kmzData || !map) return;
     const bounds = computeKmzBounds(kmzData);
     if (bounds) {
-      mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 19 });
+      map.invalidateSize({ pan: false });
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 19, animate: false });
+      scheduleDraw();
+      const timer = setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.invalidateSize({ pan: false });
+          mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 19, animate: false });
+          scheduleDraw();
+        }
+      }, 150);
+      return () => clearTimeout(timer);
     }
-  }, [fitBoundsTrigger, kmzData]);
+  }, [fitBoundsTrigger, kmzData, scheduleDraw]);
 
-  // Programmatic Zoom In / Out
   useEffect(() => {
-    if (zoomInTrigger > 0 && mapRef.current) {
-      mapRef.current.zoomIn();
-    }
+    if (zoomInTrigger > 0 && mapRef.current) mapRef.current.zoomIn();
   }, [zoomInTrigger]);
-
   useEffect(() => {
-    if (zoomOutTrigger > 0 && mapRef.current) {
-      mapRef.current.zoomOut();
-    }
+    if (zoomOutTrigger > 0 && mapRef.current) mapRef.current.zoomOut();
   }, [zoomOutTrigger]);
-
-  // Fly to user location
   useEffect(() => {
     if (userLocation && mapRef.current) {
       mapRef.current.flyTo([userLocation.lat, userLocation.lng], 18, { duration: 1.2 });

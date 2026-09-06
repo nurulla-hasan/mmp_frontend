@@ -51,8 +51,8 @@ export default function KmzMapLoadingOverlay({
         <Loader2 className="size-4 animate-spin text-primary" />
         <span className="text-xs font-medium">
           {mapStyle === "satellite"
-            ? "স্যাটেলাইট ম্যাপ লোড হচ্ছে…"
-            : "ম্যাপ লোড হচ্ছে…"}
+            ? "Loading Satellite Map…"
+            : "Loading Map…"}
         </span>
       </div>
     </div>

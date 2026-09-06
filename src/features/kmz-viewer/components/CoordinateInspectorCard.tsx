@@ -41,7 +41,7 @@ export default function CoordinateInspectorCard({ coordinate, onClose }: Props) 
           </div>
           <div>
             <h4 className="text-sm font-bold font-heading leading-tight">
-              স্থানাঙ্ক পরীক্ষক
+              Coordinate Inspector
             </h4>
             <p className="text-[11px] text-muted-foreground">
               GPS Coordinates & Inspection
@@ -91,12 +91,12 @@ export default function CoordinateInspectorCard({ coordinate, onClose }: Props) 
           {copied ? (
             <>
               <Check className="size-3.5" />
-              <span>কপি হয়েছে</span>
+              <span>Copied</span>
             </>
           ) : (
             <>
               <Copy className="size-3.5" />
-              <span>কপি করুন</span>
+              <span>Copy</span>
             </>
           )}
         </Button>

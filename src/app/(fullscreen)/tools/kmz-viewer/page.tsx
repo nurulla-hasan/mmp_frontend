@@ -3,15 +3,15 @@ import type { Metadata } from "next";
 import KmzViewerClient from "./kmz-viewer-client";
 
 export const metadata: Metadata = {
-  title: "কেএমজেড ম্যাপ ভিউয়ার — KMZ & KML Viewer | Mouza Map Pro",
+  title: "KMZ Map Viewer — Google Earth KMZ & KML Viewer | Mouza Map Pro",
   description:
-    "Google Earth KMZ ও KML ফাইল সরাসরি ব্রাউজারে স্যাটেলাইট ম্যাপে দেখুন ও স্থানাঙ্ক পর্যবেক্ষণ করুন।",
+    "View Google Earth KMZ and KML files directly on satellite maps and inspect coordinates.",
   keywords: [
     "KMZ Viewer",
     "KML Viewer",
     "Google Earth Web",
     "Mouza KMZ",
-    "কেএমজেড ম্যাপ ভিউয়ার",
+    "Map Viewer",
   ],
   alternates: {
     canonical: "/tools/kmz-viewer",

@@ -7,7 +7,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import type { KmzData } from "../types";
-import KmzFloatingToolButton from "./KmzFloatingToolButton";
 
 type Props = {
   document: KmzData | null;
@@ -29,22 +28,24 @@ export default function KmzOpacityPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        render={<div className="inline-flex" />}
-        className="focus:outline-none focus-visible:outline-none"
-      >
-        <KmzFloatingToolButton
-          icon={Layers}
-          label={
-            document
-              ? `KMZ Opacity (${Math.round(opacity * 100)}%)`
-              : "Opacity"
-          }
-          active={open}
-          disabled={!document}
-          onClick={() => setOpen((prev) => !prev)}
-          mobile={mobile}
-        />
-      </PopoverTrigger>
+        render={
+          <Button
+            type="button"
+            variant={open ? "default" : "ghost"}
+            size={mobile ? "icon" : "icon-lg"}
+            disabled={!document}
+            aria-label="KMZ Opacity"
+            title={
+              document
+                ? `KMZ Opacity (${Math.round(opacity * 100)}%)`
+                : "Opacity"
+            }
+            className={open ? "" : "text-muted-foreground"}
+          >
+            <Layers className={mobile ? "size-4" : "size-5"} />
+          </Button>
+        }
+      />
       <PopoverContent
         side={mobile ? "top" : "left"}
         sideOffset={12}
@@ -55,7 +56,7 @@ export default function KmzOpacityPopover({
             <div className="flex items-center gap-1.5">
               <Layers className="size-3.5 text-primary" />
               <span className="text-xs font-semibold">
-                KMZ স্বচ্ছতা (Opacity)
+                KMZ Layer Opacity
               </span>
             </div>
             <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-[11px] font-bold text-primary">
@@ -97,7 +98,7 @@ export default function KmzOpacityPopover({
               <Minus className="size-3.5" />
             </Button>
             <span className="text-[10px] text-muted-foreground text-center">
-              -10% কমাতে +10% বাড়াতে
+              Adjust opacity (±10%)
             </span>
             <Button
               variant="outline"

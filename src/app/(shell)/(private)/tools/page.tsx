@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Calculator, Globe2, Layers3, Map, MoveDiagonal, Navigation, PenLine, Ruler, Scaling } from "lucide-react";
+import { Calculator, Compass, Globe2, Layers3, Map, MoveDiagonal, PenLine, Ruler, Scaling } from "lucide-react";
 import Link from "next/link";
 
 import { PageWrapper } from "@/components/common/page-wrapper";
@@ -68,14 +68,14 @@ const quickTools = [
     color: "text-primary bg-primary/10",
   },
   {
-    icon: Navigation,
+    icon: Compass,
     title: "কেএমজেড ম্যাপ ভিউয়ার",
     description:
       "Google Earth KMZ ও KML ফাইল ব্রাউজারে স্যাটেলাইট ম্যাপে সরাসরি দেখুন ও স্থানাঙ্ক পর্যবেক্ষণ করুন।",
     href: "/tools/kmz-viewer",
     badge: "নতুন",
     isPro: false,
-    color: "text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30",
+    color: "text-blue-500 bg-blue-500/10 dark:text-blue-400 dark:bg-blue-500/15",
   },
   {
     icon: Scaling,

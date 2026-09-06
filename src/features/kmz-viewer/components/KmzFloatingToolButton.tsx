@@ -29,27 +29,26 @@ export default function KmzFloatingToolButton({
   return (
     <Tooltip>
       <TooltipTrigger
-        render={<div className="inline-flex" />}
-        className="focus:outline-none focus-visible:outline-none"
-      >
-        <Button
-          type="button"
-          variant={active ? "default" : "ghost"}
-          size={mobile ? "icon" : "icon-lg"}
-          disabled={disabled}
-          aria-busy={loading}
-          onClick={loading || disabled ? undefined : onClick}
-          className={active ? "" : "text-muted-foreground"}
-        >
-          {loading ? (
-            <Loader2
-              className={mobile ? "size-4 animate-spin" : "size-5 animate-spin"}
-            />
-          ) : (
-            <Icon className={mobile ? "size-4" : "size-5"} />
-          )}
-        </Button>
-      </TooltipTrigger>
+        render={
+          <Button
+            type="button"
+            variant={active ? "default" : "ghost"}
+            size={mobile ? "icon" : "icon-lg"}
+            disabled={disabled}
+            aria-busy={loading}
+            onClick={loading || disabled ? undefined : onClick}
+            className={active ? "" : "text-muted-foreground"}
+          >
+            {loading ? (
+              <Loader2
+                className={mobile ? "size-4 animate-spin" : "size-5 animate-spin"}
+              />
+            ) : (
+              <Icon className={mobile ? "size-4" : "size-5"} />
+            )}
+          </Button>
+        }
+      />
       <TooltipContent side={mobile ? "top" : "left"} sideOffset={8}>
         {label}
       </TooltipContent>

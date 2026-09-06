@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Compass, FileUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  ToolEmptyState,
+  ToolTopNav,
+} from "@/components/tools/tool-workspace-ui";
 import { ErrorToast, SuccessToast } from "@/lib/utils";
 import { parseKmzFile } from "../utils/kmzParser";
 import type {
@@ -10,13 +16,12 @@ import type {
   UserLocation,
 } from "../types";
 import CoordinateInspectorCard from "./CoordinateInspectorCard";
-import KmzDropZone from "./KmzDropZone";
 import KmzMapLoadingOverlay from "./KmzMapLoadingOverlay";
-import KmzViewerHeader from "./KmzViewerHeader";
 import KmzViewerMap from "./KmzViewerMap";
 import KmzViewerToolbar from "./KmzViewerToolbar";
 
 export default function KmzViewerStudio() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [document, setDocument] = useState<KmzData | null>(null);
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -24,8 +29,7 @@ export default function KmzViewerStudio() {
   const [mapStyle, setMapStyle] = useState<MapStyle>("satellite");
   const [overlayOpacity, setOverlayOpacity] = useState(1.0);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-  const [inspectedCoordinate, setInspectedCoordinate] =
-    useState<InspectedCoordinate | null>(null);
+  const [inspectedCoordinate, setInspectedCoordinate] = useState<InspectedCoordinate | null>(null);
 
   const [fitBoundsTrigger, setFitBoundsTrigger] = useState(0);
   const [zoomInTrigger, setZoomInTrigger] = useState(0);
@@ -34,7 +38,7 @@ export default function KmzViewerStudio() {
   const handleFileSelect = useCallback(async (file: File) => {
     const fileName = file.name.toLowerCase();
     if (!fileName.endsWith(".kmz") && !fileName.endsWith(".kml")) {
-      ErrorToast("শুধুমাত্র .kmz অথবা .kml ফাইল নির্বাচন করুন");
+      ErrorToast("Please select a valid .kmz or .kml file");
       return;
     }
 
@@ -43,14 +47,21 @@ export default function KmzViewerStudio() {
       const parsed = await parseKmzFile(file);
       setDocument(parsed);
       setOverlayOpacity(1.0);
-      SuccessToast(`"${parsed.name}" সফলভাবে লোড হয়েছে`);
-      setTimeout(() => {
-        setFitBoundsTrigger((prev) => prev + 1);
-      }, 300);
+
+      let msg = `"${parsed.name}" loaded successfully`;
+      if (parsed.summary) {
+        const parts: string[] = [];
+        if (parsed.summary.tileCount > 0) parts.push(`${parsed.summary.tileCount} overlay tiles`);
+        if (parsed.summary.polygonCount > 0) parts.push(`${parsed.summary.polygonCount} plots/polygons`);
+        if (parsed.summary.lineCount > 0) parts.push(`${parsed.summary.lineCount} lines`);
+        if (parsed.summary.pointCount > 0) parts.push(`${parsed.summary.pointCount} points`);
+        if (parts.length > 0) msg += ` (${parts.join(", ")})`;
+      }
+      SuccessToast(msg);
+      setFitBoundsTrigger((prev) => prev + 1);
+      setTimeout(() => setFitBoundsTrigger((prev) => prev + 1), 250);
     } catch (error: unknown) {
-      ErrorToast(
-        error instanceof Error ? error.message : "KMZ ফাইল পড়া সম্ভব হয়নি",
-      );
+      ErrorToast(error instanceof Error ? error.message : "Failed to load KMZ file");
     } finally {
       setLoading(false);
     }
@@ -58,33 +69,28 @@ export default function KmzViewerStudio() {
 
   const handleGoToMyLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      ErrorToast("আপনার ব্রাউজারে Geolocation সাপোর্ট করে না");
+      ErrorToast("Geolocation is not supported by your browser");
       return;
     }
-
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const nextLoc: UserLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          timestamp: position.timestamp,
-        };
-        setUserLocation(nextLoc);
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, timestamp: pos.timestamp });
         setLocating(false);
-        SuccessToast("আপনার বর্তমান অবস্থান চিহ্নিত করা হয়েছে");
+        SuccessToast("Current location detected");
       },
-      (geoError) => {
+      (err) => {
         setLocating(false);
-        if (geoError.code === geoError.PERMISSION_DENIED) {
-          ErrorToast("লোকেশন পারমিশন দেওয়া হয়নি। ব্রাউজার সেটিংসে পারমিশন দিন");
-        } else {
-          ErrorToast("বর্তমান অবস্থান নির্ণয় করা যায়নি");
-        }
+        ErrorToast(err.code === err.PERMISSION_DENIED ? "Location permission denied" : "Could not determine current location");
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 10000 },
     );
+  }, []);
+
+  const handleClearDocument = useCallback(() => {
+    setDocument(null);
+    setInspectedCoordinate(null);
+    SuccessToast("KMZ overlay cleared");
   }, []);
 
   // Window-level Drag & Drop support
@@ -98,35 +104,52 @@ export default function KmzViewerStudio() {
       e.preventDefault();
       e.stopPropagation();
       const file = e.dataTransfer?.files?.[0];
-      if (file) {
-        handleFileSelect(file);
-      }
+      if (file) handleFileSelect(file);
     };
 
     window.addEventListener("dragover", handleDragOver);
     window.addEventListener("drop", handleDrop);
-
     return () => {
       window.removeEventListener("dragover", handleDragOver);
       window.removeEventListener("drop", handleDrop);
     };
   }, [handleFileSelect]);
 
+  const toggleMapStyle = () =>
+    setMapStyle((s) => (s === "satellite" ? "street" : "satellite"));
+
   return (
-    <div className="flex h-dvh w-screen flex-col overflow-hidden bg-background text-foreground">
-      {/* Top Header */}
-      <KmzViewerHeader
-        document={document}
-        loading={loading}
-        onFileSelect={handleFileSelect}
+    <div className="relative h-dvh w-full overflow-hidden bg-background text-foreground">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".kmz,.kml"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleFileSelect(file);
+          e.target.value = "";
+        }}
       />
 
-      {/* Main Map & Viewer Area */}
-      <div className="relative flex-1 overflow-hidden bg-muted/20">
-        {/* Blurry Loading Placeholder */}
+      {/* Floating Top Navigation */}
+      <ToolTopNav
+        title="KMZ Map Viewer"
+        icon={Compass}
+        backHref="/tools"
+        backLabel="Back to Tools"
+      >
+        {document && (
+          <span className="max-w-36 truncate font-mono text-xs text-muted-foreground sm:max-w-56">
+            {document.name}
+          </span>
+        )}
+      </ToolTopNav>
+
+      {/* Main Map Canvas Area */}
+      <div className="absolute inset-0">
         <KmzMapLoadingOverlay isReady={isMapReady} mapStyle={mapStyle} />
 
-        {/* Leaflet + Canvas Map */}
         <KmzViewerMap
           kmzData={document}
           opacity={overlayOpacity}
@@ -139,13 +162,26 @@ export default function KmzViewerStudio() {
           onInspectCoordinate={(coord) => setInspectedCoordinate(coord)}
         />
 
-        {/* Empty State Dropzone if no KMZ loaded */}
+        {/* Empty State */}
         {!document && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center p-4 pointer-events-none">
-            <div className="pointer-events-auto">
-              <KmzDropZone
-                onFileSelect={handleFileSelect}
-                loading={loading}
+          <div className="absolute inset-0 z-10 grid place-items-center p-6 pointer-events-none">
+            <div className="pointer-events-auto w-full max-w-sm">
+              <ToolEmptyState
+                icon={Compass}
+                title="KMZ Map Viewer"
+                description="Upload Google Earth KMZ or KML files to view overlays on satellite maps and inspect coordinates."
+                actions={
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={loading}
+                    className="w-full gap-2"
+                  >
+                    <FileUp className="size-4" />
+                    <span>
+                      {loading ? "Loading file…" : "Open KMZ / KML File"}
+                    </span>
+                  </Button>
+                }
               />
             </div>
           </div>
@@ -160,68 +196,46 @@ export default function KmzViewerStudio() {
             />
           </div>
         )}
+      </div>
 
-        {/* Desktop Vertical Toolbar (Right side) */}
-        <div className="absolute right-4 top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl backdrop-blur-md md:flex">
-          <KmzViewerToolbar
-            document={document}
-            loading={loading}
-            locating={locating}
-            mapStyle={mapStyle}
-            opacity={overlayOpacity}
-            mobile={false}
-            onOpenKmz={() => {
-              const fileInput = window.document.querySelector<HTMLInputElement>(
-                'input[type="file"][accept=".kmz,.kml"]',
-              );
-              fileInput?.click();
-            }}
-            onToggleMapStyle={() =>
-              setMapStyle((s) => (s === "satellite" ? "street" : "satellite"))
-            }
-            onGoToMyLocation={handleGoToMyLocation}
-            onFitDocument={() => setFitBoundsTrigger((prev) => prev + 1)}
-            onSetOpacity={setOverlayOpacity}
-            onZoomIn={() => setZoomInTrigger((prev) => prev + 1)}
-            onZoomOut={() => setZoomOutTrigger((prev) => prev + 1)}
-            onClearDocument={() => {
-              setDocument(null);
-              setInspectedCoordinate(null);
-              SuccessToast("KMZ ম্যাপ সরানো হয়েছে");
-            }}
-          />
-        </div>
+      {/* Desktop Floating Toolbar (Right Side) */}
+      <div className="absolute right-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl backdrop-blur-md md:flex">
+        <KmzViewerToolbar
+          document={document}
+          loading={loading}
+          locating={locating}
+          mapStyle={mapStyle}
+          opacity={overlayOpacity}
+          mobile={false}
+          onOpenKmz={() => fileInputRef.current?.click()}
+          onToggleMapStyle={toggleMapStyle}
+          onGoToMyLocation={handleGoToMyLocation}
+          onFitDocument={() => setFitBoundsTrigger((prev) => prev + 1)}
+          onSetOpacity={setOverlayOpacity}
+          onZoomIn={() => setZoomInTrigger((prev) => prev + 1)}
+          onZoomOut={() => setZoomOutTrigger((prev) => prev + 1)}
+          onClearDocument={handleClearDocument}
+        />
+      </div>
 
-        {/* Mobile Horizontal Toolbar (Bottom Center Dock) */}
-        <div className="absolute bottom-4 left-1/2 z-30 flex w-fit max-w-[calc(100vw-1rem)] -translate-x-1/2 items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl backdrop-blur-md md:hidden">
-          <KmzViewerToolbar
-            document={document}
-            loading={loading}
-            locating={locating}
-            mapStyle={mapStyle}
-            opacity={overlayOpacity}
-            mobile={true}
-            onOpenKmz={() => {
-              const fileInput = window.document.querySelector<HTMLInputElement>(
-                'input[type="file"][accept=".kmz,.kml"]',
-              );
-              fileInput?.click();
-            }}
-            onToggleMapStyle={() =>
-              setMapStyle((s) => (s === "satellite" ? "street" : "satellite"))
-            }
-            onGoToMyLocation={handleGoToMyLocation}
-            onFitDocument={() => setFitBoundsTrigger((prev) => prev + 1)}
-            onSetOpacity={setOverlayOpacity}
-            onZoomIn={() => setZoomInTrigger((prev) => prev + 1)}
-            onZoomOut={() => setZoomOutTrigger((prev) => prev + 1)}
-            onClearDocument={() => {
-              setDocument(null);
-              setInspectedCoordinate(null);
-              SuccessToast("KMZ ম্যাপ সরানো হয়েছে");
-            }}
-          />
-        </div>
+      {/* Mobile Floating Toolbar (Bottom Center Dock) */}
+      <div className="absolute bottom-4 left-1/2 z-40 flex w-fit max-w-[calc(100vw-1rem)] -translate-x-1/2 items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl backdrop-blur-md md:hidden">
+        <KmzViewerToolbar
+          document={document}
+          loading={loading}
+          locating={locating}
+          mapStyle={mapStyle}
+          opacity={overlayOpacity}
+          mobile={true}
+          onOpenKmz={() => fileInputRef.current?.click()}
+          onToggleMapStyle={toggleMapStyle}
+          onGoToMyLocation={handleGoToMyLocation}
+          onFitDocument={() => setFitBoundsTrigger((prev) => prev + 1)}
+          onSetOpacity={setOverlayOpacity}
+          onZoomIn={() => setZoomInTrigger((prev) => prev + 1)}
+          onZoomOut={() => setZoomOutTrigger((prev) => prev + 1)}
+          onClearDocument={handleClearDocument}
+        />
       </div>
     </div>
   );
