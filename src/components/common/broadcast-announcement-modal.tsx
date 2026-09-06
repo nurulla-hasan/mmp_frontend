@@ -56,13 +56,16 @@ export function BroadcastAnnouncementModal() {
   useEffect(() => {
     async function fetchActiveBroadcast() {
       try {
-        const res = await fetch("/api/v1/broadcasts/active", {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://apis.mouzamappro.com/api/v1";
+        const res = await fetch(`${apiUrl.replace(/\/$/, "")}/broadcasts/active`, {
           cache: "no-store",
         });
         if (!res.ok) return;
         const data = await res.json();
         if (data?.success && data?.data) {
-          const item: TBroadcast = data.data;
+          const list: TBroadcast[] = Array.isArray(data.data) ? data.data : [data.data];
+          const item = list[0];
+          if (!item) return;
           // Check if user already dismissed this announcement in this session/browser
           const closedId = localStorage.getItem(`mmp_broadcast_closed_${item.id}`);
           if (!closedId) {

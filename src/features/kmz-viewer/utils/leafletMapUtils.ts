@@ -125,6 +125,7 @@ export function drawKmzCanvas(
             });
             cx /= feat.rings[0].length;
             cy /= feat.rings[0].length;
+            context.save();
             context.font = "bold 11px sans-serif";
             context.textAlign = "center";
             context.textBaseline = "middle";
@@ -132,6 +133,7 @@ export function drawKmzCanvas(
             context.shadowColor = "rgba(0,0,0,0.8)";
             context.shadowBlur = 4;
             context.fillText(feat.name, cx, cy);
+            context.restore();
           }
           context.restore();
         }
@@ -163,11 +165,14 @@ export function drawKmzCanvas(
           context.shadowColor = "rgba(0, 0, 0, 0.4)";
           context.shadowBlur = 4;
           context.fill();
+          context.shadowBlur = 0;
+          context.shadowColor = "transparent";
           context.lineWidth = 2;
           context.strokeStyle = "#ffffff";
           context.stroke();
 
           if (feat.name) {
+            context.save();
             context.font = "bold 11px sans-serif";
             context.textAlign = "left";
             context.textBaseline = "middle";
@@ -175,6 +180,7 @@ export function drawKmzCanvas(
             context.shadowColor = "rgba(0,0,0,0.9)";
             context.shadowBlur = 4;
             context.fillText(feat.name, cp.x + 9, cp.y);
+            context.restore();
           }
           context.restore();
         }

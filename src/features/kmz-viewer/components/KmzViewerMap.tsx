@@ -20,15 +20,9 @@ type Props = {
 };
 
 export default function KmzViewerMap({
-  kmzData,
-  opacity,
-  mapStyle,
-  userLocation,
-  fitBoundsTrigger = 0,
-  zoomInTrigger = 0,
-  zoomOutTrigger = 0,
-  onInspectCoordinate,
-  onMapReady,
+  kmzData, opacity, mapStyle, userLocation,
+  fitBoundsTrigger = 0, zoomInTrigger = 0, zoomOutTrigger = 0,
+  onInspectCoordinate, onMapReady,
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,9 +33,9 @@ export default function KmzViewerMap({
   const [error, setError] = useState<string | null>(null);
 
   const propsRef = useRef({ kmzData, opacity, mapStyle, userLocation, onInspectCoordinate });
-  useEffect(() => {
-    propsRef.current = { kmzData, opacity, mapStyle, userLocation, onInspectCoordinate };
-  });
+  propsRef.current = { kmzData, opacity, mapStyle, userLocation, onInspectCoordinate };
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const isDrawnRef = useRef(false);
 
   const drawOverlay = useCallback(() => {
     const canvas = canvasRef.current;
@@ -60,10 +54,22 @@ export default function KmzViewerMap({
       canvas.style.height = `${height}px`;
     }
 
-    const context = canvas.getContext("2d");
+    let context = ctxRef.current;
+    if (!context) {
+      context = canvas.getContext("2d");
+      ctxRef.current = context;
+    }
     if (!context) return;
 
     const { kmzData: curKmz, opacity: curOpacity, userLocation: curLoc } = propsRef.current;
+    if (!curKmz && !curLoc) {
+      if (isDrawnRef.current) {
+        context.clearRect(0, 0, width, height);
+        isDrawnRef.current = false;
+      }
+      return;
+    }
+    isDrawnRef.current = true;
     drawKmzCanvas(context, map, curKmz, imagesRef.current, curOpacity, curLoc, ratio, width, height);
   }, []);
 
@@ -90,21 +96,16 @@ export default function KmzViewerMap({
     });
 
     kmzData.tiles.forEach((tile) => {
-      if (!currentMap.has(tile.url)) {
-        const img = new Image();
-        img.onload = () => {
-          currentMap.set(tile.url, img);
-          scheduleDraw();
-        };
-        img.onerror = () => {
-          console.error("Failed to load KMZ tile image:", tile.url);
-        };
-        img.src = tile.url;
-        if (img.complete && img.naturalWidth > 0) {
-          currentMap.set(tile.url, img);
-          scheduleDraw();
-        }
-      }
+      if (currentMap.has(tile.url)) return;
+      const img = new Image();
+      const onDone = () => {
+        currentMap.set(tile.url, img);
+        scheduleDraw();
+      };
+      img.onload = onDone;
+      img.onerror = () => console.error("Failed to load KMZ tile:", tile.url);
+      img.src = tile.url;
+      if (img.complete && img.naturalWidth > 0) onDone();
     });
   }, [kmzData, scheduleDraw]);
 
@@ -173,6 +174,7 @@ export default function KmzViewerMap({
       map?.remove();
       mapRef.current = null;
       baseLayerRef.current = null;
+      ctxRef.current = null;
       if (drawFrameRef.current !== null) {
         window.cancelAnimationFrame(drawFrameRef.current);
         drawFrameRef.current = null;
@@ -205,26 +207,25 @@ export default function KmzViewerMap({
       map.fitBounds(bounds, { padding: [40, 40], maxZoom: 19, animate: false });
       scheduleDraw();
       const timer = setTimeout(() => {
-        if (mapRef.current) {
-          mapRef.current.invalidateSize({ pan: false });
-          mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 19, animate: false });
-          scheduleDraw();
-        }
+        if (!mapRef.current) return;
+        mapRef.current.invalidateSize({ pan: false });
+        mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 19, animate: false });
+        scheduleDraw();
       }, 150);
       return () => clearTimeout(timer);
     }
   }, [fitBoundsTrigger, kmzData, scheduleDraw]);
 
   useEffect(() => {
-    if (zoomInTrigger > 0 && mapRef.current) mapRef.current.zoomIn();
+    if (zoomInTrigger > 0) mapRef.current?.zoomIn();
   }, [zoomInTrigger]);
+
   useEffect(() => {
-    if (zoomOutTrigger > 0 && mapRef.current) mapRef.current.zoomOut();
+    if (zoomOutTrigger > 0) mapRef.current?.zoomOut();
   }, [zoomOutTrigger]);
+
   useEffect(() => {
-    if (userLocation && mapRef.current) {
-      mapRef.current.flyTo([userLocation.lat, userLocation.lng], 18, { duration: 1.2 });
-    }
+    if (userLocation) mapRef.current?.flyTo([userLocation.lat, userLocation.lng], 18, { duration: 1.2 });
   }, [userLocation]);
 
   return (

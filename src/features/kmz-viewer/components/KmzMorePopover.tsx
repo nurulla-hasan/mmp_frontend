@@ -1,5 +1,4 @@
 import {
-  HelpCircle,
   MoreHorizontal,
   RotateCcw,
   ZoomIn,
@@ -57,10 +56,7 @@ export default function KmzMorePopover({
             variant="ghost"
             size="sm"
             className="w-full justify-start gap-2 text-xs font-normal"
-            onClick={() => {
-              onZoomIn();
-              setOpen(false);
-            }}
+            onClick={onZoomIn}
           >
             <ZoomIn className="size-3.5 text-muted-foreground" />
             <span>Zoom In (+)</span>
@@ -70,10 +66,7 @@ export default function KmzMorePopover({
             variant="ghost"
             size="sm"
             className="w-full justify-start gap-2 text-xs font-normal"
-            onClick={() => {
-              onZoomOut();
-              setOpen(false);
-            }}
+            onClick={onZoomOut}
           >
             <ZoomOut className="size-3.5 text-muted-foreground" />
             <span>Zoom Out (-)</span>
@@ -97,22 +90,6 @@ export default function KmzMorePopover({
             </>
           )}
 
-          <div className="my-1 h-px bg-border/60" />
-          <a
-            href="/tools/scale-guide"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full"
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start gap-2 text-xs font-normal"
-            >
-              <HelpCircle className="size-3.5 text-muted-foreground" />
-              <span>User Guide</span>
-            </Button>
-          </a>
         </div>
       </PopoverContent>
     </Popover>

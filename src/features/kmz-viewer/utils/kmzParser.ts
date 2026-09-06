@@ -41,27 +41,51 @@ function getMimeType(filename: string, buf?: Uint8Array): string {
   return "image/png";
 }
 
-function findImageInZip(unzippedFiles: Record<string, Uint8Array>, href: string): Uint8Array | null {
+interface ZipImageIndex {
+  exactMap: Map<string, Uint8Array>;
+  basenameMap: Map<string, Uint8Array>;
+  singleImage: Uint8Array | null;
+}
+
+function buildZipImageIndex(unzippedFiles: Record<string, Uint8Array>): ZipImageIndex {
+  const exactMap = new Map<string, Uint8Array>();
+  const basenameMap = new Map<string, Uint8Array>();
+  const images: Uint8Array[] = [];
+
+  for (const [key, data] of Object.entries(unzippedFiles)) {
+    const cleanKey = key.replace(/^[./\\]+/, "").replace(/\\/g, "/").trim().toLowerCase();
+    exactMap.set(cleanKey, data);
+    const basename = cleanKey.split("/").pop() || cleanKey;
+    basenameMap.set(basename, data);
+
+    if (cleanKey.endsWith(".png") || cleanKey.endsWith(".jpg") || cleanKey.endsWith(".jpeg") || cleanKey.endsWith(".webp")) {
+      images.push(data);
+    }
+  }
+
+  return {
+    exactMap,
+    basenameMap,
+    singleImage: images.length === 1 ? images[0] : null,
+  };
+}
+
+function findImageInZip(index: ZipImageIndex, href: string): Uint8Array | null {
   if (!href) return null;
   const cleanHref = decodeURIComponent(href.replace(/^[./\\]+/, "").replace(/\\/g, "/").trim().toLowerCase());
   const hrefBasename = cleanHref.split("/").pop() || cleanHref;
 
-  for (const [key, data] of Object.entries(unzippedFiles)) {
-    const cleanKey = key.replace(/^[./\\]+/, "").replace(/\\/g, "/").trim().toLowerCase();
-    if (cleanKey === cleanHref || cleanKey.endsWith("/" + cleanHref) || cleanHref.endsWith("/" + cleanKey)) {
-      return data;
-    }
+  const exact = index.exactMap.get(cleanHref);
+  if (exact) return exact;
+
+  for (const [cleanKey, data] of index.exactMap) {
+    if (cleanKey.endsWith("/" + cleanHref) || cleanHref.endsWith("/" + cleanKey)) return data;
   }
-  for (const [key, data] of Object.entries(unzippedFiles)) {
-    const keyBasename = key.replace(/\\/g, "/").split("/").pop()?.toLowerCase() || "";
-    if (keyBasename === hrefBasename) return data;
-  }
-  const imageEntries = Object.entries(unzippedFiles).filter(([k]) => {
-    const lk = k.toLowerCase();
-    return lk.endsWith(".png") || lk.endsWith(".jpg") || lk.endsWith(".jpeg") || lk.endsWith(".webp");
-  });
-  if (imageEntries.length === 1) return imageEntries[0][1];
-  return null;
+
+  const byBase = index.basenameMap.get(hrefBasename);
+  if (byBase) return byBase;
+
+  return index.singleImage;
 }
 
 function parseRotatedBox(n: number, s: number, e: number, w: number, rotDeg: number): [GeoPoint, GeoPoint, GeoPoint, GeoPoint] {
@@ -141,6 +165,7 @@ export async function parseKmzFile(file: File): Promise<KmzData> {
     });
 
     // 2. Parse Ground Overlays
+    const imageIndex = buildZipImageIndex(unzippedFiles);
     const overlays = Array.from(xmlDoc.getElementsByTagNameNS("*", "GroundOverlay"));
     for (const ov of overlays) {
       const href = (ov.getElementsByTagNameNS("*", "Icon")[0]?.getElementsByTagNameNS("*", "href")[0]?.textContent || "").trim();
@@ -164,7 +189,7 @@ export async function parseKmzFile(file: File): Promise<KmzData> {
       if (!corners || !href) continue;
       corners.forEach(trackCoord);
 
-      const buf = findImageInZip(unzippedFiles, href);
+      const buf = findImageInZip(imageIndex, href);
       let url = href;
       if (buf) {
         const cleanArrayBuffer = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
