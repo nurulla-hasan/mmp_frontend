@@ -80,7 +80,7 @@ function sourcePointAtWorld(
 
 type WorldMapCanvasProps = {
   active: boolean;
-  image: HTMLImageElement;
+  image: HTMLImageElement | null;
   imageSize: { width: number; height: number };
   transform: GeoTransform | null;
   controlPairs: ControlPair[];
@@ -128,10 +128,18 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     distance: number;
     center: MercatorPoint;
   } | null>(null);
-  const viewActiveTimestampRef = useRef<number>(Date.now());
+  const viewActiveTimestampRef = useRef<number>(0);
   const manualAdjustmentRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Cache device pixel ratio once — never changes at runtime
+  const pixelRatioRef = useRef(
+    Math.min(
+      window.devicePixelRatio || 1,
+      ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4) <= 4 ? 1.5 : 2,
+    ),
+  );
 
   const installBaseMap = useCallback(
     (
@@ -193,12 +201,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     const map = mapRef.current;
     if (!canvas || !host || !map) return;
 
-    const deviceMemory =
-      (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4;
-    const ratio = Math.min(
-      window.devicePixelRatio || 1,
-      deviceMemory <= 4 ? 1.5 : 2,
-    );
+    const ratio = pixelRatioRef.current;
     const width = host.clientWidth;
     const height = host.clientHeight;
 
@@ -221,7 +224,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     const { image, imageSize, transform, opacity, controlPairs } =
       propsRef.current;
 
-    if (transform) {
+    if (transform && image && imageSize && imageSize.width > 0 && imageSize.height > 0) {
       const imageWidth = imageSize.width;
       const imageHeight = imageSize.height;
       const origin = toScreenPoint({ x: 0, y: 0 });
@@ -293,6 +296,11 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       }
     }
 
+    // Set text properties once outside the loop
+    context.font = "bold 11px system-ui, sans-serif";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+
     controlPairs.forEach((pair, index) => {
       const point = map.latLngToContainerPoint([
         pair.world.lat,
@@ -335,9 +343,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
       // Red bold number inside white badge
       context.fillStyle = "rgb(220 38 38)";
-      context.font = "bold 11px system-ui, sans-serif";
-      context.textAlign = "center";
-      context.textBaseline = "middle";
       context.fillText(String(index + 1), tipX, tipY - 22);
     });
   }, [toScreenPoint]);
@@ -373,10 +378,23 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     });
   }, []);
 
+  // Always keep propsRef in sync (no draw side-effect here)
   useEffect(() => {
     propsRef.current = props;
+  });
+
+  // Trigger redraws only when visually relevant props change
+  useEffect(() => {
     if (props.active) scheduleDraw();
-  }, [props, scheduleDraw]);
+  }, [
+    props.active,
+    props.image,
+    props.transform,
+    props.opacity,
+    props.controlPairs,
+    props.userLocation,
+    scheduleDraw,
+  ]);
 
   useEffect(() => {
     manualAdjustmentRef.current = props.manualAdjustmentEnabled;

@@ -32,3 +32,15 @@ export type GeoTransform = {
   tx: number;
   ty: number;
 };
+
+export type KmzTile = {
+  url: string; // Blob URL
+  corners: [GeoPoint, GeoPoint, GeoPoint, GeoPoint]; // [Bottom-Left, Bottom-Right, Top-Right, Top-Left]
+  width: number;
+  height: number;
+};
+
+export type KmzData = {
+  name: string;
+  tiles: KmzTile[];
+};

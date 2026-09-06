@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -12,6 +13,7 @@ export type FloatingToolButtonProps = {
   onClick: () => void;
   active?: boolean;
   disabled?: boolean;
+  loading?: boolean;
   mobile?: boolean;
 };
 
@@ -21,6 +23,7 @@ export default function FloatingToolButton({
   onClick,
   active = false,
   disabled = false,
+  loading = false,
   mobile = false,
 }: FloatingToolButtonProps) {
   return (
@@ -34,10 +37,15 @@ export default function FloatingToolButton({
           variant={active ? 'default' : 'ghost'}
           size={mobile ? 'icon' : 'icon-lg'}
           disabled={disabled}
-          onClick={onClick}
+          aria-busy={loading}
+          onClick={loading || disabled ? undefined : onClick}
           className={active ? '' : 'text-muted-foreground'}
         >
-          <Icon className={mobile ? 'size-4' : 'size-5'} />
+          {loading ? (
+            <Loader2 className={mobile ? 'size-4 animate-spin' : 'size-5 animate-spin'} />
+          ) : (
+            <Icon className={mobile ? 'size-4' : 'size-5'} />
+          )}
         </Button>
       </TooltipTrigger>
       <TooltipContent side={mobile ? 'top' : 'left'} sideOffset={8}>

@@ -4,6 +4,7 @@ import { memo } from "react";
 import {
   Download,
   FileUp,
+  Focus,
   Loader2,
   Trash2,
   FileText,
@@ -20,6 +21,7 @@ import type { KmzExportQuality } from "../utils/kmz";
 
 type SettingsPanelProps = {
   image: HTMLImageElement | null;
+  kmzData?: import("../types").KmzData | null;
   loadingFile: boolean;
   controlPairs: ControlPair[];
   transform: GeoTransform | null;
@@ -37,6 +39,7 @@ type SettingsPanelProps = {
   onUploadClick: () => void;
   onRemovePair: (id: string) => void;
   onLocateUser?: () => void;
+  onFitKmz?: () => void;
   onBackgroundRemovedChange: (value: boolean) => void;
   onBackgroundSensitivityChange: (value: number) => void;
   onLineColorChange: (value: string) => void;
@@ -59,6 +62,7 @@ const sliderCls = (accent: "destructive" | "primary" = "primary") => {
 
 export default memo(function SettingsPanel({
   image,
+  kmzData,
   loadingFile,
   controlPairs,
   transform,
@@ -76,6 +80,7 @@ export default memo(function SettingsPanel({
   onUploadClick,
   onRemovePair,
   onLocateUser,
+  onFitKmz,
   onBackgroundRemovedChange,
   onBackgroundSensitivityChange,
   onLineColorChange,
@@ -92,9 +97,9 @@ export default memo(function SettingsPanel({
         <div className="flex items-center justify-between">
           <h3 className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
             <FileUp className="size-3.5 text-primary" />
-            <span>Mouza Map</span>
+            <span>{kmzData ? "KMZ Map" : "Mouza Map"}</span>
           </h3>
-          {image && (
+          {(image || kmzData) && (
             <Badge
               variant="outline"
               className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
@@ -104,7 +109,7 @@ export default memo(function SettingsPanel({
           )}
         </div>
 
-        {image ? (
+        {image || kmzData ? (
           <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-primary/30 bg-primary/5 shadow-xs">
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
               <div className="flex size-7.5 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
@@ -113,17 +118,28 @@ export default memo(function SettingsPanel({
               <div className="min-w-0 flex-1">
                 <p
                   className="text-xs text-foreground truncate font-mono"
-                  title={mapName || "mouza-map"}
+                  title={kmzData ? kmzData.name : (mapName || "mouza-map")}
                 >
-                  {mapName || "mouza-map"}
+                  {kmzData ? kmzData.name : (mapName || "mouza-map")}
                 </p>
                 <p className="text-xs text-primary">
-                  Mouza map ready
+                  {kmzData ? "KMZ loaded" : "Mouza map ready"}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-1.5 shrink-0">
+              {kmzData && onFitKmz && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="size-7.5 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
+                  onClick={onFitKmz}
+                  title="Zoom to KMZ Map (Focus)"
+                >
+                  <Focus className="size-3.5" />
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="icon"
@@ -145,13 +161,13 @@ export default memo(function SettingsPanel({
             className="w-full gap-1.5 text-xs h-9 border-primary/40 bg-primary/5 text-primary hover:bg-primary/15 hover:border-primary/60 transition-colors"
           >
             <FileUp className="size-3.5" />
-            {loadingFile ? "Loading…" : "Upload New PDF / Image"}
+            {loadingFile ? "Loading…" : "Upload PDF / Image / KMZ"}
           </Button>
         )}
       </section>
 
-      {/* ── When Image is Loaded: Show Control Points, Background, Opacity ── */}
-      {image && (
+      {/* ── When Image or KMZ is Loaded: Show Control Points, Background, Opacity ── */}
+      {image && !kmzData && (
         <>
           <Separator className="bg-border/60" />
 
@@ -282,12 +298,18 @@ export default memo(function SettingsPanel({
               </div>
             )}
           </section>
+        </>
+      )}
 
-          {/* 4. PDF Opacity Slider */}
+      {(image || kmzData) && (
+        <>
+          {image && <Separator className="bg-border/60" />}
+
+          {/* 4. Map Opacity Slider */}
           <section className="space-y-1.5 p-3 rounded-xl border border-border/70 bg-card shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs text-foreground">
-                PDF Opacity
+                {kmzData ? "KMZ Opacity" : "PDF Opacity"}
               </span>
               <Badge variant="outline" className="font-mono text-xs">
                 {Math.round(opacity * 100)}%
@@ -433,7 +455,7 @@ export default memo(function SettingsPanel({
       </section>
 
       {/* ── Workflow Guide Card (Shown before upload) ── */}
-      {!image && (
+      {!image && !kmzData && (
         <>
           <Separator className="bg-border/60" />
           <div className="space-y-2 p-3 rounded-xl border border-primary/20 bg-primary/5 text-xs">

@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/useUtilityHooks";
 import { ErrorToast, SuccessToast } from "@/lib/utils";
-import EmptyState from "./EmptyState";
 import GeoStudioToolbar from "./GeoStudioToolbar";
 import GeoStudioTopNav from "./GeoStudioTopNav";
 import SettingsPanel from "./SettingsPanel";
 import SourceMapCanvas from "./SourceMapCanvas";
 import WorldMapCanvas from "./WorldMapCanvas";
+import KmzViewerCanvas from "./KmzViewerCanvas";
 import type {
   AlignmentMode,
   ControlPair,
@@ -29,7 +29,6 @@ import type {
   Point2D,
 } from "../types";
 import {
-  calculateResidualMeters,
   resizeGeoTransform,
   rotateGeoTransform,
   scaleGeoTransform,
@@ -37,6 +36,7 @@ import {
   translateGeoTransform,
 } from "../utils/geoMath";
 import { exportMouzaKmz, type KmzExportQuality } from "../utils/kmz";
+import { parseKmzFile } from "../utils/kmzParser";
 import { extractImageFromPDF } from "@/features/land-measurement/utils/pdfHelper";
 import { createProcessedPreview } from "../utils/imageProcessing";
 import { loadImage, toDataUrl } from "../utils/imageUtils";
@@ -54,9 +54,10 @@ export default function MouzaGeoStudio() {
   const [mapName, setMapName] = useState("mouza-map");
   const [loadingFile, setLoadingFile] = useState(false);
 
-  const [activeView, setActiveView] = useState<"source" | "world">("source");
-  const [worldInitialized, setWorldInitialized] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeView, setActiveView] = useState<"source" | "world" | "kmz">("world");
+  const [kmzData, setKmzData] = useState<import("../types").KmzData | null>(null);
+  const [worldInitialized, setWorldInitialized] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(true);
   const [pointMode, setPointMode] = useState(false);
 
   const [controlPairs, setControlPairs] = useState<ControlPair[]>([]);
@@ -87,6 +88,12 @@ export default function MouzaGeoStudio() {
     timestamp: number;
   } | null>(null);
   const [locating, setLocating] = useState(false);
+  const [fitKmzTrigger, setFitKmzTrigger] = useState(0);
+
+  const handleFitKmz = () => {
+    setActiveView("kmz");
+    setFitKmzTrigger((prev) => prev + 1);
+  };
 
   const overlayImage = backgroundRemoved && processedImage ? processedImage : image;
 
@@ -106,10 +113,7 @@ export default function MouzaGeoStudio() {
     [imageSize],
   );
 
-  const residual = useMemo(() => {
-    if (!transform || controlPairs.length < 2) return null;
-    return calculateResidualMeters(transform, controlPairs);
-  }, [transform, controlPairs]);
+
 
   useEffect(() => {
     if (!image || !backgroundRemoved) {
@@ -158,6 +162,20 @@ export default function MouzaGeoStudio() {
     setLoadingFile(true);
 
     try {
+      const fileName = file.name.toLowerCase();
+      if (fileName.endsWith(".kmz") || fileName.endsWith(".kml")) {
+        const parsedKmz = await parseKmzFile(file);
+        setKmzData(parsedKmz);
+        setMapName(parsedKmz.name);
+        resetAlignment();
+        setImage(null);
+        setProcessedImage(null);
+        setActiveView("kmz");
+        setWorldInitialized(false);
+        setPointMode(false);
+        return;
+      }
+
       const loadedImage =
         file.type === "application/pdf"
           ? await extractImageFromPDF(file)
@@ -166,6 +184,7 @@ export default function MouzaGeoStudio() {
       if (!loadedImage) throw new Error("Could not extract map from PDF");
 
       setImage(loadedImage);
+      setKmzData(null);
       setProcessedImage(null);
       setBackgroundRemoved(false);
       setBackgroundSensitivity(75);
@@ -352,8 +371,10 @@ export default function MouzaGeoStudio() {
     }
 
     setLocating(true);
-    setWorldInitialized(true);
-    setActiveView("world");
+    if (!kmzData) {
+      setWorldInitialized(true);
+      setActiveView("world");
+    }
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -363,7 +384,7 @@ export default function MouzaGeoStudio() {
           lng: pos.coords.longitude,
           timestamp: Date.now(),
         });
-        SuccessToast("Your current location was found");
+        SuccessToast("Current location detected successfully!");
       },
       (err) => {
         setLocating(false);
@@ -433,7 +454,7 @@ export default function MouzaGeoStudio() {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*,application/pdf"
+        accept="image/*,application/pdf,.kmz,.kml"
         className="hidden"
         onChange={(event) => {
           const file = event.target.files?.[0];
@@ -442,61 +463,71 @@ export default function MouzaGeoStudio() {
         }}
       />
 
-      <main className="absolute inset-0 min-h-0 min-w-0 overflow-hidden">
-        {!image ? (
-          <EmptyState
-            onOpenSettings={() => setSettingsOpen(true)}
-          />
-        ) : (
-          <>
-            <div
-              className={`absolute inset-0 ${
-                activeView === "source"
-                  ? "visible"
-                  : "invisible pointer-events-none"
-              }`}
-            >
-              <SourceMapCanvas
-                image={overlayImage ?? image}
-                imageSize={imageSize}
-                controlPairs={controlPairs}
-                pendingSource={pendingSource}
-                active={activeView === "source"}
-                pointMode={pointMode}
-                onPlacePoint={handleSourcePoint}
-              />
-            </div>
+      <main className="absolute inset-0 min-h-0 min-w-0 overflow-hidden z-0">
+        {/* 1. Source Map (PDF / Image) View */}
+        {image && (
+          <div
+            className={`absolute inset-0 ${
+              activeView === "source"
+                ? "visible"
+                : "invisible pointer-events-none"
+            }`}
+          >
+            <SourceMapCanvas
+              image={overlayImage ?? image}
+              imageSize={imageSize}
+              controlPairs={controlPairs}
+              pendingSource={pendingSource}
+              active={activeView === "source"}
+              pointMode={pointMode}
+              onPlacePoint={handleSourcePoint}
+            />
+          </div>
+        )}
 
-            {worldInitialized && (
-              <div
-                className={`absolute inset-0 ${
-                  activeView === "world"
-                    ? "visible"
-                    : "invisible pointer-events-none"
-                }`}
-              >
-                <WorldMapCanvas
-                  active={activeView === "world"}
-                  image={overlayImage ?? image}
-                  imageSize={imageSize}
-                  transform={transform}
-                  controlPairs={controlPairs}
-                  waitingForWorldPoint={Boolean(pendingSource)}
-                  pointMode={pointMode}
-                  userLocation={userLocation}
-                  opacity={opacity}
-                  mapStyle={mapStyle}
-                  interactionTarget={interactionTarget}
-                  manualAdjustmentEnabled={manualAdjustmentEnabled}
-                  onPlaceWorldPoint={handleWorldPoint}
-                  onTranslateOverlay={handleTranslate}
-                  onScaleOverlay={handleScale}
-                  onResizeOverlay={handleResize}
-                  onRotateOverlay={handleRotate}
-                />
-              </div>
-            )}
-          </>
+        {/* 2. World Map (Satellite / Street) View - Active by default */}
+        {worldInitialized && (
+          <div
+            className={`absolute inset-0 ${
+              activeView === "world"
+                ? "visible"
+                : "invisible pointer-events-none"
+            }`}
+          >
+            <WorldMapCanvas
+              active={activeView === "world"}
+              image={overlayImage ?? image}
+              imageSize={imageSize}
+              transform={transform}
+              controlPairs={controlPairs}
+              waitingForWorldPoint={Boolean(pendingSource)}
+              pointMode={pointMode}
+              userLocation={userLocation}
+              opacity={opacity}
+              mapStyle={mapStyle}
+              interactionTarget={interactionTarget}
+              manualAdjustmentEnabled={manualAdjustmentEnabled}
+              onPlaceWorldPoint={handleWorldPoint}
+              onTranslateOverlay={handleTranslate}
+              onScaleOverlay={handleScale}
+              onResizeOverlay={handleResize}
+              onRotateOverlay={handleRotate}
+            />
+          </div>
+        )}
+
+        {/* 3. KMZ Map View */}
+        {kmzData && activeView === "kmz" && (
+          <div className="absolute inset-0 visible">
+            <KmzViewerCanvas
+              active={activeView === "kmz"}
+              kmzData={kmzData}
+              opacity={opacity}
+              mapStyle={mapStyle}
+              userLocation={userLocation}
+              fitBoundsTrigger={fitKmzTrigger}
+            />
+          </div>
         )}
       </main>
 
@@ -515,6 +546,7 @@ export default function MouzaGeoStudio() {
           locating={locating}
           canUndo={controlPairs.length > 0}
           canRedo={redoControlPairs.length > 0}
+          hasImage={Boolean(image)}
           onToggleSettings={() => setSettingsOpen((open) => !open)}
           onTogglePointMode={() => {
             setManualAdjustmentEnabled(false);
@@ -530,6 +562,7 @@ export default function MouzaGeoStudio() {
             setActiveView(view);
           }}
           onLocateUser={handleLocateUser}
+          onFitKmz={handleFitKmz}
           onSimilarityClick={() => fitTransform(controlPairs, "similarity", true)}
           onAffineClick={() => fitTransform(controlPairs, "affine", true)}
           onUndo={undoPair}
@@ -552,6 +585,7 @@ export default function MouzaGeoStudio() {
           locating={locating}
           canUndo={controlPairs.length > 0}
           canRedo={redoControlPairs.length > 0}
+          hasImage={Boolean(image)}
           onToggleSettings={() => setSettingsOpen((open) => !open)}
           onTogglePointMode={() => {
             setManualAdjustmentEnabled(false);
@@ -567,6 +601,7 @@ export default function MouzaGeoStudio() {
             setActiveView(view);
           }}
           onLocateUser={handleLocateUser}
+          onFitKmz={handleFitKmz}
           onSimilarityClick={() => fitTransform(controlPairs, "similarity", true)}
           onAffineClick={() => fitTransform(controlPairs, "affine", true)}
           onUndo={undoPair}
@@ -607,6 +642,7 @@ export default function MouzaGeoStudio() {
             <div className="overflow-y-auto" style={{ minHeight: 0 }}>
               <SettingsPanel
                 image={image}
+                kmzData={kmzData}
                 loadingFile={loadingFile}
                 controlPairs={controlPairs}
                 transform={transform}
@@ -626,6 +662,7 @@ export default function MouzaGeoStudio() {
                 onUploadClick={() => fileInputRef.current?.click()}
                 onRemovePair={removePair}
                 onLocateUser={handleLocateUser}
+                onFitKmz={handleFitKmz}
                 onBackgroundRemovedChange={setBackgroundRemoved}
                 onBackgroundSensitivityChange={setBackgroundSensitivity}
                 onLineColorChange={setLineColor}
@@ -681,6 +718,7 @@ export default function MouzaGeoStudio() {
                     >
                       <SettingsPanel
                         image={image}
+                        kmzData={kmzData}
                         loadingFile={loadingFile}
                         controlPairs={controlPairs}
                         transform={transform}
@@ -702,6 +740,7 @@ export default function MouzaGeoStudio() {
                         onUploadClick={() => fileInputRef.current?.click()}
                         onRemovePair={removePair}
                         onLocateUser={handleLocateUser}
+                        onFitKmz={handleFitKmz}
                         onBackgroundRemovedChange={setBackgroundRemoved}
                         onBackgroundSensitivityChange={setBackgroundSensitivity}
                         onLineColorChange={setLineColor}

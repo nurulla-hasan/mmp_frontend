@@ -10,8 +10,8 @@ export default function EmptyState({ onOpenSettings }: EmptyStateProps) {
   return (
     <ToolEmptyState
       icon={Globe2}
-      title="Georeference Mouza Map"
-      description="Upload a PDF or image to align your mouza map with real-world geographical coordinates and export as KMZ for Google Earth."
+      title="Georeference or View Mouza Map"
+      description="Upload a PDF or image to align your mouza map with real-world geographical coordinates, or upload an exported .kmz file to view it."
       actions={
         <Button onClick={onOpenSettings} className="w-full gap-2">
           <Settings2 className="size-4" />

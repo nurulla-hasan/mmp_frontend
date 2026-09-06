@@ -44,7 +44,14 @@ export default function SourceMapCanvas({
     centerY: number;
   } | null>(null);
   const drawFrameRef = useRef<number | null>(null);
-  const viewActiveTimestampRef = useRef<number>(Date.now());
+  const viewActiveTimestampRef = useRef<number>(0);
+  // Cache device pixel ratio once — never changes at runtime
+  const pixelRatioRef = useRef(
+    Math.min(
+      window.devicePixelRatio || 1,
+      ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4) <= 4 ? 1.5 : 2,
+    ),
+  );
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [view, setView] = useState<ViewState>({ scale: 1, x: 0, y: 0 });
 
@@ -57,12 +64,7 @@ export default function SourceMapCanvas({
       const canvas = canvasRef.current;
       if (!canvas || !size.width || !size.height) return;
 
-      const deviceMemory =
-        (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4;
-      const ratio = Math.min(
-        window.devicePixelRatio || 1,
-        deviceMemory <= 4 ? 1.5 : 2,
-      );
+      const ratio = pixelRatioRef.current;
       const pixelWidth = Math.round(size.width * ratio);
       const pixelHeight = Math.round(size.height * ratio);
       if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
