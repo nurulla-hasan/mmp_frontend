@@ -34,7 +34,7 @@ export const normalizeAsPng = (image: HTMLImageElement) => {
   return canvas.toDataURL('image/png');
 };
 
-/** Preserve the image alpha channel for transparent KMZ overlays. */
+/** Preserve the image alpha channel for transparent overlays. */
 export const imageAsPng = (image: HTMLImageElement) => {
   const width = image.naturalWidth || image.width;
   const height = image.naturalHeight || image.height;

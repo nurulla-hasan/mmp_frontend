@@ -15,7 +15,7 @@ export async function parseKmzFile(file: File): Promise<KmzData> {
         const unzippedFiles = unzipSync(new Uint8Array(arrayBuffer));
 
         const kmlFileKey = Object.keys(unzippedFiles).find(
-          (key) => key.toLowerCase().endsWith(".kml")
+          (key) => key.toLowerCase().endsWith(".kml"),
         );
         const kmlFile = kmlFileKey ? unzippedFiles[kmlFileKey] : null;
 
@@ -35,11 +35,11 @@ export async function parseKmzFile(file: File): Promise<KmzData> {
         const documentName = nameNode?.textContent?.trim() || "KMZ Map";
 
         let groundOverlays = Array.from(
-          xmlDoc.getElementsByTagNameNS("*", "GroundOverlay")
+          xmlDoc.getElementsByTagNameNS("*", "GroundOverlay"),
         );
         if (groundOverlays.length === 0) {
           groundOverlays = Array.from(
-            xmlDoc.getElementsByTagName("GroundOverlay")
+            xmlDoc.getElementsByTagName("GroundOverlay"),
           );
         }
 
@@ -53,7 +53,7 @@ export async function parseKmzFile(file: File): Promise<KmzData> {
           const iconNode =
             overlay.getElementsByTagNameNS("*", "Icon")[0] ||
             overlay.getElementsByTagName("Icon")[0];
-          
+
           let href = "";
           if (iconNode) {
             const hrefNode =
@@ -95,21 +95,22 @@ export async function parseKmzFile(file: File): Promise<KmzData> {
           const url = URL.createObjectURL(blob);
 
           // Get image dimensions safely
-          const dimensions = await new Promise<{ width: number; height: number }>(
-            (res) => {
-              const img = new Image();
-              img.onload = () =>
-                res({
-                  width: img.naturalWidth || img.width,
-                  height: img.naturalHeight || img.height,
-                });
-              img.onerror = () => res({ width: 2048, height: 2048 });
-              img.src = url;
-              if (img.complete && img.naturalWidth > 0) {
-                res({ width: img.naturalWidth, height: img.naturalHeight });
-              }
+          const dimensions = await new Promise<{
+            width: number;
+            height: number;
+          }>((res) => {
+            const img = new Image();
+            img.onload = () =>
+              res({
+                width: img.naturalWidth || img.width,
+                height: img.naturalHeight || img.height,
+              });
+            img.onerror = () => res({ width: 2048, height: 2048 });
+            img.src = url;
+            if (img.complete && img.naturalWidth > 0) {
+              res({ width: img.naturalWidth, height: img.naturalHeight });
             }
-          );
+          });
 
           // Parse coordinates
           let corners: [GeoPoint, GeoPoint, GeoPoint, GeoPoint] | null = null;
@@ -129,7 +130,11 @@ export async function parseKmzFile(file: File): Promise<KmzData> {
               const parsed: GeoPoint[] = [];
               for (const pair of pairs) {
                 const parts = pair.split(",").map(Number);
-                if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                if (
+                  parts.length >= 2 &&
+                  !isNaN(parts[0]) &&
+                  !isNaN(parts[1])
+                ) {
                   // In KML coordinates: lon,lat,alt
                   parsed.push({ lng: parts[0], lat: parts[1] });
                 }
