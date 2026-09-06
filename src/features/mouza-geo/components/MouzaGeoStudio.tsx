@@ -57,7 +57,7 @@ export default function MouzaGeoStudio() {
   const [activeView, setActiveView] = useState<"source" | "world" | "kmz">("world");
   const [kmzData, setKmzData] = useState<import("../types").KmzData | null>(null);
   const [worldInitialized, setWorldInitialized] = useState(true);
-  const [settingsOpen, setSettingsOpen] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [pointMode, setPointMode] = useState(false);
 
   const [controlPairs, setControlPairs] = useState<ControlPair[]>([]);
