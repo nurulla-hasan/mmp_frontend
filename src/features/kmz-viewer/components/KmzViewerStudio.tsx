@@ -62,17 +62,6 @@ export default function KmzViewerStudio() {
 
       setKmzDoc(parsed);
       setOverlayOpacity(1.0);
-
-      let msg = `"${parsed.name}" loaded successfully`;
-      if (parsed.summary) {
-        const parts: string[] = [];
-        if (parsed.summary.tileCount > 0) parts.push(`${parsed.summary.tileCount} overlay tiles`);
-        if (parsed.summary.polygonCount > 0) parts.push(`${parsed.summary.polygonCount} plots/polygons`);
-        if (parsed.summary.lineCount > 0) parts.push(`${parsed.summary.lineCount} lines`);
-        if (parsed.summary.pointCount > 0) parts.push(`${parsed.summary.pointCount} points`);
-        if (parts.length > 0) msg += ` (${parts.join(", ")})`;
-      }
-      SuccessToast(msg);
       setFitBoundsTrigger((prev) => prev + 1);
     } catch (error: unknown) {
       ErrorToast(error instanceof Error ? error.message : "Failed to load KMZ file");
