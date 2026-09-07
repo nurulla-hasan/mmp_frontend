@@ -1011,7 +1011,10 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     >
       <div ref={hostRef} className="absolute inset-0 z-0 bg-muted" />
 
-      <div ref={zoomLayerRef} className="absolute inset-0 z-10">
+      <div
+        ref={zoomLayerRef}
+        className="pointer-events-none absolute inset-0 z-10"
+      >
         <canvas
           ref={canvasRef}
           className="absolute left-0 top-0 touch-none bg-transparent"
