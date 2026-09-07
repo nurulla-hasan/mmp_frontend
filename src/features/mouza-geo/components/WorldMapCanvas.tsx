@@ -2,7 +2,12 @@
 
 import "leaflet/dist/leaflet.css";
 
-import type { LeafletMouseEvent, Map as LeafletMap, TileLayer } from "leaflet";
+import type {
+  LatLng,
+  LeafletMouseEvent,
+  Map as LeafletMap,
+  TileLayer,
+} from "leaflet";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type {
@@ -18,6 +23,25 @@ import {
   toMercator,
 } from "../utils/geoMath";
 import { InfoToast } from "@/lib/utils";
+
+const LEAFLET_ZOOM_TRANSITION =
+  "transform 250ms cubic-bezier(0, 0, 0.25, 1)";
+
+type ZoomAnimationEvent = {
+  center: LatLng;
+  zoom: number;
+};
+
+type DrawnView = {
+  lat: number;
+  lng: number;
+  zoom: number;
+};
+
+type PendingZoomOut = {
+  targetZoom: number;
+  inverseTransform: string;
+};
 
 type InteractionTarget = "map" | "pdf";
 
@@ -130,6 +154,9 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   } | null>(null);
   const viewActiveTimestampRef = useRef<number>(0);
   const manualAdjustmentRef = useRef(false);
+  const zoomAnimatingRef = useRef(false);
+  const drawnViewRef = useRef<DrawnView | null>(null);
+  const pendingZoomOutRef = useRef<PendingZoomOut | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -345,15 +372,111 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       context.fillStyle = "rgb(220 38 38)";
       context.fillText(String(index + 1), tipX, tipY - 22);
     });
+
+    const center = map.getCenter();
+    drawnViewRef.current = {
+      lat: center.lat,
+      lng: center.lng,
+      zoom: map.getZoom(),
+    };
   }, [toScreenPoint]);
 
   const scheduleDraw = useCallback(() => {
-    if (drawFrameRef.current !== null) return;
+    if (zoomAnimatingRef.current || drawFrameRef.current !== null) return;
     drawFrameRef.current = window.requestAnimationFrame(() => {
       drawFrameRef.current = null;
       drawOverlay();
     });
   }, [drawOverlay]);
+
+  const cancelScheduledDraw = useCallback(() => {
+    if (drawFrameRef.current === null) return;
+    window.cancelAnimationFrame(drawFrameRef.current);
+    drawFrameRef.current = null;
+  }, []);
+
+  const beginZoomAnimation = useCallback(
+    (center: LatLng, zoom: number) => {
+      const canvas = canvasRef.current;
+      const map = mapRef.current;
+      const baseView = drawnViewRef.current;
+      if (!canvas || !map || !baseView) return;
+
+      cancelScheduledDraw();
+      zoomAnimatingRef.current = true;
+
+      const halfSize = map.getSize().multiplyBy(0.5);
+      const targetPixelOrigin = map.project(center, zoom).subtract(halfSize);
+      const baseCenterAtTarget = map
+        .project([baseView.lat, baseView.lng], zoom)
+        .subtract(targetPixelOrigin);
+      const scale = map.getZoomScale(zoom, baseView.zoom);
+      const translate = baseCenterAtTarget.subtract(halfSize.multiplyBy(scale));
+
+      canvas.style.transformOrigin = "0 0";
+      canvas.style.willChange = "transform";
+
+      if (scale >= 1) {
+        pendingZoomOutRef.current = null;
+        canvas.style.transition = LEAFLET_ZOOM_TRANSITION;
+        canvas.style.transform = `translate3d(${translate.x}px, ${translate.y}px, 0) scale(${scale})`;
+        return;
+      }
+
+      const inverseScale = 1 / scale;
+      const inverseTranslateX = -translate.x / scale;
+      const inverseTranslateY = -translate.y / scale;
+      pendingZoomOutRef.current = {
+        targetZoom: zoom,
+        inverseTransform: `translate3d(${inverseTranslateX}px, ${inverseTranslateY}px, 0) scale(${inverseScale})`,
+      };
+    },
+    [cancelScheduledDraw],
+  );
+
+  const handleMapZoom = useCallback(() => {
+    const map = mapRef.current;
+    const canvas = canvasRef.current;
+    const pending = pendingZoomOutRef.current;
+
+    if (!map || !canvas || !pending) {
+      scheduleDraw();
+      return;
+    }
+
+    if (Math.abs(map.getZoom() - pending.targetZoom) > 0.001) return;
+
+    pendingZoomOutRef.current = null;
+    cancelScheduledDraw();
+
+    canvas.style.transition = "none";
+    canvas.style.transformOrigin = "0 0";
+    canvas.style.willChange = "transform";
+    canvas.style.transform = pending.inverseTransform;
+    drawOverlay();
+
+    void canvas.offsetWidth;
+    canvas.style.transition = LEAFLET_ZOOM_TRANSITION;
+    canvas.style.transform = "none";
+  }, [cancelScheduledDraw, drawOverlay, scheduleDraw]);
+
+  const finishZoomAnimation = useCallback(() => {
+    const canvas = canvasRef.current;
+
+    pendingZoomOutRef.current = null;
+    zoomAnimatingRef.current = false;
+    cancelScheduledDraw();
+
+    if (canvas) {
+      canvas.style.transition = "none";
+      canvas.style.transform = "none";
+      canvas.style.transformOrigin = "0 0";
+      canvas.style.willChange = "auto";
+    }
+
+    // Keep the source overlay and map on the same final paint.
+    drawOverlay();
+  }, [cancelScheduledDraw, drawOverlay]);
 
   const scheduleInteraction = useCallback(() => {
     if (interactionFrameRef.current !== null) return;
@@ -449,8 +572,16 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
           });
         };
 
+        const handleZoomAnim = (event: unknown) => {
+          const zoomEvent = event as ZoomAnimationEvent;
+          beginZoomAnimation(zoomEvent.center, zoomEvent.zoom);
+        };
+
         map.on("click", handleClick);
-        map.on("move zoom resize", scheduleDraw);
+        map.on("move resize moveend viewreset", scheduleDraw);
+        map.on("zoom", handleMapZoom);
+        map.on("zoomanim", handleZoomAnim);
+        map.on("zoomend", finishZoomAnimation);
         map.whenReady(() => {
           if (cancelled) return;
           setLoading(false);
@@ -482,16 +613,23 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       mapRef.current = null;
       baseLayerRef.current = null;
       labelLayerRef.current = null;
-      if (drawFrameRef.current !== null) {
-        window.cancelAnimationFrame(drawFrameRef.current);
-        drawFrameRef.current = null;
-      }
+      drawnViewRef.current = null;
+      pendingZoomOutRef.current = null;
+      zoomAnimatingRef.current = false;
+      cancelScheduledDraw();
       if (interactionFrameRef.current !== null) {
         window.cancelAnimationFrame(interactionFrameRef.current);
         interactionFrameRef.current = null;
       }
     };
-  }, [installBaseMap, scheduleDraw]);
+  }, [
+    beginZoomAnimation,
+    cancelScheduledDraw,
+    finishZoomAnimation,
+    handleMapZoom,
+    installBaseMap,
+    scheduleDraw,
+  ]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -896,7 +1034,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
           </div>
         </div>
       )}
-
     </div>
   );
 }
