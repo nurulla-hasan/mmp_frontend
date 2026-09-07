@@ -30,6 +30,7 @@ export default function KmzViewerMap({
   const baseLayerRef = useRef<TileLayer | null>(null);
   const drawFrameRef = useRef<number | null>(null);
   const imagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
+  const imageLoadGenerationRef = useRef(0);
   const [error, setError] = useState<string | null>(null);
 
   const propsRef = useRef({ kmzData, opacity, mapStyle, userLocation, onInspectCoordinate });
@@ -81,13 +82,19 @@ export default function KmzViewerMap({
     });
   }, [drawOverlay]);
 
-  // Load tile images
+  // Load tile images with generation guards so old KMZ image callbacks cannot repopulate the cache.
   useEffect(() => {
     const currentMap = imagesRef.current;
+    const generation = imageLoadGenerationRef.current + 1;
+    imageLoadGenerationRef.current = generation;
+    const pendingImages: HTMLImageElement[] = [];
+
     if (!kmzData) {
       currentMap.clear();
       scheduleDraw();
-      return;
+      return () => {
+        if (imageLoadGenerationRef.current === generation) imageLoadGenerationRef.current += 1;
+      };
     }
 
     const currentUrls = new Set(kmzData.tiles.map((t) => t.url));
@@ -97,19 +104,44 @@ export default function KmzViewerMap({
 
     kmzData.tiles.forEach((tile) => {
       if (currentMap.has(tile.url)) return;
+
       const img = new Image();
+      img.decoding = "async";
+      pendingImages.push(img);
+      let settled = false;
+
       const onDone = () => {
+        if (settled) return;
+        settled = true;
+        if (imageLoadGenerationRef.current !== generation || !currentUrls.has(tile.url)) return;
         currentMap.set(tile.url, img);
         scheduleDraw();
       };
+
       img.onload = onDone;
-      img.onerror = () => console.error("Failed to load KMZ tile:", tile.url);
+      img.onerror = () => {
+        if (settled) return;
+        settled = true;
+        if (imageLoadGenerationRef.current === generation) {
+          console.error("Failed to load KMZ tile:", tile.url);
+        }
+      };
       img.src = tile.url;
+
+      // Cached images can already be complete before the load handler is observed.
       if (img.complete && img.naturalWidth > 0) onDone();
     });
+
+    return () => {
+      if (imageLoadGenerationRef.current === generation) imageLoadGenerationRef.current += 1;
+      pendingImages.forEach((img) => {
+        img.onload = null;
+        img.onerror = null;
+      });
+    };
   }, [kmzData, scheduleDraw]);
 
-  // Redraw on visual prop change
+  // Redraw on visual prop change.
   useEffect(() => {
     scheduleDraw();
   }, [kmzData, opacity, userLocation, scheduleDraw]);
@@ -197,23 +229,16 @@ export default function KmzViewerMap({
     };
   }, [mapStyle]);
 
-  // Fit bounds on kmzData load or trigger
+  // Fit bounds on KMZ load or explicit fit trigger. One pass is sufficient; ResizeObserver handles layout changes.
   useEffect(() => {
     const map = mapRef.current;
     if (!kmzData || !map) return;
     const bounds = computeKmzBounds(kmzData);
-    if (bounds) {
-      map.invalidateSize({ pan: false });
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 19, animate: false });
-      scheduleDraw();
-      const timer = setTimeout(() => {
-        if (!mapRef.current) return;
-        mapRef.current.invalidateSize({ pan: false });
-        mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 19, animate: false });
-        scheduleDraw();
-      }, 150);
-      return () => clearTimeout(timer);
-    }
+    if (!bounds) return;
+
+    map.invalidateSize({ pan: false });
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 19, animate: false });
+    scheduleDraw();
   }, [fitBoundsTrigger, kmzData, scheduleDraw]);
 
   useEffect(() => {

@@ -1,35 +1,40 @@
 import type { Map as LeafletMap, TileLayer } from "leaflet";
-import type { KmzData, MapStyle, UserLocation } from "../types";
+import type { GeoBounds, KmzData, MapStyle, UserLocation } from "../types";
+
+const VIEWPORT_PADDING = 0.12;
 
 export function createBaseTileLayer(leaflet: typeof import("leaflet"), style: MapStyle): TileLayer {
+  const commonOptions = {
+    minZoom: 2,
+    maxZoom: 22,
+    keepBuffer: 3,
+    updateWhenZooming: false,
+    updateWhenIdle: true,
+  };
+
   if (style === "satellite") {
     return leaflet.tileLayer("https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", {
+      ...commonOptions,
       subdomains: ["0", "1", "2", "3"],
-      minZoom: 2,
-      maxZoom: 22,
       maxNativeZoom: 20,
-      keepBuffer: 8,
-      updateWhenZooming: false,
-      updateWhenIdle: false,
       attribution: "&copy; Google Maps",
     });
   }
 
   return leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    minZoom: 2,
-    maxZoom: 22,
+    ...commonOptions,
     maxNativeZoom: 19,
-    keepBuffer: 8,
-    updateWhenZooming: false,
-    updateWhenIdle: false,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
   });
 }
 
-export function computeKmzBounds(kmzData: KmzData): [[number, number], [number, number]] | null {
+export function computeKmzBounds(kmzData: KmzData): GeoBounds | null {
   if (kmzData.bounds) return kmzData.bounds;
 
-  let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
+  let minLat = 90;
+  let maxLat = -90;
+  let minLng = 180;
+  let maxLng = -180;
   const track = (lat: number, lng: number) => {
     if (lat < minLat) minLat = lat;
     if (lat > maxLat) maxLat = lat;
@@ -48,6 +53,18 @@ export function computeKmzBounds(kmzData: KmzData): [[number, number], [number, 
   return [[minLat, minLng], [maxLat, maxLng]];
 }
 
+function boundsIntersectsViewport(
+  bounds: GeoBounds | undefined,
+  south: number,
+  west: number,
+  north: number,
+  east: number,
+): boolean {
+  if (!bounds) return true;
+  const [[minLat, minLng], [maxLat, maxLng]] = bounds;
+  return maxLat >= south && minLat <= north && maxLng >= west && minLng <= east;
+}
+
 export function drawKmzCanvas(
   context: CanvasRenderingContext2D,
   map: LeafletMap,
@@ -63,13 +80,21 @@ export function drawKmzCanvas(
   context.clearRect(0, 0, width, height);
 
   if (kmzData) {
+    const visibleBounds = map.getBounds().pad(VIEWPORT_PADDING);
+    const south = visibleBounds.getSouth();
+    const west = visibleBounds.getWest();
+    const north = visibleBounds.getNorth();
+    const east = visibleBounds.getEast();
+
     context.save();
     context.globalAlpha = Math.max(0.05, Math.min(1, opacity));
 
-    // 1. Draw Raster Tiles
-    kmzData.tiles.forEach((tile) => {
+    // 1. Draw only raster tiles that intersect the visible map area.
+    for (const tile of kmzData.tiles) {
+      if (!boundsIntersectsViewport(tile.bounds, south, west, north, east)) continue;
+
       const image = images.get(tile.url);
-      if (!image) return;
+      if (!image) continue;
       const imgW = image.naturalWidth || tile.width || 2048;
       const imgH = image.naturalHeight || tile.height || 2048;
 
@@ -77,25 +102,26 @@ export function drawKmzCanvas(
       const right = map.latLngToContainerPoint([tile.corners[2].lat, tile.corners[2].lng]);
       const bottom = map.latLngToContainerPoint([tile.corners[0].lat, tile.corners[0].lng]);
 
-      if (origin && right && bottom) {
-        context.save();
-        context.setTransform(
-          ((right.x - origin.x) / imgW) * ratio,
-          ((right.y - origin.y) / imgW) * ratio,
-          ((bottom.x - origin.x) / imgH) * ratio,
-          ((bottom.y - origin.y) / imgH) * ratio,
-          origin.x * ratio,
-          origin.y * ratio,
-        );
-        context.drawImage(image, 0, 0, imgW, imgH);
-        context.restore();
-      }
-    });
+      context.save();
+      context.setTransform(
+        ((right.x - origin.x) / imgW) * ratio,
+        ((right.y - origin.y) / imgW) * ratio,
+        ((bottom.x - origin.x) / imgH) * ratio,
+        ((bottom.y - origin.y) / imgH) * ratio,
+        origin.x * ratio,
+        origin.y * ratio,
+      );
+      context.drawImage(image, 0, 0, imgW, imgH);
+      context.restore();
+    }
 
-    // 2. Draw Vector Features
+    // 2. Draw only vector features that intersect the visible map area.
     if (kmzData.features && kmzData.features.length > 0) {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      kmzData.features.forEach((feat) => {
+
+      for (const feat of kmzData.features) {
+        if (!boundsIntersectsViewport(feat.bounds, south, west, north, east)) continue;
+
         // Polygons
         if (feat.type === "Polygon" && feat.rings && feat.rings.length > 0) {
           context.save();
@@ -111,20 +137,14 @@ export function drawKmzCanvas(
           context.fillStyle = feat.fillColor || "rgba(59, 130, 246, 0.25)";
           context.fill("evenodd");
           context.strokeStyle = feat.strokeColor || "#3b82f6";
-          context.lineWidth = Math.max(1, (feat.strokeWidth || 2));
+          context.lineWidth = Math.max(1, feat.strokeWidth || 2);
           context.lineJoin = "round";
           context.stroke();
 
-          // Label
-          if (feat.name && feat.rings[0].length > 0) {
-            let cx = 0, cy = 0;
-            feat.rings[0].forEach((p) => {
-              const cp = map.latLngToContainerPoint([p.lat, p.lng]);
-              cx += cp.x;
-              cy += cp.y;
-            });
-            cx /= feat.rings[0].length;
-            cy /= feat.rings[0].length;
+          // Label anchor is precomputed during parsing, avoiding a second full vertex projection pass.
+          const labelPoint = feat.labelPoint;
+          if (feat.name && labelPoint) {
+            const cp = map.latLngToContainerPoint([labelPoint.lat, labelPoint.lng]);
             context.save();
             context.font = "bold 11px sans-serif";
             context.textAlign = "center";
@@ -132,7 +152,7 @@ export function drawKmzCanvas(
             context.fillStyle = "#ffffff";
             context.shadowColor = "rgba(0,0,0,0.8)";
             context.shadowBlur = 4;
-            context.fillText(feat.name, cx, cy);
+            context.fillText(feat.name, cp.x, cp.y);
             context.restore();
           }
           context.restore();
@@ -184,7 +204,7 @@ export function drawKmzCanvas(
           }
           context.restore();
         }
-      });
+      }
     }
 
     context.restore();
@@ -193,26 +213,24 @@ export function drawKmzCanvas(
   // 3. Draw GPS User Location
   if (userLocation) {
     const pt = map.latLngToContainerPoint([userLocation.lat, userLocation.lng]);
-    if (pt) {
-      context.save();
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      context.beginPath();
-      context.arc(pt.x, pt.y, 18, 0, Math.PI * 2);
-      context.fillStyle = "rgba(37, 99, 235, 0.22)";
-      context.fill();
+    context.save();
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    context.beginPath();
+    context.arc(pt.x, pt.y, 18, 0, Math.PI * 2);
+    context.fillStyle = "rgba(37, 99, 235, 0.22)";
+    context.fill();
 
-      context.beginPath();
-      context.arc(pt.x, pt.y, 8, 0, Math.PI * 2);
-      context.fillStyle = "#ffffff";
-      context.shadowColor = "rgba(0, 0, 0, 0.35)";
-      context.shadowBlur = 6;
-      context.fill();
+    context.beginPath();
+    context.arc(pt.x, pt.y, 8, 0, Math.PI * 2);
+    context.fillStyle = "#ffffff";
+    context.shadowColor = "rgba(0, 0, 0, 0.35)";
+    context.shadowBlur = 6;
+    context.fill();
 
-      context.beginPath();
-      context.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
-      context.fillStyle = "#2563eb";
-      context.fill();
-      context.restore();
-    }
+    context.beginPath();
+    context.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+    context.fillStyle = "#2563eb";
+    context.fill();
+    context.restore();
   }
 }
