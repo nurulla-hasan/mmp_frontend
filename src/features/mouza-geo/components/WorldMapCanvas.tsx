@@ -38,11 +38,6 @@ type DrawnView = {
   zoom: number;
 };
 
-type PendingZoomOut = {
-  targetZoom: number;
-  inverseTransform: string;
-};
-
 type InteractionTarget = "map" | "pdf";
 
 type OverlayHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
@@ -128,6 +123,7 @@ type WorldMapCanvasProps = {
 
 export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const zoomLayerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const baseLayerRef = useRef<TileLayer | null>(null);
@@ -156,7 +152,12 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   const manualAdjustmentRef = useRef(false);
   const zoomAnimatingRef = useRef(false);
   const drawnViewRef = useRef<DrawnView | null>(null);
-  const pendingZoomOutRef = useRef<PendingZoomOut | null>(null);
+  const renderPaddingRef = useRef({
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -231,22 +232,30 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     const ratio = pixelRatioRef.current;
     const width = host.clientWidth;
     const height = host.clientHeight;
+    const padding = renderPaddingRef.current;
+    const renderWidth = width + padding.left + padding.right;
+    const renderHeight = height + padding.top + padding.bottom;
+    const offsetX = padding.left;
+    const offsetY = padding.top;
 
     if (
-      canvas.width !== Math.round(width * ratio) ||
-      canvas.height !== Math.round(height * ratio)
+      canvas.width !== Math.round(renderWidth * ratio) ||
+      canvas.height !== Math.round(renderHeight * ratio)
     ) {
-      canvas.width = Math.round(width * ratio);
-      canvas.height = Math.round(height * ratio);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+      canvas.width = Math.round(renderWidth * ratio);
+      canvas.height = Math.round(renderHeight * ratio);
     }
+
+    canvas.style.width = `${renderWidth}px`;
+    canvas.style.height = `${renderHeight}px`;
+    canvas.style.left = `${-offsetX}px`;
+    canvas.style.top = `${-offsetY}px`;
 
     const context = canvas.getContext("2d");
     if (!context) return;
 
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
-    context.clearRect(0, 0, width, height);
+    context.clearRect(0, 0, renderWidth, renderHeight);
 
     const { image, imageSize, transform, opacity, controlPairs } =
       propsRef.current;
@@ -266,8 +275,8 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
           ((right.y - origin.y) / imageWidth) * ratio,
           ((bottom.x - origin.x) / imageHeight) * ratio,
           ((bottom.y - origin.y) / imageHeight) * ratio,
-          origin.x * ratio,
-          origin.y * ratio,
+          (origin.x + offsetX) * ratio,
+          (origin.y + offsetY) * ratio,
         );
         context.drawImage(image, 0, 0, imageWidth, imageHeight);
         context.restore();
@@ -286,10 +295,10 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       if (topLeft && topRight && bottomRight && bottomLeft) {
         context.save();
         context.beginPath();
-        context.moveTo(topLeft.x, topLeft.y);
-        context.lineTo(topRight.x, topRight.y);
-        context.lineTo(bottomRight.x, bottomRight.y);
-        context.lineTo(bottomLeft.x, bottomLeft.y);
+        context.moveTo(topLeft.x + offsetX, topLeft.y + offsetY);
+        context.lineTo(topRight.x + offsetX, topRight.y + offsetY);
+        context.lineTo(bottomRight.x + offsetX, bottomRight.y + offsetY);
+        context.lineTo(bottomLeft.x + offsetX, bottomLeft.y + offsetY);
         context.closePath();
         context.strokeStyle = "#10B981";
         context.lineWidth = 2;
@@ -307,14 +316,16 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
             handle.id === "se" ||
             handle.id === "sw";
           const size = isCorner ? 12 : 10;
+          const pointX = point.x + offsetX;
+          const pointY = point.y + offsetY;
 
           context.fillStyle = "#ECFDF5";
           context.strokeStyle = "#059669";
           context.lineWidth = 2;
-          context.fillRect(point.x - size / 2, point.y - size / 2, size, size);
+          context.fillRect(pointX - size / 2, pointY - size / 2, size, size);
           context.strokeRect(
-            point.x - size / 2,
-            point.y - size / 2,
+            pointX - size / 2,
+            pointY - size / 2,
             size,
             size,
           );
@@ -334,8 +345,8 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
         pair.world.lng,
       ]);
 
-      const tipX = point.x;
-      const tipY = point.y;
+      const tipX = point.x + offsetX;
+      const tipY = point.y + offsetY;
       context.beginPath();
       context.moveTo(tipX, tipY);
       context.bezierCurveTo(
@@ -397,15 +408,16 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
   const beginZoomAnimation = useCallback(
     (center: LatLng, zoom: number) => {
-      const canvas = canvasRef.current;
+      const zoomLayer = zoomLayerRef.current;
       const map = mapRef.current;
       const baseView = drawnViewRef.current;
-      if (!canvas || !map || !baseView) return;
+      if (!zoomLayer || !map || !baseView) return;
 
       cancelScheduledDraw();
       zoomAnimatingRef.current = true;
 
-      const halfSize = map.getSize().multiplyBy(0.5);
+      const size = map.getSize();
+      const halfSize = size.multiplyBy(0.5);
       const targetPixelOrigin = map.project(center, zoom).subtract(halfSize);
       const baseCenterAtTarget = map
         .project([baseView.lat, baseView.lng], zoom)
@@ -413,68 +425,53 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       const scale = map.getZoomScale(zoom, baseView.zoom);
       const translate = baseCenterAtTarget.subtract(halfSize.multiplyBy(scale));
 
-      canvas.style.transformOrigin = "0 0";
-      canvas.style.willChange = "transform";
+      if (scale < 1) {
+        // Render extra area at the CURRENT zoom before the animation starts.
+        // When this snapshot shrinks with Leaflet, newly revealed geography already
+        // contains the matching mouza overlay instead of popping in after the map.
+        const oldLeft = -translate.x / scale;
+        const oldTop = -translate.y / scale;
+        const oldRight = (size.x - translate.x) / scale;
+        const oldBottom = (size.y - translate.y) / scale;
 
-      if (scale >= 1) {
-        pendingZoomOutRef.current = null;
-        canvas.style.transition = LEAFLET_ZOOM_TRANSITION;
-        canvas.style.transform = `translate3d(${translate.x}px, ${translate.y}px, 0) scale(${scale})`;
-        return;
+        renderPaddingRef.current = {
+          left: Math.max(0, Math.ceil(-oldLeft) + 2),
+          right: Math.max(0, Math.ceil(oldRight - size.x) + 2),
+          top: Math.max(0, Math.ceil(-oldTop) + 2),
+          bottom: Math.max(0, Math.ceil(oldBottom - size.y) + 2),
+        };
+
+        // `zoomanim` fires before Leaflet commits the target logical view, so this
+        // synchronous draw is still projected at the old zoom and is safe to animate.
+        drawOverlay();
+      } else {
+        renderPaddingRef.current = { left: 0, right: 0, top: 0, bottom: 0 };
       }
 
-      const inverseScale = 1 / scale;
-      const inverseTranslateX = -translate.x / scale;
-      const inverseTranslateY = -translate.y / scale;
-      pendingZoomOutRef.current = {
-        targetZoom: zoom,
-        inverseTransform: `translate3d(${inverseTranslateX}px, ${inverseTranslateY}px, 0) scale(${inverseScale})`,
-      };
+      zoomLayer.style.transformOrigin = "0 0";
+      zoomLayer.style.willChange = "transform";
+      zoomLayer.style.transition = LEAFLET_ZOOM_TRANSITION;
+      zoomLayer.style.transform = `translate3d(${translate.x}px, ${translate.y}px, 0) scale(${scale})`;
     },
-    [cancelScheduledDraw],
+    [cancelScheduledDraw, drawOverlay],
   );
 
-  const handleMapZoom = useCallback(() => {
-    const map = mapRef.current;
-    const canvas = canvasRef.current;
-    const pending = pendingZoomOutRef.current;
-
-    if (!map || !canvas || !pending) {
-      scheduleDraw();
-      return;
-    }
-
-    if (Math.abs(map.getZoom() - pending.targetZoom) > 0.001) return;
-
-    pendingZoomOutRef.current = null;
-    cancelScheduledDraw();
-
-    canvas.style.transition = "none";
-    canvas.style.transformOrigin = "0 0";
-    canvas.style.willChange = "transform";
-    canvas.style.transform = pending.inverseTransform;
-    drawOverlay();
-
-    void canvas.offsetWidth;
-    canvas.style.transition = LEAFLET_ZOOM_TRANSITION;
-    canvas.style.transform = "none";
-  }, [cancelScheduledDraw, drawOverlay, scheduleDraw]);
-
   const finishZoomAnimation = useCallback(() => {
-    const canvas = canvasRef.current;
+    const zoomLayer = zoomLayerRef.current;
 
-    pendingZoomOutRef.current = null;
     zoomAnimatingRef.current = false;
     cancelScheduledDraw();
 
-    if (canvas) {
-      canvas.style.transition = "none";
-      canvas.style.transform = "none";
-      canvas.style.transformOrigin = "0 0";
-      canvas.style.willChange = "auto";
+    if (zoomLayer) {
+      zoomLayer.style.transition = "none";
+      zoomLayer.style.transform = "none";
+      zoomLayer.style.transformOrigin = "0 0";
+      zoomLayer.style.willChange = "auto";
     }
 
-    // Keep the source overlay and map on the same final paint.
+    // Drop the temporary zoom-out buffer and draw the final target projection in
+    // the same event turn as Leaflet's zoom completion.
+    renderPaddingRef.current = { left: 0, right: 0, top: 0, bottom: 0 };
     drawOverlay();
   }, [cancelScheduledDraw, drawOverlay]);
 
@@ -579,7 +576,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
         map.on("click", handleClick);
         map.on("move resize moveend viewreset", scheduleDraw);
-        map.on("zoom", handleMapZoom);
         map.on("zoomanim", handleZoomAnim);
         map.on("zoomend", finishZoomAnimation);
         map.whenReady(() => {
@@ -614,9 +610,15 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       baseLayerRef.current = null;
       labelLayerRef.current = null;
       drawnViewRef.current = null;
-      pendingZoomOutRef.current = null;
+      renderPaddingRef.current = { left: 0, right: 0, top: 0, bottom: 0 };
       zoomAnimatingRef.current = false;
       cancelScheduledDraw();
+      const zoomLayer = zoomLayerRef.current;
+      if (zoomLayer) {
+        zoomLayer.style.transition = "none";
+        zoomLayer.style.transform = "none";
+        zoomLayer.style.willChange = "auto";
+      }
       if (interactionFrameRef.current !== null) {
         window.cancelAnimationFrame(interactionFrameRef.current);
         interactionFrameRef.current = null;
@@ -626,7 +628,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     beginZoomAnimation,
     cancelScheduledDraw,
     finishZoomAnimation,
-    handleMapZoom,
     installBaseMap,
     scheduleDraw,
   ]);
@@ -1010,15 +1011,17 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     >
       <div ref={hostRef} className="absolute inset-0 z-0 bg-muted" />
 
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 z-10 touch-none bg-transparent"
-        style={{ pointerEvents: pdfInteractionEnabled ? "auto" : "none" }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={finishPointer}
-        onPointerCancel={finishPointer}
-      />
+      <div ref={zoomLayerRef} className="absolute inset-0 z-10">
+        <canvas
+          ref={canvasRef}
+          className="absolute left-0 top-0 touch-none bg-transparent"
+          style={{ pointerEvents: pdfInteractionEnabled ? "auto" : "none" }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={finishPointer}
+          onPointerCancel={finishPointer}
+        />
+      </div>
 
       {loading && (
         <div className="absolute inset-0 z-20 grid place-items-center bg-background/80 text-sm text-foreground">
