@@ -89,6 +89,55 @@ A high-performance, Bangla-first web platform for digital land surveying, cadast
 
 ---
 
+## 📁 Project Structure
+
+```text
+mmp_frontend/
+├── public/                 # Static assets, PWA service worker (sw.js), icons & SVGs
+├── src/
+│   ├── app/                # Next.js App Router (Route groups, layouts & API handlers)
+│   │   ├── (admin)/        # Administrator management portal
+│   │   │   └── admin/      # Dashboard, subscribers, verifications, plans, broadcasts
+│   │   ├── (auth)/         # Authentication flows (login, register, forgot/reset password, otp)
+│   │   ├── (fullscreen)/   # Fullscreen dedicated canvas & geospatial mapping tools
+│   │   │   └── tools/      # kmz-viewer, land-measurement, mouza-geo-studio, mouza-map-studio, pantagraph, tracer
+│   │   ├── (shell)/        # Common header/footer shell layout
+│   │   │   ├── (private)/  # Protected user workspace (dashboard, calculations, surveyor, tools)
+│   │   │   ├── about/      # Static & informational pages (about, contact, pricing, fraud-awareness)
+│   │   │   └── surveyors/  # Surveyor directory & public profile pages
+│   │   ├── offline/        # PWA offline fallback route
+│   │   ├── globals.css     # Tailwind CSS v4 & OKLCH color token definitions
+│   │   ├── layout.tsx      # Root layout & global providers
+│   │   └── manifest.ts     # PWA Web App Manifest configuration
+│   ├── components/         # Reusable UI & presentation components
+│   │   ├── common/         # Modals, wrappers, notifications, broadcast announcements
+│   │   ├── home/           # Landing page hero, features, workflow & testimonials
+│   │   ├── layout/         # Navbar, footer, admin sidebar & navigation links
+│   │   ├── pwa/            # PWA install prompt, offline banner & service worker register
+│   │   ├── tools/          # Calculators, unit converters & tool cards
+│   │   └── ui/             # Shadcn UI primitives (Button, Card, Dialog, Popover, etc.)
+│   ├── constants/          # Static application constants & navigation menus
+│   ├── features/           # Modular high-performance canvas & mapping engines
+│   │   ├── kmz-viewer/     # KMZ/KML parsing, fflate unzip, Leaflet map engine, layer controls
+│   │   ├── land-measurement/ # Plot polygon drawing, scaling, plot division, PDF export
+│   │   ├── mouza-geo/      # Georeferencing studio, GCP point matching & KMZ export
+│   │   ├── mouza-map-studio/ # CS/BS map alignment, canvas cropping, annotations
+│   │   ├── pantagraph/     # Superimposed map scale, rotation & point matching
+│   │   └── tracer/         # Vector plot boundary tracing & line simplification
+│   ├── hooks/              # Custom reusable React hooks (usePanZoom, useNextFilter, etc.)
+│   ├── interface/          # TypeScript interfaces, domain models & API response types
+│   ├── lib/                # Core utilities, nextServerFetch, canvas math, image cropping
+│   ├── provider/           # Context providers (Theme provider, tooltips)
+│   ├── proxy.ts            # Next.js 16 route proxy, auth guards & token refresh
+│   ├── services/           # Typed server & client API service layers
+│   └── validation/         # Zod schemas for forms, user profiles & auth validation
+├── .env.example            # Environment variable template
+├── package.json            # Dependencies, scripts & engine specifications
+└── tsconfig.json           # TypeScript configuration with strict mode
+```
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
