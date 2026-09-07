@@ -38,11 +38,6 @@ type DrawnView = {
   zoom: number;
 };
 
-type PendingZoomOut = {
-  targetZoom: number;
-  inverseTransform: string;
-};
-
 type InteractionTarget = "map" | "pdf";
 
 type OverlayHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
@@ -156,7 +151,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
   const manualAdjustmentRef = useRef(false);
   const zoomAnimatingRef = useRef(false);
   const drawnViewRef = useRef<DrawnView | null>(null);
-  const pendingZoomOutRef = useRef<PendingZoomOut | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -413,57 +407,20 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       const scale = map.getZoomScale(zoom, baseView.zoom);
       const translate = baseCenterAtTarget.subtract(halfSize.multiplyBy(scale));
 
+      // Keep the wheel/pinch hot path transform-only. In particular, do not
+      // redraw the canvas or force layout here: those operations delayed the
+      // visible response to zoom-out input on large mouza images.
       canvas.style.transformOrigin = "0 0";
       canvas.style.willChange = "transform";
-
-      if (scale >= 1) {
-        pendingZoomOutRef.current = null;
-        canvas.style.transition = LEAFLET_ZOOM_TRANSITION;
-        canvas.style.transform = `translate3d(${translate.x}px, ${translate.y}px, 0) scale(${scale})`;
-        return;
-      }
-
-      const inverseScale = 1 / scale;
-      const inverseTranslateX = -translate.x / scale;
-      const inverseTranslateY = -translate.y / scale;
-      pendingZoomOutRef.current = {
-        targetZoom: zoom,
-        inverseTransform: `translate3d(${inverseTranslateX}px, ${inverseTranslateY}px, 0) scale(${inverseScale})`,
-      };
+      canvas.style.transition = LEAFLET_ZOOM_TRANSITION;
+      canvas.style.transform = `translate3d(${translate.x}px, ${translate.y}px, 0) scale(${scale})`;
     },
     [cancelScheduledDraw],
   );
 
-  const handleMapZoom = useCallback(() => {
-    const map = mapRef.current;
-    const canvas = canvasRef.current;
-    const pending = pendingZoomOutRef.current;
-
-    if (!map || !canvas || !pending) {
-      scheduleDraw();
-      return;
-    }
-
-    if (Math.abs(map.getZoom() - pending.targetZoom) > 0.001) return;
-
-    pendingZoomOutRef.current = null;
-    cancelScheduledDraw();
-
-    canvas.style.transition = "none";
-    canvas.style.transformOrigin = "0 0";
-    canvas.style.willChange = "transform";
-    canvas.style.transform = pending.inverseTransform;
-    drawOverlay();
-
-    void canvas.offsetWidth;
-    canvas.style.transition = LEAFLET_ZOOM_TRANSITION;
-    canvas.style.transform = "none";
-  }, [cancelScheduledDraw, drawOverlay, scheduleDraw]);
-
   const finishZoomAnimation = useCallback(() => {
     const canvas = canvasRef.current;
 
-    pendingZoomOutRef.current = null;
     zoomAnimatingRef.current = false;
     cancelScheduledDraw();
 
@@ -474,7 +431,7 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       canvas.style.willChange = "auto";
     }
 
-    // Keep the source overlay and map on the same final paint.
+    // One crisp redraw at the final map projection, never in the wheel path.
     drawOverlay();
   }, [cancelScheduledDraw, drawOverlay]);
 
@@ -579,7 +536,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
 
         map.on("click", handleClick);
         map.on("move resize moveend viewreset", scheduleDraw);
-        map.on("zoom", handleMapZoom);
         map.on("zoomanim", handleZoomAnim);
         map.on("zoomend", finishZoomAnimation);
         map.whenReady(() => {
@@ -614,7 +570,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
       baseLayerRef.current = null;
       labelLayerRef.current = null;
       drawnViewRef.current = null;
-      pendingZoomOutRef.current = null;
       zoomAnimatingRef.current = false;
       cancelScheduledDraw();
       if (interactionFrameRef.current !== null) {
@@ -626,7 +581,6 @@ export default function WorldMapCanvas(props: WorldMapCanvasProps) {
     beginZoomAnimation,
     cancelScheduledDraw,
     finishZoomAnimation,
-    handleMapZoom,
     installBaseMap,
     scheduleDraw,
   ]);
