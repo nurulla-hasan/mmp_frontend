@@ -1,32 +1,7 @@
-import type { Map as LeafletMap, TileLayer } from "leaflet";
-import type { GeoBounds, KmzData, MapStyle, UserLocation } from "../types";
+import type { Map as LeafletMap } from "leaflet";
+import type { GeoBounds, KmzData, UserLocation } from "../types";
 
 const VIEWPORT_PADDING = 0.12;
-
-export function createBaseTileLayer(leaflet: typeof import("leaflet"), style: MapStyle): TileLayer {
-  const commonOptions = {
-    minZoom: 2,
-    maxZoom: 22,
-    keepBuffer: 3,
-    updateWhenZooming: false,
-    updateWhenIdle: true,
-  };
-
-  if (style === "satellite") {
-    return leaflet.tileLayer("https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", {
-      ...commonOptions,
-      subdomains: ["0", "1", "2", "3"],
-      maxNativeZoom: 20,
-      attribution: "&copy; Google Maps",
-    });
-  }
-
-  return leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    ...commonOptions,
-    maxNativeZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
-  });
-}
 
 export function computeKmzBounds(kmzData: KmzData): GeoBounds | null {
   if (kmzData.bounds) return kmzData.bounds;
