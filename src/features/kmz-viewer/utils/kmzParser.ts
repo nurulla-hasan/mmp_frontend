@@ -1,5 +1,13 @@
-import { unzipSync } from "fflate";
-import { type GeoPoint, type KmzData, type KmzFeature, type KmzTile } from "../types";
+import { unzip } from "fflate";
+import {
+  type GeoBounds,
+  type GeoPoint,
+  type KmzData,
+  type KmzFeature,
+  type KmzTile,
+} from "../types";
+
+const PARSE_YIELD_INTERVAL = 75;
 
 function parseKmlColor(kmlHex?: string | null): { stroke?: string; fill?: string } {
   if (!kmlHex || kmlHex.length < 6) return {};
@@ -29,6 +37,47 @@ function parseCoords(text?: string | null): GeoPoint[] {
   return points;
 }
 
+function boundsForPoints(points: readonly GeoPoint[]): GeoBounds | undefined {
+  if (points.length === 0) return undefined;
+  let minLat = 90;
+  let maxLat = -90;
+  let minLng = 180;
+  let maxLng = -180;
+
+  for (const point of points) {
+    if (point.lat < minLat) minLat = point.lat;
+    if (point.lat > maxLat) maxLat = point.lat;
+    if (point.lng < minLng) minLng = point.lng;
+    if (point.lng > maxLng) maxLng = point.lng;
+  }
+
+  return [[minLat, minLng], [maxLat, maxLng]];
+}
+
+function labelPointForRing(points: readonly GeoPoint[]): GeoPoint | undefined {
+  if (points.length === 0) return undefined;
+  let lat = 0;
+  let lng = 0;
+  for (const point of points) {
+    lat += point.lat;
+    lng += point.lng;
+  }
+  return { lat: lat / points.length, lng: lng / points.length };
+}
+
+function yieldToBrowser(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+function unzipArchive(data: Uint8Array): Promise<Record<string, Uint8Array>> {
+  return new Promise((resolve, reject) => {
+    unzip(data, (error, files) => {
+      if (error) reject(error);
+      else resolve(files);
+    });
+  });
+}
+
 function getMimeType(filename: string, buf?: Uint8Array): string {
   if (buf && buf.length > 4) {
     if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return "image/png";
@@ -47,13 +96,22 @@ interface ZipImageIndex {
   singleImage: Uint8Array | null;
 }
 
+function normalizeArchivePath(value: string): string {
+  const normalized = value.replace(/^[./\\]+/, "").replace(/\\/g, "/").trim().toLowerCase();
+  try {
+    return decodeURIComponent(normalized);
+  } catch {
+    return normalized;
+  }
+}
+
 function buildZipImageIndex(unzippedFiles: Record<string, Uint8Array>): ZipImageIndex {
   const exactMap = new Map<string, Uint8Array>();
   const basenameMap = new Map<string, Uint8Array>();
   const images: Uint8Array[] = [];
 
   for (const [key, data] of Object.entries(unzippedFiles)) {
-    const cleanKey = key.replace(/^[./\\]+/, "").replace(/\\/g, "/").trim().toLowerCase();
+    const cleanKey = normalizeArchivePath(key);
     exactMap.set(cleanKey, data);
     const basename = cleanKey.split("/").pop() || cleanKey;
     basenameMap.set(basename, data);
@@ -72,18 +130,18 @@ function buildZipImageIndex(unzippedFiles: Record<string, Uint8Array>): ZipImage
 
 function findImageInZip(index: ZipImageIndex, href: string): Uint8Array | null {
   if (!href) return null;
-  const cleanHref = decodeURIComponent(href.replace(/^[./\\]+/, "").replace(/\\/g, "/").trim().toLowerCase());
+  const cleanHref = normalizeArchivePath(href);
   const hrefBasename = cleanHref.split("/").pop() || cleanHref;
 
   const exact = index.exactMap.get(cleanHref);
   if (exact) return exact;
 
+  const byBase = index.basenameMap.get(hrefBasename);
+  if (byBase) return byBase;
+
   for (const [cleanKey, data] of index.exactMap) {
     if (cleanKey.endsWith("/" + cleanHref) || cleanHref.endsWith("/" + cleanKey)) return data;
   }
-
-  const byBase = index.basenameMap.get(hrefBasename);
-  if (byBase) return byBase;
 
   return index.singleImage;
 }
@@ -115,7 +173,8 @@ export async function parseKmzFile(file: File): Promise<KmzData> {
   } else {
     try {
       const buffer = await file.arrayBuffer();
-      unzippedFiles = unzipSync(new Uint8Array(buffer));
+      // fflate's async API moves decompression work off the hot synchronous path.
+      unzippedFiles = await unzipArchive(new Uint8Array(buffer));
       for (const [key, data] of Object.entries(unzippedFiles)) {
         if (key.toLowerCase().endsWith(".kml")) {
           kmlStrings.push(new TextDecoder("utf-8").decode(data));
@@ -131,9 +190,19 @@ export async function parseKmzFile(file: File): Promise<KmzData> {
   const parser = new DOMParser();
   const tiles: KmzTile[] = [];
   const features: KmzFeature[] = [];
+  const createdBlobUrls: string[] = [];
+  const imageIndex = buildZipImageIndex(unzippedFiles);
   let docName = file.name.replace(/\.(kmz|kml)$/i, "");
+  let completed = false;
 
-  let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
+  let minLat = 90;
+  let maxLat = -90;
+  let minLng = 180;
+  let maxLng = -180;
+  let polygonCount = 0;
+  let lineCount = 0;
+  let pointCount = 0;
+
   const trackCoord = (p: GeoPoint) => {
     if (p.lat < minLat) minLat = p.lat;
     if (p.lat > maxLat) maxLat = p.lat;
@@ -141,152 +210,179 @@ export async function parseKmzFile(file: File): Promise<KmzData> {
     if (p.lng > maxLng) maxLng = p.lng;
   };
 
-  for (const kmlText of kmlStrings) {
-    const xmlDoc = parser.parseFromString(kmlText, "text/xml");
-    const nameNode = xmlDoc.getElementsByTagNameNS("*", "name")[0] || xmlDoc.getElementsByTagName("name")[0];
-    if (nameNode?.textContent?.trim()) docName = nameNode.textContent.trim();
+  try {
+    for (const kmlText of kmlStrings) {
+      const xmlDoc = parser.parseFromString(kmlText, "text/xml");
+      const nameNode = xmlDoc.getElementsByTagNameNS("*", "name")[0] || xmlDoc.getElementsByTagName("name")[0];
+      if (nameNode?.textContent?.trim()) docName = nameNode.textContent.trim();
 
-    // 1. Parse Styles
-    const styleMap = new Map<string, { strokeColor?: string; strokeWidth?: number; fillColor?: string }>();
-    const styleNodes = Array.from(xmlDoc.getElementsByTagNameNS("*", "Style"));
-    styleNodes.forEach((s) => {
-      const id = s.getAttribute("id");
-      if (!id) return;
-      const lineCol = s.getElementsByTagNameNS("*", "LineStyle")[0]?.getElementsByTagNameNS("*", "color")[0]?.textContent;
-      const lineW = Number(s.getElementsByTagNameNS("*", "LineStyle")[0]?.getElementsByTagNameNS("*", "width")[0]?.textContent) || 2;
-      const polyCol = s.getElementsByTagNameNS("*", "PolyStyle")[0]?.getElementsByTagNameNS("*", "color")[0]?.textContent;
-      const strokeParsed = parseKmlColor(lineCol);
-      const polyParsed = parseKmlColor(polyCol);
-      styleMap.set(`#${id}`, {
-        strokeColor: strokeParsed.stroke || polyParsed.stroke || "#3b82f6",
-        strokeWidth: Math.max(1.5, Math.min(6, lineW)),
-        fillColor: polyParsed.fill || strokeParsed.fill || "rgba(59, 130, 246, 0.25)",
+      // 1. Parse Styles
+      const styleMap = new Map<string, { strokeColor?: string; strokeWidth?: number; fillColor?: string }>();
+      const styleNodes = Array.from(xmlDoc.getElementsByTagNameNS("*", "Style"));
+      styleNodes.forEach((s) => {
+        const id = s.getAttribute("id");
+        if (!id) return;
+        const lineCol = s.getElementsByTagNameNS("*", "LineStyle")[0]?.getElementsByTagNameNS("*", "color")[0]?.textContent;
+        const lineW = Number(s.getElementsByTagNameNS("*", "LineStyle")[0]?.getElementsByTagNameNS("*", "width")[0]?.textContent) || 2;
+        const polyCol = s.getElementsByTagNameNS("*", "PolyStyle")[0]?.getElementsByTagNameNS("*", "color")[0]?.textContent;
+        const strokeParsed = parseKmlColor(lineCol);
+        const polyParsed = parseKmlColor(polyCol);
+        styleMap.set(`#${id}`, {
+          strokeColor: strokeParsed.stroke || polyParsed.stroke || "#3b82f6",
+          strokeWidth: Math.max(1.5, Math.min(6, lineW)),
+          fillColor: polyParsed.fill || strokeParsed.fill || "rgba(59, 130, 246, 0.25)",
+        });
       });
-    });
 
-    // 2. Parse Ground Overlays
-    const imageIndex = buildZipImageIndex(unzippedFiles);
-    const overlays = Array.from(xmlDoc.getElementsByTagNameNS("*", "GroundOverlay"));
-    for (const ov of overlays) {
-      const href = (ov.getElementsByTagNameNS("*", "Icon")[0]?.getElementsByTagNameNS("*", "href")[0]?.textContent || "").trim();
-      let corners: [GeoPoint, GeoPoint, GeoPoint, GeoPoint] | null = null;
+      // 2. Parse Ground Overlays
+      const overlays = Array.from(xmlDoc.getElementsByTagNameNS("*", "GroundOverlay"));
+      for (const ov of overlays) {
+        const href = (ov.getElementsByTagNameNS("*", "Icon")[0]?.getElementsByTagNameNS("*", "href")[0]?.textContent || "").trim();
+        let corners: [GeoPoint, GeoPoint, GeoPoint, GeoPoint] | null = null;
 
-      const quadCoords = ov.getElementsByTagNameNS("*", "LatLonQuad")[0]?.getElementsByTagNameNS("*", "coordinates")[0]?.textContent;
-      if (quadCoords) {
-        const pts = parseCoords(quadCoords);
-        if (pts.length >= 4) corners = [pts[0], pts[1], pts[2], pts[3]];
-      }
-
-      if (!corners) {
-        const box = ov.getElementsByTagNameNS("*", "LatLonBox")[0];
-        if (box) {
-          const getV = (t: string) => Number(box.getElementsByTagNameNS("*", t)[0]?.textContent);
-          const [n, s, e, w, r] = [getV("north"), getV("south"), getV("east"), getV("west"), getV("rotation") || 0];
-          if (!isNaN(n) && !isNaN(s) && !isNaN(e) && !isNaN(w)) corners = parseRotatedBox(n, s, e, w, r);
+        const quadCoords = ov.getElementsByTagNameNS("*", "LatLonQuad")[0]?.getElementsByTagNameNS("*", "coordinates")[0]?.textContent;
+        if (quadCoords) {
+          const pts = parseCoords(quadCoords);
+          if (pts.length >= 4) corners = [pts[0], pts[1], pts[2], pts[3]];
         }
+
+        if (!corners) {
+          const box = ov.getElementsByTagNameNS("*", "LatLonBox")[0];
+          if (box) {
+            const getV = (t: string) => Number(box.getElementsByTagNameNS("*", t)[0]?.textContent);
+            const [n, s, e, w, r] = [getV("north"), getV("south"), getV("east"), getV("west"), getV("rotation") || 0];
+            if (!isNaN(n) && !isNaN(s) && !isNaN(e) && !isNaN(w)) corners = parseRotatedBox(n, s, e, w, r);
+          }
+        }
+
+        if (!corners || !href) continue;
+        corners.forEach(trackCoord);
+
+        const buf = findImageInZip(imageIndex, href);
+        let url = href;
+        if (buf) {
+          const cleanArrayBuffer = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
+          const blob = new Blob([cleanArrayBuffer], { type: getMimeType(href, buf) });
+          url = URL.createObjectURL(blob);
+          createdBlobUrls.push(url);
+        }
+
+        tiles.push({ url, corners, bounds: boundsForPoints(corners) });
       }
 
-      if (!corners || !href) continue;
-      corners.forEach(trackCoord);
+      // 3. Parse Placemarks (Vector Polygons, Lines, Points)
+      const placemarks = Array.from(xmlDoc.getElementsByTagNameNS("*", "Placemark"));
+      for (let idx = 0; idx < placemarks.length; idx += 1) {
+        if (idx > 0 && idx % PARSE_YIELD_INTERVAL === 0) {
+          await yieldToBrowser();
+        }
 
-      const buf = findImageInZip(imageIndex, href);
-      let url = href;
-      if (buf) {
-        const cleanArrayBuffer = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
-        const blob = new Blob([cleanArrayBuffer], { type: getMimeType(href, buf) });
-        url = URL.createObjectURL(blob);
+        const pm = placemarks[idx];
+        const pmName = pm.getElementsByTagNameNS("*", "name")[0]?.textContent?.trim();
+        const pmDesc = pm.getElementsByTagNameNS("*", "description")[0]?.textContent?.trim();
+        const styleUrl = pm.getElementsByTagNameNS("*", "styleUrl")[0]?.textContent?.trim();
+        const st = (styleUrl ? styleMap.get(styleUrl) : undefined) || {
+          strokeColor: "#3b82f6",
+          strokeWidth: 2,
+          fillColor: "rgba(59, 130, 246, 0.22)",
+        };
+
+        // Polygons
+        const polys = Array.from(pm.getElementsByTagNameNS("*", "Polygon"));
+        polys.forEach((poly) => {
+          const outerNode = poly.getElementsByTagNameNS("*", "outerBoundaryIs")[0] || poly.getElementsByTagNameNS("*", "LinearRing")[0] || poly;
+          const outerCoords = outerNode.getElementsByTagNameNS("*", "coordinates")[0]?.textContent || outerNode.textContent;
+          const outer = parseCoords(outerCoords);
+          if (outer.length >= 3) {
+            outer.forEach(trackCoord);
+            const rings = [outer];
+            Array.from(poly.getElementsByTagNameNS("*", "innerBoundaryIs")).forEach((inner) => {
+              const inCoords = parseCoords(inner.getElementsByTagNameNS("*", "coordinates")[0]?.textContent || inner.textContent);
+              if (inCoords.length >= 3) rings.push(inCoords);
+            });
+            features.push({
+              id: `poly-${idx}-${features.length}`,
+              name: pmName,
+              description: pmDesc,
+              type: "Polygon",
+              rings,
+              bounds: boundsForPoints(outer),
+              labelPoint: labelPointForRing(outer),
+              ...st,
+            });
+            polygonCount += 1;
+          }
+        });
+
+        // LineStrings
+        const lines = Array.from(pm.getElementsByTagNameNS("*", "LineString"));
+        lines.forEach((line) => {
+          const pts = parseCoords(line.getElementsByTagNameNS("*", "coordinates")[0]?.textContent);
+          if (pts.length >= 2) {
+            pts.forEach(trackCoord);
+            features.push({
+              id: `line-${idx}-${features.length}`,
+              name: pmName,
+              description: pmDesc,
+              type: "LineString",
+              path: pts,
+              bounds: boundsForPoints(pts),
+              ...st,
+            });
+            lineCount += 1;
+          }
+        });
+
+        // Points
+        const points = Array.from(pm.getElementsByTagNameNS("*", "Point"));
+        points.forEach((pt) => {
+          const pts = parseCoords(pt.getElementsByTagNameNS("*", "coordinates")[0]?.textContent);
+          if (pts.length >= 1) {
+            trackCoord(pts[0]);
+            features.push({
+              id: `point-${idx}-${features.length}`,
+              name: pmName,
+              description: pmDesc,
+              type: "Point",
+              point: pts[0],
+              bounds: [[pts[0].lat, pts[0].lng], [pts[0].lat, pts[0].lng]],
+              ...st,
+            });
+            pointCount += 1;
+          }
+        });
       }
 
-      tiles.push({ url, corners });
+      await yieldToBrowser();
     }
 
-    // 3. Parse Placemarks (Vector Polygons, Lines, Points)
-    const placemarks = Array.from(xmlDoc.getElementsByTagNameNS("*", "Placemark"));
-    placemarks.forEach((pm, idx) => {
-      const pmName = pm.getElementsByTagNameNS("*", "name")[0]?.textContent?.trim();
-      const pmDesc = pm.getElementsByTagNameNS("*", "description")[0]?.textContent?.trim();
-      const styleUrl = pm.getElementsByTagNameNS("*", "styleUrl")[0]?.textContent?.trim();
-      const st = (styleUrl ? styleMap.get(styleUrl) : undefined) || {
-        strokeColor: "#3b82f6",
-        strokeWidth: 2,
-        fillColor: "rgba(59, 130, 246, 0.22)",
-      };
+    if (tiles.length === 0 && features.length === 0) {
+      throw new Error("No map overlays or vector features found in the KMZ/KML file");
+    }
 
-      // Polygons
-      const polys = Array.from(pm.getElementsByTagNameNS("*", "Polygon"));
-      polys.forEach((poly) => {
-        const outerNode = poly.getElementsByTagNameNS("*", "outerBoundaryIs")[0] || poly.getElementsByTagNameNS("*", "LinearRing")[0] || poly;
-        const outerCoords = outerNode.getElementsByTagNameNS("*", "coordinates")[0]?.textContent || outerNode.textContent;
-        const outer = parseCoords(outerCoords);
-        if (outer.length >= 3) {
-          outer.forEach(trackCoord);
-          const rings = [outer];
-          Array.from(poly.getElementsByTagNameNS("*", "innerBoundaryIs")).forEach((inner) => {
-            const inCoords = parseCoords(inner.getElementsByTagNameNS("*", "coordinates")[0]?.textContent || inner.textContent);
-            if (inCoords.length >= 3) rings.push(inCoords);
-          });
-          features.push({
-            id: `poly-${idx}-${features.length}`,
-            name: pmName,
-            description: pmDesc,
-            type: "Polygon",
-            rings,
-            ...st,
-          });
-        }
-      });
+    const validBounds = minLat !== 90 && maxLat !== -90 && minLng !== 180 && maxLng !== -180;
+    const result: KmzData = {
+      name: docName,
+      tiles,
+      features,
+      bounds: validBounds ? [[minLat, minLng], [maxLat, maxLng]] : null,
+      summary: {
+        tileCount: tiles.length,
+        polygonCount,
+        lineCount,
+        pointCount,
+      },
+    };
 
-      // LineStrings
-      const lines = Array.from(pm.getElementsByTagNameNS("*", "LineString"));
-      lines.forEach((line) => {
-        const pts = parseCoords(line.getElementsByTagNameNS("*", "coordinates")[0]?.textContent);
-        if (pts.length >= 2) {
-          pts.forEach(trackCoord);
-          features.push({
-            id: `line-${idx}-${features.length}`,
-            name: pmName,
-            description: pmDesc,
-            type: "LineString",
-            path: pts,
-            ...st,
-          });
-        }
+    completed = true;
+    return result;
+  } finally {
+    if (!completed) {
+      createdBlobUrls.forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {}
       });
-
-      // Points
-      const points = Array.from(pm.getElementsByTagNameNS("*", "Point"));
-      points.forEach((pt) => {
-        const pts = parseCoords(pt.getElementsByTagNameNS("*", "coordinates")[0]?.textContent);
-        if (pts.length >= 1) {
-          trackCoord(pts[0]);
-          features.push({
-            id: `point-${idx}-${features.length}`,
-            name: pmName,
-            description: pmDesc,
-            type: "Point",
-            point: pts[0],
-            ...st,
-          });
-        }
-      });
-    });
+    }
   }
-
-  if (tiles.length === 0 && features.length === 0) {
-    throw new Error("No map overlays or vector features found in the KMZ/KML file");
-  }
-
-  const validBounds = minLat !== 90 && maxLat !== -90 && minLng !== 180 && maxLng !== -180;
-  return {
-    name: docName,
-    tiles,
-    features,
-    bounds: validBounds ? [[minLat, minLng], [maxLat, maxLng]] : null,
-    summary: {
-      tileCount: tiles.length,
-      polygonCount: features.filter((f) => f.type === "Polygon").length,
-      lineCount: features.filter((f) => f.type === "LineString").length,
-      pointCount: features.filter((f) => f.type === "Point").length,
-    },
-  };
 }
