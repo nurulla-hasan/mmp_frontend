@@ -140,12 +140,7 @@ export default function KmzViewerStudio() {
       />
 
       {/* Floating Top Navigation */}
-      <ToolTopNav
-        title="KMZ Map Viewer"
-        icon={Compass}
-        backHref="/tools"
-        backLabel="Back to Tools"
-      >
+      <ToolTopNav title="KMZ Map Viewer" icon={Compass}>
         {kmzDoc && (
           <span className="max-w-36 truncate font-mono text-xs text-muted-foreground sm:max-w-56">
             {kmzDoc.name}
@@ -171,26 +166,24 @@ export default function KmzViewerStudio() {
 
         {/* Empty State */}
         {!kmzDoc && (
-          <div className="absolute inset-0 z-10 grid place-items-center p-6 pointer-events-none">
-            <div className="pointer-events-auto w-full max-w-sm">
-              <ToolEmptyState
-                icon={Compass}
-                title="KMZ Map Viewer"
-                description="Upload Google Earth KMZ or KML files to view overlays on satellite maps and inspect coordinates."
-                actions={
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={loading}
-                    className="w-full gap-2"
-                  >
-                    <FileUp className="size-4" />
-                    <span>
-                      {loading ? "Loading file…" : "Open KMZ / KML File"}
-                    </span>
-                  </Button>
-                }
-              />
-            </div>
+          <div className="absolute inset-0 z-10">
+            <ToolEmptyState
+              icon={Compass}
+              title="KMZ Map Viewer"
+              description="Upload Google Earth KMZ or KML files to view overlays on satellite maps and inspect coordinates."
+              actions={
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={loading}
+                  className="w-full gap-2 shadow-sm"
+                >
+                  <FileUp className="size-4" />
+                  <span>
+                    {loading ? "Loading file…" : "Open KMZ / KML File"}
+                  </span>
+                </Button>
+              }
+            />
           </div>
         )}
 
@@ -209,8 +202,8 @@ export default function KmzViewerStudio() {
       <div
         className={
           isMobile
-            ? "absolute bottom-4 left-1/2 z-40 flex w-fit max-w-[calc(100vw-1rem)] -translate-x-1/2 items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl backdrop-blur-md"
-            : "absolute right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl backdrop-blur-md"
+            ? "absolute bottom-4 left-1/2 z-40 flex w-fit max-w-[calc(100vw-1rem)] -translate-x-1/2 items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-xl"
+            : "absolute right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl"
         }
       >
         <KmzViewerToolbar
