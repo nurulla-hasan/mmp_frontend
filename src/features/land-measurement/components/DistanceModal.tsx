@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,23 +8,35 @@ import { SCALE_PRESETS, validateCalibration } from '@/features/land-measurement/
 export const DistanceModal = () => {
   const {
     isModalOpen,
+    mode,
     setCalibrationLine,
     setIsDrawing,
     setIsModalOpen,
     _handleModalSubmit,
+    finishPlot,
     calibrationLine,
   } = useMapStore(
     useShallow((s) => ({
       isModalOpen: s.isModalOpen,
+      mode: s.mode,
       setCalibrationLine: s.setCalibrationLine,
       setIsDrawing: s.setIsDrawing,
       setIsModalOpen: s.setIsModalOpen,
       _handleModalSubmit: s._handleModalSubmit,
+      finishPlot: s.finishPlot,
       calibrationLine: s.calibrationLine,
     })),
   );
   const [distance, setDistance] = useState('');
   const [error, setError] = useState('');
+
+  // The drawing toolbar historically reused isModalOpen for its Finish button.
+  // Treat that signal as a plot finish action instead of rendering calibration UI.
+  useEffect(() => {
+    if (!isModalOpen || mode !== 'drawing_plot') return;
+    setIsModalOpen(false);
+    finishPlot();
+  }, [finishPlot, isModalOpen, mode, setIsModalOpen]);
 
   const handlePresetClick = useCallback((valueFt: number) => {
     setDistance(String(valueFt));
@@ -47,7 +59,7 @@ export const DistanceModal = () => {
     }
   }, [calibrationLine]);
 
-  if (!isModalOpen) return null;
+  if (!isModalOpen || mode === 'drawing_plot') return null;
 
   const handleSubmit = () => {
     const num = Number(distance);
