@@ -108,7 +108,10 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         startPlotDrawing,
         startManualDivide,
         isShowDiagonals,
-        setIsShowDiagonals,
+        diagonalPlotId,
+        isSelectingDiagonalPlot,
+        setDiagonalPlotId,
+        setIsSelectingDiagonalPlot,
         isMagnifierEnabled,
         setIsMagnifierEnabled,
     } = useMapStore(useShallow((s) => ({
@@ -127,7 +130,10 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         startPlotDrawing: s.startPlotDrawing,
         startManualDivide: s.startManualDivide,
         isShowDiagonals: s.isShowDiagonals,
-        setIsShowDiagonals: s.setIsShowDiagonals,
+        diagonalPlotId: s.diagonalPlotId,
+        isSelectingDiagonalPlot: s.isSelectingDiagonalPlot,
+        setDiagonalPlotId: s.setDiagonalPlotId,
+        setIsSelectingDiagonalPlot: s.setIsSelectingDiagonalPlot,
         isMagnifierEnabled: s.isMagnifierEnabled,
         setIsMagnifierEnabled: s.setIsMagnifierEnabled,
     })));
@@ -152,6 +158,15 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
             setCalibrationLine([]);
         });
     }, [image, confirmClearPlot, setMode, setIsDrawing, setCalibrationLine]);
+
+    const handleDiagonalsClick = useCallback(() => {
+        if (diagonalPlotId || isSelectingDiagonalPlot || isShowDiagonals) {
+            setDiagonalPlotId(null);
+            setIsSelectingDiagonalPlot(false);
+            return;
+        }
+        setIsSelectingDiagonalPlot(true);
+    }, [diagonalPlotId, isSelectingDiagonalPlot, isShowDiagonals, setDiagonalPlotId, setIsSelectingDiagonalPlot]);
 
     const commonTools = useMemo(() => ({
         upload: (size: 'md' | 'sm' = 'md') => (
@@ -229,10 +244,11 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         ),
         diagonals: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
-                icon={isShowDiagonals ? Eye : EyeOff}
-                label={isShowDiagonals ? 'Hide Diagonals' : 'Show Diagonals'}
-                active={isShowDiagonals}
-                onClick={() => setIsShowDiagonals(!isShowDiagonals)}
+                icon={(diagonalPlotId || isSelectingDiagonalPlot) ? Eye : EyeOff}
+                label={diagonalPlotId ? 'Hide Diagonals' : isSelectingDiagonalPlot ? 'Cancel Plot Selection' : 'Show Plot Diagonals'}
+                active={Boolean(diagonalPlotId) || isSelectingDiagonalPlot}
+                onClick={handleDiagonalsClick}
+                disabled={plots.length === 0 || isDrawing}
                 size={size}
                 id="step-diagonals"
             />
@@ -281,7 +297,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
     }), [
         selectedFile, isProcessingFile, handleUploadClick, onOpenLoad, onOpenSave,
         scale, mode, image, plots.length, isDrawing, handleCalibrateClick, startPlotDrawing,
-        startManualDivide, isShowDiagonals, setIsShowDiagonals,
+        startManualDivide, diagonalPlotId, isSelectingDiagonalPlot, handleDiagonalsClick,
         isMagnifierEnabled, setIsMagnifierEnabled, theme, setTheme, confirmClearMap
     ]);
 
@@ -295,6 +311,12 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
                 disabled={isProcessingFile}
                 onChange={handleImageUpload}
             />
+
+            {isSelectingDiagonalPlot && (
+                <div className="pointer-events-none absolute left-4 top-18 z-50 rounded-lg border border-border bg-card/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-md">
+                    কর্ণ দেখতে একটি প্লট নির্বাচন করুন
+                </div>
+            )}
 
             <div
                 id="step-toolbar"
