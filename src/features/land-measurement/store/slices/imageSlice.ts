@@ -2,56 +2,47 @@ import { StateCreator } from 'zustand';
 import { ErrorToast } from '@/lib/utils';
 import { extractImageFromPDF, detectPdfDpi } from '../../utils/pdfHelper';
 import type { PdfDpiInfo } from '../../utils/pdfHelper';
+import { detectImageAutoScaleHint, getPdfAutoScaleHint } from '../../utils/autoScale';
+import type { AutoScaleHint } from '../../utils/autoScale';
 import { computeImageHash, generateTilePyramidChunked, clearTileUrlCache, clearTiles, TILING_MIN_PIXEL_COUNT } from '../../utils/tiling';
 import type { TilePyramidInfo } from '../../utils/tiling';
 
 const MAX_UPLOAD_SIZE_BYTES = 25 * 1024 * 1024;
 const ALLOWED_MAP_TYPES = new Set(['application/pdf', 'image/png', 'image/jpeg']);
 
-/**
- * Detect the maximum safe canvas/texture size for the current device.
- * Falls back to 4096 if WebGL is unavailable.
- */
 function detectMaxTextureSize(): number {
   try {
     const canvas = document.createElement('canvas');
     const gl = (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null;
-    if (gl) {
-      const size = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-      return size as number;
-    }
-  } catch { /* WebGL unavailable */ }
+    if (gl) return gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
+  } catch {
+    // WebGL unavailable.
+  }
   return 4096;
 }
 
-/**
- * Returns a safe max dimension for GPU upload.
- * For low-end phones this is often 2048 or 4096.
- * We use 4096 as safe default — Konva will crash above this on many devices.
- */
 function getSafeMaxDimension(): number {
-  const detected = detectMaxTextureSize();
-  // Use 80% of detected to leave headroom
-  return Math.min(detected, 4096);
+  return Math.min(detectMaxTextureSize(), 4096);
 }
 
-/**
- * Downscale an image so its longest side fits within `maxPx`.
- * Uses canvas + toBlob(webp) for GPU-memory-friendly downscaling.
- * WebP at quality 0.8 is ~5-10× smaller than PNG.
- */
 function downscaleImage(img: HTMLImageElement, maxPx: number): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const w = img.naturalWidth;
     const h = img.naturalHeight;
     const scale = Math.min(maxPx / w, maxPx / h, 1);
-    if (scale >= 1) { resolve(img); return; }
+    if (scale >= 1) {
+      resolve(img);
+      return;
+    }
 
     const cvs = document.createElement('canvas');
     cvs.width = Math.round(w * scale);
     cvs.height = Math.round(h * scale);
-    const ctx = cvs.getContext('2d')!;
-    // Use high-quality downscaling
+    const ctx = cvs.getContext('2d');
+    if (!ctx) {
+      reject(new Error('Canvas is not supported'));
+      return;
+    }
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
@@ -68,7 +59,6 @@ function downscaleImage(img: HTMLImageElement, maxPx: number): Promise<HTMLImage
       if (objectUrl) URL.revokeObjectURL(objectUrl);
       reject(error);
     };
-    // WebP at 0.8 is much smaller than PNG — great for memory-constrained devices
     cvs.toBlob((blob) => {
       if (blob) {
         objectUrl = URL.createObjectURL(blob);
@@ -82,23 +72,19 @@ function downscaleImage(img: HTMLImageElement, maxPx: number): Promise<HTMLImage
 
 export interface ImageState {
   image: HTMLImageElement | null;
-  /** Full-resolution original image (kept for accurate tile generation). */
   _originalImage: HTMLImageElement | null;
-  /** The natural dimensions of the full-resolution image. Used for coordinate system consistency. */
   originalWidth: number;
   originalHeight: number;
   selectedFile: File | null;
   imageName: string;
   isProcessingFile: boolean;
-  /** Detected DPI info from PDF (only for PDF imports) */
   pdfDpiInfo: PdfDpiInfo | null;
-  // Tiling
+  /** Trusted physical-density hint for the exact canvas coordinate system. */
+  autoScaleHint: AutoScaleHint | null;
   tilePyramidInfo: TilePyramidInfo | null;
   isGeneratingTiles: boolean;
   tileProgress: number;
-  /** Monotonic counter to discard stale tile generation completions. */
   _generationId: number;
-  /** Hash currently being generated, so partial IndexedDB tiles can be cleared. */
   _activeTileHash: string | null;
 }
 
@@ -106,18 +92,20 @@ export interface ImageActions {
   setImage: (image: HTMLImageElement | null) => void;
   setSelectedFile: (file: File | null) => void;
   setImageName: (name: string) => void;
+  setAutoScaleHint: (hint: AutoScaleHint | null) => void;
   handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   processFile: (file: File) => Promise<boolean>;
   handleClearFile: () => Promise<void>;
-  // Tiling
   buildTilePyramid: () => Promise<void>;
 }
 
 export type ImageSlice = ImageState & ImageActions;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (set, get, _store) => ({
-  // State
+type CombinedScaleActions = {
+  setScale?: (scale: number | null) => void;
+};
+
+export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (set, get) => ({
   image: null,
   _originalImage: null,
   originalWidth: 0,
@@ -126,26 +114,24 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
   imageName: 'map.jpg',
   isProcessingFile: false,
   pdfDpiInfo: null,
+  autoScaleHint: null,
   tilePyramidInfo: null,
   isGeneratingTiles: false,
   tileProgress: 0,
   _generationId: 0,
   _activeTileHash: null,
 
-  // Actions
   setImage: (image) => set({ image }),
   setSelectedFile: (selectedFile) => set({ selectedFile }),
   setImageName: (name) => set({ imageName: name }),
+  setAutoScaleHint: (autoScaleHint) => set({ autoScaleHint }),
 
   handleImageUpload: async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const input = e.target;
     await get().processFile(file);
-
-    // Reset input value so same file can be selected again
-    if (input) input.value = '';
+    input.value = '';
   },
 
   processFile: async (file: File) => {
@@ -158,11 +144,18 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
       return false;
     }
 
+    // Scale belongs to one exact raster. Never carry an old map's calibration
+    // into a newly imported file.
+    (get() as ImageSlice & CombinedScaleActions).setScale?.(null);
+    try {
+      localStorage.removeItem('mapScale');
+    } catch {
+      // Storage can be unavailable in private/restricted browser contexts.
+    }
+
     const previousState = get();
     const generationId = previousState._generationId + 1;
-    const previousHash =
-      previousState.tilePyramidInfo?.imageHash ??
-      previousState._activeTileHash;
+    const previousHash = previousState.tilePyramidInfo?.imageHash ?? previousState._activeTileHash;
 
     if (previousHash) {
       clearTileUrlCache(previousHash);
@@ -176,6 +169,8 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
       isProcessingFile: true,
       image: null,
       _originalImage: null,
+      pdfDpiInfo: null,
+      autoScaleHint: null,
       tilePyramidInfo: null,
       isGeneratingTiles: false,
       tileProgress: 0,
@@ -185,148 +180,138 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
     if (file.type === 'application/pdf') {
       set({ imageName: file.name || 'document.pdf' });
       try {
-        // Read once, then process sequentially to avoid two full PDF parses in memory.
         const pdfBuffer = await file.arrayBuffer();
         const dpiInfo = await detectPdfDpi(pdfBuffer);
         const img = await extractImageFromPDF(pdfBuffer);
-        // ── Downscale for GPU safety on low-end devices ──
+        const autoScaleHint = getPdfAutoScaleHint(dpiInfo, img.naturalWidth, img.naturalHeight);
+
         const safeMax = getSafeMaxDimension();
         let displayImg = img;
         if (img.naturalWidth > safeMax || img.naturalHeight > safeMax) {
           displayImg = await downscaleImage(img, safeMax);
-          console.info(`📐 PDF image downscaled for GPU safety: ${img.naturalWidth}×${img.naturalHeight} → ${displayImg.naturalWidth}×${displayImg.naturalHeight} (max: ${safeMax})`);
         }
         if (get()._generationId !== generationId) return false;
 
-        set({ 
-          selectedFile: file, 
-          image: displayImg, 
-          _originalImage: img, 
+        set({
+          selectedFile: file,
+          image: displayImg,
+          _originalImage: img,
           originalWidth: img.naturalWidth,
           originalHeight: img.naturalHeight,
-          pdfDpiInfo: dpiInfo, 
-          isProcessingFile: false 
+          pdfDpiInfo: dpiInfo,
+          autoScaleHint,
+          isProcessingFile: false,
         });
-        if (dpiInfo) {
-          console.info(`📐 PDF DPI detected: ${dpiInfo.dpi} DPI (page: ${dpiInfo.pageWidthInches.toFixed(1)}"×${dpiInfo.pageHeightInches.toFixed(1)}", image: ${dpiInfo.imageWidthPx}×${dpiInfo.imageHeightPx}px)`);
-        }
-        // Start tile building in the background
         get().buildTilePyramid();
         return true;
-      } catch {
+      } catch (error: unknown) {
+        console.error('PDF processing failed:', error);
         if (get()._generationId === generationId) {
-          set({ selectedFile: null, imageName: '', isProcessingFile: false });
+          set({ selectedFile: null, imageName: '', isProcessingFile: false, autoScaleHint: null });
           ErrorToast('Could not load PDF (file may be corrupted or invalid)');
         }
         return false;
       }
-    } else {
-      // ── Use URL.createObjectURL instead of FileReader (base64 = 33%+ memory overhead) ──
-      const img = new window.Image();
-      const objectUrl = URL.createObjectURL(file);
-      img.src = objectUrl;
-      return new Promise<boolean>((resolve) => {
-        img.onload = async () => {
-          URL.revokeObjectURL(objectUrl);
-          try {
-            // ── Downscale for GPU safety on low-end devices ──
-            const safeMax = getSafeMaxDimension();
-            let displayImg: HTMLImageElement = img;
-            if (img.naturalWidth > safeMax || img.naturalHeight > safeMax) {
-              displayImg = await downscaleImage(img, safeMax);
-              console.info(`📐 Image downscaled for GPU safety: ${img.naturalWidth}×${img.naturalHeight} → ${displayImg.naturalWidth}×${displayImg.naturalHeight} (max: ${safeMax})`);
-            }
-            if (get()._generationId !== generationId) {
-              resolve(false);
-              return;
-            }
+    }
 
-            set({ 
-              selectedFile: file, 
-              imageName: file.name || 'image', 
-              image: displayImg, 
-              _originalImage: img, 
-              originalWidth: img.naturalWidth,
-              originalHeight: img.naturalHeight,
-              isProcessingFile: false 
-            });
-            // Start tile building in the background (uses original image for accuracy)
-            get().buildTilePyramid();
-            resolve(true);
-          } catch {
-            if (get()._generationId === generationId) {
-              set({ selectedFile: null, imageName: '', isProcessingFile: false });
-              ErrorToast('Could not prepare map image');
-            }
-            resolve(false);
+    const imageScaleHintPromise = detectImageAutoScaleHint(file);
+    const img = new window.Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.src = objectUrl;
+
+    return new Promise<boolean>((resolve) => {
+      img.onload = async () => {
+        URL.revokeObjectURL(objectUrl);
+        try {
+          const autoScaleHint = await imageScaleHintPromise;
+          const safeMax = getSafeMaxDimension();
+          let displayImg: HTMLImageElement = img;
+          if (img.naturalWidth > safeMax || img.naturalHeight > safeMax) {
+            displayImg = await downscaleImage(img, safeMax);
           }
-        };
-        img.onerror = () => {
-          URL.revokeObjectURL(objectUrl);
+          if (get()._generationId !== generationId) {
+            resolve(false);
+            return;
+          }
+
+          set({
+            selectedFile: file,
+            imageName: file.name || 'image',
+            image: displayImg,
+            _originalImage: img,
+            originalWidth: img.naturalWidth,
+            originalHeight: img.naturalHeight,
+            pdfDpiInfo: null,
+            autoScaleHint,
+            isProcessingFile: false,
+          });
+          get().buildTilePyramid();
+          resolve(true);
+        } catch (error: unknown) {
+          console.error('Map image preparation failed:', error);
           if (get()._generationId === generationId) {
-            set({ selectedFile: null, imageName: '', isProcessingFile: false });
-            ErrorToast('Could not decode map image');
+            set({ selectedFile: null, imageName: '', isProcessingFile: false, autoScaleHint: null });
+            ErrorToast('Could not prepare map image');
           }
           resolve(false);
-        };
-      });
-    }
+        }
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        if (get()._generationId === generationId) {
+          set({ selectedFile: null, imageName: '', isProcessingFile: false, autoScaleHint: null });
+          ErrorToast('Could not decode map image');
+        }
+        resolve(false);
+      };
+    });
   },
 
   handleClearFile: async () => {
-    // Bump generation counter to cancel any in-flight tile build
-    set((s) => ({ _generationId: s._generationId + 1 }));
-    // Clear tile caches and IndexedDB tiles if we had a pyramid
+    set((state) => ({ _generationId: state._generationId + 1 }));
     const state = get();
-    const hash =
-      state.tilePyramidInfo?.imageHash ??
-      state._activeTileHash;
+    const hash = state.tilePyramidInfo?.imageHash ?? state._activeTileHash;
     if (hash) {
       clearTileUrlCache(hash);
       try {
         await clearTiles(hash);
-      } catch (err) {
-        console.error('Failed to clear tiles from IndexedDB:', err);
+      } catch (error: unknown) {
+        console.error('Failed to clear tiles from IndexedDB:', error);
       }
     }
-    set({ 
-      image: null, 
-      _originalImage: null, 
+    set({
+      image: null,
+      _originalImage: null,
       originalWidth: 0,
       originalHeight: 0,
-      selectedFile: null, 
-      imageName: '', 
-      pdfDpiInfo: null, 
-      isProcessingFile: false, 
-      tilePyramidInfo: null, 
-      isGeneratingTiles: false, 
+      selectedFile: null,
+      imageName: '',
+      pdfDpiInfo: null,
+      autoScaleHint: null,
+      isProcessingFile: false,
+      tilePyramidInfo: null,
+      isGeneratingTiles: false,
       tileProgress: 0,
       _activeTileHash: null,
     });
+    (get() as ImageSlice & CombinedScaleActions).setScale?.(null);
     const fileInput = document.getElementById('map-upload') as HTMLInputElement | null;
     if (fileInput) fileInput.value = '';
   },
 
   buildTilePyramid: async () => {
     const state = get();
-    // Use original full-res image for tile generation accuracy
     const img = state._originalImage || state.image;
     if (!img) return;
 
-    // Only tile for images above the pixel threshold
     const totalPixels = img.naturalWidth * img.naturalHeight;
     if (totalPixels < TILING_MIN_PIXEL_COUNT) return;
 
     const generationId = state._generationId;
     const hash = await computeImageHash(img, state.imageName);
-
     if (get()._generationId !== generationId) return;
 
-    set({
-      isGeneratingTiles: true,
-      tileProgress: 0,
-      _activeTileHash: hash,
-    });
+    set({ isGeneratingTiles: true, tileProgress: 0, _activeTileHash: hash });
     let lastReportedProgress = -1;
 
     try {
@@ -334,19 +319,14 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
         img,
         hash,
         (percent) => {
-          // Avoid a global store update for every tile when the percentage is unchanged.
-          if (
-            get()._generationId === generationId &&
-            percent !== lastReportedProgress
-          ) {
+          if (get()._generationId === generationId && percent !== lastReportedProgress) {
             lastReportedProgress = percent;
             set({ tileProgress: percent });
           }
         },
-        8, // Smaller chunk size = less main-thread blocking
+        8,
         () => get()._generationId !== generationId,
       );
-      // Only commit result if still the active generation
       if (get()._generationId === generationId) {
         set({
           tilePyramidInfo: info,
@@ -356,17 +336,12 @@ export const createImageSlice: StateCreator<ImageSlice, [], [], ImageSlice> = (s
           _activeTileHash: null,
         });
       }
-    } catch (err: unknown) {
-      if (!(err instanceof Error && err.name === 'AbortError')) {
-        console.error('Tile pyramid generation failed:', err);
+    } catch (error: unknown) {
+      if (!(error instanceof Error && error.name === 'AbortError')) {
+        console.error('Tile pyramid generation failed:', error);
       }
-      // Only reset state if still the active generation
       if (get()._generationId === generationId) {
-        set({
-          isGeneratingTiles: false,
-          tileProgress: 0,
-          _activeTileHash: null,
-        });
+        set({ isGeneratingTiles: false, tileProgress: 0, _activeTileHash: null });
       }
     }
   },
