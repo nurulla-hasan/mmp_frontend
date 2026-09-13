@@ -56,14 +56,14 @@ export function AutoScaleDialog() {
   const [promptedFile, setPromptedFile] = useState<File | null>(null);
 
   useEffect(() => {
-    if (!selectedFile || !image || scale !== null) {
-      if (scale !== null) setOpen(false);
-      return;
-    }
-    if (promptedFile === selectedFile) return;
-    setPromptedFile(selectedFile);
-    setSelectedScale('');
-    setOpen(true);
+    if (!selectedFile || !image || scale !== null || promptedFile === selectedFile) return;
+
+    const timer = window.setTimeout(() => {
+      setPromptedFile(selectedFile);
+      setSelectedScale('');
+      setOpen(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [image, promptedFile, scale, selectedFile]);
 
   const option = useMemo(
