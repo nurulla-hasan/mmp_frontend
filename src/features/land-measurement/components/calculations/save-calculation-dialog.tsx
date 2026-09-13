@@ -11,6 +11,7 @@ import { ModalWrapper } from "@/components/common/modal-wrapper";
 import { SuccessToast, ErrorToast, WarningToast } from "@/lib/utils";
 import { useMapStore } from "@/features/land-measurement/store/useMapStore";
 import { saveCalculationAction } from "@/features/land-measurement/actions/calculation.action";
+import { saveLocalCalculationMap } from "@/features/land-measurement/utils/localMapStorage";
 
 interface SaveCalculationDialogProps {
   open: boolean;
@@ -87,6 +88,16 @@ export function SaveCalculationDialog({
         return;
       }
 
+      // The server stores measurement data, not the user's source map. Keep a
+      // same-device copy so reopening a saved measurement can be instant.
+      if (selectedFile && result.data?.id) {
+        try {
+          await saveLocalCalculationMap(result.data.id, selectedFile);
+        } catch (error: unknown) {
+          console.error("Could not keep local map copy:", error);
+        }
+      }
+
       SuccessToast(`"${name}" measurement saved successfully!`);
       onOpenChange(false);
     } catch (err: unknown) {
@@ -106,7 +117,6 @@ export function SaveCalculationDialog({
       description="The current map and drawn plots will be saved to your profile calculations."
     >
       <form onSubmit={handleSave} className="space-y-4">
-        {/* Calculation Summary Card */}
         <div className="rounded-lg border bg-muted/40 p-3.5 space-y-2 text-xs">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="flex items-center gap-1.5">
@@ -139,7 +149,6 @@ export function SaveCalculationDialog({
           </div>
         </div>
 
-        {/* Input Name */}
         <div className="space-y-1.5">
           <Label htmlFor="calc-name" className="text-xs font-medium">
             Measurement Name *
