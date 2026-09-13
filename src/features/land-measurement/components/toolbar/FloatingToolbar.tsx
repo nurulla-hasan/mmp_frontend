@@ -2,7 +2,7 @@
 
 import { useRef, useMemo, useCallback, memo } from 'react';
 import {
-    Upload, Ruler, PenTool, Scissors, Eye, EyeOff, Search, HelpCircle,
+    Upload, Ruler, PenTool, Scissors, Eye, EyeOff, HelpCircle,
     Moon, Sun, MoreHorizontal, HardDrive, RotateCcw, FolderOpen, BookmarkCheck,
     Undo2, Redo2, Trash2
 } from 'lucide-react';
@@ -87,9 +87,10 @@ function HDivider() {
 interface FloatingToolbarProps {
     onOpenLoad?: () => void;
     onOpenSave?: () => void;
+    onOpenHelp?: () => void;
 }
 
-export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps = {}) {
+export function FloatingToolbar({ onOpenLoad, onOpenSave, onOpenHelp }: FloatingToolbarProps = {}) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { theme, setTheme } = useTheme();
 
@@ -119,8 +120,6 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         isSelectingDiagonalPlot,
         setDiagonalPlotId,
         setIsSelectingDiagonalPlot,
-        isMagnifierEnabled,
-        setIsMagnifierEnabled,
     } = useMapStore(useShallow((s) => ({
         selectedFile: s.selectedFile,
         handleImageUpload: s.handleImageUpload,
@@ -147,8 +146,6 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         isSelectingDiagonalPlot: s.isSelectingDiagonalPlot,
         setDiagonalPlotId: s.setDiagonalPlotId,
         setIsSelectingDiagonalPlot: s.setIsSelectingDiagonalPlot,
-        isMagnifierEnabled: s.isMagnifierEnabled,
-        setIsMagnifierEnabled: s.setIsMagnifierEnabled,
     })));
 
     const isDrawing = mode === 'drawing_plot' || mode === 'calibrating' || mode === 'manual_divide_plot';
@@ -285,16 +282,6 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
                 id="step-diagonals"
             />
         ),
-        magnifier: (size: 'md' | 'sm' = 'md') => (
-            <ToolBtn
-                icon={Search}
-                label={isMagnifierEnabled ? 'Disable Magnifier' : 'Enable Magnifier'}
-                active={isMagnifierEnabled}
-                onClick={() => setIsMagnifierEnabled(!isMagnifierEnabled)}
-                size={size}
-                id="step-magnifier"
-            />
-        ),
         undoPlot: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={Undo2}
@@ -351,18 +338,24 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
             <ToolBtn
                 icon={HelpCircle}
                 label="Help / Tutorial"
-                onClick={() => window.dispatchEvent(new Event('start-tutorial'))}
+                onClick={() => {
+                    if (onOpenHelp) {
+                        onOpenHelp();
+                    } else {
+                        window.dispatchEvent(new Event('start-tutorial'));
+                    }
+                }}
                 size={size}
                 id="step-help"
             />
         ),
     }), [
-        selectedFile, isProcessingFile, handleUploadClick, onOpenLoad, onOpenSave,
+        selectedFile, isProcessingFile, handleUploadClick, onOpenLoad, onOpenSave, onOpenHelp,
         scale, mode, image, plots.length, plotPoints.length, plotPointsFuture.length,
         plotsHistory.length, plotsFuture.length, isDrawing, hasAnyPlotWork,
         handleCalibrateClick, startPlotDrawing, undoPlotAction, redoPlotAction,
         startManualDivide, diagonalPlotId, isSelectingDiagonalPlot, handleDiagonalsClick,
-        isMagnifierEnabled, setIsMagnifierEnabled, theme, setTheme, confirmClearMap,
+        theme, setTheme, confirmClearMap,
         confirmClearPlot
     ]);
 
@@ -385,7 +378,8 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
 
             <div
                 id="step-toolbar"
-                className="absolute right-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-0.5 rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl md:flex"
+                className="absolute right-3 top-1/2 z-40 hidden max-h-[calc(100dvh-1.5rem)] -translate-y-1/2 flex-col items-center gap-0.5 overflow-y-auto rounded-2xl border border-border bg-card/90 p-1.5 shadow-xl md:flex"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
                 {commonTools.upload()}
                 {commonTools.saved()}
@@ -399,29 +393,14 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
                 {commonTools.divide()}
                 <VDivider />
                 {commonTools.diagonals()}
-                {commonTools.magnifier()}
                 <VDivider />
-                <DropdownMenu>
-                    <DropdownMenuTrigger nativeButton={false} render={<div className="inline-flex" />} className="focus-visible:outline-none focus:outline-none">
-                        <ToolBtn icon={MoreHorizontal} label="More Tools" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                        side="left"
-                        align="end"
-                        sideOffset={10}
-                        className="w-fit p-1 rounded-2xl border border-border bg-card/95 shadow-xl"
-                    >
-                        <div className="flex flex-row items-center gap-1">
-                            {commonTools.undoPlot('sm')}
-                            {commonTools.redoPlot('sm')}
-                            {commonTools.clearPlots('sm')}
-                            {commonTools.reset('sm')}
-                            <div className="mx-0.5 h-6 w-px bg-border/60" />
-                            {commonTools.themeToggle('sm')}
-                            {commonTools.help('sm')}
-                        </div>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                {commonTools.undoPlot()}
+                {commonTools.redoPlot()}
+                {commonTools.clearPlots()}
+                {commonTools.reset()}
+                <VDivider />
+                {commonTools.themeToggle()}
+                {commonTools.help()}
             </div>
 
             {scale && !isDrawing && (
@@ -437,8 +416,6 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
                 {commonTools.calibrate('sm')}
                 {commonTools.draw('sm')}
                 {commonTools.divide('sm')}
-                <HDivider />
-                {commonTools.magnifier('sm')}
                 <HDivider />
                 <DropdownMenu>
                     <DropdownMenuTrigger nativeButton={false} render={<div className="inline-flex" />} className="focus-visible:outline-none focus:outline-none">

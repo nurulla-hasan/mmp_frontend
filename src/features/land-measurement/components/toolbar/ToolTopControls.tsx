@@ -6,7 +6,6 @@ import { useShallow } from "zustand/shallow";
 import {
   Eye,
   EyeOff,
-  Search,
   FileText,
   HelpCircle,
   BookmarkCheck,
@@ -34,15 +33,11 @@ export const ToolTopControls = ({
     plots,
     isShowDiagonals,
     setIsShowDiagonals,
-    isMagnifierEnabled,
-    setIsMagnifierEnabled,
   } = useMapStore(
     useShallow((s) => ({
       plots: s.plots,
       isShowDiagonals: s.isShowDiagonals,
       setIsShowDiagonals: s.setIsShowDiagonals,
-      isMagnifierEnabled: s.isMagnifierEnabled,
-      setIsMagnifierEnabled: s.setIsMagnifierEnabled,
     })),
   );
 
@@ -82,15 +77,6 @@ export const ToolTopControls = ({
           >
             {isShowDiagonals ? <Eye /> : <EyeOff />}
             <span className="hidden sm:inline">Diagonals</span>
-          </Button>
-
-          <Button
-            size="sm"
-            onClick={() => setIsMagnifierEnabled(!isMagnifierEnabled)}
-            variant={isMagnifierEnabled ? "default" : "outline"}
-          >
-            <Search />
-            <span className="hidden sm:inline">Magnifier</span>
           </Button>
 
           {/* Saved Calculations Dialog Trigger */}

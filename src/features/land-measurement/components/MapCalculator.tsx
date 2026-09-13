@@ -19,6 +19,7 @@ import { SidebarControls } from '@/features/land-measurement/components/sidebar/
 import { FloatingToolbar } from '@/features/land-measurement/components/toolbar/FloatingToolbar';
 import { SaveCalculationDialog } from '@/features/land-measurement/components/calculations/save-calculation-dialog';
 import { LoadCalculationDialog } from '@/features/land-measurement/components/calculations/load-calculation-dialog';
+import { HelpTutorialDialog } from '@/features/land-measurement/components/HelpTutorialDialog';
 import { useMapStore } from '@/features/land-measurement/store/useMapStore';
 
 const KonvaStage = nextDynamic(
@@ -53,6 +54,13 @@ export default function MapCalculator() {
   const [initialCalcId, setInitialCalcId] = useState<string | null>(calculationId);
   const [prevCalcId, setPrevCalcId] = useState<string | null>(calculationId);
   const [isSaveOpen, setIsSaveOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  useEffect(() => {
+    const handleStartTutorial = () => setIsHelpOpen(true);
+    window.addEventListener('start-tutorial', handleStartTutorial);
+    return () => window.removeEventListener('start-tutorial', handleStartTutorial);
+  }, []);
 
   if (calculationId !== prevCalcId) {
     setPrevCalcId(calculationId);
@@ -217,6 +225,7 @@ export default function MapCalculator() {
               setIsLoadOpen(true);
             }}
             onOpenSave={() => setIsSaveOpen(true)}
+            onOpenHelp={() => setIsHelpOpen(true)}
           />
           <SidebarControls />
         </div>
@@ -234,6 +243,7 @@ export default function MapCalculator() {
         onOpenChange={setIsLoadOpen}
         initialCalculationId={initialCalcId}
       />
+      <HelpTutorialDialog open={isHelpOpen} onOpenChange={setIsHelpOpen} />
 
       <PrintLayout ref={printRef} />
     </>
