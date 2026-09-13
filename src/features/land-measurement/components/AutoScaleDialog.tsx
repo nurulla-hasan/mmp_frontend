@@ -52,7 +52,7 @@ export function AutoScaleDialog() {
   );
 
   const [open, setOpen] = useState(false);
-  const [selectedScale, setSelectedScale] = useState<string>('');
+  const [selectedScale, setSelectedScale] = useState<string>('16');
   const [promptedFile, setPromptedFile] = useState<File | null>(null);
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export function AutoScaleDialog() {
 
     const timer = window.setTimeout(() => {
       setPromptedFile(selectedFile);
-      setSelectedScale('');
+      setSelectedScale('16');
       setOpen(true);
     }, 0);
     return () => window.clearTimeout(timer);
@@ -91,7 +91,16 @@ export function AutoScaleDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen, eventDetails) => {
+        if (!nextOpen && eventDetails?.reason === 'outside-press') {
+          return;
+        }
+        setOpen(nextOpen);
+      }}
+      disablePointerDismissal
+    >
       <DialogContent>
         <DialogHeader>
           <div className="flex items-center gap-3 pr-8">
@@ -121,14 +130,29 @@ export function AutoScaleDialog() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">ম্যাপ স্কেল</label>
               <Select value={selectedScale} onValueChange={(value) => setSelectedScale(value ?? '')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="স্কেল নির্বাচন করুন" />
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="স্কেল নির্বাচন করুন">
+                    {() =>
+                      option ? (
+                        <span className="flex items-center gap-2">
+                          <span>{option.label}</span>
+                          <span className="text-xs text-muted-foreground">({option.detail})</span>
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">স্কেল নির্বাচন করুন</span>
+                      )
+                    }
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {MOUZA_SCALE_OPTIONS.map((item) => (
-                    <SelectItem key={item.inchesPerMile} value={String(item.inchesPerMile)}>
-                      <span className="flex flex-col">
-                        <span>{item.label}</span>
+                    <SelectItem
+                      key={item.inchesPerMile}
+                      value={String(item.inchesPerMile)}
+                      label={`${item.label} (${item.detail})`}
+                    >
+                      <span className="flex flex-col py-0.5 text-left">
+                        <span className="font-medium">{item.label}</span>
                         <span className="text-xs text-muted-foreground">{item.detail}</span>
                       </span>
                     </SelectItem>
