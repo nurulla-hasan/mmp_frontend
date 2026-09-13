@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { CONTAINER_MAX_WIDTH } from '@/components/common/page-wrapper';
 import { ToolEmptyState, ToolTopNav } from '@/components/tools/tool-workspace-ui';
 import { cn } from '@/lib/utils';
+import { AutoScaleDialog } from '@/features/land-measurement/components/AutoScaleDialog';
 import { DistanceModal } from '@/features/land-measurement/components/DistanceModal';
 import { ResultsDisplay } from '@/features/land-measurement/components/ResultsDisplay';
 import { SidebarControls } from '@/features/land-measurement/components/sidebar/SidebarControls';
@@ -55,15 +56,14 @@ export default function MapCalculator() {
   if (calculationId !== prevCalcId) {
     setPrevCalcId(calculationId);
     setInitialCalcId(calculationId);
-    if (calculationId) {
-      setIsLoadOpen(true);
-    }
+    if (calculationId) setIsLoadOpen(true);
   }
 
   const {
     setStageSize,
     mode,
     plotPoints,
+    plots,
     image,
     isProcessingFile,
   } = useMapStore(
@@ -71,6 +71,7 @@ export default function MapCalculator() {
       setStageSize: s.setStageSize,
       mode: s.mode,
       plotPoints: s.plotPoints,
+      plots: s.plots,
       image: s.image,
       isProcessingFile: s.isProcessingFile,
     })),
@@ -116,8 +117,19 @@ export default function MapCalculator() {
     };
   }, [setStageSize]);
 
-  // The printable report is SVG-based; generating a 2x canvas snapshot here only
-  // added CPU/RAM cost on large maps and was not used by the current print layout.
+  // Match the app's unsaved-work guard. Browsers control the final wording.
+  useEffect(() => {
+    const hasUnsavedWork = plots.length > 0 || plotPoints.length > 0;
+    if (!hasUnsavedWork) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = true;
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [plotPoints.length, plots.length]);
+
   const handlePrint = () => {
     window.print();
   };
@@ -143,6 +155,7 @@ export default function MapCalculator() {
   return (
     <>
       <DistanceModal />
+      <AutoScaleDialog />
       <div className="print:hidden">
         <div
           className="relative w-full overflow-hidden rounded-lg border border-border"
