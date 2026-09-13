@@ -158,14 +158,12 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
             <Button
               type="button"
               variant="outline"
-              size="sm"
               onClick={() => setIsUploadModalOpen(false)}
             >
               বাতিল
             </Button>
             <Button
               type="button"
-              size="sm"
               loading={isProcessing}
               loadingText="ম্যাপ প্রসেস হচ্ছে..."
               onClick={() => fileInputRef.current?.click()}

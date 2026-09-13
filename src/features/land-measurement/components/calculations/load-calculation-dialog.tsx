@@ -369,7 +369,7 @@ export function LoadCalculationDialog({
               </div>
               <Button
                 variant="outline"
-                size="sm"
+                size="lg"
                 nativeButton={false}
                 render={<Link href="/calculations" />}
                 className="shrink-0 hidden sm:inline-flex"
