@@ -25,6 +25,8 @@ import type { Point, MapMode, PlotRecord } from '@/features/land-measurement/typ
 import type { PlotSegment, PlotSegmentGroup } from '@/features/land-measurement/types/stage';
 import { PlotEdgeLabels } from './PlotEdgeLabels';
 
+const DIAGONAL_LABEL_POSITIONS = [0.34, 0.66, 0.25, 0.75, 0.18, 0.82];
+
 const getDefaultManualCutLine = (
   plotPoints: Point[],
   center: Point,
@@ -82,7 +84,10 @@ type SinglePlotProps = {
   setManualCutLine: (points: Point[] | null) => void;
   stageScale: number;
   plotData: PlotRecord;
-  isShowDiagonals: boolean;
+  diagonalPlotId: string | null;
+  isSelectingDiagonalPlot: boolean;
+  setDiagonalPlotId: (id: string | null) => void;
+  setIsSelectingDiagonalPlot: (selecting: boolean) => void;
 };
 
 const SinglePlot = memo(({
@@ -94,10 +99,14 @@ const SinglePlot = memo(({
   setManualCutLine,
   stageScale,
   plotData,
-  isShowDiagonals,
+  diagonalPlotId,
+  isSelectingDiagonalPlot,
+  setDiagonalPlotId,
+  setIsSelectingDiagonalPlot,
 }: SinglePlotProps) => {
   const { id, points, first, areaCenter, areaRotation, color, groups } = plot;
   const isManualSelected = mode === 'manual_divide_plot' && manualDividePlotId === id;
+  const isDiagonalSelected = diagonalPlotId === id;
   const plotFill = hexToRgba(color, isManualSelected ? 0.18 : 0.10);
   const hoverFill = hexToRgba(color, 0.15);
   const areaText = `${plotData.results.shotok.toFixed(2)} shotok`;
@@ -107,20 +116,28 @@ const SinglePlot = memo(({
   const areaHeight = areaFontSize * AREA_LABEL_HEIGHT_FACTOR + areaPadding * 2;
 
   const onMouseEnter = useCallback((event: Konva.KonvaEventObject<MouseEvent>) => {
-    if (mode !== 'manual_divide_plot') return;
+    if (mode !== 'manual_divide_plot' && !isSelectingDiagonalPlot) return;
     const container = event.target.getStage()?.container();
     if (container) container.style.cursor = 'pointer';
     if (!isManualSelected) (event.target as Konva.Shape).fill(hoverFill);
-  }, [mode, isManualSelected, hoverFill]);
+  }, [mode, isSelectingDiagonalPlot, isManualSelected, hoverFill]);
 
   const onMouseLeave = useCallback((event: Konva.KonvaEventObject<MouseEvent>) => {
-    if (mode !== 'manual_divide_plot') return;
+    if (mode !== 'manual_divide_plot' && !isSelectingDiagonalPlot) return;
     const container = event.target.getStage()?.container();
     if (container) container.style.cursor = 'default';
     if (!isManualSelected) (event.target as Konva.Shape).fill(plotFill);
-  }, [mode, isManualSelected, plotFill]);
+  }, [mode, isSelectingDiagonalPlot, isManualSelected, plotFill]);
 
   const handleClickTap = useCallback((event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+    if (isSelectingDiagonalPlot) {
+      event.cancelBubble = true;
+      if (!plotData.results.diagonals || plotData.results.diagonals.length === 0) return;
+      setDiagonalPlotId(id);
+      setIsSelectingDiagonalPlot(false);
+      return;
+    }
+
     if (mode !== 'manual_divide_plot') return;
     event.cancelBubble = true;
     if (manualDividePlotId === id && manualCutLine && manualCutLine.length >= 2) return;
@@ -141,8 +158,12 @@ const SinglePlot = memo(({
       getDefaultManualCutLine(plotPoints, { x: midPxX, y: midPxY }, stageScale),
     );
   }, [
-    mode,
+    isSelectingDiagonalPlot,
+    plotData.results.diagonals,
+    setDiagonalPlotId,
+    setIsSelectingDiagonalPlot,
     id,
+    mode,
     manualDividePlotId,
     manualCutLine,
     setManualDividePlotId,
@@ -165,7 +186,7 @@ const SinglePlot = memo(({
         onTap={handleClickTap}
       />
 
-      {mode !== 'manual_divide_plot' && (
+      {mode !== 'manual_divide_plot' && !isDiagonalSelected && (
         <KonvaLabel
           x={areaCenter.x}
           y={areaCenter.y}
@@ -191,7 +212,7 @@ const SinglePlot = memo(({
         </KonvaLabel>
       )}
 
-      {isShowDiagonals && plotData.results.diagonals?.map((diagonal, diagonalIndex) => {
+      {isDiagonalSelected && plotData.results.diagonals?.map((diagonal, diagonalIndex) => {
         const p1x = points[diagonal.p1Index * 2];
         const p1y = points[diagonal.p1Index * 2 + 1];
         const p2x = points[diagonal.p2Index * 2];
@@ -202,61 +223,44 @@ const SinglePlot = memo(({
 
         if (distPx <= MIN_DIAGONAL_DRAW_PX / stageScale) return null;
 
-        const midX = (p1x + p2x) / 2;
-        const midY = (p1y + p2y) / 2;
         const labelText = diagonal.lengthFt >= MIN_EDGE_LABEL_FT
           ? formatFeetInches(diagonal.lengthFt)
           : '';
-
-        if (!labelText) {
-          return (
-            <Line
-              key={`plot-${id}-diag-${diagonalIndex}`}
-              points={[p1x, p1y, p2x, p2y]}
-              stroke={color}
-              strokeWidth={1 / stageScale}
-              dash={[6 / stageScale, 6 / stageScale]}
-              opacity={0.4}
-              listening={false}
-            />
-          );
-        }
-
+        const t = DIAGONAL_LABEL_POSITIONS[diagonalIndex % DIAGONAL_LABEL_POSITIONS.length];
+        const labelX = p1x + dx * t;
+        const labelY = p1y + dy * t;
+        let rotation = Math.atan2(dy, dx) * 180 / Math.PI;
+        if (rotation > 90) rotation -= 180;
+        if (rotation < -90) rotation += 180;
         const diagonalFontSize = UI_CONFIG.fontSize.small / stageScale;
-        const diagonalPadding = UI_CONFIG.padding.small / stageScale;
-        const estimatedWidth = labelText.length * diagonalFontSize * 0.6 + diagonalPadding * 2;
-        const estimatedHeight = diagonalFontSize + diagonalPadding * 2;
+        const estimatedWidth = labelText.length * diagonalFontSize * 0.58;
 
         return (
           <Group key={`plot-${id}-diag-${diagonalIndex}`} listening={false}>
             <Line
               points={[p1x, p1y, p2x, p2y]}
               stroke={color}
-              strokeWidth={1 / stageScale}
-              dash={[6 / stageScale, 6 / stageScale]}
-              opacity={0.4}
+              strokeWidth={1.5 / stageScale}
+              dash={[8 / stageScale, 6 / stageScale]}
+              opacity={0.85}
             />
-            <KonvaLabel
-              x={midX}
-              y={midY}
-              offsetX={estimatedWidth / 2}
-              offsetY={estimatedHeight / 2}
-              opacity={0.8}
-            >
-              <Tag
-                fill={UI_CONFIG.colors.textWhite}
-                stroke={color}
-                strokeWidth={UI_CONFIG.strokeWidth.thin / stageScale}
-                cornerRadius={UI_CONFIG.padding.small / stageScale}
-              />
+            {labelText ? (
               <Text
+                x={labelX}
+                y={labelY}
+                offsetX={estimatedWidth / 2}
+                offsetY={diagonalFontSize / 2}
+                rotation={rotation}
                 text={labelText}
                 fontSize={diagonalFontSize}
-                fill={color}
-                padding={diagonalPadding}
                 fontStyle="bold"
+                fill={color}
+                stroke={UI_CONFIG.colors.textWhite}
+                strokeWidth={2 / stageScale}
+                fillAfterStrokeEnabled
+                listening={false}
               />
-            </KonvaLabel>
+            ) : null}
           </Group>
         );
       })}
@@ -275,7 +279,10 @@ export const StagePlots = memo(() => {
     manualCutLine,
     setManualDividePlotId,
     setManualCutLine,
-    isShowDiagonals,
+    diagonalPlotId,
+    isSelectingDiagonalPlot,
+    setDiagonalPlotId,
+    setIsSelectingDiagonalPlot,
   } = useMapStore(
     useShallow((state) => ({
       plots: state.plots,
@@ -286,12 +293,13 @@ export const StagePlots = memo(() => {
       manualCutLine: state.manualCutLine,
       setManualDividePlotId: state.setManualDividePlotId,
       setManualCutLine: state.setManualCutLine,
-      isShowDiagonals: state.isShowDiagonals,
+      diagonalPlotId: state.diagonalPlotId,
+      isSelectingDiagonalPlot: state.isSelectingDiagonalPlot,
+      setDiagonalPlotId: state.setDiagonalPlotId,
+      setIsSelectingDiagonalPlot: state.setIsSelectingDiagonalPlot,
     })),
   );
 
-  // Geometry preparation is independent of zoom. Keeping stageScale out of this
-  // memo prevents expensive segment grouping on every pinch/wheel frame.
   const preparedPlots = useMemo<PreparedPlot[]>(() => {
     if (plots.length === 0) return [];
 
@@ -341,7 +349,10 @@ export const StagePlots = memo(() => {
           setManualCutLine={setManualCutLine}
           stageScale={stageScale}
           plotData={plots[plot.plotIndex]}
-          isShowDiagonals={isShowDiagonals}
+          diagonalPlotId={diagonalPlotId}
+          isSelectingDiagonalPlot={isSelectingDiagonalPlot}
+          setDiagonalPlotId={setDiagonalPlotId}
+          setIsSelectingDiagonalPlot={setIsSelectingDiagonalPlot}
         />
       ))}
       <PlotEdgeLabels stageScale={stageScale} />
