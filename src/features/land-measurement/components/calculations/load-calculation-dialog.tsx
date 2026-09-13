@@ -25,7 +25,6 @@ import {
   SuccessToast,
   ErrorToast,
   formatDate,
-  toBengaliDigits,
 } from "@/lib/utils";
 import { useMapStore } from "@/features/land-measurement/store/useMapStore";
 import {
@@ -35,6 +34,11 @@ import {
 } from "@/features/land-measurement/actions/calculation.action";
 import { calculatePolygonData } from "@/features/land-measurement/utils/calculations";
 import { PLOT_COLOR_PALETTE } from "@/features/land-measurement/utils/canvas";
+import {
+  deleteLocalCalculationMap,
+  getLocalCalculationMap,
+  saveLocalCalculationMap,
+} from "@/features/land-measurement/utils/localMapStorage";
 import type { TCalculation } from "@/interface/calculation";
 import type { PlotRecord } from "@/features/land-measurement/types/map";
 
@@ -74,10 +78,9 @@ export function LoadCalculationDialog({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // Pending calculation waiting for map upload
   const [pendingCalculation, setPendingCalculation] = useState<TCalculation | null>(null);
   const [isProcessingUpload, setIsProcessingUpload] = useState(false);
+  const [openingCalculationId, setOpeningCalculationId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -138,17 +141,33 @@ export function LoadCalculationDialog({
   );
 
   const handleSelectCalculation = useCallback(
-    (calc: TCalculation) => {
+    async (calc: TCalculation) => {
       if (image) {
         applyCalculationPlots(calc);
-      } else {
+        return;
+      }
+
+      setOpeningCalculationId(calc.id);
+      try {
+        const localMap = await getLocalCalculationMap(calc.id);
+        if (localMap) {
+          const success = await processFile(localMap);
+          if (success) {
+            applyCalculationPlots(calc);
+            return;
+          }
+        }
         setPendingCalculation(calc);
+      } catch (error: unknown) {
+        console.error("Could not restore saved local map:", error);
+        setPendingCalculation(calc);
+      } finally {
+        setOpeningCalculationId(null);
       }
     },
-    [applyCalculationPlots, image],
+    [applyCalculationPlots, image, processFile],
   );
 
-  // Initial & Search fetch in effect
   useEffect(() => {
     if (!open) return;
 
@@ -157,7 +176,7 @@ export function LoadCalculationDialog({
     if (initialCalculationId) {
       getCalculationByIdAction(initialCalculationId).then((res) => {
         if (!ignore && res.success && res.data) {
-          handleSelectCalculation(res.data);
+          void handleSelectCalculation(res.data);
         }
       });
     }
@@ -193,7 +212,6 @@ export function LoadCalculationDialog({
     };
   }, [open, initialCalculationId, searchTerm, handleSelectCalculation]);
 
-  // Fetch Next Page for Infinite Scroll
   const loadMoreCalculations = useCallback(async () => {
     if (isLoading || isLoadingMore || !hasMore) return;
 
@@ -220,7 +238,6 @@ export function LoadCalculationDialog({
     }
   }, [hasMore, isLoading, isLoadingMore, page, searchTerm]);
 
-  // Hook for Infinite Scroll (uses viewport/modal boundary)
   const { sentinelRef } = useInfiniteScroll({
     onLoadMore: loadMoreCalculations,
     hasMore,
@@ -237,6 +254,11 @@ export function LoadCalculationDialog({
     try {
       const success = await processFile(file);
       if (success) {
+        try {
+          await saveLocalCalculationMap(calcToApply.id, file);
+        } catch (error: unknown) {
+          console.error("Could not cache selected map for saved measurement:", error);
+        }
         applyCalculationPlots(calcToApply);
       }
     } catch {
@@ -255,6 +277,11 @@ export function LoadCalculationDialog({
       if (res.success) {
         setCalculations((prev) => prev.filter((c) => c.id !== deletingId));
         setTotalCount((prev) => Math.max(0, prev - 1));
+        try {
+          await deleteLocalCalculationMap(deletingId);
+        } catch (error: unknown) {
+          console.error("Could not delete local map copy:", error);
+        }
         SuccessToast("Measurement deleted successfully.");
       } else {
         ErrorToast(res.message || "Failed to delete measurement.");
@@ -275,7 +302,6 @@ export function LoadCalculationDialog({
         title="Saved Measurements"
         description="Select a previously saved measurement to reload onto the canvas."
       >
-        {/* Pending Map Upload State */}
         {pendingCalculation ? (
           <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 space-y-4">
             <div className="flex items-start gap-3">
@@ -291,7 +317,7 @@ export function LoadCalculationDialog({
                   <span className="text-primary font-medium">
                     &ldquo;{pendingCalculation.mapName || "Map File"}&rdquo;
                   </span>{" "}
-                  image.
+                  image. This is normally needed only on a new browser/device or after site data is cleared.
                 </p>
               </div>
             </div>
@@ -328,7 +354,6 @@ export function LoadCalculationDialog({
           </div>
         ) : (
           <div className="space-y-3.5">
-            {/* Header Controls: Search & Meta Bar */}
             <div className="flex items-center justify-between gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -355,7 +380,6 @@ export function LoadCalculationDialog({
               </Button>
             </div>
 
-            {/* List Body with Infinite Scroll */}
             {isLoading ? (
               <div className="py-14 text-center text-muted-foreground space-y-2">
                 <Loader2 className="mx-auto size-6 animate-spin text-primary" />
@@ -378,13 +402,13 @@ export function LoadCalculationDialog({
                 {calculations.map((calc) => {
                   const plotCount = calc.plots?.length || 0;
                   const dateStr = formatDate(calc.createdAt);
+                  const isOpening = openingCalculationId === calc.id;
 
                   return (
                     <div
                       key={calc.id}
                       className="group rounded-xl border bg-card p-3.5 sm:p-4 transition-all hover:border-primary/50 hover:bg-muted/20 space-y-3"
                     >
-                      {/* Top Row: Title, Plot Count, Map and Delete Button */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-1.5 min-w-0 flex-1">
                           <h4 className="font-semibold text-sm text-foreground leading-snug wrap-break-word">
@@ -419,13 +443,14 @@ export function LoadCalculationDialog({
                         </Button>
                       </div>
 
-                      {/* Bottom Row: Load Action Button */}
                       <div className="flex items-center justify-end pt-2 border-t border-border/50">
                         <Button
                           type="button"
                           variant="default"
                           size="sm"
-                          onClick={() => handleSelectCalculation(calc)}
+                          onClick={() => void handleSelectCalculation(calc)}
+                          loading={isOpening}
+                          loadingText="Opening..."
                           className="w-full sm:w-auto"
                         >
                           <span>Load</span>
@@ -436,7 +461,6 @@ export function LoadCalculationDialog({
                   );
                 })}
 
-                {/* Infinite Scroll Sentinel / Loading Indicator */}
                 <div ref={sentinelRef} className="py-3 text-center min-h-8">
                   {isLoadingMore && (
                     <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
@@ -457,7 +481,6 @@ export function LoadCalculationDialog({
         )}
       </ModalWrapper>
 
-      {/* Confirmation Modal for deletion */}
       <ConfirmationModal
         open={!!deletingId}
         onOpenChange={(val) => !val && setDeletingId(null)}
