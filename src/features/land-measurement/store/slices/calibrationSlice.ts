@@ -1,16 +1,6 @@
 import { StateCreator } from 'zustand';
 import { SuccessToast, ErrorToast } from '@/lib/utils';
 
-const readSavedScale = (): number | null => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem('mapScale');
-    return raw ? parseFloat(raw) : null;
-  } catch {
-    return null;
-  }
-};
-
 export interface CalibrationState {
   scale: number | null;
   manualScale: string;
@@ -36,16 +26,15 @@ export const createCalibrationSlice: StateCreator<
   [],
   [],
   CalibrationSlice
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-> = (set, get, _store) => ({
-  // State
-  scale: readSavedScale(),
+> = (set, get) => ({
+  // Scale belongs to one exact raster. Saved calculations explicitly restore
+  // their own value; a new browser session or map upload starts uncalibrated.
+  scale: null,
   manualScale: '',
   showManualScale: false,
   calibrationLine: [],
   isDrawing: false,
 
-  // Actions
   setScale: (scale) => set({ scale }),
   setManualScale: (manualScale) => set({ manualScale }),
   setShowManualScale: (showManualScale) => set({ showManualScale }),
@@ -59,11 +48,7 @@ export const createCalibrationSlice: StateCreator<
     if (Number.isFinite(ftPerPx) && ftPerPx > 0) {
       const scaleValue = 1 / ftPerPx;
       set({ scale: scaleValue, showManualScale: false, calibrationLine: [], isDrawing: false });
-      localStorage.setItem('mapScale', scaleValue.toString());
       SuccessToast(`Scale calibrated: 1 px = ${ftPerPx.toFixed(6)} ft`);
-      
-      // Need to set mode to 'none' but it's in UISlice
-      // This will be handled in main store wrapper
     } else {
       ErrorToast('Please enter a value greater than 0');
     }
@@ -79,16 +64,16 @@ export const createCalibrationSlice: StateCreator<
       ErrorToast('Scale calibration line is incomplete');
       return;
     }
-    
+
     let pixelDistance = 0;
     for (let i = 0; i < state.calibrationLine.length - 2; i += 2) {
       const x1 = state.calibrationLine[i];
-      const y1 = state.calibrationLine[i+1];
-      const x2 = state.calibrationLine[i+2];
-      const y2 = state.calibrationLine[i+3];
+      const y1 = state.calibrationLine[i + 1];
+      const x2 = state.calibrationLine[i + 2];
+      const y2 = state.calibrationLine[i + 3];
       pixelDistance += Math.hypot(x2 - x1, y2 - y1);
     }
-    
+
     if (!Number.isFinite(pixelDistance) || pixelDistance <= 0) {
       ErrorToast('Invalid calibration line length');
       return;
@@ -96,14 +81,6 @@ export const createCalibrationSlice: StateCreator<
 
     const newScale = pixelDistance / realDistance;
     set({ scale: newScale, calibrationLine: [], isDrawing: false });
-    try {
-      localStorage.setItem('mapScale', newScale.toString());
-    } catch {
-      // ignore
-    }
     SuccessToast(`Scale calibrated (1 px = ${(1 / newScale).toFixed(6)} ft)`);
-    
-    // Need to set mode and isModalOpen but they're in UISlice
-    // This will be handled in main store wrapper
   },
 });
