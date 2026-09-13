@@ -11,7 +11,10 @@ import { ModalWrapper } from "@/components/common/modal-wrapper";
 import { SuccessToast, ErrorToast, WarningToast } from "@/lib/utils";
 import { useMapStore } from "@/features/land-measurement/store/useMapStore";
 import { saveCalculationAction } from "@/features/land-measurement/actions/calculation.action";
-import { saveLocalCalculationMap } from "@/features/land-measurement/utils/localMapStorage";
+import {
+  saveLocalCalculationMap,
+  saveLocalCalculationThumbnailFromImage,
+} from "@/features/land-measurement/utils/localMapStorage";
 
 interface SaveCalculationDialogProps {
   open: boolean;
@@ -28,6 +31,7 @@ export function SaveCalculationDialog({
     image,
     imageName,
     selectedFile,
+    setCurrentProjectId,
   } = useMapStore(
     useShallow((s) => ({
       plots: s.plots,
@@ -35,6 +39,7 @@ export function SaveCalculationDialog({
       image: s.image,
       imageName: s.imageName,
       selectedFile: s.selectedFile,
+      setCurrentProjectId: s.setCurrentProjectId,
     })),
   );
 
@@ -88,13 +93,24 @@ export function SaveCalculationDialog({
         return;
       }
 
-      // The server stores measurement data, not the user's source map. Keep a
-      // same-device copy so reopening a saved measurement can be instant.
-      if (selectedFile && result.data?.id) {
-        try {
-          await saveLocalCalculationMap(result.data.id, selectedFile);
-        } catch (error: unknown) {
-          console.error("Could not keep local map copy:", error);
+      const calculationId = result.data?.id;
+      if (calculationId) {
+        setCurrentProjectId(calculationId);
+
+        if (selectedFile) {
+          try {
+            await saveLocalCalculationMap(calculationId, selectedFile);
+          } catch (error: unknown) {
+            console.error("Could not keep local map copy:", error);
+          }
+        }
+
+        if (image) {
+          try {
+            await saveLocalCalculationThumbnailFromImage(calculationId, image);
+          } catch (error: unknown) {
+            console.error("Could not create saved-map thumbnail:", error);
+          }
         }
       }
 

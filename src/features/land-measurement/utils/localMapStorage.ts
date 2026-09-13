@@ -1,8 +1,11 @@
 const DB_NAME = 'mmp-land-measurement';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const MAP_STORE = 'maps';
 const DRAFT_STORE = 'drafts';
+const THUMBNAIL_STORE = 'thumbnails';
 const DRAFT_KEY = 'current';
+const THUMBNAIL_MAX_WIDTH = 360;
+const THUMBNAIL_MAX_HEIGHT = 240;
 
 export type LandMeasurementDraft = {
   version: 1;
@@ -20,6 +23,7 @@ function openDb(): Promise<IDBDatabase> {
       const db = request.result;
       if (!db.objectStoreNames.contains(MAP_STORE)) db.createObjectStore(MAP_STORE);
       if (!db.objectStoreNames.contains(DRAFT_STORE)) db.createObjectStore(DRAFT_STORE);
+      if (!db.objectStoreNames.contains(THUMBNAIL_STORE)) db.createObjectStore(THUMBNAIL_STORE);
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error ?? new Error('IndexedDB could not be opened'));
@@ -60,6 +64,67 @@ export async function deleteLocalCalculationMap(calculationId: string): Promise<
   await transact(MAP_STORE, 'readwrite', (store) => store.delete(calculationId));
 }
 
+export async function saveLocalCalculationThumbnail(
+  calculationId: string,
+  thumbnail: Blob,
+): Promise<void> {
+  await transact(THUMBNAIL_STORE, 'readwrite', (store) => store.put(thumbnail, calculationId));
+}
+
+export async function getLocalCalculationThumbnail(calculationId: string): Promise<Blob | null> {
+  const value = await transact<unknown>(THUMBNAIL_STORE, 'readonly', (store) => store.get(calculationId));
+  return value instanceof Blob ? value : null;
+}
+
+export async function deleteLocalCalculationThumbnail(calculationId: string): Promise<void> {
+  await transact(THUMBNAIL_STORE, 'readwrite', (store) => store.delete(calculationId));
+}
+
+function createThumbnailBlob(image: HTMLImageElement): Promise<Blob | null> {
+  const sourceWidth = image.naturalWidth;
+  const sourceHeight = image.naturalHeight;
+  if (!sourceWidth || !sourceHeight) return Promise.resolve(null);
+
+  const ratio = Math.min(
+    THUMBNAIL_MAX_WIDTH / sourceWidth,
+    THUMBNAIL_MAX_HEIGHT / sourceHeight,
+    1,
+  );
+  const width = Math.max(1, Math.round(sourceWidth * ratio));
+  const height = Math.max(1, Math.round(sourceHeight * ratio));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  if (!context) return Promise.resolve(null);
+
+  context.fillStyle = '#ffffff';
+  context.fillRect(0, 0, width, height);
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+  context.drawImage(image, 0, 0, width, height);
+
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), 'image/webp', 0.78);
+  });
+}
+
+export async function saveLocalCalculationThumbnailFromImage(
+  calculationId: string,
+  image: HTMLImageElement,
+): Promise<void> {
+  const blob = await createThumbnailBlob(image);
+  if (!blob) return;
+  await saveLocalCalculationThumbnail(calculationId, blob);
+}
+
+export async function deleteLocalCalculationAssets(calculationId: string): Promise<void> {
+  await Promise.all([
+    deleteLocalCalculationMap(calculationId),
+    deleteLocalCalculationThumbnail(calculationId),
+  ]);
+}
+
 export async function saveDraftMap(file: File): Promise<void> {
   await transact(MAP_STORE, 'readwrite', (store) => store.put(file, DRAFT_KEY));
 }
@@ -79,7 +144,14 @@ export async function getLandMeasurementDraft(): Promise<LandMeasurementDraft | 
   const value = await transact<unknown>(DRAFT_STORE, 'readonly', (store) => store.get(DRAFT_KEY));
   if (!value || typeof value !== 'object') return null;
   const draft = value as Partial<LandMeasurementDraft>;
-  if (draft.version !== 1 || typeof draft.savedAt !== 'number' || !Array.isArray(draft.plots) || !Array.isArray(draft.plotPoints)) return null;
+  if (
+    draft.version !== 1 ||
+    typeof draft.savedAt !== 'number' ||
+    !Array.isArray(draft.plots) ||
+    !Array.isArray(draft.plotPoints)
+  ) {
+    return null;
+  }
   return draft as LandMeasurementDraft;
 }
 

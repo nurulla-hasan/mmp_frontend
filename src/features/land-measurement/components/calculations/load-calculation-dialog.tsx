@@ -26,6 +26,7 @@ import {
   ErrorToast,
   formatDate,
 } from "@/lib/utils";
+import { LocalMapThumbnail } from "@/features/land-measurement/components/LocalMapThumbnail";
 import { useMapStore } from "@/features/land-measurement/store/useMapStore";
 import {
   getCalculationsAction,
@@ -35,9 +36,10 @@ import {
 import { calculatePolygonData } from "@/features/land-measurement/utils/calculations";
 import { PLOT_COLOR_PALETTE } from "@/features/land-measurement/utils/canvas";
 import {
-  deleteLocalCalculationMap,
+  deleteLocalCalculationAssets,
   getLocalCalculationMap,
   saveLocalCalculationMap,
+  saveLocalCalculationThumbnailFromImage,
 } from "@/features/land-measurement/utils/localMapStorage";
 import type { TCalculation } from "@/interface/calculation";
 import type { PlotRecord } from "@/features/land-measurement/types/map";
@@ -57,14 +59,18 @@ export function LoadCalculationDialog({
 }: LoadCalculationDialogProps) {
   const {
     image,
+    selectedFile,
     setPlots,
     setScale,
+    setCurrentProjectId,
     processFile,
   } = useMapStore(
     useShallow((s) => ({
       image: s.image,
+      selectedFile: s.selectedFile,
       setPlots: s.setPlots,
       setScale: s.setScale,
+      setCurrentProjectId: s.setCurrentProjectId,
       processFile: s.processFile,
     })),
   );
@@ -98,9 +104,7 @@ export function LoadCalculationDialog({
   const applyCalculationPlots = useCallback(
     (calc: TCalculation) => {
       const scaleValue = calc.scalePxPerUnit || null;
-      if (scaleValue) {
-        setScale(scaleValue);
-      }
+      setScale(scaleValue);
 
       const loadedPlots: PlotRecord[] = (calc.plots || []).map((p, idx) => {
         let rawPoints: { x: number; y: number }[] = [];
@@ -131,32 +135,67 @@ export function LoadCalculationDialog({
       });
 
       setPlots(loadedPlots);
+      setCurrentProjectId(calc.id);
       SuccessToast(`"${calc.name}" measurement loaded onto canvas!`);
       if (typeof window !== "undefined" && window.location.search.includes("calculationId")) {
         window.history.replaceState(null, "", window.location.pathname);
       }
       handleOpenChange(false);
     },
-    [handleOpenChange, setPlots, setScale],
+    [handleOpenChange, setCurrentProjectId, setPlots, setScale],
   );
+
+  const currentMapMatchesCalculation = useCallback(
+    (calc: TCalculation) => {
+      if (!image || !selectedFile) return false;
+      if (selectedFile.name !== calc.mapName) return false;
+
+      const expectedWidth = Number(calc.imageWidth || 0);
+      const expectedHeight = Number(calc.imageHeight || 0);
+      const widthMatches = !expectedWidth || expectedWidth === image.naturalWidth;
+      const heightMatches = !expectedHeight || expectedHeight === image.naturalHeight;
+      return widthMatches && heightMatches;
+    },
+    [image, selectedFile],
+  );
+
+  const cacheThumbnail = useCallback(async (calculationId: string) => {
+    const currentImage = useMapStore.getState().image;
+    if (!currentImage) return;
+    try {
+      await saveLocalCalculationThumbnailFromImage(calculationId, currentImage);
+    } catch (error: unknown) {
+      console.error("Could not cache saved-map thumbnail:", error);
+    }
+  }, []);
 
   const handleSelectCalculation = useCallback(
     async (calc: TCalculation) => {
-      if (image) {
-        applyCalculationPlots(calc);
-        return;
-      }
-
       setOpeningCalculationId(calc.id);
       try {
         const localMap = await getLocalCalculationMap(calc.id);
         if (localMap) {
           const success = await processFile(localMap);
           if (success) {
+            await cacheThumbnail(calc.id);
             applyCalculationPlots(calc);
             return;
           }
         }
+
+        if (currentMapMatchesCalculation(calc)) {
+          if (selectedFile) {
+            try {
+              await saveLocalCalculationMap(calc.id, selectedFile);
+            } catch (error: unknown) {
+              console.error("Could not cache current map for saved measurement:", error);
+            }
+          }
+          await cacheThumbnail(calc.id);
+          applyCalculationPlots(calc);
+          return;
+        }
+
         setPendingCalculation(calc);
       } catch (error: unknown) {
         console.error("Could not restore saved local map:", error);
@@ -165,7 +204,13 @@ export function LoadCalculationDialog({
         setOpeningCalculationId(null);
       }
     },
-    [applyCalculationPlots, image, processFile],
+    [
+      applyCalculationPlots,
+      cacheThumbnail,
+      currentMapMatchesCalculation,
+      processFile,
+      selectedFile,
+    ],
   );
 
   useEffect(() => {
@@ -259,6 +304,7 @@ export function LoadCalculationDialog({
         } catch (error: unknown) {
           console.error("Could not cache selected map for saved measurement:", error);
         }
+        await cacheThumbnail(calcToApply.id);
         applyCalculationPlots(calcToApply);
       }
     } catch {
@@ -278,9 +324,9 @@ export function LoadCalculationDialog({
         setCalculations((prev) => prev.filter((c) => c.id !== deletingId));
         setTotalCount((prev) => Math.max(0, prev - 1));
         try {
-          await deleteLocalCalculationMap(deletingId);
+          await deleteLocalCalculationAssets(deletingId);
         } catch (error: unknown) {
-          console.error("Could not delete local map copy:", error);
+          console.error("Could not delete local measurement assets:", error);
         }
         SuccessToast("Measurement deleted successfully.");
       } else {
@@ -409,7 +455,13 @@ export function LoadCalculationDialog({
                       key={calc.id}
                       className="group rounded-xl border bg-card p-3.5 sm:p-4 transition-all hover:border-primary/50 hover:bg-muted/20 space-y-3"
                     >
-                      <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-3">
+                        <LocalMapThumbnail
+                          calculationId={calc.id}
+                          alt={`${calc.name} map`}
+                          className="size-12"
+                        />
+
                         <div className="space-y-1.5 min-w-0 flex-1">
                           <h4 className="font-semibold text-sm text-foreground leading-snug wrap-break-word">
                             {calc.name}

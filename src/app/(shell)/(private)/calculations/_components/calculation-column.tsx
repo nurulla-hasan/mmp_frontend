@@ -11,9 +11,16 @@ import { ConfirmationModal } from "@/components/common/confirmation-modal";
 import { ModalWrapper } from "@/components/common/modal-wrapper";
 import { SuccessToast, ErrorToast, formatDate, toBengaliDigits } from "@/lib/utils";
 import { deleteCalculationAction } from "@/features/land-measurement/actions/calculation.action";
+import { LocalMapThumbnail } from "@/features/land-measurement/components/LocalMapThumbnail";
 import { useMapStore } from "@/features/land-measurement/store/useMapStore";
 import { calculatePolygonData } from "@/features/land-measurement/utils/calculations";
 import { PLOT_COLOR_PALETTE } from "@/features/land-measurement/utils/canvas";
+import {
+  deleteLocalCalculationAssets,
+  getLocalCalculationMap,
+  saveLocalCalculationMap,
+  saveLocalCalculationThumbnailFromImage,
+} from "@/features/land-measurement/utils/localMapStorage";
 import type { TCalculation } from "@/interface/calculation";
 import type { PlotRecord } from "@/features/land-measurement/types/map";
 
@@ -24,12 +31,12 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isOpening, setIsOpening] = useState(false);
 
   const applyCalculationAndRedirect = () => {
     const scaleValue = calculation.scalePxPerUnit || null;
-    if (scaleValue) {
-      useMapStore.getState().setScale(scaleValue);
-    }
+    const store = useMapStore.getState();
+    store.setScale(scaleValue);
 
     const loadedPlots: PlotRecord[] = (calculation.plots || []).map((p, idx) => {
       let rawPoints: { x: number; y: number }[] = [];
@@ -59,17 +66,67 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
       };
     });
 
-    useMapStore.getState().setPlots(loadedPlots);
+    store.setPlots(loadedPlots);
+    store.setCurrentProjectId(calculation.id);
     SuccessToast(`"${calculation.name}" পরিমাপ সফলভাবে লোড হয়েছে!`);
     router.push("/tools/land-measurement");
   };
 
-  const handleOpenInMap = () => {
+  const currentCanvasMatchesCalculation = () => {
+    const state = useMapStore.getState();
+    if (!state.image || !state.selectedFile) return false;
+    if (state.selectedFile.name !== calculation.mapName) return false;
+
+    const expectedWidth = Number(calculation.imageWidth || 0);
+    const expectedHeight = Number(calculation.imageHeight || 0);
+    const widthMatches = !expectedWidth || expectedWidth === state.image.naturalWidth;
+    const heightMatches = !expectedHeight || expectedHeight === state.image.naturalHeight;
+    return widthMatches && heightMatches;
+  };
+
+  const cacheThumbnailFromCurrentImage = async () => {
     const currentImage = useMapStore.getState().image;
-    if (currentImage) {
-      applyCalculationAndRedirect();
-    } else {
+    if (!currentImage) return;
+    try {
+      await saveLocalCalculationThumbnailFromImage(calculation.id, currentImage);
+    } catch (error: unknown) {
+      console.error("Could not cache saved-map thumbnail:", error);
+    }
+  };
+
+  const handleOpenInMap = async () => {
+    setIsOpening(true);
+    try {
+      const localMap = await getLocalCalculationMap(calculation.id);
+      if (localMap) {
+        const success = await useMapStore.getState().processFile(localMap);
+        if (success) {
+          await cacheThumbnailFromCurrentImage();
+          applyCalculationAndRedirect();
+          return;
+        }
+      }
+
+      if (currentCanvasMatchesCalculation()) {
+        const currentFile = useMapStore.getState().selectedFile;
+        if (currentFile) {
+          try {
+            await saveLocalCalculationMap(calculation.id, currentFile);
+          } catch (error: unknown) {
+            console.error("Could not cache current map for saved measurement:", error);
+          }
+        }
+        await cacheThumbnailFromCurrentImage();
+        applyCalculationAndRedirect();
+        return;
+      }
+
       setIsUploadModalOpen(true);
+    } catch (error: unknown) {
+      console.error("Could not restore saved local map:", error);
+      setIsUploadModalOpen(true);
+    } finally {
+      setIsOpening(false);
     }
   };
 
@@ -81,6 +138,12 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
     try {
       const success = await useMapStore.getState().processFile(file);
       if (success) {
+        try {
+          await saveLocalCalculationMap(calculation.id, file);
+        } catch (error: unknown) {
+          console.error("Could not cache selected map for saved measurement:", error);
+        }
+        await cacheThumbnailFromCurrentImage();
         setIsUploadModalOpen(false);
         applyCalculationAndRedirect();
       }
@@ -97,8 +160,14 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
       try {
         const res = await deleteCalculationAction(calculation.id);
         if (res.success) {
+          try {
+            await deleteLocalCalculationAssets(calculation.id);
+          } catch (error: unknown) {
+            console.error("Could not delete local measurement assets:", error);
+          }
           SuccessToast("পরিমাপ সফলভাবে মুছে ফেলা হয়েছে।");
           setIsDeleteModalOpen(false);
+          router.refresh();
         } else {
           ErrorToast(res.message || "মুছতে সমস্যা হয়েছে।");
         }
@@ -114,13 +183,14 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
         variant="outline"
         size="sm"
         className="gap-1.5 text-xs"
-        onClick={handleOpenInMap}
+        onClick={() => void handleOpenInMap()}
+        loading={isOpening}
+        loadingText="খুলছে..."
       >
         <MapIcon className="size-3.5" />
         ম্যাপে খুলুন
       </Button>
 
-      {/* Upload Modal when map is not in canvas */}
       <ModalWrapper
         open={isUploadModalOpen}
         onOpenChange={setIsUploadModalOpen}
@@ -141,7 +211,7 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
                 <span className="text-primary font-semibold">
                   &ldquo;{calculation.mapName || "ম্যাপ ফাইল"}&rdquo;
                 </span>{" "}
-                সিলেক্ট করুন। আপলোড সম্পন্ন হলে ক্যানভাসে আপনার আঁকা সমস্ত দাগ স্বয়ংক্রিয়ভাবে প্রদর্শিত হবে।
+                সিলেক্ট করুন। একই ব্রাউজারে একবার নির্বাচন করলে পরেরবার ম্যাপটি স্বয়ংক্রিয়ভাবে পাওয়া যাবে।
               </p>
             </div>
           </div>
@@ -176,7 +246,6 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
         </div>
       </ModalWrapper>
 
-      {/* Delete Confirmation Modal */}
       <ConfirmationModal
         open={isDeleteModalOpen}
         onOpenChange={setIsDeleteModalOpen}
@@ -206,7 +275,19 @@ export const calculationColumns: ColumnDef<TCalculation>[] = [
     accessorKey: "name",
     header: "নাম",
     cell: ({ row }) => (
-      <div className="font-medium text-foreground">{row.original.name}</div>
+      <div className="flex min-w-52 items-center gap-3">
+        <LocalMapThumbnail
+          calculationId={row.original.id}
+          alt={`${row.original.name} map`}
+          className="size-11"
+        />
+        <div className="min-w-0 font-medium text-foreground">
+          <div className="truncate">{row.original.name}</div>
+          <div className="mt-0.5 max-w-52 truncate text-xs font-normal text-muted-foreground">
+            {row.original.mapName || "ম্যাপ ফাইল"}
+          </div>
+        </div>
+      </div>
     ),
   },
   {
