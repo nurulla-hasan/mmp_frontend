@@ -20,7 +20,7 @@ import { clamp, cn } from "@/lib/utils";
 export const KonvaStage = memo((props: KonvaStageProps) => {
     const { stageRef } = props;
 
-    const { stageSize, mode, isPlotFinished, stageScale, stagePos, isPinching, isProcessingFile, isGeneratingTiles, tileProgress, image } =
+    const { stageSize, mode, isPlotFinished, stageScale, stagePos, isPinching, isProcessingFile, isGeneratingTiles, tileProgress, image, isSelectingDiagonalPlot } =
         useMapStore(
             useShallow(s => ({
                 stageSize: s.stageSize,
@@ -33,10 +33,10 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                 isGeneratingTiles: s.isGeneratingTiles,
                 tileProgress: s.tileProgress,
                 image: s.image,
+                isSelectingDiagonalPlot: s.isSelectingDiagonalPlot,
             }))
         );
 
-    // Refs for wheel handler — always fresh, no stale closures, no re-render on change.
     const stageScaleRef = useRef(stageScale);
     stageScaleRef.current = stageScale;
     const stagePosRef = useRef(stagePos);
@@ -52,9 +52,6 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
         };
     }, []);
 
-    // Konva owns an inner stage container, so relying only on the outer
-    // Tailwind cursor class is not reliable. Keep the actual canvas cursor in
-    // sync with drawing modes and clear the inline override everywhere else.
     useEffect(() => {
         const container = stageRef.current?.container();
         if (!container) return;
@@ -62,6 +59,8 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
         const shouldUseCrosshair = mode === 'drawing_plot' || mode === 'calibrating';
         if (shouldUseCrosshair) {
             container.style.cursor = 'crosshair';
+        } else if (isSelectingDiagonalPlot) {
+            container.style.cursor = 'pointer';
         } else {
             container.style.removeProperty('cursor');
         }
@@ -69,9 +68,8 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
         return () => {
             container.style.removeProperty('cursor');
         };
-    }, [mode, stageRef]);
+    }, [isSelectingDiagonalPlot, mode, stageRef]);
 
-    // Stable wheel handler. Scale + position are committed in one store update.
     const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
         e.evt.preventDefault();
         const stage = e.target.getStage();
@@ -108,7 +106,7 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
     return (
         <div id="step-map-stage" className={cn(
             "absolute inset-0 touch-none select-none",
-            (mode === 'drawing_plot' || mode === 'calibrating') ? "cursor-crosshair" : "cursor-grab"
+            (mode === 'drawing_plot' || mode === 'calibrating') ? "cursor-crosshair" : isSelectingDiagonalPlot ? "cursor-pointer" : "cursor-grab"
         )}>
             <Stage
                 ref={stageRef}
@@ -125,7 +123,7 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                 scaleY={stageScale}
                 x={stagePos.x}
                 y={stagePos.y}
-                draggable={!isPinching}
+                draggable={!isPinching && !isSelectingDiagonalPlot}
                 onDragMove={events.onDragMove}
                 onDragEnd={events.onDragEnd}
             >
@@ -133,7 +131,7 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                     <StageBackground />
                 </Layer>
 
-                <Layer id="static-layer" listening={mode === 'manual_divide_plot'}>
+                <Layer id="static-layer" listening={mode === 'manual_divide_plot' || isSelectingDiagonalPlot}>
                     <StageCalibration />
                     <StagePlots />
                 </Layer>
@@ -157,7 +155,6 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                 </div>
             )}
 
-            {/* Tile generation loading — non-blocking floating indicator */}
             {!isProcessingFile && isGeneratingTiles && image && (image.naturalWidth * image.naturalHeight > 2_000_000) && (
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 z-60 pointer-events-none">
                     <div className="flex w-60 flex-col gap-2 rounded-xl border border-border bg-card/95 backdrop-blur-md px-4 py-3 shadow-xl pointer-events-auto">
@@ -177,7 +174,6 @@ export const KonvaStage = memo((props: KonvaStageProps) => {
                 </div>
             )}
 
-            {/* UI Overlays */}
             {!isProcessingFile && (mode === 'calibrating' || (mode === 'drawing_plot' && !isPlotFinished)) && (
                 <div
                     className="pointer-events-none absolute z-50 size-6 -translate-x-1/2 -translate-y-1/2"
