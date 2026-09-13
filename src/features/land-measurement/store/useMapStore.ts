@@ -10,7 +10,7 @@ import type { Point } from '../types/map';
 import { createImageSlice, type ImageSlice } from './slices/imageSlice';
 import { createCalibrationSlice, type CalibrationSlice } from './slices/calibrationSlice';
 import { createUISlice, type UISlice } from './slices/uiSlice';
-import { createPlotSlice, type PlotSlice } from './slices/plotSlice';
+import { appendBoundedPlotHistory, createPlotSlice, type PlotSlice } from './slices/plotSlice';
 import { createDivideSlice, type DivideSlice } from './slices/divideSlice';
 import { createSavedPlotsSlice, type SavedPlotsSlice } from './slices/savedPlotsSlice';
 
@@ -225,13 +225,9 @@ export const useMapStore = create<MapStore>((set, get, store) => {
       const state = get();
       const result = divideSlice.executeManualDivide(state.plots, state.scale);
       if (result) {
-        const previousIds = new Set(state.plots.map((plot) => plot.id));
-        result
-          .filter((plot) => !previousIds.has(plot.id));
-
         set({
           plots: result,
-          plotsHistory: [...state.plotsHistory, state.plots],
+          plotsHistory: appendBoundedPlotHistory(state.plotsHistory, state.plots),
           plotsFuture: [],
           results: result.length > 0 ? result[result.length - 1].results : null,
           mode: 'none',

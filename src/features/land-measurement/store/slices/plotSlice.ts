@@ -6,9 +6,9 @@ import { normalizePolygonPoints } from '../../utils/geometry';
 import { incrementPlotCountAction } from '../../actions/calculation.action';
 import type { Point, PolygonResults, PlotRecord } from '../../types/map';
 
-const MAX_PLOT_HISTORY = 50;
+export const MAX_PLOT_HISTORY = 50;
 
-function appendBoundedHistory(history: PlotRecord[][], snapshot: PlotRecord[]): PlotRecord[][] {
+export function appendBoundedPlotHistory(history: PlotRecord[][], snapshot: PlotRecord[]): PlotRecord[][] {
   const next = [...history, snapshot];
   return next.length > MAX_PLOT_HISTORY ? next.slice(next.length - MAX_PLOT_HISTORY) : next;
 }
@@ -94,7 +94,7 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
     };
 
     set({
-      plotsHistory: appendBoundedHistory(state.plotsHistory, currentPlots),
+      plotsHistory: appendBoundedPlotHistory(state.plotsHistory, currentPlots),
       plotsFuture: [],
       plots: [...currentPlots, nextPlot],
       plotPoints: [],
@@ -129,7 +129,7 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
       set({
         plots: previousPlots,
         plotsHistory: nextHistory,
-        plotsFuture: appendBoundedHistory(state.plotsFuture, currentPlots),
+        plotsFuture: appendBoundedPlotHistory(state.plotsFuture, currentPlots),
         results: lastPlot ? lastPlot.results : null,
       });
     }
@@ -155,7 +155,7 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
 
     set({
       plots: nextPlots,
-      plotsHistory: appendBoundedHistory(state.plotsHistory, state.plots),
+      plotsHistory: appendBoundedPlotHistory(state.plotsHistory, state.plots),
       plotsFuture: nextFuture,
       results: lastPlot ? lastPlot.results : null,
     });
