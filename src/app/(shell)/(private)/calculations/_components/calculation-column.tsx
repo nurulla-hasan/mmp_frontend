@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmationModal } from "@/components/common/confirmation-modal";
 import { ModalWrapper } from "@/components/common/modal-wrapper";
-import { SuccessToast, ErrorToast, formatDate, toBengaliDigits } from "@/lib/utils";
+import { ErrorToast, formatDate, toBengaliDigits } from "@/lib/utils";
 import { deleteCalculationAction } from "@/features/land-measurement/actions/calculation.action";
 import { LocalMapThumbnail } from "@/features/land-measurement/components/LocalMapThumbnail";
 import { useMapStore } from "@/features/land-measurement/store/useMapStore";
@@ -69,7 +69,6 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
 
     store.setPlots(loadedPlots);
     store.setCurrentProjectId(calculation.id);
-    SuccessToast(`"${calculation.name}" পরিমাপ সফলভাবে লোড হয়েছে!`);
     router.push("/tools/land-measurement");
   };
 
@@ -187,7 +186,6 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
           } catch (error: unknown) {
             console.error("Could not delete local measurement assets:", error);
           }
-          SuccessToast("পরিমাপ সফলভাবে মুছে ফেলা হয়েছে।");
           setIsDeleteModalOpen(false);
           router.refresh();
         } else {

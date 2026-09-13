@@ -22,7 +22,6 @@ import { ModalWrapper } from "@/components/common/modal-wrapper";
 import { ConfirmationModal } from "@/components/common/confirmation-modal";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import {
-  SuccessToast,
   ErrorToast,
   formatDate,
 } from "@/lib/utils";
@@ -133,7 +132,6 @@ export function LoadCalculationDialog({
 
       setPlots(loadedPlots);
       setCurrentProjectId(calc.id);
-      SuccessToast(`"${calc.name}" measurement loaded onto canvas!`);
       if (typeof window !== "undefined" && window.location.search.includes("calculationId")) {
         window.history.replaceState(null, "", window.location.pathname);
       }
@@ -340,7 +338,6 @@ export function LoadCalculationDialog({
         } catch (error: unknown) {
           console.error("Could not delete local measurement assets:", error);
         }
-        SuccessToast("Measurement deleted successfully.");
       } else {
         ErrorToast(res.message || "Failed to delete measurement.");
       }
