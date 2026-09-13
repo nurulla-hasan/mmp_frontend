@@ -6,6 +6,13 @@ import { normalizePolygonPoints } from '../../utils/geometry';
 import { incrementPlotCountAction } from '../../actions/calculation.action';
 import type { Point, PolygonResults, PlotRecord } from '../../types/map';
 
+const MAX_PLOT_HISTORY = 50;
+
+function appendBoundedHistory(history: PlotRecord[][], snapshot: PlotRecord[]): PlotRecord[][] {
+  const next = [...history, snapshot];
+  return next.length > MAX_PLOT_HISTORY ? next.slice(next.length - MAX_PLOT_HISTORY) : next;
+}
+
 export interface PlotState {
   plotPoints: Point[];
   plotPointsFuture: Point[];
@@ -35,9 +42,7 @@ export interface PlotActions {
 
 export type PlotSlice = PlotState & PlotActions;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set, get, _store) => ({
-  // State
+export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set, get) => ({
   plotPoints: [],
   plotPointsFuture: [],
   plots: [],
@@ -46,7 +51,6 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
   results: null,
   isPlotFinished: false,
 
-  // Actions
   setPlotPoints: (points) =>
     set((state) => ({
       plotPoints: typeof points === 'function' ? points(state.plotPoints) : points,
@@ -90,7 +94,7 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
     };
 
     set({
-      plotsHistory: [...state.plotsHistory, currentPlots],
+      plotsHistory: appendBoundedHistory(state.plotsHistory, currentPlots),
       plotsFuture: [],
       plots: [...currentPlots, nextPlot],
       plotPoints: [],
@@ -99,7 +103,6 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
       isPlotFinished: true,
     });
 
-    // Increment user's measured plot count in the background as soon as a plot is completed
     incrementPlotCountAction().catch(() => {});
   },
 
@@ -113,9 +116,8 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
       const undonePoint = state.plotPoints[state.plotPoints.length - 1];
       set({
         plotPoints: nextPoints,
-        plotPointsFuture: [...state.plotPointsFuture, undonePoint],
-        snapHint: false,
-      } as Partial<PlotSlice>);
+        plotPointsFuture: [...state.plotPointsFuture, undonePoint].slice(-MAX_PLOT_HISTORY),
+      });
       return;
     }
 
@@ -123,12 +125,11 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
       const nextHistory = [...state.plotsHistory];
       const previousPlots = nextHistory.pop()!;
       const currentPlots = state.plots;
-
       const lastPlot = previousPlots.length > 0 ? previousPlots[previousPlots.length - 1] : null;
       set({
         plots: previousPlots,
         plotsHistory: nextHistory,
-        plotsFuture: [...state.plotsFuture, currentPlots],
+        plotsFuture: appendBoundedHistory(state.plotsFuture, currentPlots),
         results: lastPlot ? lastPlot.results : null,
       });
     }
@@ -142,8 +143,7 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
       set({
         plotPoints: [...state.plotPoints, nextPoint],
         plotPointsFuture: nextFuture,
-        snapHint: false,
-      } as Partial<PlotSlice>);
+      });
       return;
     }
 
@@ -155,7 +155,7 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
 
     set({
       plots: nextPlots,
-      plotsHistory: [...state.plotsHistory, state.plots],
+      plotsHistory: appendBoundedHistory(state.plotsHistory, state.plots),
       plotsFuture: nextFuture,
       results: lastPlot ? lastPlot.results : null,
     });
@@ -166,10 +166,8 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
   },
 
   handlePointDragEnd: (e: { target: { x(): number; y(): number } }, index: number) => {
-    // Access stageScale from the combined store state
-    // Using interface merging, the full state will have stageScale from UISlice
     const fullState = get();
-    const SNAP_THRESHOLD = 20 / ((fullState as { stageScale?: number }).stageScale ?? 1);
+    const snapThreshold = 20 / ((fullState as { stageScale?: number }).stageScale ?? 1);
     const state = get();
     const newPoints = [...state.plotPoints];
     let x = e.target.x();
@@ -177,7 +175,7 @@ export const createPlotSlice: StateCreator<PlotSlice, [], [], PlotSlice> = (set,
 
     if (index !== 0 && newPoints.length > 0) {
       const first = newPoints[0];
-      if (Math.hypot(x - first.x, y - first.y) <= SNAP_THRESHOLD) {
+      if (Math.hypot(x - first.x, y - first.y) <= snapThreshold) {
         x = first.x;
         y = first.y;
       }
