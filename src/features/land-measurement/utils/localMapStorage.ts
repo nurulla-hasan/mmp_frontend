@@ -49,15 +49,64 @@ async function transact<T>(
   }
 }
 
+function storedValueToFile(value: unknown, fallbackName = 'mouza-map'): File | null {
+  if (value instanceof File) return value;
+  if (value instanceof Blob) return new File([value], fallbackName, { type: value.type });
+  return null;
+}
+
 export async function saveLocalCalculationMap(calculationId: string, file: File): Promise<void> {
   await transact(MAP_STORE, 'readwrite', (store) => store.put(file, calculationId));
 }
 
 export async function getLocalCalculationMap(calculationId: string): Promise<File | null> {
   const value = await transact<unknown>(MAP_STORE, 'readonly', (store) => store.get(calculationId));
-  if (value instanceof File) return value;
-  if (value instanceof Blob) return new File([value], 'mouza-map', { type: value.type });
-  return null;
+  return storedValueToFile(value);
+}
+
+export async function findLocalCalculationMapByName(
+  mapName: string,
+  excludeCalculationId?: string,
+): Promise<File | null> {
+  if (!mapName) return null;
+
+  const db = await openDb();
+  try {
+    return await new Promise<File | null>((resolve, reject) => {
+      const tx = db.transaction(MAP_STORE, 'readonly');
+      const request = tx.objectStore(MAP_STORE).openCursor();
+      let settled = false;
+
+      const finish = (value: File | null) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) {
+          finish(null);
+          return;
+        }
+
+        const shouldSkip = Boolean(
+          excludeCalculationId && cursor.key === excludeCalculationId,
+        );
+        const value = cursor.value;
+        if (!shouldSkip && value instanceof File && value.name === mapName) {
+          finish(value);
+          return;
+        }
+
+        cursor.continue();
+      };
+      request.onerror = () => reject(request.error ?? new Error('IndexedDB cursor failed'));
+      tx.onabort = () => reject(tx.error ?? new Error('IndexedDB transaction aborted'));
+    });
+  } finally {
+    db.close();
+  }
 }
 
 export async function deleteLocalCalculationMap(calculationId: string): Promise<void> {
@@ -131,9 +180,7 @@ export async function saveDraftMap(file: File): Promise<void> {
 
 export async function getDraftMap(): Promise<File | null> {
   const value = await transact<unknown>(MAP_STORE, 'readonly', (store) => store.get(DRAFT_KEY));
-  if (value instanceof File) return value;
-  if (value instanceof Blob) return new File([value], 'mouza-map', { type: value.type });
-  return null;
+  return storedValueToFile(value);
 }
 
 export async function saveLandMeasurementDraft(draft: LandMeasurementDraft): Promise<void> {

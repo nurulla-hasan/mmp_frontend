@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BookmarkCheck, FolderOpen } from "lucide-react";
+import { BookmarkCheck, FolderOpen, Redo2, Trash2, Undo2 } from "lucide-react";
 import { useShallow } from "zustand/shallow";
 
 import { Button } from "@/components/ui/button";
@@ -68,32 +68,36 @@ export const SidebarPlottingPanel = () => {
       </div>
 
       {(plots.length > 0 || plotsFuture.length > 0) && mode !== "drawing_plot" && (
-        <div className="flex gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <Button
             onClick={undoPlotAction}
             disabled={plotsHistory.length === 0}
             variant="outline"
             size="sm"
-            className="flex-1"
+            title="Undo last finished plot"
           >
-            Undo
+            <Undo2 />
+            <span>Undo Plot</span>
           </Button>
           <Button
             onClick={redoPlotAction}
             disabled={plotsFuture.length === 0}
             variant="outline"
             size="sm"
-            className="flex-1"
+            title="Redo last finished plot"
           >
-            Redo
+            <Redo2 />
+            <span>Redo Plot</span>
           </Button>
           <Button
             onClick={() => confirmClearPlot()}
             variant="outline"
             size="sm"
-            className="flex-1"
+            className="text-destructive hover:bg-destructive/10"
+            title="Clear all plots but keep the map and scale"
           >
-            Clear All
+            <Trash2 />
+            <span>Clear All</span>
           </Button>
         </div>
       )}

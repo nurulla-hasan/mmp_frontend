@@ -37,6 +37,7 @@ import { calculatePolygonData } from "@/features/land-measurement/utils/calculat
 import { PLOT_COLOR_PALETTE } from "@/features/land-measurement/utils/canvas";
 import {
   deleteLocalCalculationAssets,
+  findLocalCalculationMapByName,
   getLocalCalculationMap,
   saveLocalCalculationMap,
   saveLocalCalculationThumbnailFromImage,
@@ -58,16 +59,12 @@ export function LoadCalculationDialog({
   initialCalculationId,
 }: LoadCalculationDialogProps) {
   const {
-    image,
-    selectedFile,
     setPlots,
     setScale,
     setCurrentProjectId,
     processFile,
   } = useMapStore(
     useShallow((s) => ({
-      image: s.image,
-      selectedFile: s.selectedFile,
       setPlots: s.setPlots,
       setScale: s.setScale,
       setCurrentProjectId: s.setCurrentProjectId,
@@ -145,19 +142,17 @@ export function LoadCalculationDialog({
     [handleOpenChange, setCurrentProjectId, setPlots, setScale],
   );
 
-  const currentMapMatchesCalculation = useCallback(
-    (calc: TCalculation) => {
-      if (!image || !selectedFile) return false;
-      if (selectedFile.name !== calc.mapName) return false;
+  const currentMapMatchesCalculation = useCallback((calc: TCalculation) => {
+    const state = useMapStore.getState();
+    if (!state.image || !state.selectedFile) return false;
+    if (state.selectedFile.name !== calc.mapName) return false;
 
-      const expectedWidth = Number(calc.imageWidth || 0);
-      const expectedHeight = Number(calc.imageHeight || 0);
-      const widthMatches = !expectedWidth || expectedWidth === image.naturalWidth;
-      const heightMatches = !expectedHeight || expectedHeight === image.naturalHeight;
-      return widthMatches && heightMatches;
-    },
-    [image, selectedFile],
-  );
+    const expectedWidth = Number(calc.imageWidth || 0);
+    const expectedHeight = Number(calc.imageHeight || 0);
+    const widthMatches = !expectedWidth || expectedWidth === state.image.naturalWidth;
+    const heightMatches = !expectedHeight || expectedHeight === state.image.naturalHeight;
+    return widthMatches && heightMatches;
+  }, []);
 
   const cacheThumbnail = useCallback(async (calculationId: string) => {
     const currentImage = useMapStore.getState().image;
@@ -184,9 +179,10 @@ export function LoadCalculationDialog({
         }
 
         if (currentMapMatchesCalculation(calc)) {
-          if (selectedFile) {
+          const currentFile = useMapStore.getState().selectedFile;
+          if (currentFile) {
             try {
-              await saveLocalCalculationMap(calc.id, selectedFile);
+              await saveLocalCalculationMap(calc.id, currentFile);
             } catch (error: unknown) {
               console.error("Could not cache current map for saved measurement:", error);
             }
@@ -194,6 +190,23 @@ export function LoadCalculationDialog({
           await cacheThumbnail(calc.id);
           applyCalculationPlots(calc);
           return;
+        }
+
+        if (calc.mapName) {
+          const reusableMap = await findLocalCalculationMapByName(calc.mapName, calc.id);
+          if (reusableMap) {
+            const success = await processFile(reusableMap);
+            if (success && currentMapMatchesCalculation(calc)) {
+              try {
+                await saveLocalCalculationMap(calc.id, reusableMap);
+              } catch (error: unknown) {
+                console.error("Could not bind reused local map to saved measurement:", error);
+              }
+              await cacheThumbnail(calc.id);
+              applyCalculationPlots(calc);
+              return;
+            }
+          }
         }
 
         setPendingCalculation(calc);
@@ -209,7 +222,6 @@ export function LoadCalculationDialog({
       cacheThumbnail,
       currentMapMatchesCalculation,
       processFile,
-      selectedFile,
     ],
   );
 
@@ -356,14 +368,14 @@ export function LoadCalculationDialog({
               </div>
               <div className="space-y-1">
                 <h4 className="font-semibold text-sm text-foreground">
-                  Map Image Upload Required
+                  Map file needed
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  To load <strong>&ldquo;{pendingCalculation.name}&rdquo;</strong> measurement, please upload{" "}
+                  A matching IndexedDB copy for <strong>&ldquo;{pendingCalculation.name}&rdquo;</strong> was not found in this browser. Select{" "}
                   <span className="text-primary font-medium">
                     &ldquo;{pendingCalculation.mapName || "Map File"}&rdquo;
                   </span>{" "}
-                  image. This is normally needed only on a new browser/device or after site data is cleared.
+                  once. After that, this browser/device will reopen it directly from local storage.
                 </p>
               </div>
             </div>

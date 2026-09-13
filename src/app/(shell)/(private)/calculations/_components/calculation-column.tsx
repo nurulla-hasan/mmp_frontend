@@ -17,6 +17,7 @@ import { calculatePolygonData } from "@/features/land-measurement/utils/calculat
 import { PLOT_COLOR_PALETTE } from "@/features/land-measurement/utils/canvas";
 import {
   deleteLocalCalculationAssets,
+  findLocalCalculationMapByName,
   getLocalCalculationMap,
   saveLocalCalculationMap,
   saveLocalCalculationThumbnailFromImage,
@@ -97,9 +98,10 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
   const handleOpenInMap = async () => {
     setIsOpening(true);
     try {
+      const store = useMapStore.getState();
       const localMap = await getLocalCalculationMap(calculation.id);
       if (localMap) {
-        const success = await useMapStore.getState().processFile(localMap);
+        const success = await store.processFile(localMap);
         if (success) {
           await cacheThumbnailFromCurrentImage();
           applyCalculationAndRedirect();
@@ -119,6 +121,26 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
         await cacheThumbnailFromCurrentImage();
         applyCalculationAndRedirect();
         return;
+      }
+
+      if (calculation.mapName) {
+        const reusableMap = await findLocalCalculationMapByName(
+          calculation.mapName,
+          calculation.id,
+        );
+        if (reusableMap) {
+          const success = await useMapStore.getState().processFile(reusableMap);
+          if (success && currentCanvasMatchesCalculation()) {
+            try {
+              await saveLocalCalculationMap(calculation.id, reusableMap);
+            } catch (error: unknown) {
+              console.error("Could not bind reused local map to measurement:", error);
+            }
+            await cacheThumbnailFromCurrentImage();
+            applyCalculationAndRedirect();
+            return;
+          }
+        }
       }
 
       setIsUploadModalOpen(true);
@@ -194,8 +216,8 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
       <ModalWrapper
         open={isUploadModalOpen}
         onOpenChange={setIsUploadModalOpen}
-        title="ম্যাপ ফাইল আপলোড করুন"
-        description={`"${calculation.name}" পরিমাপটি ক্যানভাসে দেখতে হলে এর মূল ম্যাপ ইমেজটি প্রয়োজন।`}
+        title="ম্যাপ ফাইল প্রয়োজন"
+        description={`"${calculation.name}"-এর matching local map এই browser-এর IndexedDB-তে পাওয়া যায়নি।`}
       >
         <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 space-y-4">
           <div className="flex items-start gap-3">
@@ -204,14 +226,14 @@ function CalculationActions({ calculation }: { calculation: TCalculation }) {
             </div>
             <div className="space-y-1">
               <h4 className="font-semibold text-sm text-foreground">
-                ম্যাপ ইমেজ নির্বাচন করুন
+                একবার ম্যাপটি নির্বাচন করুন
               </h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 অনুগ্রহ করে{" "}
                 <span className="text-primary font-semibold">
                   &ldquo;{calculation.mapName || "ম্যাপ ফাইল"}&rdquo;
                 </span>{" "}
-                সিলেক্ট করুন। একই ব্রাউজারে একবার নির্বাচন করলে পরেরবার ম্যাপটি স্বয়ংক্রিয়ভাবে পাওয়া যাবে।
+                সিলেক্ট করুন। এরপর এই browser/device-এ IndexedDB থেকে সরাসরি খুলবে; আবার নির্বাচন করতে হবে না।
               </p>
             </div>
           </div>

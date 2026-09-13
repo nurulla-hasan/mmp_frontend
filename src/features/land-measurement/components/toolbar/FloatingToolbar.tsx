@@ -3,7 +3,8 @@
 import { useRef, useMemo, useCallback, memo } from 'react';
 import {
     Upload, Ruler, PenTool, Scissors, Eye, EyeOff, Search, HelpCircle,
-    Moon, Sun, MoreHorizontal, HardDrive, RotateCcw, FolderOpen, BookmarkCheck
+    Moon, Sun, MoreHorizontal, HardDrive, RotateCcw, FolderOpen, BookmarkCheck,
+    Undo2, Redo2, Trash2
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useShallow } from 'zustand/shallow';
@@ -101,6 +102,12 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         image,
         scale,
         plots,
+        plotPoints,
+        plotPointsFuture,
+        plotsHistory,
+        plotsFuture,
+        undoPlotAction,
+        redoPlotAction,
         setMode,
         setIsDrawing,
         setCalibrationLine,
@@ -123,6 +130,12 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         image: s.image,
         scale: s.scale,
         plots: s.plots,
+        plotPoints: s.plotPoints,
+        plotPointsFuture: s.plotPointsFuture,
+        plotsHistory: s.plotsHistory,
+        plotsFuture: s.plotsFuture,
+        undoPlotAction: s.undoPlotAction,
+        redoPlotAction: s.redoPlotAction,
         setMode: s.setMode,
         setIsDrawing: s.setIsDrawing,
         setCalibrationLine: s.setCalibrationLine,
@@ -139,6 +152,7 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
     })));
 
     const isDrawing = mode === 'drawing_plot' || mode === 'calibrating' || mode === 'manual_divide_plot';
+    const hasAnyPlotWork = plots.length > 0 || plotPoints.length > 0 || plotsFuture.length > 0;
 
     const handleUploadClick = useCallback(() => {
         if (selectedFile || image) {
@@ -231,6 +245,24 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
                 id="step-drawing"
             />
         ),
+        undoPoint: (size: 'md' | 'sm' = 'md') => (
+            <ToolBtn
+                icon={Undo2}
+                label="Undo Point"
+                onClick={undoPlotAction}
+                disabled={mode !== 'drawing_plot' || plotPoints.length === 0}
+                size={size}
+            />
+        ),
+        redoPoint: (size: 'md' | 'sm' = 'md') => (
+            <ToolBtn
+                icon={Redo2}
+                label="Redo Point"
+                onClick={redoPlotAction}
+                disabled={mode !== 'drawing_plot' || plotPointsFuture.length === 0}
+                size={size}
+            />
+        ),
         divide: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={Scissors}
@@ -263,12 +295,42 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
                 id="step-magnifier"
             />
         ),
+        undoPlot: (size: 'md' | 'sm' = 'md') => (
+            <ToolBtn
+                icon={Undo2}
+                label="Undo Plot"
+                onClick={undoPlotAction}
+                disabled={isDrawing || plotsHistory.length === 0}
+                size={size}
+            />
+        ),
+        redoPlot: (size: 'md' | 'sm' = 'md') => (
+            <ToolBtn
+                icon={Redo2}
+                label="Redo Plot"
+                onClick={redoPlotAction}
+                disabled={isDrawing || plotsFuture.length === 0}
+                size={size}
+            />
+        ),
+        clearPlots: (size: 'md' | 'sm' = 'md') => (
+            <ToolBtn
+                icon={Trash2}
+                label="Clear All Plots"
+                onClick={() => confirmClearPlot()}
+                disabled={!hasAnyPlotWork || isDrawing}
+                variant="danger"
+                size={size}
+                id="step-clear-plots"
+            />
+        ),
         reset: (size: 'md' | 'sm' = 'md') => (
             <ToolBtn
                 icon={RotateCcw}
-                label="Clear All"
+                label="Reset Map"
                 onClick={() => confirmClearMap()}
-                disabled={!image}
+                disabled={!image || isDrawing}
+                variant="danger"
                 size={size}
                 id="step-reset"
             />
@@ -296,9 +358,12 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
         ),
     }), [
         selectedFile, isProcessingFile, handleUploadClick, onOpenLoad, onOpenSave,
-        scale, mode, image, plots.length, isDrawing, handleCalibrateClick, startPlotDrawing,
+        scale, mode, image, plots.length, plotPoints.length, plotPointsFuture.length,
+        plotsHistory.length, plotsFuture.length, isDrawing, hasAnyPlotWork,
+        handleCalibrateClick, startPlotDrawing, undoPlotAction, redoPlotAction,
         startManualDivide, diagonalPlotId, isSelectingDiagonalPlot, handleDiagonalsClick,
-        isMagnifierEnabled, setIsMagnifierEnabled, theme, setTheme, confirmClearMap
+        isMagnifierEnabled, setIsMagnifierEnabled, theme, setTheme, confirmClearMap,
+        confirmClearPlot
     ]);
 
     return (
@@ -329,14 +394,34 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
                 <VDivider />
                 {commonTools.calibrate()}
                 {commonTools.draw()}
+                {mode === 'drawing_plot' && commonTools.undoPoint()}
+                {mode === 'drawing_plot' && commonTools.redoPoint()}
                 {commonTools.divide()}
                 <VDivider />
                 {commonTools.diagonals()}
                 {commonTools.magnifier()}
                 <VDivider />
-                {commonTools.help()}
-                <VDivider />
-                {commonTools.reset()}
+                <DropdownMenu>
+                    <DropdownMenuTrigger nativeButton={false} render={<div className="inline-flex" />} className="focus-visible:outline-none focus:outline-none">
+                        <ToolBtn icon={MoreHorizontal} label="More Tools" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                        side="left"
+                        align="end"
+                        sideOffset={10}
+                        className="w-fit p-1 rounded-2xl border border-border bg-card/95 shadow-xl"
+                    >
+                        <div className="flex flex-row items-center gap-1">
+                            {commonTools.undoPlot('sm')}
+                            {commonTools.redoPlot('sm')}
+                            {commonTools.clearPlots('sm')}
+                            {commonTools.reset('sm')}
+                            <div className="mx-0.5 h-6 w-px bg-border/60" />
+                            {commonTools.themeToggle('sm')}
+                            {commonTools.help('sm')}
+                        </div>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             {scale && !isDrawing && (
@@ -369,15 +454,20 @@ export function FloatingToolbar({ onOpenLoad, onOpenSave }: FloatingToolbarProps
                         sideOffset={12}
                         className="w-fit p-1 rounded-2xl border border-border bg-card/95 shadow-xl"
                     >
-                        <div className="flex flex-row items-center gap-1">
-                            {plots.length > 0 && commonTools.save('sm')}
-                            {commonTools.drive('sm')}
-                            <div className="mx-0.5 h-6 w-px bg-border/60" />
-                            {commonTools.diagonals('sm')}
-                            {commonTools.themeToggle('sm')}
-                            {commonTools.help('sm')}
-                            <div className="mx-0.5 h-6 w-px bg-border/60" />
-                            {commonTools.reset('sm')}
+                        <div className="flex flex-col gap-1">
+                            <div className="flex flex-row items-center gap-1">
+                                {plots.length > 0 && commonTools.save('sm')}
+                                {commonTools.drive('sm')}
+                                {commonTools.diagonals('sm')}
+                                {commonTools.themeToggle('sm')}
+                                {commonTools.help('sm')}
+                            </div>
+                            <div className="flex flex-row items-center gap-1 border-t border-border/60 pt-1">
+                                {commonTools.undoPlot('sm')}
+                                {commonTools.redoPlot('sm')}
+                                {commonTools.clearPlots('sm')}
+                                {commonTools.reset('sm')}
+                            </div>
                         </div>
                     </DropdownMenuContent>
                 </DropdownMenu>
