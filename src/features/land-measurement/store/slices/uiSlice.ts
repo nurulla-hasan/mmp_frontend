@@ -12,6 +12,8 @@ export interface UIState {
   snapHint: boolean;
   isMagnifierEnabled: boolean;
   isShowDiagonals: boolean;
+  diagonalPlotId: string | null;
+  isSelectingDiagonalPlot: boolean;
   reportInfo: { mouza: string; jlNo: string; dagNo: string; khatianNo: string; date: string; surveyorName: string };
   reportImage: string | null;
   currentProjectId: string | null;
@@ -31,6 +33,8 @@ export interface UIActions {
   setSnapHint: (hint: boolean) => void;
   setIsMagnifierEnabled: (enabled: boolean) => void;
   setIsShowDiagonals: (enabled: boolean) => void;
+  setDiagonalPlotId: (id: string | null) => void;
+  setIsSelectingDiagonalPlot: (selecting: boolean) => void;
   setReportInfo: (info: { mouza: string; jlNo: string; dagNo: string; khatianNo: string; date: string; surveyorName: string } | ((prev: { mouza: string; jlNo: string; dagNo: string; khatianNo: string; date: string; surveyorName: string }) => { mouza: string; jlNo: string; dagNo: string; khatianNo: string; date: string; surveyorName: string })) => void;
   setReportImage: (image: string | null) => void;
   setCurrentProjectId: (id: string | null) => void;
@@ -44,7 +48,6 @@ export type UISlice = UIState & UIActions;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set, get, _store) => ({
-  // State
   mode: 'none',
   isModalOpen: false,
   stagePos: { x: 0, y: 0 },
@@ -55,13 +58,14 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set, get, 
   snapHint: false,
   isMagnifierEnabled: false,
   isShowDiagonals: false,
+  diagonalPlotId: null,
+  isSelectingDiagonalPlot: false,
   reportInfo: { mouza: '', jlNo: '', dagNo: '', khatianNo: '', date: new Date().toLocaleDateString('en-GB'), surveyorName: '' },
   reportImage: null,
   currentProjectId: null,
   pointerPos: null,
   deviceType: 'touch',
 
-  // Actions
   setMode: (mode) => set({ mode }),
   setIsModalOpen: (isOpen) => set({ isModalOpen: isOpen }),
   setStagePos: (pos) =>
@@ -78,7 +82,16 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set, get, 
   setPendingAction: (action) => set({ pendingAction: action }),
   setSnapHint: (snapHint) => set({ snapHint }),
   setIsMagnifierEnabled: (enabled) => set({ isMagnifierEnabled: enabled }),
-  setIsShowDiagonals: (enabled) => set({ isShowDiagonals: enabled }),
+  setIsShowDiagonals: (enabled) => set({
+    isShowDiagonals: enabled,
+    diagonalPlotId: enabled ? get().diagonalPlotId : null,
+    isSelectingDiagonalPlot: false,
+  }),
+  setDiagonalPlotId: (diagonalPlotId) => set({
+    diagonalPlotId,
+    isShowDiagonals: Boolean(diagonalPlotId),
+  }),
+  setIsSelectingDiagonalPlot: (isSelectingDiagonalPlot) => set({ isSelectingDiagonalPlot }),
   setReportInfo: (info) =>
     set((state) => ({
       reportInfo: typeof info === 'function' ? info(state.reportInfo) : info,
@@ -97,7 +110,7 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set, get, 
       y: (cy - state.stagePos.y) / state.stageScale,
     };
   },
-  
+
   getStageTargetPoint: () => {
     const state = get();
     if (state.deviceType === 'mouse' && state.pointerPos) {
